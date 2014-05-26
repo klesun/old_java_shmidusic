@@ -1,0 +1,244 @@
+package GraphTmp;
+
+import Musica.Nota;
+import Tools.Pointerable;
+import Musica.NotnyStan;
+
+import javax.swing.*;
+import javax.swing.filechooser.*;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.io.File;
+
+public class GraphMusica extends JFrame implements ActionListener {
+
+    final NotnyStan stan;
+    DrawPanel Albert;
+    Status status;
+    
+    Pointerable curNota;
+    JFileChooser c = new JFileChooser();
+	FileFilter filter = new FileNameExtensionFilter("Klesun Midi-data","klsn");
+	
+	JTextField tempoField = new JTextField(4);
+	boolean ctrl = false;
+    
+    public GraphMusica(final NotnyStan stan){
+        super("Да будет такая музыка!"); //Заголовок окна
+
+        this.stan = stan;
+        status = new Status(stan);
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        this.setLayout(new BorderLayout());
+        JScrollPane elder;
+        this.add(elder = new JScrollPane(Albert = new DrawPanel(stan)), BorderLayout.CENTER);
+        elder.getVerticalScrollBar().setUnitIncrement(16);      
+
+        stan.drawPanel = Albert;
+        Albert.scroll = elder;
+       
+        
+        this.setSize(800, 600);
+        this.setLocationRelativeTo(null);
+
+        this.getContentPane().addHierarchyBoundsListener(new HierarchyBoundsListener(){
+            @Override
+            public void ancestorMoved(HierarchyEvent e) {}
+            @Override
+            public void ancestorResized(HierarchyEvent e) {
+                String s = e.paramString();
+                int p = 0;
+                for (int i=0; i<3; i++){
+                    p = s.indexOf(',', p+1);
+                }
+                int p2 = s.indexOf('x', p+1);
+                int p3 = s.indexOf(',', p2+1);
+                int w = Integer.parseInt(s.substring(p+1, p2));
+                int h = Integer.parseInt(s.substring(p2+1, p3));
+                Albert.stretch(w,h);
+            }
+        });               
+	    
+	    Albert.status = status;
+	    c.setFileFilter(filter);
+	    
+	    tempoField.addKeyListener(new KeyListener() {
+            public void keyPressed(KeyEvent e) {
+            	curNota = stan.ptr.curNota;
+            	                
+                switch (e.getKeyCode()) {
+	                case KeyEvent.VK_CONTROL:
+	                	ctrl = true;
+	                    break;
+                
+                    case KeyEvent.VK_RIGHT:                    	
+                        stan.ptr.move(1, true);
+                        stan.drawPanel.checkCam();
+                        break;
+                    case KeyEvent.VK_LEFT:
+                        stan.ptr.move(-1, true);
+                        stan.drawPanel.checkCam();
+                        break;
+                    case KeyEvent.VK_UP:
+                        stan.ptr.move(-Albert.stepInOneSys/2+2, true);
+                        stan.drawPanel.checkCam();
+                        break;
+                    case KeyEvent.VK_DOWN:
+                        stan.ptr.move(Albert.stepInOneSys/2-2, true);
+                        stan.drawPanel.checkCam();
+                        break;
+                    case KeyEvent.VK_HOME:
+                    	stan.ptr.moveToBegin();
+                        stan.drawPanel.checkCam();
+                        break;
+                    case KeyEvent.VK_END:
+                    	stan.ptr.moveToEnd();
+                        stan.drawPanel.checkCam();
+                        break;
+                    case KeyEvent.VK_ENTER:
+                        stan.ptr.move(0, true);
+                        stan.drawPanel.checkCam();
+                        break;
+                    case KeyEvent.VK_TAB:
+                    	System.out.println("Вы нажали Tab!");
+                    	stan.nextAcc();
+                        break;
+                        
+                    case KeyEvent.VK_ADD:
+                    	System.out.println("Вы нажали плюс!");                       
+                        if (stan.isChanSep == false) curNota.changeDur(1, false);
+                        else stan.Acc.changeDur(1, true);
+                        Albert.repaint();
+                        break;
+                    case KeyEvent.VK_SUBTRACT:
+                    	System.out.println("Вы нажали минус!");                    	
+                    	if (stan.isChanSep == false) curNota.changeDur(-1, false);
+                        else stan.Acc.changeDur(-1, true);
+                    	Albert.repaint();
+                        break;
+                    
+                    case '1':
+                    	System.out.println("Вы нажали 1!");
+	                 	int rVal = c.showSaveDialog(GraphMusica.this);	                 	
+	                 	if (rVal == JFileChooser.APPROVE_OPTION) {
+	                 		File fn = c.getSelectedFile();
+	                 		if(!fn.getAbsolutePath().endsWith(".klsn")){
+	                 		    fn = new File(fn + ".klsn");
+	                 		}
+	                 		
+	                 		stan.saveFile( fn );	                 	     
+	                 	}
+	                 	if (rVal == JFileChooser.CANCEL_OPTION) {	                 	     
+	                 	     break;
+	                 	}                        
+                        break;
+                    case '2':
+                    	System.out.println("Вы нажали 2!");
+                        int i = okcancel("Are your sure? Unsaved data will be lost."); // 2 - cancel, 0 - ok
+                        if (i == 0) {                        	                        	
+             			   	int sVal = c.showOpenDialog(GraphMusica.this);
+             			   	if (sVal == JFileChooser.APPROVE_OPTION) {
+             			   		stan.klsnOpen( c.getSelectedFile() );
+             			   	}
+             			   	if (sVal == JFileChooser.CANCEL_OPTION) {
+             			   		break;
+             			   	}
+                        }                   	
+                        break;
+                    case '3':
+                    	System.out.println("Вы нажали 3!");
+                    	stan.playEntire();
+                        break;
+                    case '4':
+                    	System.out.println("Вы нажали 4!");
+                    	stan.stopMusic();
+                        break;
+                    case '0':
+                    	System.out.println("Вы нажали 0!");
+                    	stan.changeMode();
+                        break;
+                    case KeyEvent.VK_DELETE:
+                    	System.out.println("Вы нажали Delete!");
+                        stan.delNotu();
+                        break;
+                    case KeyEvent.VK_BACK_SPACE:
+                        // И ёжику ясно, что надо стереть последний символ... а если ты хочешь стереть не последний
+                        // или копипастить текст - хуй тебе в руки... Для начала и так неплохо, но, естественно,
+                        // не забыть добавить альтернативный способ ввода (типа, нажимаешь кнопку, и появляется
+                        // окошко для редактирования текста)
+                        System.out.println("Было: "+curNota.slog);
+                        String slog = curNota.slog;
+                        System.out.println(slog.length());
+                        if (slog.length() < 2) {
+                            curNota.slog = "";
+                        } else {
+                            curNota.slog = slog.substring(0, slog.length()-1);
+                        }
+                        System.out.println("Стало: "+curNota.slog);
+                        Albert.repaint();
+                        break;
+                    default:
+                    	if (ctrl) {
+                    		switch(e.getKeyCode()) {
+                    		case 'z': case 'Z': case 'Я': case 'я':
+                    			System.out.println("Вы нажали контрол-З");
+                    			stan.retrieveNotu();
+                    			break;
+                    		case 'y': case 'Y': case 'Н': case 'н':
+	                			System.out.println("Вы нажали контрол-У");
+	                			stan.detrieveNotu();
+	                			break;
+                    		}
+	                    		                		
+                    		break;
+                    	}
+                    	if (stan.ptr.pos == -1) break;
+                    	
+                        System.out.println("Keycode "+e.getKeyCode());
+                    	if (e.getKeyCode() >= 32 || e.getKeyCode() == 0) {
+                    		// Это символ - напечатать
+                    		curNota.slog = curNota.slog.concat( "" + e.getKeyChar() );
+                    	}
+
+                    	System.out.println(curNota.slog);
+                        Albert.repaint();
+                        break;
+                }
+            }
+            public void keyReleased(KeyEvent e) {
+            	switch (e.getKeyCode()) {
+        		case KeyEvent.VK_CONTROL: 
+        			ctrl = false; 
+        			break;
+            	}
+            }
+            public void keyTyped(KeyEvent e) {  }
+        });
+	    JPanel  topMenu = new JPanel();        
+        this.add( topMenu, BorderLayout.NORTH );;
+	    topMenu.add(status);
+	    tempoField.setFocusTraversalKeysEnabled(false);
+	    topMenu.add(tempoField);
+	    tempoField.addActionListener(this);
+	    
+    }
+    
+
+    
+    public static int okcancel(String theMessage) {
+        int result = JOptionPane.showConfirmDialog((Component) null, theMessage,
+            "alert", JOptionPane.OK_CANCEL_OPTION);
+        return result;
+      }
+
+
+
+	@Override
+	public void actionPerformed(ActionEvent evt) {
+		System.out.println(evt);
+		
+	}
+
+}
