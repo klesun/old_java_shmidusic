@@ -203,7 +203,7 @@ public class NotnyStan {
 
     final int MUTED = 1;
     final int LYRICS = 2;
-    final int MAXSLOG = 32;
+    final int MAXSLOG = 255;
     final int MINTUNE = 32;
     final byte NEWACCORD = 0;
     final byte EOS = 1; // End Of String
@@ -253,6 +253,7 @@ public class NotnyStan {
     }
 
     public int klsnOpen( File f ){
+    	out("Открыли файл");
     	if (ourFile == null) ourFile = f;
     	try {
     		FileInputStream strmIn = new FileInputStream( f );
@@ -269,6 +270,7 @@ public class NotnyStan {
     		int cislic;
             Nota last = null;
             while ( b != -1 ) {
+            	out(b+" в цикле");
             	// TODO: А ещё добавить считывание фантомки
                 switch (b) {
                 case NEWACCORD:
@@ -279,7 +281,6 @@ public class NotnyStan {
 
                     while (b >= MINTUNE && b != -1) {
                         cislic = strmIn.read();
-
                         ((Nota)ptr.curNota).append(new Nota(b, (int)cislic));
                         b = strmIn.read();
                     }
@@ -290,12 +291,15 @@ public class NotnyStan {
                     b = strmIn.read();
                     while (b != EOS) {
                         if (i < MAXSLOG) bajti[i] = (byte)b;
+                        else System.out.println("На одну ноту повешен очень длинный текст, моя программа ещё к такому не готова!");
                         ++i;
                         b = strmIn.read();
                         if (b == -1) System.exit(66);
                     } 
                     b = strmIn.read();
-                    last.slog = new String(bajti, 0, i, "UTF-8");       
+                    System.out.println("Пока ошибки нету");
+                    last.slog = new String(bajti, 0, i, "UTF-8");
+                    System.out.println("А теперь есть");
                     System.out.println(last.slog);
                     
                     break;
@@ -306,18 +310,22 @@ public class NotnyStan {
                     // Пропускаем неизвестные тэги (главное, чтобы в этих тэгах
                 	// все числа были больше 32)
                 	// TODO: проверить на работоспособность
+                	out("Неизвестные тэги?");
+                	
                 	int subB = b;
                 	while ( (b = strmIn.read()) != subB );
                 	b = strmIn.read();
                     break;
                 }
-            }
+                out(b+" закончилась итерация");
+            } // while b!=-1
 
     		strmIn.close();
     	} catch (IOException e){
     		System.out.println("Не открывается файл для чтения");
     		return -1;
     	}
+    	out("Закрыли файл");
     	return 0;    	
     }
 
@@ -394,6 +402,10 @@ public class NotnyStan {
     		ptr.AcNo = 0;
     	}
     	drawPanel.repaint();
+    }
+    
+    private void out(String str) {
+    	System.out.println(str);
     }
     
 }

@@ -168,13 +168,14 @@ public class GraphMusica extends JFrame implements ActionListener {
                         // или копипастить текст - хуй тебе в руки... Для начала и так неплохо, но, естественно,
                         // не забыть добавить альтернативный способ ввода (типа, нажимаешь кнопку, и появляется
                         // окошко для редактирования текста)
+                    	if (curNota instanceof Nota == false) break;
                         System.out.println("Было: "+curNota.slog);
                         String slog = curNota.slog;
                         System.out.println(slog.length());
                         if (slog.length() < 2) {
                             curNota.slog = "";
                         } else {
-                            curNota.slog = slog.substring(0, slog.length()-1);
+                            ((Nota)curNota).setSlog(  slog.substring(0, slog.length()-1)  );
                         }
                         System.out.println("Стало: "+curNota.slog);
                         Albert.repaint();
@@ -194,12 +195,12 @@ public class GraphMusica extends JFrame implements ActionListener {
 	                    		                		
                     		break;
                     	}
-                    	if (stan.ptr.pos == -1) break;
+                    	if (curNota instanceof Nota == false) break;
                     	
                         System.out.println("Keycode "+e.getKeyCode());
                     	if (e.getKeyCode() >= 32 || e.getKeyCode() == 0) {
                     		// Это символ - напечатать
-                    		curNota.slog = curNota.slog.concat( "" + e.getKeyChar() );
+                    		((Nota)curNota).setSlog(  curNota.slog.concat( "" + e.getKeyChar() )  );
                     	}
 
                     	System.out.println(curNota.slog);

@@ -55,20 +55,29 @@ public class MyPointer {
     
     public int moveBo(int q, boolean bo){
         AcNo = -1;
-    	if ((pos+q >= stan.noshuCount) || (pos+q < 0)) {System.out.println("Stack overflow"); return -1;}
+    	if ((pos+q >= stan.noshuCount) || (pos+q < 0)) return -1;
+    	int delta=0;
         
         stan.isChanSep = false;
         pos += q;
         while (q > 0) {
+        	delta+=curNota.gsize;
         	curNota = curNota.next;
         	--q;
         }
         while (q < 0) {
+        	delta-=curNota.gsize;
         	curNota = curNota.prev;
         	++q;
         }                
         
         if (bo) playMusThread.playAccord(curNota);
+        stan.drawPanel.repaint();
+        try {
+        	Thread.sleep(500);
+        } catch (Exception e) {
+        	System.out.println("Тэд не хочет спать!");
+        }
         stan.drawPanel.checkCam();
         stan.drawPanel.repaint();
         return 0;

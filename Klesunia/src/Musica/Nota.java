@@ -246,7 +246,7 @@ public class Nota extends Pointerable {
     	// Копипаст
     	File notRes[] = new File[8];
         for (int idx = -1; idx<7; ++idx){
-        	String str = "out/imgs/" + pow(2, idx) + "_sized.png";
+        	String str = "imgs/" + pow(2, idx) + "_sized.png";
         	notRes[idx+1] = new File(str); 
         }
         for (int idx = 0; idx < 8; ++idx){
@@ -271,4 +271,11 @@ public class Nota extends Pointerable {
     	return n*pow(n, k-1);
     }
     
+    double STEP_H = 20.0;
+    int FONT_WIDTH = 7; // для Font.MONOSPACED
+    public void setSlog( String slog ) {
+    	this.slog = slog;
+    	gsize = (int)Math.ceil(  slog.length()*FONT_WIDTH / (STEP_H*2)  );
+    	if (gsize < 1) gsize = 1;
+    }
 }

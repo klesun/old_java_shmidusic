@@ -52,10 +52,11 @@ public class DrawPanel extends JPanel {
     public DrawPanel(final NotnyStan stan) {
         this.stan = stan;
         stan.stepInOneSys = stepInOneSys;
-        
-        URL keyRes = getClass().getResource("/imgs/vio_sized.png");
-        URL basRes = getClass().getResource("/imgs/bass_sized.png");
-        URL bemRes = getClass().getResource("/imgs/flat_sized.png");
+        URL curUr = getClass().getResource("../");
+        System.out.println(curUr.getPath());
+        URL keyRes = getClass().getResource("../imgs/vio_sized.png");
+        URL basRes = getClass().getResource("../imgs/bass_sized.png");
+        URL bemRes = getClass().getResource("../imgs/flat_sized.png");
         
 
         try {   vikey = ImageIO.read(keyRes);
@@ -78,6 +79,7 @@ public class DrawPanel extends JPanel {
     boolean kostil = true;
     int lastSis = 0;
     public void paintComponent(Graphics g) {
+    	out("Ща выведу");
     	status.renew();
     	
         this.setPreferredSize(new Dimension(width, 600+maxy));	//	Needed for the scroll bars to appear
@@ -108,10 +110,7 @@ public class DrawPanel extends JPanel {
         	
         	Nota theNota = (Nota)anonimus;
         	curCislic += theNota.getAccLen();
-        	if (curCislic / stan.cislic > 0) {
-        		// drawTakt
-        		boolean bo = false;
-        		        		
+        	if (curCislic / stan.cislic > 0) {      		        		
         		curCislic %= stan.cislic;
         		if (curCislic > 0) {
         			g.setColor(Color.RED);
@@ -140,16 +139,11 @@ public class DrawPanel extends JPanel {
                 MARY += SISDISPLACE*STEP_V;
                 
             }
-            
+        	tmp = theNota;
             boolean checkVa = false;
-            tmp = theNota;
             while (tmp!=null) {
             	if (tmp.okt > 6) checkVa = true;
             	tmp = tmp.accord;
-            }
-
-            if (theNota.slog != null && theNota.slog != ""){
-                g.drawString(theNota.slog, gPos, MARY-6*STEP_V);
             }
             g.setColor(Color.BLUE);
         	if (checkVa) {
@@ -171,7 +165,7 @@ public class DrawPanel extends JPanel {
         		MARY -= 7*STEP_V;
         	}
             
-            gPos += 2*STEP_H;
+            gPos += 2*STEP_H*theNota.gsize;
             
         }
         maxgPos = gPos;
@@ -188,7 +182,8 @@ public class DrawPanel extends JPanel {
         g.drawString(stan.ptr.AcNo+"", 20, 10);
 
         this.revalidate();	//	Needed to recalc the scroll bars
-    }
+        out("Вывел");
+    } // paintComponent
 
     int tp = 0;
 
@@ -211,7 +206,6 @@ public class DrawPanel extends JPanel {
             g.drawImage(bemol, gPos-(int)Math.round(0.5*STEP_H), thisY + 3*STEP_V +2, this);
         } // Хочу, чтобы он рисовал от ноты, поэтому не инкапсулировал бемоль
         
-       // g.drawImage(notaImg[idx], gPos, thisY, this);
         g.drawImage( theNota.getImage(), gPos, thisY, this );        
     	
         int n = theNota.durCislic;
@@ -227,6 +221,10 @@ public class DrawPanel extends JPanel {
     	if (theNota.okt > 6) chet = !chet;
         if (chet) g.drawLine(gPos - 4, thisY + STEP_V*7, gPos + 22, thisY + STEP_V*7);
     	// полоска для до...
+        if (theNota.slog != null && theNota.slog != ""){
+        	g.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+            g.drawString(theNota.slog, gPos, MARY-6*STEP_V);
+        }
 
     	return 0;
     } 
@@ -242,6 +240,10 @@ public class DrawPanel extends JPanel {
     
     int getSys(int n){
     	return n/(stepInOneSys/2-2);
+    }
+    
+    private void out(String str) {
+    	System.out.println(str);
     }
 }
 
