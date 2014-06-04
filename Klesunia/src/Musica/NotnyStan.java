@@ -24,7 +24,8 @@ public class NotnyStan {
 	int EPSILON = 50;
 	
 	public static int tempo = 120;	
-	
+	public static double volume = 0.5;
+
     public enum aMode {
         append,
         rewrite,
@@ -52,7 +53,7 @@ public class NotnyStan {
     public MyPointer ptr;
     
     public int stepInOneSys = 0;
-    public Phantom firstNota = new Phantom();
+    public Phantom phantomka = new Phantom(this);
     public Nota firstDeleted = new Nota(1);
     public Nota lastDeleted = firstDeleted; // Тут мы чутка нелогично сделаем:
     										// next-ы будут уходить в глубь,
@@ -66,12 +67,11 @@ public class NotnyStan {
         bassKey2 = false;
 
         ptr = new MyPointer(this);
-        ptr.beginNota = firstNota;
+        ptr.beginNota = phantomka;
         mode = aMode.insert;
 
         this.device = device;
-        openOutDevice();   
-        
+        openOutDevice();
     }
     
 
@@ -178,7 +178,7 @@ public class NotnyStan {
         if (ptr.curNota instanceof Nota == false) return -1;
         Nota nota = (Nota)ptr.curNota;
         //nota.clearAccord();
-        if (nota.prev != firstNota) {
+        if (nota.prev != phantomka) {
             ptr.move(-1);
             nota.prev.next = nota.next;
             if (nota.next != null) nota.next.prev = nota.prev;
@@ -190,7 +190,7 @@ public class NotnyStan {
             --ptr.pos;
         } else {
             ptr.moveOut();
-            firstNota.next = null;
+            phantomka.next = null;
         }
         
         nota.next = lastDeleted;
@@ -200,14 +200,14 @@ public class NotnyStan {
         drawPanel.repaint();
         return 0;
     }
-
-    final int MUTED = 1;
-    final int LYRICS = 2;
-    final int MAXSLOG = 255;
-    final int MINTUNE = 32;
     final byte NEWACCORD = 0;
     final byte EOS = 1; // End Of String
-    final byte PIANO = 2;
+    final byte LYRICS = 2;
+    final byte VERSION = 3;
+    final byte STUFF = 4; // End Of String
+    final int MAXSLOG = 255;
+    final int MINTUNE = 32;
+
     int fileMode = LYRICS;
 
     public int saveFile( File f ){
@@ -224,7 +224,7 @@ public class NotnyStan {
             	Nota n = (Nota)ptr.curNota;
             	do {     
 	            	strmOut.write( (byte)n.tune );	            		            		           
-	            	strmOut.write( (byte)n.durCislic );
+	            	strmOut.write( (byte)n.cislic );
 	            	
 	            	n = n.accord;
             	} while (n != null);
@@ -275,6 +275,7 @@ public class NotnyStan {
                 case NEWACCORD:
                     tune = strmIn.read();
                     cislic = strmIn.read();
+                    out("cislic from file = "+cislic);
                     last = addFromFile(tune, cislic);
                     b = strmIn.read();
 
@@ -299,7 +300,10 @@ public class NotnyStan {
                     last.setSlog( new String(bajti, 0, i, "UTF-8") );
                     
                     break;
-                case PIANO:
+                case STUFF:
+
+                    break;
+                case VERSION:
 
                     break;
                 default:
@@ -328,8 +332,10 @@ public class NotnyStan {
     
     
     private Nota addFromFile(int tune, int cislic){
-    	Nota newbie = new Nota(tune, (int)cislic);  // Здесь, мне нужен конструктор для числителя!!!
-    	newbie.prev = ptr.curNota;
+        out("От вас получили: "+cislic);
+    	Nota newbie = new Nota(tune, (int)cislic);
+        out("Однако за время пути: "+newbie.cislic);
+        newbie.prev = ptr.curNota;
 		ptr.curNota.next = newbie;    		
 		newbie.isFirst = true;	        
     	++noshuCount;
@@ -354,16 +360,14 @@ public class NotnyStan {
     
     File ourFile = null;
     
-    public int playEntire(){    	
-        
+    public int playEntire(){
     	playMusThread thr;
     	thr = new playMusThread(this);
     	thr.start();
-    	
     	return 0;
     }
     public void stopMusic(){
-    	stop = true;
+        stop = true;
     }
     
     private int openOutDevice(){
@@ -404,6 +408,18 @@ public class NotnyStan {
     
     private void out(String str) {
     	System.out.println(str);
+    }
+
+    public void checkValues(Phantom  rak) {
+        int cislic=rak.cislic, znamen=rak.znamen, tempo=rak.valueTempo; double volume=rak.valueVolume;
+        if (cislic!=this.cislic || znamen!=DEFAULT_ZNAM || tempo!=NotnyStan.tempo || volume!=this.volume) {
+            // Всё равно ж перерисовывать надо будет
+            int k = DEFAULT_ZNAM / znamen;
+            this.cislic = cislic*k;
+            this.tempo = tempo;
+            this.volume = volume;
+            drawPanel.repaint();
+        }
     }
     
 }

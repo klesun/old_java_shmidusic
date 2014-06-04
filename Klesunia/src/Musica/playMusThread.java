@@ -44,7 +44,7 @@ public class playMusThread extends Thread {
     	int time = Short.MAX_VALUE;
     	while (tmp != null) {
     		playNotu(tmp);
-    		time = Math.min( time, (short)( msIns*tmp.durCislic/tmp.durZnamen*4/NotnyStan.tempo*60 ) );
+    		time = Math.min( time, (short)( msIns*tmp.cislic/tmp.znamen*4/NotnyStan.tempo*60 ) );
     		// 4 - будем брать четвертную как основную, 60 - потому что темпо измеряется в ударах в минуту, а у нас секунды (вообще, даже, миллисекунды)
     		tmp = tmp.accord;
     	}
@@ -53,7 +53,6 @@ public class playMusThread extends Thread {
     }
     
     public static int playNotu(Nota nota){
-    	// ��������� ���� � ������ ����
     	OneShotThread thr;
     	thr = new OneShotThread(nota);
     	thr.start();

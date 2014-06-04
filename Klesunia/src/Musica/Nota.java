@@ -14,12 +14,8 @@ public class Nota extends Pointerable {
 	int myTime;
 	
 	public int length = 1;
-	public int lengthAccord = -1;
-	public int accCislic = 16;
-	
-	double autoDur = .25; 
-	double autoDurAccord = .25; 
-	double userDur;
+
+	double autoDur = .25;
 	boolean userDurDef = false;
 		
 	public Nota retrieve;
@@ -47,7 +43,7 @@ public class Nota extends Pointerable {
     }
     public Nota(int tune, int cislic) {
     	this(tune);
-    	durCislic = cislic;
+    	this.cislic = cislic;
     }
     
     public Nota(int tune, long elapsed){  	    	
@@ -59,7 +55,7 @@ public class Nota extends Pointerable {
     public Nota(int tune, int forca, int cislic, int autoDur){
     	this(tune);
     	
-        this.durCislic = cislic;
+        this.cislic = cislic;
         this.autoDur = autoDur / 1000.0;
                 
     }
@@ -185,27 +181,27 @@ public class Nota extends Pointerable {
 		userDurDef = true;
 		if ( (accord != null) && (single == false) ) accord.changeDur(n, false); 
 		
-		if (durCislic == durZnamen*2) {
-			durCislic = durZnamen;
+		if (cislic == znamen*2) {
+			cislic = znamen;
 			n = 0;
 		}
-		if (durCislic < 4) {
-			durCislic = 8;
+		if (cislic < 4) {
+			cislic = 8;
 			n = 0;
 		}
 		while (n > 0){ 
-			if (durCislic % 3 == 0) {				
-				durCislic += durCislic/3;
+			if (cislic % 3 == 0) {				
+				cislic += cislic/3;
 			} else {
-				durCislic += durCislic/2;
+				cislic += cislic/2;
 			}
 			--n;
 		}
 		while (n < 0){
-			if (durCislic % 3 == 0) {				
-				durCislic -= durCislic/3;
+			if (cislic % 3 == 0) {				
+				cislic -= cislic/3;
 			} else {
-				durCislic -= durCislic/4;
+				cislic -= cislic/4;
 			}
 			++n;
 		}
@@ -214,8 +210,8 @@ public class Nota extends Pointerable {
     
     
     public int getAccLen(){
-    	if (accord != null) return Math.min(durCislic, accord.getAccLen());
-    	else return durCislic;
+    	if (accord != null) return Math.min(cislic, accord.getAccLen());
+    	else return cislic;
     }
 
     private static Boolean bufInited = false;
@@ -238,7 +234,7 @@ public class Nota extends Pointerable {
     	// Заполнить нотаИмг нужными картинками нот
     }
     public BufferedImage getImage() {
-    	int idx = (int)(Math.ceil(7 - Math.log(durCislic) / Math.log(2) ));
+    	int idx = (int)(Math.ceil(7 - Math.log(cislic) / Math.log(2) ));
     	return notaImg[idx];    	
     	// Добавить проверку на выход за границы допустимого  	
     }

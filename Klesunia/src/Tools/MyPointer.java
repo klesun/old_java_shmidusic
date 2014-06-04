@@ -13,7 +13,7 @@ public class MyPointer {
     public MyPointer(NotnyStan stan){
         pos = -1;       
         this.stan = stan;
-        curNota = stan.firstNota;
+        curNota = stan.phantomka;
     }
     public int moveOut(){
     	pos = -1;
@@ -81,7 +81,6 @@ public class MyPointer {
         curNota.underPtr = true;
         
         if (bo) playMusThread.playAccord(curNota);
-        System.out.println("pos: "+pos+" gpos: "+gpos);
         //stan.drawPanel.checkCam();
         stan.drawPanel.repaint();
         return 0;

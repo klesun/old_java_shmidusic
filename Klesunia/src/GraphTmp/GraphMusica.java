@@ -166,8 +166,8 @@ public class GraphMusica extends JFrame implements ActionListener {
                                     System.out.println("Вы нажали контрол-У");
                                     stan.detrieveNotu();
                                     break;
-                                case '1':
-                                    System.out.println("Вы нажали 1!");
+                                case 's': case 'S': case 'Ы': case 'ы':
+                                    System.out.println("Вы нажали ctrl+s!");
                                     int rVal = c.showSaveDialog(GraphMusica.this);
                                     if (rVal == JFileChooser.APPROVE_OPTION) {
                                         File fn = c.getSelectedFile();
@@ -181,8 +181,8 @@ public class GraphMusica extends JFrame implements ActionListener {
                                         break;
                                     }
                                     break;
-                                case '2':
-                                    System.out.println("Вы нажали 2!");
+                                case 'o': case 'O': case 'щ': case 'Щ':
+                                    System.out.println("Вы нажали ctrl+o!");
                                     int i = okcancel("Are your sure? Unsaved data will be lost."); // 2 - cancel, 0 - ok
                                     if (i == 0) {
                                         int sVal = c.showOpenDialog(GraphMusica.this);
@@ -194,7 +194,7 @@ public class GraphMusica extends JFrame implements ActionListener {
                                         }
                                     }
                                     break;
-                                case '3':
+                                case '3': // play/pause - TODO: одной кнопкой
                                     System.out.println("Вы нажали 3!");
                                     stan.playEntire();
                                     break;
@@ -210,11 +210,16 @@ public class GraphMusica extends JFrame implements ActionListener {
                                 default: break;
                             }
                     	}
+                        if (ctrl) {
+                            ctrl = false;
+                            break;
+                        }
+                        if (stan.mode == NotnyStan.aMode.playin) break;
+
                     	if (curNota instanceof Nota == false) {
                             ((Phantom)curNota).tryToWrite( e.getKeyChar() );
                             break;
                         }
-                    	
                         System.out.println("Keycode "+e.getKeyCode());
                     	if (e.getKeyCode() >= 32 || e.getKeyCode() == 0) {
                     		// Это символ - напечатать

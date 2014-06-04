@@ -74,6 +74,8 @@ public class DrawPanel extends JPanel {
         for ( int k = 1; k < xPoints.length; k++ )
             triang.lineTo( xPoints[ k ], yPoints[ k ] );
         triang.closePath();
+        stan.drawPanel = this;
+        stan.checkValues(stan.phantomka);
     }
 
     int curCislic = 0;
@@ -90,13 +92,15 @@ public class DrawPanel extends JPanel {
         g.drawImage(bakey, STEP_H, 11*STEP_V + MARY +2, this);
         g.drawImage(vikey, STEP_H, MARY - 3*STEP_V, this);
         this.to4kaOt4eta = stan.to4kaOt4eta;
-        gPos = MARX + notnMar*STEP_H;
+        gPos = MARX + notnMar*STEP_H-2*STEP_H;
         curCislic = 0;
         
         taktCount = 1;
-        for (Pointerable anonimus = stan.ptr.beginNota.next; anonimus != null; anonimus = anonimus.next) {
+        for (Pointerable anonimus = stan.ptr.beginNota; anonimus != null; anonimus = anonimus.next) {
             if (anonimus instanceof Phantom) {
-            	drawPhantom((Phantom)(anonimus), g);
+            	out(gPos+" "+MARY);
+                drawPhantom((Phantom)(anonimus), g);
+                gPos += 2*STEP_H*anonimus.gsize;
             }
         	if (anonimus instanceof Nota == false) continue;
         	
@@ -104,6 +108,7 @@ public class DrawPanel extends JPanel {
         	curCislic += theNota.getAccLen();
         	if (curCislic / stan.cislic > 0) {      		        		
         		curCislic %= stan.cislic;
+                g.setColor(Color.BLACK);
         		if (curCislic > 0) {
         			g.setColor(Color.RED);
         		} 
@@ -113,6 +118,7 @@ public class DrawPanel extends JPanel {
         		
         		++taktCount;        		
         	}
+            g.setColor(Color.BLACK);
         	
         	Nota tmp = theNota;        	
         	
@@ -197,7 +203,7 @@ public class DrawPanel extends JPanel {
         g.drawImage( theNota.getImage(), gPos, thisY, this );        
         if (theNota.underPtr) g.drawImage( pointer, gPos, MARY-STEP_V*14, this );
     	
-        int n = theNota.durCislic;
+        int n = theNota.cislic;
     	boolean to4ka = false;
     	if (n % 3 == 0) {
 			to4ka = true;
@@ -217,8 +223,9 @@ public class DrawPanel extends JPanel {
 
     	return 0;
     } 
-    private void drawPhantom(Phantom theNota, Graphics g) {
-    	// TODO: написать    	
+    private void drawPhantom(Phantom phantomka, Graphics g) {
+        g.drawImage( phantomka.getImage(), gPos, MARY, this );
+        if (phantomka.underPtr) g.drawImage( pointer, gPos, MARY-STEP_V*14, this );
     } 
     
     public void checkCam(){

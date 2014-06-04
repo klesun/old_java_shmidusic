@@ -1,5 +1,7 @@
 package Tools;
 
+import Musica.NotnyStan;
+
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.*;
@@ -13,14 +15,19 @@ public class Phantom extends Pointerable{
 		BufferedImage rez = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 		Graphics g = rez.getGraphics();
 		g.setColor(Color.black);
-		g.setFont(new Font("TimesRoman", Font.PLAIN, 12));
-		g.drawString(durCislic/8+"", 0, 0+12);
+		g.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12)); // 7px width
+		g.drawString(cislic+"", 0, 0+12);
 		g.drawLine(0, 32, 32, 0);
-		g.drawString(durZnamen/8+"", 14, 28);
+		g.drawString(znamen+"", 14, 28);
 		return rez;
 	}
-	
-	public Phantom(){
+
+    NotnyStan stan;
+
+	public Phantom(NotnyStan stan){
+        this.stan = stan;
+        znamen = 8;
+        cislic = 8;
 	}
 
 	@Override
@@ -29,108 +36,110 @@ public class Phantom extends Pointerable{
 		
 	}
 
-	/*
-	public static void main(String[] args) {
-		System.out.println("Начали");
-		Phantom child = new Phantom();
-		BufferedImage img = child.getImage();
-		try {
-			ImageIO.write(img, "png", new File("/home/irak/asdqwezxc.png"));
-			System.out.println("Записали!");
-		} catch(Exception e) {
-			System.out.println("Не хочет сохранять картинку");
-		}
-		System.out.println("Закончили");
-	}
-	*/
     private enum WhatToChange {
         cislicelj,
         znamenatelj,
         tempo,
         volume;
     }
-    private WhatToChange changeMe;
+    private WhatToChange changeMe = WhatToChange.cislicelj;
 
 	public void tabPressed() {
 		// TODO
 	}
 
-    Integer valueZnam = 64;
-    Integer valueCislic = 64;
-    Integer valueTempo = 120;
-    Integer valueVolume = 127;
+    public int valueTempo = 120;
+    public double valueVolume = 0.5;
     public int tryToWrite( char c ) {
         if (c < '0' || c > '9') return -1;
-        Integer value;
-        Object obj = new Object();
-        switch (changeMe) {
-            case cislicelj:
-                value = valueCislic; // TODO: проверь, всё ли с этим хорошо, он присваевает поинтер или значение?
-                obj = valueCislic;
-                System.out.println(value.equals(valueCislic));
+        switch (changeMe) { // Monkey-coding, 'cause java doesn't have c-like pointers
+            case cislicelj: // and Integer doesn't have .setValue() method and I don't want to do second switch
+                cislic *= 10;
+                cislic += c - '0';
+                if (cislic > 256) cislic = 256;
                 break;
             case znamenatelj:
-                value = valueZnam;
-                obj = valueZnam;
+                znamen *= 10;
+                znamen += c - '0';
+                // TODO: возможно, ошибка здесь
+                if (Math.abs(  Math.round( log2(znamen) ) - log2(znamen)  ) > 0.0001) // Если это степень двойки
+                    znamen = (int)Math.pow( 2, Math.round( log2(znamen) ) );
+                if (znamen >= 64) znamen = 64;
                 break;
             case tempo:
-                value = valueTempo;
-                obj = valueTempo;
+                valueTempo *= 10;
+                valueTempo += c - '0';
+                if (valueTempo > 12000) valueTempo = 12000;
                 break;
             case volume:
-                value = valueVolume;
-                obj = valueVolume;
+                valueVolume *= 10;
+                valueVolume += (c - '0')/100;
+                if (valueVolume > 9.99) valueVolume = 9.99;
                 break;
             default:
-                value = valueCislic;
-                obj = valueCislic;
                 System.out.println("Неизвестный енум");
-        }
-        Integer intgr = (Integer)obj;
-        System.out.println("valueCislic = "+valueCislic);
-        intgr *= 10;
-        intgr += c - '0';
-        value *= 10;
-        value += c - '0';
-        System.out.println("valueCislic = "+valueCislic);
-
+                break;
+        } // switch(enum)
+        stan.checkValues(this);
         return 0;
     }
 
     public void changeValue(int n) {
         // TODO
-        /*
-        if ( (accord != null) && (single == false) ) accord.changeDur(n, false);
-
-        if (durCislic == durZnamen*2) {
-            durCislic = durZnamen;
-            n = 0;
-        }
-        if (durCislic < 4) {
-            durCislic = 8;
-            n = 0;
-        }
-        while (n > 0){
-            if (durCislic % 3 == 0) {
-                durCislic += durCislic/3;
-            } else {
-                durCislic += durCislic/2;
-            }
-            --n;
-        }
-        while (n < 0){
-            if (durCislic % 3 == 0) {
-                durCislic -= durCislic/3;
-            } else {
-                durCislic -= durCislic/4;
-            }
-            ++n;
-        }*/
+        switch (changeMe) {
+            case cislicelj:
+                if (cislic > 255 && n>0) return;
+                cislic += n;
+                if (cislic < 1) cislic = 1;
+                break;
+            case znamenatelj:
+                znamen = (int)Math.ceil(znamen*Math.pow(2.0, n));
+                if (znamen < 1) znamen = 1;
+                if (znamen > 64) znamen = 64;
+                break;
+            case tempo:
+                valueTempo += n;
+                if (valueTempo < 1) valueTempo = 1;
+                if (valueTempo > 12000) valueTempo = 12000;
+                break;
+            case volume:
+                valueVolume += n/100;
+                if (valueVolume < 0) valueVolume = 0;
+                if (valueVolume > 9.99) valueVolume = 9.99;
+                break;
+            default:
+                System.out.println("Неизвестный енум");
+                break;
+        } // switch(enum)
+        stan.checkValues(this);
     }
 
     public void backspace() {
-        //value /= 10;
-        // TODO
+        switch (changeMe) { // Monkey-coding, 'cause java doesn't have c-like pointers
+            case cislicelj: // and Integer doesn't have .setValue() method
+                cislic /= 10;
+                if (cislic < 1) cislic = 1;
+                break;
+            case znamenatelj:
+                znamen /= 10;
+                if (znamen < 1) znamen = 1;
+                break;
+            case tempo:
+                valueTempo /= 10;
+                if (valueTempo < 1) valueTempo = 1;
+                break;
+            case volume:
+                valueVolume /= 10;
+                break;
+            default:
+                System.out.println("Неизвестный енум");
+                break;
+        } // switch(enum)
+        stan.checkValues(this);
+    }
+
+    private double log2(int n){
+        return Math.log(n)/Math.log(2);
     }
 	
 }

@@ -10,8 +10,8 @@ public abstract class Pointerable {
 	
 	public int gsize = 1; // Сколько условных единиц эта хрень занимает на стане 
 	
-	public int durCislic = 16;
-	public int durZnamen = NotnyStan.DEFAULT_ZNAM;
+	public int cislic = 16;
+	public int znamen = NotnyStan.DEFAULT_ZNAM;
 	
 	public Nota next;
 	public Pointerable prev;
