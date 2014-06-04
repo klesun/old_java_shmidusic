@@ -13,7 +13,7 @@ public class Status extends Label{
 	}
 
 	public void renew(){
-		String s = "Режим: " + stan.mode + "  Размер системы: " + stan.stepInOneSys + "  Число нот: " + stan.noshuCount + ", ВРЕМЯ: " + Nota.time;
+		String s = "Р РµР¶РёРј: " + stan.mode + "  Р Р°Р·РјРµСЂ СЃРёСЃС‚РµРјС‹: " + stan.stepInOneSys + "  Р§РёСЃР»Рѕ РЅРѕС‚: " + stan.noshuCount + ", Р’Р Р•РњРЇ: " + Nota.time;
 		setText(s);	
 	}
 }

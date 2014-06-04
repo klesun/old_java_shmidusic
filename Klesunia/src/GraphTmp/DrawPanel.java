@@ -40,6 +40,7 @@ public class DrawPanel extends JPanel {
     private BufferedImage vikey;
     private BufferedImage bakey;
     private BufferedImage bemol;
+    private BufferedImage pointer;
     
     private BufferedImage notaImg[] = new BufferedImage[8];
     
@@ -57,11 +58,13 @@ public class DrawPanel extends JPanel {
         URL keyRes = getClass().getResource("../imgs/vio_sized.png");
         URL basRes = getClass().getResource("../imgs/bass_sized.png");
         URL bemRes = getClass().getResource("../imgs/flat_sized.png");
+        URL ptrRes = getClass().getResource("../imgs/MyPointer.png");
         
 
-        try {   vikey = ImageIO.read(keyRes);
+        try { vikey = ImageIO.read(keyRes);
         		bakey = ImageIO.read(basRes);
                 bemol = ImageIO.read(bemRes);                 
+                pointer = ImageIO.read(ptrRes);
         } catch (IOException e) { e.printStackTrace(); System.out.println("Темнишь что-то со своей картинкой..."); }
 
         int xPoints[] = { 6, 11, 16 };
@@ -79,27 +82,16 @@ public class DrawPanel extends JPanel {
     boolean kostil = true;
     int lastSis = 0;
     public void paintComponent(Graphics g) {
-    	out("Ща выведу");
     	status.renew();
-    	
         this.setPreferredSize(new Dimension(width, 600+maxy));	//	Needed for the scroll bars to appear
-
-        Graphics2D g2d = ( Graphics2D ) g;
-
         g.setColor(Color.WHITE);
         g.fillRect(0,0,this.getWidth(),this.getHeight());
         g.setColor(Color.BLUE);
-        
         g.drawImage(bakey, STEP_H, 11*STEP_V + MARY +2, this);
         g.drawImage(vikey, STEP_H, MARY - 3*STEP_V, this);
-                
         this.to4kaOt4eta = stan.to4kaOt4eta;
-        //baseNota.tune = to4kaOt4eta;
-
         gPos = MARX + notnMar*STEP_H;
         curCislic = 0;
-        
-        // 
         
         taktCount = 1;
         for (Pointerable anonimus = stan.ptr.beginNota.next; anonimus != null; anonimus = anonimus.next) {
@@ -116,8 +108,8 @@ public class DrawPanel extends JPanel {
         			g.setColor(Color.RED);
         		} 
         		g.drawLine(gPos + STEP_H*3/2, MARY - STEP_V*5, gPos + STEP_H*3/2, MARY + STEP_V*20);        	
-        		g.setColor(Color.BLACK);;
-        		g.drawString(taktCount+"", gPos + STEP_H, MARY - STEP_V*7);
+        		g.setColor(Color.decode("0x00A13E"));
+        		g.drawString(taktCount+"", gPos + STEP_H, MARY - STEP_V*9);
         		
         		++taktCount;        		
         	}
@@ -174,15 +166,11 @@ public class DrawPanel extends JPanel {
             g.drawLine(MARX, MARY + i*STEP_V*2, width - MARX, MARY + i*STEP_V*2);
         }        
 
-        g2d.translate( ( (stan.ptr.pos*2 +1) % (stepInOneSys - notnMar) + notnMar)*STEP_H, STEP_V*SISDISPLACE*getSys(stan.ptr.pos)/*MARY + STEP_V*12*/ );
-        g2d.setColor(new Color(0, 191, 0));
-        g2d.fill(triang);
         if (MARY>maxy) maxy=MARY;
         MARY = (int)Math.round(MARGIN_V*STEP_V);
         g.drawString(stan.ptr.AcNo+"", 20, 10);
 
         this.revalidate();	//	Needed to recalc the scroll bars
-        out("Вывел");
     } // paintComponent
 
     int tp = 0;
@@ -207,6 +195,7 @@ public class DrawPanel extends JPanel {
         } // Хочу, чтобы он рисовал от ноты, поэтому не инкапсулировал бемоль
         
         g.drawImage( theNota.getImage(), gPos, thisY, this );        
+        if (theNota.underPtr) g.drawImage( pointer, gPos, MARY-STEP_V*14, this );
     	
         int n = theNota.durCislic;
     	boolean to4ka = false;
@@ -235,6 +224,15 @@ public class DrawPanel extends JPanel {
     public void checkCam(){
     	JScrollBar vertical = scroll.getVerticalScrollBar();
     	vertical.setValue( SISDISPLACE*STEP_V * (stan.ptr.pos / (stepInOneSys/2-2)  -1) );
+    	repaint();
+    }
+    
+    public void page(int pageCount) {
+    	JScrollBar vertical = scroll.getVerticalScrollBar();
+    	int pos = vertical.getValue()+pageCount*SISDISPLACE*STEP_V;
+    	if (pos<0) pos = 0;
+    	if (pos>vertical.getMaximum()) pos = vertical.getMaximum();
+    	vertical.setValue(pos);
     	repaint();
     }
     

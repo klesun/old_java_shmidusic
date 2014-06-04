@@ -270,7 +270,6 @@ public class NotnyStan {
     		int cislic;
             Nota last = null;
             while ( b != -1 ) {
-            	out(b+" в цикле");
             	// TODO: А ещё добавить считывание фантомки
                 switch (b) {
                 case NEWACCORD:
@@ -297,10 +296,7 @@ public class NotnyStan {
                         if (b == -1) System.exit(66);
                     } 
                     b = strmIn.read();
-                    System.out.println("Пока ошибки нету");
-                    last.slog = new String(bajti, 0, i, "UTF-8");
-                    System.out.println("А теперь есть");
-                    System.out.println(last.slog);
+                    last.setSlog( new String(bajti, 0, i, "UTF-8") );
                     
                     break;
                 case PIANO:
@@ -317,7 +313,6 @@ public class NotnyStan {
                 	b = strmIn.read();
                     break;
                 }
-                out(b+" закончилась итерация");
             } // while b!=-1
 
     		strmIn.close();
@@ -387,7 +382,10 @@ public class NotnyStan {
     public boolean isChanSep = false;
     public Nota Acc = null;
     public void nextAcc(){    
-    	if (ptr.curNota instanceof Nota == false) return;
+    	if (ptr.curNota instanceof Nota == false) {
+    		if (ptr.curNota instanceof Phantom) ((Phantom)ptr.curNota).tabPressed();
+    		return;
+    	}
     	if (isChanSep){
     		if (Acc.accord != null) {
     			Acc = Acc.accord;

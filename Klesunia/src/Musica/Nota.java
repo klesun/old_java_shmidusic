@@ -1,10 +1,9 @@
 package Musica;
 
-import java.awt.Graphics;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 
 import javax.imageio.ImageIO;
 
@@ -120,17 +119,7 @@ public class Nota extends Pointerable {
             default: return "ша-бемоль";
         }
     }
-    public int acadComp(int midi){
-        int oct = midi / 12;
-        int pos = rawToAcad(midi);
-       
-        if (oct > this.okt) return midi;
-        else if (oct == this.okt) {
-            if (pos > this.pos) return midi;
-        }
 
-        return (12*this.okt + Nota.acadToRaw(this.pos) );
-    }
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -190,16 +179,7 @@ public class Nota extends Pointerable {
 		rez.accord = newbie;
 		return newbie;
 	}
-    
-	public void clearAccord(){
-		Nota cur = this;
-        while (cur.accord != null) {
-        	Nota tmp = cur.accord;
-        	cur.accord = null;
-        	cur = tmp;
-        }		
-	}
-	
+
 	@Override
 	public void changeDur(int n, boolean single){
 		userDurDef = true;

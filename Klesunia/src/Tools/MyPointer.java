@@ -5,6 +5,7 @@ import Musica.*;
 public class MyPointer {
 	
     public int pos;    
+    public int gpos = 0;
     NotnyStan stan;
     public Pointerable curNota;
     public Phantom beginNota;
@@ -21,13 +22,18 @@ public class MyPointer {
     }
     
     public int moveToBegin(){    	
+    	curNota.underPtr = false;
     	pos = 0;    	
+    	gpos = 0;
     	if (beginNota.next == null) return -1;
     	curNota = beginNota.next;
+    	curNota.underPtr = true;
         return 0;
     }
     public void moveToEnd(){    	
+    	curNota.underPtr = false;
     	while (move(1) != -1);
+    	curNota.underPtr = true;
     }
     
     public int moveTo(int q){
@@ -38,7 +44,7 @@ public class MyPointer {
 
         return 0;
     }
-    public int moveTo(Nota nota){	    	 
+    public int moveTo(Nota nota){	    	
     	moveToBegin();
     	while (nota != curNota  &&  move(1) != -1);
     	if (nota != curNota) return -1;
@@ -55,30 +61,28 @@ public class MyPointer {
     
     public int moveBo(int q, boolean bo){
         AcNo = -1;
-    	if ((pos+q >= stan.noshuCount) || (pos+q < 0)) return -1;
+    	if ((pos+q >= stan.noshuCount) || (pos+q < -1)) return -1;
     	int delta=0;
         
+    	pos += q;
         stan.isChanSep = false;
-        pos += q;
+        curNota.underPtr = false;
         while (q > 0) {
         	delta+=curNota.gsize;
         	curNota = curNota.next;
         	--q;
         }
-        while (q < 0) {
-        	delta-=curNota.gsize;
+        while (q < 0) {        	
         	curNota = curNota.prev;
+        	delta-=curNota.gsize;
         	++q;
         }                
+        gpos += delta;
+        curNota.underPtr = true;
         
         if (bo) playMusThread.playAccord(curNota);
-        stan.drawPanel.repaint();
-        try {
-        	Thread.sleep(500);
-        } catch (Exception e) {
-        	System.out.println("Тэд не хочет спать!");
-        }
-        stan.drawPanel.checkCam();
+        System.out.println("pos: "+pos+" gpos: "+gpos);
+        //stan.drawPanel.checkCam();
         stan.drawPanel.repaint();
         return 0;
     }

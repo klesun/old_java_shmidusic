@@ -6,6 +6,8 @@ import Musica.Nota;
 import Musica.NotnyStan;
 
 public abstract class Pointerable {
+	public boolean underPtr = false;
+	
 	public int gsize = 1; // Сколько условных единиц эта хрень занимает на стане 
 	
 	public int durCislic = 16;

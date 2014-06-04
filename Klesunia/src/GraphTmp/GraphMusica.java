@@ -1,8 +1,8 @@
 package GraphTmp;
 
-import Musica.Nota;
+import Musica.*;
+import Tools.Phantom;
 import Tools.Pointerable;
-import Musica.NotnyStan;
 
 import javax.swing.*;
 import javax.swing.filechooser.*;
@@ -75,11 +75,11 @@ public class GraphMusica extends JFrame implements ActionListener {
                 
                     case KeyEvent.VK_RIGHT:                    	
                         stan.ptr.move(1, true);
-                        stan.drawPanel.checkCam();
+                        //stan.drawPanel.checkCam();
                         break;
                     case KeyEvent.VK_LEFT:
                         stan.ptr.move(-1, true);
-                        stan.drawPanel.checkCam();
+                        //stan.drawPanel.checkCam();
                         break;
                     case KeyEvent.VK_UP:
                         stan.ptr.move(-Albert.stepInOneSys/2+2, true);
@@ -99,7 +99,6 @@ public class GraphMusica extends JFrame implements ActionListener {
                         break;
                     case KeyEvent.VK_ENTER:
                         stan.ptr.move(0, true);
-                        stan.drawPanel.checkCam();
                         break;
                     case KeyEvent.VK_TAB:
                     	System.out.println("Вы нажали Tab!");
@@ -107,95 +106,114 @@ public class GraphMusica extends JFrame implements ActionListener {
                         break;
                         
                     case KeyEvent.VK_ADD:
-                    	System.out.println("Вы нажали плюс!");                       
-                        if (stan.isChanSep == false) curNota.changeDur(1, false);
-                        else stan.Acc.changeDur(1, true);
-                        Albert.repaint();
+                    	System.out.println("Вы нажали плюс!");  
+	                    if (curNota instanceof Nota) {
+	                        if (stan.isChanSep == false) curNota.changeDur(1, false);
+	                        else stan.Acc.changeDur(1, true);
+	                        Albert.repaint();
+	                        
+                    	} else if (curNota instanceof Phantom) {
+                            ((Phantom)curNota).changeValue(1);
+                    	}
                         break;
                     case KeyEvent.VK_SUBTRACT:
-                    	System.out.println("Вы нажали минус!");                    	
-                    	if (stan.isChanSep == false) curNota.changeDur(-1, false);
-                        else stan.Acc.changeDur(-1, true);
-                    	Albert.repaint();
-                        break;
-                    
-                    case '1':
-                    	System.out.println("Вы нажали 1!");
-	                 	int rVal = c.showSaveDialog(GraphMusica.this);	                 	
-	                 	if (rVal == JFileChooser.APPROVE_OPTION) {
-	                 		File fn = c.getSelectedFile();
-	                 		if(!fn.getAbsolutePath().endsWith(".klsn")){
-	                 		    fn = new File(fn + ".klsn");
-	                 		}
-	                 		
-	                 		stan.saveFile( fn );	                 	     
-	                 	}
-	                 	if (rVal == JFileChooser.CANCEL_OPTION) {	                 	     
-	                 	     break;
-	                 	}                        
-                        break;
-                    case '2':
-                    	System.out.println("Вы нажали 2!");
-                        int i = okcancel("Are your sure? Unsaved data will be lost."); // 2 - cancel, 0 - ok
-                        if (i == 0) {                        	                        	
-             			   	int sVal = c.showOpenDialog(GraphMusica.this);
-             			   	if (sVal == JFileChooser.APPROVE_OPTION) {
-             			   		stan.klsnOpen( c.getSelectedFile() );
-             			   	}
-             			   	if (sVal == JFileChooser.CANCEL_OPTION) {
-             			   		break;
-             			   	}
-                        }                   	
-                        break;
-                    case '3':
-                    	System.out.println("Вы нажали 3!");
-                    	stan.playEntire();
-                        break;
-                    case '4':
-                    	System.out.println("Вы нажали 4!");
-                    	stan.stopMusic();
-                        break;
-                    case '0':
-                    	System.out.println("Вы нажали 0!");
-                    	stan.changeMode();
+                    	System.out.println("Вы нажали минус!");
+                        if (curNota instanceof Nota) {
+                            if (stan.isChanSep == false) curNota.changeDur(-1, false);
+                            else stan.Acc.changeDur(-1, true);
+                    	    Albert.repaint();
+                        } else if (curNota instanceof Phantom) {
+                            ((Phantom)curNota).changeValue(-1);
+                        }
                         break;
                     case KeyEvent.VK_DELETE:
                     	System.out.println("Вы нажали Delete!");
-                        stan.delNotu();
+                        if (curNota instanceof Nota) stan.delNotu();
+                        break;
+                    case KeyEvent.VK_PAGE_DOWN:
+                    	System.out.println("Вы нажали pageDown!");
+                        stan.drawPanel.page(1);
+                        break;
+                    case KeyEvent.VK_PAGE_UP:
+                    	System.out.println("Вы нажали pageUp!");
+                        stan.drawPanel.page(-1);
                         break;
                     case KeyEvent.VK_BACK_SPACE:
                         // И ёжику ясно, что надо стереть последний символ... а если ты хочешь стереть не последний
                         // или копипастить текст - хуй тебе в руки... Для начала и так неплохо, но, естественно,
                         // не забыть добавить альтернативный способ ввода (типа, нажимаешь кнопку, и появляется
                         // окошко для редактирования текста)
-                    	if (curNota instanceof Nota == false) break;
-                        System.out.println("Было: "+curNota.slog);
+                    	if (curNota instanceof Nota == false) {
+                            ((Phantom)curNota).backspace();
+                            break;
+                        }
                         String slog = curNota.slog;
-                        System.out.println(slog.length());
                         if (slog.length() < 2) {
                             curNota.slog = "";
                         } else {
                             ((Nota)curNota).setSlog(  slog.substring(0, slog.length()-1)  );
                         }
-                        System.out.println("Стало: "+curNota.slog);
                         Albert.repaint();
                         break;
                     default:
                     	if (ctrl) {
-                    		switch(e.getKeyCode()) {
-                    		case 'z': case 'Z': case 'Я': case 'я':
-                    			System.out.println("Вы нажали контрол-З");
-                    			stan.retrieveNotu();
-                    			break;
-                    		case 'y': case 'Y': case 'Н': case 'н':
-	                			System.out.println("Вы нажали контрол-У");
-	                			stan.detrieveNotu();
-	                			break;
-                    		}
-	                    		                		
-                    		break;
+                    		switch(e.getKeyCode()) { // Возможно, здесь есть ошибка
+                                case 'z': case 'Z': case 'Я': case 'я':
+                                    System.out.println("Вы нажали контрол-З");
+                                    stan.retrieveNotu();
+                                    break;
+                                case 'y': case 'Y': case 'Н': case 'н':
+                                    System.out.println("Вы нажали контрол-У");
+                                    stan.detrieveNotu();
+                                    break;
+                                case '1':
+                                    System.out.println("Вы нажали 1!");
+                                    int rVal = c.showSaveDialog(GraphMusica.this);
+                                    if (rVal == JFileChooser.APPROVE_OPTION) {
+                                        File fn = c.getSelectedFile();
+                                        if (!fn.getAbsolutePath().endsWith(".klsn")) {
+                                            fn = new File(fn + ".klsn");
+                                        }
+
+                                        stan.saveFile(fn);
+                                    }
+                                    if (rVal == JFileChooser.CANCEL_OPTION) {
+                                        break;
+                                    }
+                                    break;
+                                case '2':
+                                    System.out.println("Вы нажали 2!");
+                                    int i = okcancel("Are your sure? Unsaved data will be lost."); // 2 - cancel, 0 - ok
+                                    if (i == 0) {
+                                        int sVal = c.showOpenDialog(GraphMusica.this);
+                                        if (sVal == JFileChooser.APPROVE_OPTION) {
+                                            stan.klsnOpen(c.getSelectedFile());
+                                        }
+                                        if (sVal == JFileChooser.CANCEL_OPTION) {
+                                            break;
+                                        }
+                                    }
+                                    break;
+                                case '3':
+                                    System.out.println("Вы нажали 3!");
+                                    stan.playEntire();
+                                    break;
+                                case '4':
+                                    System.out.println("Вы нажали 4!");
+                                    stan.stopMusic();
+                                    break;
+                                case '0':
+                                    System.out.println("Вы нажали 0!");
+                                    stan.changeMode();
+                                    break;
+
+                                default: break;
+                            }
                     	}
-                    	if (curNota instanceof Nota == false) break;
+                    	if (curNota instanceof Nota == false) {
+                            ((Phantom)curNota).tryToWrite( e.getKeyChar() );
+                            break;
+                        }
                     	
                         System.out.println("Keycode "+e.getKeyCode());
                     	if (e.getKeyCode() >= 32 || e.getKeyCode() == 0) {
