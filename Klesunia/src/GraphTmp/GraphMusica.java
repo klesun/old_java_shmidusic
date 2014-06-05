@@ -2,6 +2,7 @@ package GraphTmp;
 
 import Musica.*;
 import Tools.Phantom;
+import Tools.Pointer;
 import Tools.Pointerable;
 
 import javax.swing.*;
@@ -66,7 +67,7 @@ public class GraphMusica extends JFrame implements ActionListener {
 	    
 	    tempoField.addKeyListener(new KeyListener() {
             public void keyPressed(KeyEvent e) {
-            	curNota = stan.ptr.curNota;
+            	curNota = Pointer.curNota;
             	                
                 switch (e.getKeyCode()) {
 	                case KeyEvent.VK_CONTROL:
@@ -74,31 +75,31 @@ public class GraphMusica extends JFrame implements ActionListener {
 	                    break;
                 
                     case KeyEvent.VK_RIGHT:                    	
-                        stan.ptr.move(1, true);
+                        Pointer.move(1, true);
                         //stan.drawPanel.checkCam();
                         break;
                     case KeyEvent.VK_LEFT:
-                        stan.ptr.move(-1, true);
+                        Pointer.move(-1, true);
                         //stan.drawPanel.checkCam();
                         break;
                     case KeyEvent.VK_UP:
-                        stan.ptr.move(-Albert.stepInOneSys/2+2, true);
+                        Pointer.move(-Albert.stepInOneSys/2+2, true);
                         stan.drawPanel.checkCam();
                         break;
                     case KeyEvent.VK_DOWN:
-                        stan.ptr.move(Albert.stepInOneSys/2-2, true);
+                        Pointer.move(Albert.stepInOneSys/2-2, true);
                         stan.drawPanel.checkCam();
                         break;
                     case KeyEvent.VK_HOME:
-                    	stan.ptr.moveToBegin();
+                    	Pointer.moveToBegin();
                         stan.drawPanel.checkCam();
                         break;
                     case KeyEvent.VK_END:
-                    	stan.ptr.moveToEnd();
+                    	Pointer.moveToEnd();
                         stan.drawPanel.checkCam();
                         break;
                     case KeyEvent.VK_ENTER:
-                        stan.ptr.move(0, true);
+                        Pointer.move(0, true);
                         break;
                     case KeyEvent.VK_TAB:
                     	System.out.println("Вы нажали Tab!");
@@ -194,13 +195,18 @@ public class GraphMusica extends JFrame implements ActionListener {
                                         }
                                     }
                                     break;
-                                case '3': // play/pause - TODO: одной кнопкой
-                                    System.out.println("Вы нажали 3!");
-                                    stan.playEntire();
+                                case 'P': case 'p': case 'З': case 'з':
+                                    System.out.println("Вы нажали ctrl+p!");
+                                    if (stan.stop)
+                                        stan.playEntire();
+                                    else
+                                        stan.stopMusic();
                                     break;
-                                case '4':
-                                    System.out.println("Вы нажали 4!");
-                                    stan.stopMusic();
+                                case '1':
+                                    stan.slianie();
+                                    break;
+                                case '3':
+                                    stan.triolnutj();
                                     break;
                                 case '0':
                                     System.out.println("Вы нажали 0!");

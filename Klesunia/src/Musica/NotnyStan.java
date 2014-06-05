@@ -5,9 +5,8 @@ package Musica;
 
 import GraphTmp.DrawPanel;
 import BackEnd.MidiCommon;
-import Tools.MyPointer;
+import Tools.Pointer;
 import Tools.Phantom;
-import Tools.Pointerable;
 
 import java.io.*;
 
@@ -50,7 +49,6 @@ public class NotnyStan {
     public DrawPanel drawPanel;
     public int to4kaOt4eta = 66; // какой позиции соответствует нижняя до скрипичного ключа
     int sis = 0;
-    public MyPointer ptr;
     
     public int stepInOneSys = 0;
     public Phantom phantomka = new Phantom(this);
@@ -66,8 +64,8 @@ public class NotnyStan {
         vioKey2 = false;
         bassKey2 = false;
 
-        ptr = new MyPointer(this);
-        ptr.beginNota = phantomka;
+        Pointer.setStan(this);
+        Pointer.beginNota = phantomka;
         mode = aMode.insert;
 
         this.device = device;
@@ -99,9 +97,9 @@ public class NotnyStan {
     	++closerCount;
     	
     	// Делаем проверку: если с прошлого нажатия прошло меньше Эпсилон времени, значит - это один аккорд
-    	if (ptr.pos >= 0){
-    		if (ptr.curNota instanceof Nota) {
-	    		Nota prev = (Nota)ptr.curNota;    		
+    	if (Pointer.pos >= 0){
+    		if (Pointer.curNota instanceof Nota) {
+	    		Nota prev = (Nota)Pointer.curNota;
 		    	if (nota.myTime - prev.myTime < EPSILON) {
 		    		prev.append(nota);
 		    		drawPanel.repaint();
@@ -112,21 +110,21 @@ public class NotnyStan {
 
     	switch (mode) {
     	case append:
-    		if (ptr.curNota instanceof Nota == false) break;
-    		((Nota)ptr.curNota).append(nota);
+    		if (Pointer.curNota instanceof Nota == false) break;
+    		((Nota)Pointer.curNota).append(nota);
     		drawPanel.repaint();
     		playAccord();
 	        break;    
     	case insert:    		
     		
-    		nota.prev = ptr.curNota;
-    		nota.next = ptr.curNota.next;
-    		ptr.curNota.next = nota;    		
+    		nota.prev = Pointer.curNota;
+    		nota.next = Pointer.curNota.next;
+    		Pointer.curNota.next = nota;
     		if (nota.next != null) nota.next.prev = nota;
     		
     		nota.isFirst = true;	        
         	++noshuCount;
-        	ptr.move(1);	          	
+        	Pointer.move(1);
     		
     		//if (noshuCount > 3) drawPanel.checkCam();
     		
@@ -154,7 +152,7 @@ public class NotnyStan {
     	lastRetrieved = nota;
     	++noshuCount;
     	--deleted;
-    	if ( ptr.isAfter(nota) ) ++ptr.pos;
+    	if ( Pointer.isAfter(nota) ) ++Pointer.pos;
     	drawPanel.repaint();
     }
     Nota lastRetrieved = null;
@@ -164,10 +162,10 @@ public class NotnyStan {
     	Nota nota = lastRetrieved;
     	lastRetrieved = nota.retrieve;
     	if (nota == null) return;
-    	if (ptr.curNota == nota) {
+    	if (Pointer.curNota == nota) {
     		delNotu();
     		return;
-    	} else rez = ptr.moveTo(nota);
+    	} else rez = Pointer.moveTo(nota);
     	if (rez == 0) delNotu();
     	else {
     		System.out.println("Воскресшей ноты на стане нет");
@@ -175,21 +173,21 @@ public class NotnyStan {
     	drawPanel.repaint();    	
     }
     public int delNotu(){
-        if (ptr.curNota instanceof Nota == false) return -1;
-        Nota nota = (Nota)ptr.curNota;
+        if (Pointer.curNota instanceof Nota == false) return -1;
+        Nota nota = (Nota)Pointer.curNota;
         //nota.clearAccord();
         if (nota.prev != phantomka) {
-            ptr.move(-1);
+            Pointer.move(-1);
             nota.prev.next = nota.next;
             if (nota.next != null) nota.next.prev = nota.prev;
         } else if (nota.next != null) {
-            ptr.move(1);
+            Pointer.move(1);
             nota.prev.next = nota.next;
             if (nota.next != null) nota.next.prev = nota.prev;
 
-            --ptr.pos;
+            --Pointer.pos;
         } else {
-            ptr.moveOut();
+            Pointer.moveOut();
             phantomka.next = null;
         }
         
@@ -215,26 +213,26 @@ public class NotnyStan {
     	FileOutputStream strmOut;
         try {
             strmOut = new FileOutputStream( f );            
-            int rezPos = ptr.pos;
-            ptr.moveOut();     
+            int rezPos = Pointer.pos;
+            Pointer.moveOut();
             // TODO: Записать данные из фантомки (темп, тактовая длина...)
             
-            while (ptr.move(1) != -1) {
+            while (Pointer.move(1) != -1) {
             	strmOut.write( NEWACCORD ); // Ноль здесь будет знаком конца аккорда
-            	Nota n = (Nota)ptr.curNota;
+            	Nota n = (Nota)Pointer.curNota;
             	do {     
 	            	strmOut.write( (byte)n.tune );	            		            		           
 	            	strmOut.write( (byte)n.cislic );
 	            	
 	            	n = n.accord;
             	} while (n != null);
-            	if (ptr.curNota.slog != null && ptr.curNota.slog != "") {
+            	if (Pointer.curNota.slog != null && Pointer.curNota.slog != "") {
 	                strmOut.write( EOS ); // Говорим, что дальше идёт текст
-	                strmOut.write( ptr.curNota.slog.getBytes("UTF-8") );
+	                strmOut.write( Pointer.curNota.slog.getBytes("UTF-8") );
 	                strmOut.write( EOS );
             	}
             }
-            ptr.moveTo(rezPos);
+            Pointer.moveTo(rezPos);
             strmOut.close();
         } catch (IOException e) { 
         	System.out.println("С файлом (кто бы мог подумать) что-то не так");
@@ -281,7 +279,7 @@ public class NotnyStan {
 
                     while (b >= MINTUNE && b != -1) {
                         cislic = strmIn.read();
-                        ((Nota)ptr.curNota).append(new Nota(b, (int)cislic));
+                        ((Nota)Pointer.curNota).append(new Nota(b, (int)cislic));
                         b = strmIn.read();
                     }
                     break;
@@ -335,11 +333,11 @@ public class NotnyStan {
         out("От вас получили: "+cislic);
     	Nota newbie = new Nota(tune, (int)cislic);
         out("Однако за время пути: "+newbie.cislic);
-        newbie.prev = ptr.curNota;
-		ptr.curNota.next = newbie;    		
+        newbie.prev = Pointer.curNota;
+		Pointer.curNota.next = newbie;
 		newbie.isFirst = true;	        
     	++noshuCount;
-    	ptr.move(1);	        		
+    	Pointer.move(1);
 		if (noshuCount > 3) drawPanel.checkCam();
         return newbie;
     }
@@ -351,7 +349,7 @@ public class NotnyStan {
     }
         
     public MidiDevice device;
-    boolean stop;
+    public boolean stop = true;
     MidiDevice outputDevice = null;
 	public static Receiver sintReceiver = null;
 	MidiDevice.Info	info;
@@ -361,6 +359,7 @@ public class NotnyStan {
     File ourFile = null;
     
     public int playEntire(){
+        stop = false;
     	playMusThread thr;
     	thr = new playMusThread(this);
     	thr.start();
@@ -386,22 +385,23 @@ public class NotnyStan {
     public boolean isChanSep = false;
     public Nota Acc = null;
     public void nextAcc(){    
-    	if (ptr.curNota instanceof Nota == false) {
-    		if (ptr.curNota instanceof Phantom) ((Phantom)ptr.curNota).tabPressed();
+    	if (Pointer.curNota instanceof Nota == false) {
+    		if (Pointer.curNota instanceof Phantom) ((Phantom)Pointer.curNota).tabPressed();
+            drawPanel.repaint();
     		return;
     	}
     	if (isChanSep){
     		if (Acc.accord != null) {
     			Acc = Acc.accord;
-    			++ptr.AcNo;
+    			++Pointer.AcNo;
     		} else { 
-    			Acc = (Nota)ptr.curNota;
-    			ptr.AcNo = 0;
+    			Acc = (Nota)Pointer.curNota;
+    			Pointer.AcNo = 0;
     		}
     	} else {
     		isChanSep = true;
-    		Acc = (Nota)ptr.curNota;
-    		ptr.AcNo = 0;
+    		Acc = (Nota)Pointer.curNota;
+    		Pointer.AcNo = 0;
     	}
     	drawPanel.repaint();
     }
@@ -420,6 +420,35 @@ public class NotnyStan {
             this.volume = volume;
             drawPanel.repaint();
         }
+    }
+
+    public void triolnutj() {
+        if (Pointer.curNota.isTriol) {
+            Pointer.curNota.isTriol = false;
+            drawPanel.repaint();
+            return;
+        }
+        // Проверка, всё ли с нотами впорядке
+        if (Pointer.curNota instanceof Nota == false) return;
+        Nota base = ((Nota)Pointer.curNota);
+        if (base.accord == null) {
+            Nota tmp = Pointer.curNota.next;
+            for (int i = 0; i < 2; ++i) {
+                if (tmp == null) return;
+                if (tmp instanceof Nota == false) return;
+                if (tmp.isTriol || tmp.cislic != base.cislic) return;
+                tmp = tmp.next;
+            }
+        } else {
+            // TODO:
+            return;
+        }
+        base.isTriol = true;
+        drawPanel.repaint();
+    }
+
+    public void slianie() {
+
     }
     
 }

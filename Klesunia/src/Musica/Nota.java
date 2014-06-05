@@ -30,6 +30,7 @@ public class Nota extends Pointerable {
     public int okt;
     
     boolean mergeNext = false;
+    public boolean isTriolChild = false;
     
     public Nota(int tune){    	    	
         this.tune = tune;             
@@ -179,6 +180,12 @@ public class Nota extends Pointerable {
 	@Override
 	public void changeDur(int n, boolean single){
 		userDurDef = true;
+        if (isTriol) {
+            Nota tmp = this;
+            for (int i=0;i<2;++i) {
+                
+            }
+        }
 		if ( (accord != null) && (single == false) ) accord.changeDur(n, false); 
 		
 		if (cislic == znamen*2) {
@@ -215,7 +222,7 @@ public class Nota extends Pointerable {
     }
 
     private static Boolean bufInited = false;
-    private static BufferedImage notaImg[] = new BufferedImage[8];    
+    public static BufferedImage notaImg[] = new BufferedImage[8];
     static void bufInit() {
     	System.out.println("Эта функция запускается лишь один раз - при создании первого экземпляра класса");
     	    	

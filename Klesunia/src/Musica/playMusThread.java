@@ -4,18 +4,17 @@ import javax.sound.midi.*;
 
 import GraphTmp.DrawPanel;
 import Musica.NotnyStan.aMode;
-import Tools.MyPointer;
+import Tools.Pointer;
 import Tools.Pointerable;
 
 public class playMusThread extends Thread {
 	boolean stop = false;
-	MyPointer ptr;
+	Pointer ptr;
     Receiver sintReceiver = NotnyStan.sintReceiver;
     DrawPanel Albert;
     NotnyStan stan;
 	
 	public playMusThread(NotnyStan stan){
-		ptr = stan.ptr;
 		Albert = stan.drawPanel;
 		this.stan = stan;
 	}
@@ -30,21 +29,32 @@ public class playMusThread extends Thread {
     	aMode tmpMode = stan.mode;
     	stan.mode = aMode.playin;    	 
     	do {
-    		Pointerable nota = ptr.curNota;          
-    		Pointerable tmp = nota;        	    		        	
-        	time = playAccord(tmp);        
+            Pointerable tmp = ptr.curNota;
+            if (ptr.curNota.isTriol) {
+                for (int i=0;i<3;++i) {
+                    time = playAccordDivided(tmp, 3);
+                    try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна"+e); }
+                    if (i==2) break; // Простите, поздно, хочу спать, лень псифсать правилллбно
+                    ptr.move(1);
+                    tmp = ptr.curNota;
+                }
+                continue;
+
+            }
+        	time = playAccordDivided(tmp, 1);
             try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна"+e); }
-        } while (stan.stop == false && ptr.move(1) == 0);   
+        } while (stan.stop == false && ptr.move(1) == 0);
+        stan.stop = true;
     	stan.drawPanel.checkCam();
     	stan.mode = tmpMode;
     }
-    public static int playAccord(Pointerable  ptr) {
+    public static int playAccordDivided(Pointerable  ptr, int divi) {
     	if ( ptr instanceof Nota == false) return 0;
     	Nota tmp = (Nota)ptr;
     	int time = Short.MAX_VALUE;
     	while (tmp != null) {
-    		playNotu(tmp);
-    		time = Math.min( time, (short)( msIns*tmp.cislic/tmp.znamen*4/NotnyStan.tempo*60 ) );
+    		playNotu(tmp, divi);
+    		time = Math.min( time, (short)( msIns*tmp.cislic/tmp.znamen*4/NotnyStan.tempo*60 / divi ) );
     		// 4 - будем брать четвертную как основную, 60 - потому что темпо измеряется в ударах в минуту, а у нас секунды (вообще, даже, миллисекунды)
     		tmp = tmp.accord;
     	}
@@ -52,9 +62,9 @@ public class playMusThread extends Thread {
     	
     }
     
-    public static int playNotu(Nota nota){
+    public static int playNotu(Nota nota, int divi){
     	OneShotThread thr;
-    	thr = new OneShotThread(nota);
+    	thr = new OneShotThread(nota, divi);
     	thr.start();
     	return 0;
     }
