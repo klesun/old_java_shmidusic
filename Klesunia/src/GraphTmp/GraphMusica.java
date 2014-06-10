@@ -74,31 +74,49 @@ public class GraphMusica extends JFrame implements ActionListener {
 	                	ctrl = true;
 	                    break;
                 
-                    case KeyEvent.VK_RIGHT:                    	
-                        Pointer.move(1, true);
+                    case KeyEvent.VK_RIGHT:
+                        playMusThread.shutTheFuckUp();
+                        if (Pointer.curNota.isTriol)
+                            Pointer.move(3, true);
+                        else {
+                            Pointer.move(1, true);
+                        }
+
                         //stan.drawPanel.checkCam();
                         break;
                     case KeyEvent.VK_LEFT:
-                        Pointer.move(-1, true);
+                        playMusThread.shutTheFuckUp();
+                        Pointerable n = Pointer.curNota;
+                        if ( (n=n.prev)==null?false:(n=n.prev)==null?false:(n=n.prev)==null?false:n.isTriol )
+                            Pointer.move(-3, true);
+                        else {
+                            Pointer.move(-1, true);
+                        }
+
                         //stan.drawPanel.checkCam();
                         break;
                     case KeyEvent.VK_UP:
+                        playMusThread.shutTheFuckUp();
                         Pointer.move(-Albert.stepInOneSys/2+2, true);
                         stan.drawPanel.checkCam();
                         break;
                     case KeyEvent.VK_DOWN:
+                        playMusThread.shutTheFuckUp();
                         Pointer.move(Albert.stepInOneSys/2-2, true);
                         stan.drawPanel.checkCam();
                         break;
                     case KeyEvent.VK_HOME:
+                        playMusThread.shutTheFuckUp();
                     	Pointer.moveToBegin();
                         stan.drawPanel.checkCam();
                         break;
                     case KeyEvent.VK_END:
+                        playMusThread.shutTheFuckUp();
                     	Pointer.moveToEnd();
                         stan.drawPanel.checkCam();
                         break;
                     case KeyEvent.VK_ENTER:
+                        playMusThread.shutTheFuckUp();
                         Pointer.move(0, true);
                         break;
                     case KeyEvent.VK_TAB:
@@ -201,6 +219,14 @@ public class GraphMusica extends JFrame implements ActionListener {
                                         stan.playEntire();
                                     else
                                         stan.stopMusic();
+                                    break;
+                                case 'h': case 'H': case 'р': case 'Р':
+                                    System.out.println("ctrl+h");
+                                    stan.drawPanel.incHeight(1);
+                                    break;
+                                case 'w':case 'W': case 'Ц': case 'ц':
+                                    System.out.println("ctrl+h");
+                                    stan.drawPanel.incWidth(1);
                                     break;
                                 case '1':
                                     stan.slianie();

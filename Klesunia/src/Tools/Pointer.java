@@ -95,7 +95,7 @@ public class Pointer {
         }
         AcNo = -1;
     	if ((pos+q >= stan.noshuCount) || (pos+q < -1)) return -1;
-    	int delta=0;
+        int delta=0;
         
     	pos += q;
         stan.isChanSep = false;

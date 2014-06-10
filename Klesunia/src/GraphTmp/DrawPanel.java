@@ -9,6 +9,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
@@ -19,8 +20,12 @@ public class DrawPanel extends JPanel {
 	JScrollPane scroll; 
 	Status status;
 
-    public static int STEPY = 5; // Графика
-    public static int STEPX = 20; // Графика
+    public static int notaHeight = 32;
+    public static int NORMAL_HEIGHT = 40;
+    public static int notaWidth = 20;
+    public static int NORMAL_WIDTH = 25;
+    public static int STEPY = notaHeight/8; // Графика
+    public static int STEPX = notaWidth; // Графика
     double MARGIN_V = 15; // Сколько отступов сделать сверху перед рисованием полосочек
     double MARGIN_H = 1;
     int MARX = (int)Math.round(MARGIN_H* STEPX);
@@ -36,36 +41,75 @@ public class DrawPanel extends JPanel {
     int width = this.getWidth(), height = this.getHeight();
     int stepInOneSys = (int)Math.floor(width / STEPX - 2*MARGIN_H);
 
-    private BufferedImage vikey;
-    private BufferedImage bakey;
-    private BufferedImage bemol;
-    private BufferedImage ptrImg;
-    public static BufferedImage volImg;
+    public static BufferedImage[] vseKartinki = new BufferedImage[5]; // TODO: поменять этот уродский массив на ключ-значение
+    public static BufferedImage[] vseKartinki0 = new BufferedImage[5];
 
     NotnyStan stan;
 
     GeneralPath triang;
 
     Set<Nota> stillPlayin = new TreeSet<Nota>();
-    
+
+    public void incHeight(int n) {
+        notaHeight += 8*n;
+        if (notaHeight < 16 || notaHeight > 40) notaHeight = 16;
+        refresh();
+    }
+    public void incWidth(int n) {
+        notaWidth += 5*n;
+        if (notaWidth < 10 || notaWidth > 25) notaWidth = 10;
+        refresh();
+    }
+
+    private void refresh() {
+        STEPY = notaHeight/8;
+        STEPX = notaWidth;
+        for (int i = 0; i < 5; ++i ) {
+            vseKartinki[i] = changeSize(i);
+        }
+        MARX = (int)Math.round(MARGIN_H* STEPX);
+        MARY = (int)Math.round(MARGIN_V* STEPY);
+        toOtGraph = 38* STEPY;
+        stepInOneSys = (int)Math.floor(width / STEPX - 2*MARGIN_H);
+
+        Nota.refreshSizes();
+        repaint();
+    }
+
+    private BufferedImage changeSize(int idx) { // TODO
+        int w0 = vseKartinki0[idx].getWidth();
+        int h0 = vseKartinki0[idx].getHeight();
+        int w1 = w0*notaWidth/NORMAL_WIDTH;
+        int h1 = h0*notaHeight/NORMAL_HEIGHT;
+
+        BufferedImage tmp = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
+        Graphics g = tmp.createGraphics();
+        Image scaledImage = vseKartinki0[idx].getScaledInstance(w1, h1, Image.SCALE_SMOOTH);
+        g.drawImage(scaledImage, 0, 0, w1, h1, null);
+        g.dispose();
+        return tmp;
+    }
+
     public DrawPanel(final NotnyStan stan) {
         this.stan = stan;
         stan.stepInOneSys = stepInOneSys;
         URL curUr = getClass().getResource("../");
         System.out.println(curUr.getPath());
-        URL keyRes = getClass().getResource("../imgs/vio_sized.png");
-        URL basRes = getClass().getResource("../imgs/bass_sized.png");
-        URL bemRes = getClass().getResource("../imgs/flat_sized.png");
-        URL ptrRes = getClass().getResource("../imgs/MyPointer.png");
-        URL volRes = getClass().getResource("../imgs/volume.png");
-        
-
-        try { vikey = ImageIO.read(keyRes);
-        		bakey = ImageIO.read(basRes);
-                bemol = ImageIO.read(bemRes);                 
-                ptrImg = ImageIO.read(ptrRes);
-                volImg = ImageIO.read(volRes);
+        String keyRes = "../imgs/vio_sized.png";
+        String basRes = "../imgs/bass_sized.png";
+        String bemRes = "../imgs/flat_sized.png";
+        String ptrRes = "../imgs/MyPointer.png";
+        String volRes = "../imgs/volume.png";
+        try {   vseKartinki[0] = ImageIO.read(new File(keyRes));
+                vseKartinki[1] = ImageIO.read(new File(basRes));
+                vseKartinki[2] = ImageIO.read(new File(bemRes));
+                vseKartinki[3] = ImageIO.read(new File(ptrRes));
+                vseKartinki[4] = ImageIO.read(new File(volRes));
         } catch (IOException e) { e.printStackTrace(); System.out.println("Темнишь что-то со своей картинкой..."); }
+        for (int i = 0; i < 5; ++i ) {
+            vseKartinki0[i] = vseKartinki[i];
+            vseKartinki[i] = changeSize(i);
+        }
 
         int xPoints[] = { 6, 11, 16 };
         int yPoints[] = { 0, 25, 0 };
@@ -80,6 +124,7 @@ public class DrawPanel extends JPanel {
 
     int curCislic = 0;
     int taktCount = 1;
+    int curAccord = -2;
     
     int triol = 0;
     public void paintComponent(Graphics g) {
@@ -88,8 +133,8 @@ public class DrawPanel extends JPanel {
         g.setColor(Color.WHITE);
         g.fillRect(0,0,this.getWidth(),this.getHeight());
         g.setColor(Color.BLUE);
-        g.drawImage(bakey, STEPX, 11* STEPY + MARY +2, this);
-        g.drawImage(vikey, STEPX, MARY - 3* STEPY, this);
+        g.drawImage(vseKartinki[1], STEPX, 11* STEPY + MARY +2, this);   //bass
+        g.drawImage(vseKartinki[0], STEPX, MARY - 3* STEPY, this);       //violin
         this.to4kaOt4eta = stan.to4kaOt4eta;
         gPos = MARX + notnMar* STEPX -2* STEPX;
         curCislic = 0;
@@ -97,7 +142,6 @@ public class DrawPanel extends JPanel {
         taktCount = 1;
         for (Pointerable anonimus = Pointer.beginNota; anonimus != null; anonimus = anonimus.next) {
             if (anonimus instanceof Phantom) {
-            	out(gPos+" "+MARY);
                 drawPhantom((Phantom)(anonimus), g);
                 gPos += 2* STEPX *anonimus.gsize;
             }
@@ -113,7 +157,7 @@ public class DrawPanel extends JPanel {
                     curCislic %= stan.cislic;
                     g.setColor(Color.BLACK);
                     if (curCislic > 0) {
-                        g.setColor(Color.GRAY);
+                        g.setColor(Color.BLUE);
                     }
                     g.drawLine(gPos + STEPX * 3 / 2, MARY - STEPY * 5, gPos + STEPX * 3 / 2, MARY + STEPY * 20);
                     g.setColor(Color.decode("0x00A13E"));
@@ -130,8 +174,8 @@ public class DrawPanel extends JPanel {
         	// Рисуем нотный стан
         	if (gPos >= stepInOneSys* STEPX) {
             	// Переходим на новую октаву
-            	g.drawImage(bakey, STEPX, (SISDISPLACE+11)* STEPY + MARY +2, this);
-                g.drawImage(vikey, STEPX, MARY + (SISDISPLACE-3)* STEPY, this);
+            	g.drawImage(vseKartinki[1], STEPX, (SISDISPLACE+11)* STEPY + MARY +2, this);
+                g.drawImage(vseKartinki[0], STEPX, MARY + (SISDISPLACE-3)* STEPY, this);
             	for (int j=0; j<(stan.bassKey? 11: 5); ++j){
                     if (j == 5) continue;
                     g.drawLine(MARX, MARY + j* STEPY *2, width - MARX, MARY + j* STEPY *2);
@@ -144,10 +188,12 @@ public class DrawPanel extends JPanel {
             }
         	tmp = theNota;
             boolean checkVa = false;
+
             while (tmp!=null) {
             	if (tmp.okt > 6) checkVa = true;
             	tmp = tmp.accord;
             }
+
             g.setColor(Color.BLUE);
         	if (checkVa) {
         		g.drawString("8va", gPos, MARY-4* STEPY);
@@ -156,13 +202,17 @@ public class DrawPanel extends JPanel {
 
 
             Nota rezNota =(Nota) theNota;
+            if (rezNota == Pointer.curNota)
+                curAccord = 0;
             while (theNota != null){
             	drawNotu( (Nota)theNota, g);
             	theNota = (Nota)theNota.accord;
+                if (curAccord != -2) {
+                    ++curAccord;
+                }
             }
             theNota = rezNota;
-
-            
+            curAccord = -2;
             
             if (checkVa) {
         		MARY -= 7* STEPY;
@@ -202,10 +252,14 @@ public class DrawPanel extends JPanel {
     	int thisY = MARY + toOtGraph - STEPY * (theNota.pos + theNota.okt * 7);
     	
         if (theNota.isBemol) {
-            g.drawImage(bemol, gPos-(int)Math.round(0.5* STEPX), thisY + 3* STEPY +2, this);
+            g.drawImage(vseKartinki[2], gPos-(int)Math.round(0.5* STEPX), thisY + 3* STEPY +2, this);
         } // Хочу, чтобы он рисовал от ноты, поэтому не инкапсулировал бемоль
 
-        g.drawImage(theNota.getImage(), gPos, thisY, this);
+        if (curAccord == Pointer.AcNo) {
+            g.drawImage(theNota.getImageCol(), gPos, thisY, this);
+        } else {
+            g.drawImage(theNota.getImage(), gPos, thisY, this);
+        }
         if (triol == 1) {
             x0 = gPos+20-4;
             y0 = thisY;
@@ -220,7 +274,7 @@ public class DrawPanel extends JPanel {
             g.drawString("3",x0+(x1-x0)/2 - 6, y0+(y1-y0)/2 - 10);
         }
         if (triol != 0) ++triol;
-        if (theNota.underPtr) g.drawImage( ptrImg, gPos, MARY- STEPY *14, this );
+        if (theNota.underPtr) g.drawImage( vseKartinki[3], gPos, MARY- STEPY *14, this );   // Картинка указателя
     	
         int n = theNota.cislic;
     	boolean to4ka = false;
@@ -261,15 +315,9 @@ public class DrawPanel extends JPanel {
                     deltaY += 24*STEPY;
                     break;
                 default:
-                    System.out.println("Неизвестный енум в ДоуПанеле");
+                    out("Неизвестный енум в ДоуПанеле");
                     break;
             }
-            g.drawImage( ptrImg, gPos - 7, MARY- STEPY *14 + deltaY, this );
-        }
-    } 
-    
-    public void checkCam(){
-    	JScrollBar vertical = scroll.getVerticalScrollBar();
     	vertical.setValue( SISDISPLACE* STEPY * (Pointer.pos / (stepInOneSys/2-2)  -1) );
     	repaint();
     }

@@ -5,7 +5,7 @@ import javax.sound.midi.*;
 public class OneShotThread extends Thread{
     Receiver sintReceiver = NotnyStan.sintReceiver;;
     Nota nota;
-    static int EPSILON = 10;
+    static int EPSILON = 15;
     int volume;
     int divi = 1;
 	
@@ -30,13 +30,18 @@ public class OneShotThread extends Thread{
 	        int time = (short)( msIns*nota.cislic/nota.znamen*4/NotnyStan.tempo*60 / divi );
 			onMessage.setMessage( ShortMessage.NOTE_ON, 2, (byte)nota.tune, (byte)volume);
 			sintReceiver.send(onMessage, -1);
-	        
-	        try { Thread.sleep(time - EPSILON); } catch (InterruptedException e) { System.out.println("Ошибка сна"+e); }
+
+            try {
+                Thread.sleep(time - EPSILON);
+            } catch (InterruptedException e) {
+                //System.out.println("Ошибка сна"+e);
+            }
 	
 	    	offMessage.setMessage(ShortMessage.NOTE_OFF, 2, (byte)nota.tune, 0);
 	    	sintReceiver.send(offMessage, -1);
     	} catch (InvalidMidiDataException e) {
     		System.out.println("InvalidMidiDataException");
     	}
+        playMusThread.openNotes[nota.tune] = null;
     }
 }

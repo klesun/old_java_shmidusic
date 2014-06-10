@@ -36,7 +36,7 @@ public class Phantom extends Pointerable{
         g.drawString(" = "+valueTempo, tpx + 20, tpy + inches*4/5 + 30 - 4);
 
         tpx = 0; tpy = 148;
-        g.drawImage(DrawPanel.volImg, tpx+2, tpy, null);
+        g.drawImage(DrawPanel.vseKartinki[4], tpx+2, tpy, null);
         inches = 12;
         g.setColor(Color.decode("0x00A13E"));
         g.setFont(new Font(Font.SERIF, Font.BOLD, inches)); // 12 - 7px width
@@ -117,7 +117,7 @@ public class Phantom extends Pointerable{
                 valueVolume *= 10;
                 System.out.println("c="+c+" c-'0'="+(c-'0'));
                 valueVolume += ((double)(c-'0'))/100;
-                if (valueVolume > 9.99) valueVolume = 9.99;
+                if (valueVolume > 2.54) valueVolume = 2.54;
                 break;
             default:
                 System.out.println("Неизвестный енум");
@@ -147,7 +147,7 @@ public class Phantom extends Pointerable{
             case volume:
                 valueVolume += ((double)n)/100;
                 if (valueVolume < 0) valueVolume = 0;
-                if (valueVolume > 9.99) valueVolume = 9.99;
+                if (valueVolume > 2.54) valueVolume = 2.54;
                 break;
             default:
                 System.out.println("Неизвестный енум");
@@ -181,6 +181,11 @@ public class Phantom extends Pointerable{
                 break;
         } // switch(enum)
         stan.checkValues(this);
+    }
+
+    public void setCislicFromFile( int fileCis ) {
+        fileCis /= 8;
+        cislic = fileCis;
     }
 
     private double log2(int n){

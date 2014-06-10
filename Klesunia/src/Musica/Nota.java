@@ -1,12 +1,14 @@
 package Musica;
 
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import GraphTmp.DrawPanel;
 import Tools.Pointerable;
 
 public class Nota extends Pointerable {
@@ -183,7 +185,8 @@ public class Nota extends Pointerable {
         if (isTriol) {
             Nota tmp = this;
             for (int i=0;i<2;++i) {
-                
+                tmp.next.changeDur(n, false);
+                tmp = tmp.next;
             }
         }
 		if ( (accord != null) && (single == false) ) accord.changeDur(n, false); 
@@ -222,28 +225,52 @@ public class Nota extends Pointerable {
     }
 
     private static Boolean bufInited = false;
+    public static BufferedImage notaImg0[] = new BufferedImage[8];
     public static BufferedImage notaImg[] = new BufferedImage[8];
+    public static BufferedImage notaImgCol[] = new BufferedImage[8];
     static void bufInit() {
     	System.out.println("Эта функция запускается лишь один раз - при создании первого экземпляра класса");
-    	    	
-    	// Копипаст
+
     	File notRes[] = new File[8];
+        File notResCol[] = new File[8];
         for (int idx = -1; idx<7; ++idx){
-        	String str = "imgs/" + pow(2, idx) + "_sized.png";
-        	notRes[idx+1] = new File(str); 
+        	String str = "../imgs/" + pow(2, idx) + "_sized.png";
+            String str2 = "../imgs/" + pow(2, idx) + "_colored.png";
+        	notRes[idx+1] = new File(str);
+            notResCol[idx+1] = new File(str2);
         }
         for (int idx = 0; idx < 8; ++idx){
         	try {
-            	System.out.println( notRes[idx].getCanonicalPath() );
-        		if (notRes[idx] != null) notaImg[idx] = ImageIO.read(notRes[idx]);
-        	} catch (IOException e) { System.out.println("Ноты не читаются!!! "+idx); }
+                notaImg0[idx] = ImageIO.read(notRes[idx]);
+        	} catch (IOException e) { if (idx!=7) System.out.println(e+" Ноты не читаются!!! "+idx); }
         }
-    	// Заполнить нотаИмг нужными картинками нот
+        refreshSizes();
+
     }
+    public static void refreshSizes() {
+        for (int idx = 0; idx < 8; ++idx ) {
+            notaImg[idx] = new BufferedImage(DrawPanel.notaWidth, DrawPanel.notaHeight, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = notaImg[idx].createGraphics();
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OUT, 0.75f));
+            g.drawImage(notaImg0[idx], 0, 0, DrawPanel.notaWidth, DrawPanel.notaHeight, null);
+            g.dispose();
+            notaImgCol[idx] = new BufferedImage(DrawPanel.notaWidth, DrawPanel.notaHeight, BufferedImage.TYPE_INT_ARGB);
+            g = notaImgCol[idx].createGraphics();
+            g.setColor(Color.BLUE);
+            g.fillRect(0, 0, DrawPanel.notaWidth, DrawPanel.notaHeight);
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN, 1.0f));
+            g.drawImage(notaImg[idx], 0, 0, DrawPanel.notaWidth, DrawPanel.notaHeight, null);
+            g.dispose();
+        }
+    }
+
     public BufferedImage getImage() {
     	int idx = (int)(Math.ceil(7 - Math.log(cislic) / Math.log(2) ));
-    	return notaImg[idx];    	
-    	// Добавить проверку на выход за границы допустимого  	
+    	return notaImg[idx];
+    }
+    public BufferedImage getImageCol() {
+        int idx = (int)(Math.ceil(7 - Math.log(cislic) / Math.log(2) ));
+        return notaImgCol[idx];
     }
     
     

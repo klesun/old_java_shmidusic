@@ -168,7 +168,7 @@ public class NotnyStan {
     	} else rez = Pointer.moveTo(nota);
     	if (rez == 0) delNotu();
     	else {
-    		System.out.println("Воскресшей ноты на стане нет");
+    		out("Воскресшей ноты на стане нет");
     	}
     	drawPanel.repaint();    	
     }
@@ -202,7 +202,8 @@ public class NotnyStan {
     final byte EOS = 1; // End Of String
     final byte LYRICS = 2;
     final byte VERSION = 3;
-    final byte STUFF = 4; // End Of String
+    final byte STUFF = 4;
+    final byte FLAGS = 16;
     final int MAXSLOG = 255;
     final int MINTUNE = 32;
 
@@ -216,10 +217,25 @@ public class NotnyStan {
             int rezPos = Pointer.pos;
             Pointer.moveOut();
             // TODO: Записать данные из фантомки (темп, тактовая длина...)
-            
+            strmOut.write( VERSION );
+            strmOut.write( 32 ); // С этого момента начинаем счёт версий. Первая будет 32, потому что а хули нет?
+            strmOut.write( VERSION );
+
+            strmOut.write( STUFF );
+
+            strmOut.write((byte)( (tempo >> 8) & 255 ));
+            strmOut.write((byte)(tempo & 255));
+            strmOut.write((byte)Math.round(volume * 100));
+            strmOut.write((byte)(cislic));
+
+            strmOut.write( STUFF );
+            boolean tri = false;
+            byte bajt = 0;
+
             while (Pointer.move(1) != -1) {
             	strmOut.write( NEWACCORD ); // Ноль здесь будет знаком конца аккорда
             	Nota n = (Nota)Pointer.curNota;
+                if (n.isTriol) tri = true;
             	do {     
 	            	strmOut.write( (byte)n.tune );	            		            		           
 	            	strmOut.write( (byte)n.cislic );
@@ -231,11 +247,19 @@ public class NotnyStan {
 	                strmOut.write( Pointer.curNota.slog.getBytes("UTF-8") );
 	                strmOut.write( EOS );
             	}
+                if (tri) bajt |= (1 << 3);
+                if (bajt != 0) {
+                    strmOut.write(FLAGS);
+                    strmOut.write(bajt);
+                    strmOut.write(FLAGS);
+                    bajt = 0;
+                    tri = false;
+                }
             }
             Pointer.moveTo(rezPos);
             strmOut.close();
         } catch (IOException e) { 
-        	System.out.println("С файлом (кто бы мог подумать) что-то не так");
+        	out("С файлом (кто бы мог подумать) что-то не так");
     		return -1;
         }
         return 0;
@@ -246,7 +270,7 @@ public class NotnyStan {
     	if (mode == aMode.insert) mode = aMode.passive;
     	else mode = aMode.insert;
     	
-    	System.out.println(mode);
+    	out(mode+"");
     	return 0;
     }
 
@@ -262,18 +286,34 @@ public class NotnyStan {
     		
     		clearStan();
     		int b;
-
+            int version;
     		b = strmIn.read();
+            if (b != VERSION) version = 0;
+            else {
+                version = b = strmIn.read();
+                strmIn.read();
+                b = strmIn.read();
+            }
     		int tune;
     		int cislic;
             Nota last = null;
             while ( b != -1 ) {
-            	// TODO: А ещё добавить считывание фантомки
                 switch (b) {
+                case STUFF: // TODO: Возможно, ошибка
+                    int temptempo = 0;
+                    temptempo |= ((int)(strmIn.read()) << 8);
+                    temptempo |= (strmIn.read());
+                    phantomka.valueTempo = temptempo;
+                    phantomka.valueVolume = ((double)strmIn.read()) / 100;
+                    phantomka.setCislicFromFile(strmIn.read());
+
+                    checkValues(phantomka);
+                    strmIn.read();
+                    b = strmIn.read();
+                    break;
                 case NEWACCORD:
                     tune = strmIn.read();
                     cislic = strmIn.read();
-                    out("cislic from file = "+cislic);
                     last = addFromFile(tune, cislic);
                     b = strmIn.read();
 
@@ -296,19 +336,20 @@ public class NotnyStan {
                     } 
                     b = strmIn.read();
                     last.setSlog( new String(bajti, 0, i, "UTF-8") );
+                    out(last.slog);
                     
                     break;
-                case STUFF:
-
-                    break;
-                case VERSION:
-
+                case FLAGS:
+                    b = strmIn.read();
+                    // Может генерить ошибку, если у нас что-то неправильно
+                    if ( (b & (1 << 3)) == (1 << 3) ) last.isTriol = true;
+                    strmIn.read();
+                    b = strmIn.read();
                     break;
                 default:
                     // Пропускаем неизвестные тэги (главное, чтобы в этих тэгах
                 	// все числа были больше 32)
-                	// TODO: проверить на работоспособность
-                	out("Неизвестные тэги?");
+                	out("Неизвестные тэги? "+b);
                 	
                 	int subB = b;
                 	while ( (b = strmIn.read()) != subB );
@@ -319,7 +360,7 @@ public class NotnyStan {
 
     		strmIn.close();
     	} catch (IOException e){
-    		System.out.println("Не открывается файл для чтения");
+    		out("Не открывается файл для чтения");
     		return -1;
     	}
     	out("Закрыли файл");
@@ -330,9 +371,7 @@ public class NotnyStan {
     
     
     private Nota addFromFile(int tune, int cislic){
-        out("От вас получили: "+cislic);
     	Nota newbie = new Nota(tune, (int)cislic);
-        out("Однако за время пути: "+newbie.cislic);
         newbie.prev = Pointer.curNota;
 		Pointer.curNota.next = newbie;
 		newbie.isFirst = true;	        
@@ -376,8 +415,8 @@ public class NotnyStan {
             outputDevice.open();
             sintReceiver = outputDevice.getReceiver();
         } catch (MidiUnavailableException e) {
-            System.out.println("Не открывается аут ваш"); }
-        if (sintReceiver == null) {  System.out.println("Не отдался нам ресивер");
+            out("Не открывается аут ваш"); }
+        if (sintReceiver == null) {  out("Не отдался нам ресивер");
                                     System.exit(1); }
         return 0;
     }

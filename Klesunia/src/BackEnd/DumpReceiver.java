@@ -31,6 +31,7 @@ public class DumpReceiver
 
     public void close() {}
     long sPrev = 0;
+    static boolean pitch=false;
     public void send(MidiMessage message, long lTimeStamp) {
         lTimeStamp /= 1000;
         short outp;
@@ -42,7 +43,9 @@ public class DumpReceiver
         int tune = ((ShortMessage) message).getData1();
         int forca = ((ShortMessage)message).getData2();
         System.out.println("Midi-message: " + tune + " " + forca + " ");
+
         if (tune <= 32 || tune >= 100) {
+            System.out.println("Я здесь!");
         	// Handle instrument change/pitch-bend/tune/etc // Actually, useless
         	return;
         }

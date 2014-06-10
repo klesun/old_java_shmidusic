@@ -7,7 +7,11 @@ import Musica.NotnyStan.aMode;
 import Tools.Pointer;
 import Tools.Pointerable;
 
+import java.util.ArrayList;
+
 public class playMusThread extends Thread {
+    public static OneShotThread[] openNotes = new OneShotThread[192];
+
 	boolean stop = false;
 	Pointer ptr;
     Receiver sintReceiver = NotnyStan.sintReceiver;
@@ -63,9 +67,24 @@ public class playMusThread extends Thread {
     }
     
     public static int playNotu(Nota nota, int divi){
-    	OneShotThread thr;
-    	thr = new OneShotThread(nota, divi);
+        int tune = nota.tune;
+        if (openNotes[tune] != null) {
+            openNotes[tune].interrupt();
+            try {openNotes[tune].join();} catch (Exception e) {System.out.println("Не дождались");}
+            openNotes[tune] = null;
+        }
+    	OneShotThread thr = new OneShotThread(nota, divi);
+        openNotes[tune] = thr;
+        kri4alki.add(openNotes[tune]);
     	thr.start();
     	return 0;
+    }
+
+    public static ArrayList<OneShotThread> kri4alki = new ArrayList<OneShotThread>();
+    public static void shutTheFuckUp() {
+        for (OneShotThread tmp: kri4alki) {
+            if (tmp.isAlive()) tmp.interrupt();
+        }
+        kri4alki.removeAll(kri4alki);
     }
 }
