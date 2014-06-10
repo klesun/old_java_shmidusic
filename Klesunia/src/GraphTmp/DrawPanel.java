@@ -297,29 +297,35 @@ public class DrawPanel extends JPanel {
     	return 0;
     } 
     private void drawPhantom(Phantom phantomka, Graphics g) {
-        int dX=5, dY=80;
-        g.drawImage( phantomka.getImage(), gPos-dX, MARY-dY, this );
+        int dX = 5, dY = 80;
+        g.drawImage(phantomka.getImage(), gPos - dX, MARY - dY, this);
         if (phantomka.underPtr) {
             int deltaY = 0;
             switch (phantomka.changeMe) {
                 case cislicelj:
-                    deltaY += 7*STEPY;
+                    deltaY += 7 * STEPY;
                     break;
                 case znamenatelj:
-                    deltaY += 11*STEPY;
+                    deltaY += 11 * STEPY;
                     break;
                 case tempo:
-                    deltaY -= 1*STEPY;
+                    deltaY -= 1 * STEPY;
                     break;
                 case volume:
-                    deltaY += 24*STEPY;
+                    deltaY += 24 * STEPY;
                     break;
                 default:
                     out("Неизвестный енум в ДоуПанеле");
                     break;
             }
-    	vertical.setValue( SISDISPLACE* STEPY * (Pointer.pos / (stepInOneSys/2-2)  -1) );
-    	repaint();
+            g.drawImage(vseKartinki[3], gPos - 7, MARY - STEPY * 14 + deltaY, this);
+        }
+    }
+
+    public void checkCam(){
+        JScrollBar vertical = scroll.getVerticalScrollBar();
+        vertical.setValue( SISDISPLACE* STEPY * (Pointer.pos / (stepInOneSys/2-2) -1) );
+        repaint();
     }
     
     public void page(int pageCount) {
