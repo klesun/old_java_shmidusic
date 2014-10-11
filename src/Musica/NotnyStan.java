@@ -11,7 +11,6 @@ import Pointiki.Pointer;
 import Pointiki.Pointerable;
 import Tools.DeviceEbun;
 import Tools.FileProcessor;
-import Tools.Statika;
 
 import java.io.*;
 import javax.sound.midi.InvalidMidiDataException;
@@ -23,6 +22,7 @@ import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 
 public class NotnyStan {
+	public byte channelFlags = -1;
 	int sessionId = (int)Math.random()*Integer.MAX_VALUE;
 
 	public static final int CHANNEL = 0;
@@ -104,7 +104,6 @@ public class NotnyStan {
     	Nota nota = new Nota(tune, (long)elapsed);    	
     	unclosed[tune] = nota;
     	++closerCount;
-    	nota.channel = Statika.channel;
     	
     	if (Pointer.curNota.isTriol) {
     		// TODO: OLOLOLOLOLO!!!!
@@ -218,8 +217,8 @@ public class NotnyStan {
     }
 
     
-    public Nota addFromFile(int tune, int cislic){
-    	Nota newbie = new Nota(tune, (int)cislic);
+    public Nota addFromFile(int tune, int cislic, int channel){
+    	Nota newbie = new Nota(tune, (int)cislic, channel);
         newbie.prev = Pointer.curNota;
 		Pointer.curNota.next = newbie;
 		newbie.isFirst = true;	        
@@ -281,6 +280,17 @@ public class NotnyStan {
         drawPanel.repaint();
     }
 
+	public int changeChannelFlag(int channel) {
+		if (channel > 7 || channel < 0) return -1;
+		channelFlags ^= 1 << channel;
+		return 0;
+	}
+
+	public Boolean getChannelFlag(int channel) {
+		if (channel > 7 || channel < 0) return false;
+		return (channelFlags & (1 << channel)) > 0;
+	}
+
     public void slianie() {
 
     }
@@ -295,11 +305,6 @@ public class NotnyStan {
     	}
     	checken = true;
     }
-    
-    public void switchToChannel(int n) {
-    	Statika.channel = n;
-    }
-    
 }
 
 

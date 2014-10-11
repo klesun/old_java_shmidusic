@@ -35,7 +35,7 @@ public class Voices {
 		if (Pointer.curNota instanceof Nota == false) return;
 		Nota nota = (Nota)anonimus;
 		Nota root = nota;
-		int count = nota.checkCount();
+		int count = nota.getNoteCountInAccord();
 		int accLen = nota.getAccLen();
 		if (vse4isti) {
 			setVoices(root); // 0 - soprano, 1 - alt, 2 - tenor, 3 - bass

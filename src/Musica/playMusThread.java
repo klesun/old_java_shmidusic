@@ -16,8 +16,9 @@ public class playMusThread extends Thread {
 
 	boolean stop = false;
     Receiver sintReceiver = DeviceEbun.sintReceiver;
+	private static NotnyStan stan;
 	
-	public playMusThread(){}
+	public playMusThread(NotnyStan stan){ this.stan = stan; }
 
 	final static int msIns = 1000;
 	
@@ -53,7 +54,8 @@ public class playMusThread extends Thread {
     	Nota tmp = (Nota)ptr;
     	int time = Short.MAX_VALUE;
     	while (tmp != null) {
-    		playNotu(tmp, divi);
+			// убрать костыль нахуй! стан не должен появляться у этого объекта абы когда
+    		if ((stan == null) || stan.getChannelFlag(tmp.channel)) playNotu(tmp, divi);
     		time = Math.min( time, (short)( msIns*tmp.cislic/tmp.znamen*4/NotnyStan.tempo*60 / divi ) );
     		// 4 - будем брать четвертную как основную, 60 - потому что темпо измеряется в ударах в минуту, а у нас секунды (вообще, даже, миллисекунды)
     		tmp = tmp.accord;

@@ -1,14 +1,14 @@
 package Test;
 
 import javax.sound.midi.*;
-import BackEnd.MidiCommon;
+//import BackEnd.MidiCommon;
 
 public class MidiNote
 {
 	private static boolean DEBUG = true;
 	public static void main(String[] args)
 	{
-		String	strDeviceName = "CMI8738 [hw:1,0,0]";
+		String	strDeviceName = "CMI8738 [hw:0,0,0]";
 		int	nChannel = 15;
 		int nKey = 76;
 		int nVelocity = 76;
@@ -17,7 +17,7 @@ public class MidiNote
 		MidiDevice outputDevice = null;
 		Receiver receiver = null;
 		if (strDeviceName != null) {
-			MidiDevice.Info	info = MidiCommon.getMidiDeviceInfo(strDeviceName, true);
+			MidiDevice.Info	info = getMidiDeviceInfo(strDeviceName, true);
 			try	{ (outputDevice = MidiSystem.getMidiDevice(info)).open(); } catch (MidiUnavailableException e) { if (DEBUG) out(e); }
 			try	{ receiver = outputDevice.getReceiver(); } catch (MidiUnavailableException e) { if (DEBUG) out(e); }  }
 		
@@ -41,6 +41,32 @@ public class MidiNote
 		receiver.close();
 		if (outputDevice != null) outputDevice.close();
 	}
+
+    public static MidiDevice.Info getMidiDeviceInfo(String strDeviceName, boolean bForOutput)
+    {
+        MidiDevice.Info[]	aInfos = MidiSystem.getMidiDeviceInfo();
+        for (int i = 0; i < aInfos.length; i++)
+        {
+            if (aInfos[i].getName().equals(strDeviceName))
+            {
+                try
+                {
+                    MidiDevice device = MidiSystem.getMidiDevice(aInfos[i]);
+                    boolean	bAllowsInput = (device.getMaxTransmitters() != 0);
+                    boolean	bAllowsOutput = (device.getMaxReceivers() != 0);
+                    if ((bAllowsOutput && bForOutput) || (bAllowsInput && !bForOutput))
+                    {
+                        return aInfos[i];
+                    }
+                }
+                catch (MidiUnavailableException e)
+                {
+                    // TODO:
+                }
+            }
+        }
+        return null;
+    }
 
 	private static void out(Throwable t) { t.printStackTrace(); }
 }

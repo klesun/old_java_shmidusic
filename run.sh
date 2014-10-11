@@ -1,4 +1,5 @@
 javac -sourcepath ./src -d bin src/Main.java
+cp src/main.py bin/
 cd bin
-java Main
+jython main.py
 cd ..

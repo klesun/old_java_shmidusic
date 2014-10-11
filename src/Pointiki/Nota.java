@@ -11,8 +11,8 @@ import javax.imageio.ImageIO;
 
 import GraphTmp.DrawPanel;
 
-public class Nota extends Pointerable {
-	public int channel = -1;
+final public class Nota extends Pointerable {
+	public int channel = 0;
 	public boolean userDefinedChannel = false;
 	
 	public static int time = 0;
@@ -47,10 +47,12 @@ public class Nota extends Pointerable {
         	bufInited = true;        	
         }
     }
-    public Nota(int tune, int cislic) {
-    	this(tune);
-    	this.cislic = cislic;
-    }
+
+	public Nota(int tune, int cislic, int channel) {
+		this(tune);
+		this.cislic = cislic;
+		setChannel(channel);
+	}
     
     public Nota(int tune, long elapsed){  	    	
         this(tune);
@@ -99,11 +101,39 @@ public class Nota extends Pointerable {
         }
     }
 
+	private static String normalizeString(String str, int desiredLength) {
+		return String.format("%1$-" + desiredLength + "s", str);
+	}
+
+	public String getInfoString() {
+		return	normalizeString(strTune(this.pos) + (isBemol ? "-бемоль" : ""),12) +
+				normalizeString(okt + " " + oktIdxToString(okt), 19) +
+				normalizeString(channel+"", 2);
+	}
+
     @Override
     public String toString() {
-        String s = "midi: "+tune+"; pos: "+pos+"; okt: "+okt+"; "+strTune(pos);
-        return s;
+		String result = "аккорд:\n";
+		Nota curNota = this;
+		while (curNota != null) {
+			result += "\t" + curNota.getInfoString() + "\n";
+			curNota = curNota.accord; } 
+        String s = "nota: "+tune+"; pos: "+pos+"; okt: "+okt+"; "+strTune(pos);
+        return result;
     }
+
+	private static String oktIdxToString(int idx) {
+		return  idx == 1 ?	"субконтроктава" :
+				idx == 2 ?	"контроктава" :
+				idx == 3 ?	"большая октава" :
+				idx == 4 ?	"малая октава" :
+				idx == 5 ?	"первая октава" :
+				idx == 6 ?	"вторая октава" :
+				idx == 7 ?	"третья октава" :
+				idx == 8 ?	"четвёртая октава" :
+				idx == 9 ?	"пятая октава" :
+							"не знаю          ";
+	}
 
     private String strTune(int n){
         if (n < 0) {
@@ -245,9 +275,7 @@ public class Nota extends Pointerable {
     public static BufferedImage notaImg[] = new BufferedImage[8];
     public static BufferedImage notaImgCol[] = new BufferedImage[8];
     public static BufferedImage[][] voicedNotas = new BufferedImage[10][8];
-    static void bufInit() {
-    	System.out.println("Эта функция запускается лишь один раз - при создании первого экземпляра класса");
-
+    static void bufInit() { // функция запускается только при создании первого экземпляра класса
     	File notRes[] = new File[8];
         for (int idx = -1; idx<7; ++idx){
         	String str = "imgs/" + pow(2, idx) + "_sized.png";
@@ -281,7 +309,7 @@ public class Nota extends Pointerable {
 
             notaImgCol[idx] = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
             g = notaImgCol[idx].createGraphics();
-            g.setColor(Color.BLUE);
+            g.setColor(new Color(127,255,0));
             g.fillRect(0, 0, DrawPanel.notaWidth, DrawPanel.notaHeight);
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN, 1.0f));
             g.drawImage(notaImg[idx], 0, 0, w1, h1, null);
@@ -290,7 +318,6 @@ public class Nota extends Pointerable {
         
         for (int chan = 0; chan < 10; ++chan) {        	
             for (int idx = 0; idx < 8; ++idx) {
-            	
             	voicedNotas[chan][idx] = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
 	            g = voicedNotas[chan][idx].createGraphics();
 	            g.setColor(calcCol(chan));
@@ -302,8 +329,15 @@ public class Nota extends Pointerable {
         }
     }
     
-    private static Color calcCol(int n) {    	
-    	return Color.RED;
+    private static Color calcCol(int n) {
+    	return	n == 0 ? new Color(0,0,0) : // black
+				n == 1 ? new Color(255,0,0) : // red
+				n == 2 ? new Color(0,192,0) : // green
+				n == 3 ? new Color(0,0,255) : // blue
+				n == 4 ? new Color(255,128,0) : // orange
+				n == 5 ? new Color(192,0,192) : // magenta
+				n == 6 ? new Color(0,192,192) : // cyan
+				Color.GRAY;
     }
 
     public BufferedImage getImage() {
@@ -331,11 +365,10 @@ public class Nota extends Pointerable {
     	if (gsize < 1) gsize = 1;
     }
     
-    public int checkCount() { // TODO: щитай их при добавлении нот и храни как переменную
-    	Nota tmp = this;
-    	int count = 0;
-    	while (tmp != null) {
-    		tmp = tmp.accord;
+    public int getNoteCountInAccord() { // TODO: щитай их при добавлении нот и храни как переменную
+    	Nota tmp = this;		// Да пошёл ты
+    	int count = 1;
+    	while ((tmp = tmp.accord) != null) {
     		++count;
     	}
     	return count;
@@ -350,4 +383,8 @@ public class Nota extends Pointerable {
     	}
     	return list;
     }
+
+	public void setChannel(int channel) {
+		this.channel = channel;
+	}
 }
