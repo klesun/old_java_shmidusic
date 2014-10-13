@@ -99,24 +99,14 @@ public class Pointer {
     
     public static boolean moveRealtime(int q, boolean shouldISound){
     	while (q < 0) {
-	    	Pointerable n = curNota; 
-	    	if (n == null) return false;
-	    	if ( (n=n.prev)==null?false:(n=n.prev)==null?false:(n=n.prev)==null?false:n.isTriol )
-	            move(-3, shouldISound);
-	        else {
-	            move(-1, shouldISound);
-	        }
-	    	q += 1;
+			if (curNota == null) return false;
+			move(-1, shouldISound);
+			q += 1;
     	}
     	while (q > 0) {
-	    	Pointerable n = curNota; 
-	    	if (n == null) return false;
-	    	if ( (n=n.next)==null?false:(n=n.next)==null?false:(n=n.next)==null?false:n.isTriol )
-	            move(3, shouldISound);
-	        else {
-	            move(1, shouldISound);
-	        }
-	    	q -= 1;
+			if (curNota == null) return false;
+			move(1, shouldISound);
+			q -= 1;
     	}
     	return true;
     }
@@ -146,11 +136,14 @@ public class Pointer {
         }                
         gpos += delta;
         curNota.underPtr = true;
+		accordinaNota = null;
+        if (curNota instanceof Phantom) stan.checkValues((Phantom)curNota);
+
         
         if (withSound) playMusThread.playAccordDivided(curNota, 1);
         //stan.drawPanel.checkCam();
         stan.drawPanel.repaint();
-        if (curNota instanceof Phantom) stan.checkValues((Phantom)curNota);
+		System.out.print(curNota.toString());
         return true;
     }
     
@@ -168,7 +161,11 @@ public class Pointer {
     public static int nNotiVAccorde = -1;					// -1 - весь аккорд
     public static boolean pointsOneNotaInAccord = false;	
     public static Nota accordinaNota = null;				// Типа нота, на которую сейчас указывает Поинтер (не аккорд!)
-    public static void nextAcc(){    
+    public static void resetAcc() {
+		accordinaNota = null;
+    	Pointer.nNotiVAccorde = -1;
+	}
+	public static void nextAcc() {    
     	if (curNota instanceof Nota == false) {
     		if (curNota instanceof Phantom) ((Phantom)curNota).chooseNextParam();
     		return;
@@ -178,8 +175,7 @@ public class Pointer {
     			accordinaNota = accordinaNota.accord;
     			++Pointer.nNotiVAccorde;
     		} else { 
-    			accordinaNota = (Nota)Pointer.curNota;
-    			Pointer.nNotiVAccorde = 0;
+    			resetAcc();
     		}
     	} else {
     		pointsOneNotaInAccord = true;
@@ -187,5 +183,9 @@ public class Pointer {
     		nNotiVAccorde = 0;
     	}
     }
+
+	public static Nota getCurrentAccordinuNotu() {
+		return accordinaNota;
+	}
 
 }

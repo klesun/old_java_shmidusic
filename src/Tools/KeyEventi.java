@@ -66,7 +66,7 @@ public class KeyEventi implements KeyListener {
                             fn = new File(fn + ".klsn");
                         }
 
-                        FileProcessor.saveFile(fn);
+                        FileProcessor.saveKlsnFile(fn);
                     }
                     if (rVal == JFileChooser.CANCEL_OPTION) {
                         break;
@@ -77,7 +77,7 @@ public class KeyEventi implements KeyListener {
                     if (i == 0) {
                         int sVal = chooserSave.showOpenDialog(parent);
                         if (sVal == JFileChooser.APPROVE_OPTION) {
-                            FileProcessor.klsnOpen(chooserSave.getSelectedFile());
+                            FileProcessor.openKlsnFile(chooserSave.getSelectedFile());
                         }
                         if (sVal == JFileChooser.CANCEL_OPTION) {
                             break;
@@ -108,7 +108,7 @@ public class KeyEventi implements KeyListener {
                 case 'P': case 'p': case 'З': case 'з':
                     System.out.println("Вы нажали ctrl+p!");
                     if (DeviceEbun.stop)
-                        DeviceEbun.playEntire();
+                        DeviceEbun.playEntire(stan);
                     else
                         DeviceEbun.stopMusic();
                     break;
@@ -148,6 +148,12 @@ public class KeyEventi implements KeyListener {
                 default: break;
             }
             return;
+        } else if ( ((e.getModifiers() & KeyEvent.CTRL_MASK) == 0) && ((e.getModifiers() & KeyEvent.ALT_MASK) != 0) ) {
+            int cod = e.getKeyCode();
+        	if (cod >= '0' && cod <= '9') {
+        		stan.changeChannelFlag(cod - '0');
+				Albert.repaint();
+        	}
         }
 
         switch (e.getKeyCode()) {
@@ -163,12 +169,12 @@ public class KeyEventi implements KeyListener {
                 break;
             case KeyEvent.VK_UP:
                 playMusThread.shutTheFuckUp();
-                Pointer.moveSis(1);
+                Pointer.moveSis(-1);
                 stan.drawPanel.checkCam();
                 break;
             case KeyEvent.VK_DOWN:
                 playMusThread.shutTheFuckUp();
-                Pointer.moveSis(-1);
+                Pointer.moveSis(1);
                 stan.drawPanel.checkCam();
                 break;
             case KeyEvent.VK_HOME:
@@ -248,13 +254,36 @@ public class KeyEventi implements KeyListener {
                 }
                 Albert.repaint();
                 break;
+			case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+			case KeyEvent.VK_NUMPAD0: case KeyEvent.VK_NUMPAD1: case KeyEvent.VK_NUMPAD2: case KeyEvent.VK_NUMPAD3: case KeyEvent.VK_NUMPAD4: case KeyEvent.VK_NUMPAD5: 
+			case KeyEvent.VK_NUMPAD6: case KeyEvent.VK_NUMPAD7: case KeyEvent.VK_NUMPAD8: case KeyEvent.VK_NUMPAD9:
+				if (curNota instanceof Phantom) {
+                    ((Phantom)curNota).tryToWrite( e.getKeyChar() );
+                    break;
+                } else if (curNota instanceof Nota) {
+					int cifra = (e.getKeyCode() >= '0' && e.getKeyCode() <='9') 
+							? e.getKeyCode() - '0'
+							: e.getKeyCode() - KeyEvent.VK_NUMPAD0;
+					Nota nota = Pointer.getCurrentAccordinuNotu();
+					if (nota != null) { 
+						if (nota.channel != cifra) {
+							nota.setChannel(cifra); 
+						} else {
+							Pointer.resetAcc();
+							Albert.repaint();
+						}
+					} else {
+						cifra = Math.min(cifra, ((Nota)curNota).getNoteCountInAccord());
+						while(cifra-- > 0) { 
+							Pointer.nextAcc(); 
+						}
+						Albert.repaint();
+					} 
+				} // не работает - сделай
+				break;
             default:
                 if (stan.mode == NotnyStan.aMode.playin) break;
 
-            	if (curNota instanceof Nota == false) {
-                    ((Phantom)curNota).tryToWrite( e.getKeyChar() );
-                    break;
-                }
                 System.out.println("Keycode "+e.getKeyCode());
             	if (e.getKeyCode() >= 32 || e.getKeyCode() == 0) {
             		// Это символ - напечатать

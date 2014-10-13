@@ -231,7 +231,6 @@ public class DrawPanel extends JPanel {
             	trolling = false;
             	triol = 0;
             	curCislic += triolTaktSum / 3;
-            	out("curCislic/triolTaktSum: "+curCislic+" "+triolTaktSum);
             	triolTaktSum = 0;            	
             	checkTakt(g);            	
             }
@@ -267,49 +266,49 @@ public class DrawPanel extends JPanel {
 
     int x0, y0, x1,y1;
     private int drawNotu(Nota theNota, Graphics g) {
-    	    	
-    	int thisY = MARY + toOtGraph - STEPY * (theNota.pos + theNota.okt * 7);
-    	
-        if (theNota.isBemol) {
-            g.drawImage(vseKartinki[2], gPos-(int)Math.round(0.5* STEPX), thisY + 3* STEPY +2, this);
-        } // Хочу, чтобы он рисовал от ноты, поэтому не инкапсулировал бемоль
 
-        if (curAccord == Pointer.nNotiVAccorde) {
-            g.drawImage(theNota.getImageCol(), gPos, thisY, this);
-        } else {
-            g.drawImage(theNota.getImage(), gPos, thisY, this);
-        }
-        if (triol == 1) {
-            x0 = gPos + (15)*notaHeight/NORMAL_HEIGHT;
-            y0 = thisY;
-        } else if (triol == 3) {
-        	drawTriolLine(x0, y0, thisY, g);
-        }        
-        if (theNota.underPtr) g.drawImage( vseKartinki[3], gPos, MARY- STEPY *14, this );   // Картинка указателя
-    	
-        int n = theNota.cislic;
-    	boolean to4ka = false;
-    	if (n % 3 == 0) {
-			to4ka = true;
-			n -= n/3;
-		}			    	
-    	g.setColor(Color.BLACK);
-    	if (to4ka) g.fillOval(gPos + notaWidth*4/5, thisY + notaHeight*7/8, notaHeight/8, notaHeight/8);
-        
-    	boolean chet = (theNota.pos % 2 == 1) ^ (theNota.okt % 2 == 1);
-    	if (theNota.okt > 6) chet = !chet;
-        if (chet) g.drawLine(gPos - notaWidth*4/25, thisY + STEPY * 7, gPos + notaWidth*22/25, thisY + STEPY * 7);
-    	// полоска для до...
-        if (theNota.slog != null && theNota.slog != ""){
-        	g.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12)); // 12 - 7px w  h == 12*4/5
-            g.setColor(Color.WHITE);
-            g.fillRect(gPos-2, MARY-6* STEPY - 12*4/5 - 2, 7*theNota.slog.length() + 4, 12*4/5 + 4);
-            g.setColor(Color.BLACK);
-            g.drawString(theNota.slog, gPos, MARY-6* STEPY);
-            g.setColor(Color.BLACK);
-        }
+		int thisY = MARY + toOtGraph - STEPY * (theNota.pos + theNota.okt * 7);
+		if (stan.getChannelFlag(theNota.channel)) {
+			if (theNota.isBemol) {
+				g.drawImage(vseKartinki[2], gPos-(int)Math.round(0.5* STEPX), thisY + 3* STEPY +2, this);
+			} // Хочу, чтобы он рисовал от ноты, поэтому не инкапсулировал бемоль
+			if (curAccord == Pointer.nNotiVAccorde) {
+				g.drawImage(theNota.getImageCol(), gPos, thisY, this);
+			} else {
+				g.drawImage(theNota.getImage(), gPos, thisY, this);
+			}
+			int n = theNota.cislic;
+			boolean to4ka = false;
+			if (n % 3 == 0) {
+				to4ka = true;
+				n -= n/3;
+			}
+			g.setColor(Color.BLACK);
+			if (to4ka) g.fillOval(gPos + notaWidth*4/5, thisY + notaHeight*7/8, notaHeight/8, notaHeight/8);
+		}
 
-    	return 0;
+		if (triol == 1) {
+			x0 = gPos + (15)*notaHeight/NORMAL_HEIGHT;
+			y0 = thisY;
+		} else if (triol == 3) {
+			drawTriolLine(x0, y0, thisY, g);
+		}        
+		if (theNota.underPtr) g.drawImage( vseKartinki[3], gPos, MARY- STEPY *14, this );   // Картинка указателя
+
+		boolean chet = (theNota.pos % 2 == 1) ^ (theNota.okt % 2 == 1);
+		if (theNota.okt > 6) chet = !chet;
+		if (chet) g.drawLine(gPos - notaWidth*4/25, thisY + STEPY * 7, gPos + notaWidth*22/25, thisY + STEPY * 7);
+		// полоска для до...
+		if (theNota.slog != null && theNota.slog != ""){
+			g.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12)); // 12 - 7px w  h == 12*4/5
+			g.setColor(Color.WHITE);
+			g.fillRect(gPos-2, MARY-6* STEPY - 12*4/5 - 2, 7*theNota.slog.length() + 4, 12*4/5 + 4);
+			g.setColor(Color.BLACK);
+			g.drawString(theNota.slog, gPos, MARY-6* STEPY);
+			g.setColor(Color.BLACK);
+		}
+
+		return 0;
     } 
     
     private void drawTriolLine(int x0, int y0, int thisY, Graphics g ) {

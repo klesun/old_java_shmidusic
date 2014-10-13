@@ -14,16 +14,15 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-/**
- * Created by irak on 6/14/14.
- */
 public class FileProcessor {
-
-
     final static byte NEWACCORD = 0;
     final static byte EOS = 1; // End Of String
     final static byte LYRICS = 2;
     final static byte VERSION = 3;
+		final static byte VERSION_BEFORE_VERSIONING = 0;
+		final static byte VERSION_32_FIRST = 32;
+		final static byte VERSION_33_CHANNELS = 33;
+		final static byte CURRENT_VERSION = VERSION_33_CHANNELS;
     final static byte PHANT = 4;
     final static byte FLAGS = 16;
     final static int MAXSLOG = 255;
@@ -35,7 +34,31 @@ public class FileProcessor {
         stan = stanNew;
     }
 
-    public static int saveFile( File f ){
+    public static void savePNG ( File f ) {
+        DrawPanel albert = stan.drawPanel;
+        if (albert == null) out("Что ты пытаешься сохранить, мудак?!");
+        BufferedImage img = new BufferedImage(albert.getWidth(),albert.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics g = img.createGraphics();
+        g.setColor(Color.GREEN);
+        g.fillRect(15,15,80,80);
+        albert.paintComponent(g);
+
+        try {
+            ImageIO.write(img, "png", f);
+        } catch (IOException e) {
+            out("Ошибка рисования");
+        }
+    }
+
+    public static void savePDF ( File f ) {
+        // TODO: todo
+    }
+
+    private static void out(String str) {
+        System.out.println(str);
+    }
+
+    public static int saveKlsnFile( File f ){
         if (ourFile == null) ourFile = f;
         FileOutputStream strmOut;
         try {
@@ -44,7 +67,7 @@ public class FileProcessor {
             Pointer.moveOut();
             // TODO: Записать данные из фантомки (темп, тактовая длина...)
             strmOut.write( VERSION );
-            strmOut.write( 32 ); // С этого момента начинаем счёт версий. Первая будет 32, потому что а хули нет?
+            strmOut.write( CURRENT_VERSION );
             strmOut.write( VERSION );
 
             strmOut.write( PHANT );
@@ -65,6 +88,7 @@ public class FileProcessor {
                 do {
                     strmOut.write( (byte)n.tune );
                     strmOut.write( (byte)n.cislic );
+					strmOut.write( (byte)n.channel );
 
                     n = n.accord;
                 } while (n != null);
@@ -91,7 +115,7 @@ public class FileProcessor {
         return 0;
     }
 
-    public static int klsnOpen( File f ){
+    public static int openKlsnFile( File f ) {
         out("Открыли файл");
         if (ourFile == null) ourFile = f;
         try {
@@ -101,113 +125,186 @@ public class FileProcessor {
                 return -2;
             }
 
-            stan.clearStan();
-            int b;
             int version;
-            b = strmIn.read();
-            if (b != VERSION) version = 0;
-            else {
+            int b = strmIn.read();
+            if (b != VERSION) {
+				version = 0;
+				System.out.println("Хуйня, товарищи, версия-то не указана!");
+			} else {
                 version = b = strmIn.read();
+				System.out.println(version+"-ая версия сейва, товарищи!");
                 strmIn.read();
                 b = strmIn.read();
             }
-            int tune;
-            int cislic;
-            Nota last = null;
-            while ( b != -1 ) {
-                switch (b) {
-                    case PHANT: // TODO: Возможно, ошибка
-                        int temptempo = 0;
-                        temptempo |= ((int)(strmIn.read()) << 8);
-                        temptempo |= (strmIn.read());
-                        Phantom phantomka = stan.phantomka;
-                        phantomka.valueTempo = temptempo;
-                        phantomka.valueVolume = ((double)strmIn.read()) / 100;
-                        phantomka.setCislicFromFile(strmIn.read());
 
-                        stan.checkValues(phantomka);
-                        strmIn.read();
-                        b = strmIn.read();
-                        break;
-                    case NEWACCORD:
-                        tune = strmIn.read();
-                        cislic = strmIn.read();
-                        last = stan.addFromFile(tune, cislic);
-                        b = strmIn.read();
-
-                        while (b >= MINTUNE && b != -1) {
-                            cislic = strmIn.read();
-                            ((Nota)Pointer.curNota).append(new Nota(b, (int)cislic));
-                            b = strmIn.read();
-                        }
-                        break;
-                    case EOS:
-                        byte[] bajti = new byte[MAXSLOG];
-                        int i = 0;
-                        b = strmIn.read();
-                        while (b != EOS) {
-                            if (i < MAXSLOG) bajti[i] = (byte)b;
-                            else System.out.println("На одну ноту повешен очень длинный текст, моя программа ещё к такому не готова!");
-                            ++i;
-                            b = strmIn.read();
-                            if (b == -1) System.exit(66);
-                        }
-                        b = strmIn.read();
-                        last.setSlog( new String(bajti, 0, i, "UTF-8") );
-                        out(last.slog);
-
-                        break;
-                    case FLAGS:
-                        b = strmIn.read();
-                        // Может генерить ошибку, если у нас что-то неправильно
-                        if ( (b & (1 << 3)) == (1 << 3) ) last.isTriol = true;
-                        strmIn.read();
-                        b = strmIn.read();
-                        break;
-                    default:
-                        // Пропускаем неизвестные тэги (главное, чтобы в этих тэгах
-                        // все числа были больше 32)
-                        out("Неизвестные тэги? "+b);
-
-                        int subB = b;
-                        while ( (b = strmIn.read()) != subB );
-                        b = strmIn.read();
-                        break;
-                }
-            } // while b!=-1
+			switch (version) {
+				case VERSION_32_FIRST:
+					klsnOpen32(b, strmIn);
+					break;
+				case VERSION_33_CHANNELS:
+					klsnOpen33(b, strmIn);
+					break;
+				case VERSION_BEFORE_VERSIONING:
+					klsnOpen32(b, strmIn);
+					break;
+				default:
+					// throw new UnknownVersionOrWrongFileException();
+					break;
+			}
 
             strmIn.close();
+			return 0;
         } catch (IOException e){
             out("Не открывается файл для чтения");
             return -1;
         }
-        out("Закрыли файл");
-        return 0;
+        /*out("Закрыли файл");
+        return 0;*/
     }
 
-    public static void savePNG ( File f ) {
-        DrawPanel albert = stan.drawPanel;
-        if (albert == null) out("Что ты пытаешься сохранить, мудак?!");
-        BufferedImage img = new BufferedImage(albert.getWidth(),albert.getHeight(), BufferedImage.TYPE_INT_ARGB);
-        Graphics g = img.createGraphics();
-        g.setColor(Color.GREEN);
-        g.fillRect(15,15,80,80);
-        albert.paintComponent(g);
+	private static int klsnOpen32 (int firstByte, FileInputStream strmIn) throws IOException {
+		stan.clearStan();
+		int b = firstByte;
+		int tune;
+		int cislic;
+		Nota last = null;
+		while ( b != -1 ) {
+			switch (b) {
+				case PHANT: // TODO: Возможно, ошибка
+					int temptempo = 0;
+					temptempo |= ((int)(strmIn.read()) << 8);
+					temptempo |= (strmIn.read());
+					Phantom phantomka = stan.phantomka;
+					phantomka.valueTempo = temptempo;
+					phantomka.valueVolume = ((double)strmIn.read()) / 100;
+					phantomka.setCislicFromFile(strmIn.read());
 
-        try {
-            ImageIO.write(img, "png", f);
-        } catch (IOException e) {
-            out("Ошибка рисования");
-        }
-    }
+					stan.checkValues(phantomka);
+					strmIn.read();
+					b = strmIn.read();
+					break;
+				case NEWACCORD:
+					tune = strmIn.read();
+					cislic = strmIn.read();
+					last = stan.addFromFile(tune, cislic, 0);
+					b = strmIn.read();
 
-    public static void savePDF ( File f ) {
-        // TODO: todo
-    }
+					while (b >= MINTUNE && b != -1) {
+						cislic = strmIn.read();
+						((Nota)Pointer.curNota).append(new Nota(b, (int)cislic, 0));
+						b = strmIn.read();
+					}
+					break;
+				case EOS:
+					byte[] bajti = new byte[MAXSLOG];
+					int i = 0;
+					b = strmIn.read();
+					while (b != EOS) {
+						if (i < MAXSLOG) bajti[i] = (byte)b;
+						else System.out.println("На одну ноту повешен очень длинный текст, моя программа ещё к такому не готова!");
+						++i;
+						b = strmIn.read();
+						if (b == -1) System.exit(66);
+					}
+					b = strmIn.read();
+					last.setSlog( new String(bajti, 0, i, "UTF-8") );
+					out(last.slog);
 
+					break;
+				case FLAGS:
+					b = strmIn.read();
+					// Может генерить ошибку, если у нас что-то неправильно
+					if ( (b & (1 << 3)) == (1 << 3) ) last.isTriol = true;
+					strmIn.read();
+					b = strmIn.read();
+					break;
+				default:
+					// Пропускаем неизвестные тэги (главное, чтобы в этих тэгах
+					// все числа были больше 32)
+					out("Неизвестные тэги? "+b);
 
-    private static void out(String str) {
-        System.out.println(str);
-    }
+					int subB = b;
+					while ( (b = strmIn.read()) != subB );
+					b = strmIn.read();
+					break;
+			}
+		} // while b!=-1
+		return 0;
+	}
 
+	// чистейший копипаст... но структура файла становится совсем другой от одной строчки, так что так, наверное, лучше...
+	// когда будет готово, можно просто пересохранить все файлы и снести оригинал
+	private static int klsnOpen33 (int firstByte, FileInputStream strmIn) throws IOException {
+		stan.clearStan();
+		int b = firstByte;
+		int tune;
+		int cislic;
+		int channel;
+		Nota last = null;
+		while ( b != -1 ) {
+			switch (b) {
+				case PHANT: // TODO: Возможно, ошибка
+					int temptempo = 0;
+					temptempo |= ((int)(strmIn.read()) << 8);
+					temptempo |= (strmIn.read());
+					Phantom phantomka = stan.phantomka;
+					phantomka.valueTempo = temptempo;
+					phantomka.valueVolume = ((double)strmIn.read()) / 100;
+					phantomka.setCislicFromFile(strmIn.read());
+
+					stan.checkValues(phantomka);
+					strmIn.read();
+					b = strmIn.read();
+					break;
+				case NEWACCORD:
+					tune = strmIn.read();
+					cislic = strmIn.read();
+					channel = strmIn.read();
+					last = stan.addFromFile(tune, cislic, channel);
+					b = strmIn.read();
+
+					while (b >= MINTUNE && b != -1) {
+						tune = b;
+						cislic = strmIn.read();
+						channel = strmIn.read();
+						((Nota)Pointer.curNota).append(new Nota(tune, (int)cislic, (int)channel));
+						b = strmIn.read();
+					}
+					break;
+				case EOS:
+					byte[] bajti = new byte[MAXSLOG];
+					int i = 0;
+					b = strmIn.read();
+					while (b != EOS) {
+						if (i < MAXSLOG) bajti[i] = (byte)b;
+						else System.out.println("На одну ноту повешен очень длинный текст, моя программа ещё к такому не готова!");
+						++i;
+						b = strmIn.read();
+						if (b == -1) System.exit(66);
+					}
+					b = strmIn.read();
+					last.setSlog( new String(bajti, 0, i, "UTF-8") );
+					out(last.slog);
+
+					break;
+				case FLAGS:
+					b = strmIn.read();
+					// Может генерить ошибку, если у нас что-то неправильно
+					if ( (b & (1 << 3)) == (1 << 3) ) last.isTriol = true;
+					strmIn.read();
+					b = strmIn.read();
+					break;
+				default:
+					// Пропускаем неизвестные тэги (главное, чтобы в этих тэгах
+					// все числа были больше 32)
+					out("Неизвестные тэги? "+b);
+
+					int subB = b;
+					while ( (b = strmIn.read()) != subB );
+					b = strmIn.read();
+					break;
+			}
+		} // while b!=-1
+		return 0;
+	}
 }

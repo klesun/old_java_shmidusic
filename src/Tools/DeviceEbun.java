@@ -111,10 +111,10 @@ public class DeviceEbun {
 		sintReceiver.send(instrMess, -1);
 	}
     
-	public static int playEntire(){
-	 stop = false;
+	public static int playEntire(NotnyStan stan){
+		stop = false;
 		playMusThread thr;
-		thr = new playMusThread();
+		thr = new playMusThread(stan);
 		thr.start();
 		return 0;
 	}

@@ -14,6 +14,7 @@ import Tools.FileProcessor;
 import javax.sound.midi.InvalidMidiDataException;
 
 public class NotnyStan {
+	public byte channelFlags = -1;
 	int sessionId = (int)Math.random()*Integer.MAX_VALUE;
 
 	public static final int CHANNEL = 0;
@@ -208,8 +209,8 @@ public class NotnyStan {
     }
 
     
-    public Nota addFromFile(int tune, int cislic){
-    	Nota newbie = new Nota(tune, (int)cislic);
+    public Nota addFromFile(int tune, int cislic, int channel){
+    	Nota newbie = new Nota(tune, (int)cislic, channel);
         newbie.prev = Pointer.curNota;
 		Pointer.curNota.next = newbie;
 		newbie.isFirst = true;	        
@@ -270,6 +271,17 @@ public class NotnyStan {
         base.isTriol = true;
         drawPanel.repaint();
     }
+
+	public int changeChannelFlag(int channel) {
+		if (channel > 7 || channel < 0) return -1;
+		channelFlags ^= 1 << channel;
+		return 0;
+	}
+
+	public Boolean getChannelFlag(int channel) {
+		if (channel > 7 || channel < 0) return false;
+		return (channelFlags & (1 << channel)) > 0;
+	}
 
     public void slianie() {
 
