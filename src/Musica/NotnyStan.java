@@ -4,23 +4,14 @@
 package Musica;
 
 import GraphTmp.DrawPanel;
-import BackEnd.MidiCommon;
 import Pointiki.Nota;
 import Pointiki.Phantom;
 import Pointiki.Pointer;
 import Pointiki.Pointerable;
 import Tools.DeviceEbun;
 import Tools.FileProcessor;
-import Tools.Statika;
 
-import java.io.*;
 import javax.sound.midi.InvalidMidiDataException;
-
-import javax.sound.midi.MidiDevice;
-import javax.sound.midi.MidiSystem;
-import javax.sound.midi.MidiUnavailableException;
-import javax.sound.midi.Receiver;
-import javax.sound.midi.ShortMessage;
 
 public class NotnyStan {
 	int sessionId = (int)Math.random()*Integer.MAX_VALUE;
@@ -104,7 +95,6 @@ public class NotnyStan {
     	Nota nota = new Nota(tune, (long)elapsed);    	
     	unclosed[tune] = nota;
     	++closerCount;
-    	nota.channel = Statika.channel;
     	
     	if (Pointer.curNota.isTriol) {
     		// TODO: OLOLOLOLOLO!!!!
@@ -295,11 +285,6 @@ public class NotnyStan {
     	}
     	checken = true;
     }
-    
-    public void switchToChannel(int n) {
-    	Statika.channel = n;
-    }
-    
 }
 
 

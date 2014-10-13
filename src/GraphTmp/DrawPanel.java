@@ -68,7 +68,7 @@ public class DrawPanel extends JPanel {
     private void refresh() {
         STEPY = notaHeight/8;
         STEPX = notaWidth;
-        for (int i = 0; i < 5; ++i ) {
+        for (int i = 0; i < vseKartinki.length; ++i ) { // >_<
             vseKartinki[i] = changeSize(i);
         }
         MARX = (int)Math.round(MARGIN_H* STEPX);
@@ -362,7 +362,7 @@ public class DrawPanel extends JPanel {
 					out("Неизвестный енум в ДоуПанеле");
 					break;
 			}
-            g.drawImage(vseKartinki[3], gPos - 7 + deltaX, MARY - STEPY * 14 + deltaY, this);
+            g.drawImage(vseKartinki[3], gPos - 7*notaWidth/25 + deltaX, MARY - STEPY * 14 + deltaY, this);
         }
     }
 

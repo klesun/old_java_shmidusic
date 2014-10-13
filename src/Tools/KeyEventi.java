@@ -148,17 +148,6 @@ public class KeyEventi implements KeyListener {
                 default: break;
             }
             return;
-        } else if ( ((e.getModifiers() & KeyEvent.CTRL_MASK) == 0) && ((e.getModifiers() & KeyEvent.ALT_MASK) != 0) ) {
-            int cod = e.getKeyCode();
-        	if (cod >= '0' && cod <= '9') {
-        		if (Pointer.pointsOneNotaInAccord) {
-        			Pointer.accordinaNota.userDefinedChannel = true;
-        			Pointer.accordinaNota.channel = cod - '0';        			
-        		}
-        		else {
-        			stan.switchToChannel(cod - '0');         	
-        		}
-        	}
         }
 
         switch (e.getKeyCode()) {
@@ -238,10 +227,6 @@ public class KeyEventi implements KeyListener {
                 stan.drawPanel.page(-1);
                 break;
             case KeyEvent.VK_BACK_SPACE:
-                // И ёжику ясно, что надо стереть последний символ... а если ты хочешь стереть не последний
-                // или копипастить текст - хуй тебе в руки... Для начала и так неплохо, но, естественно,
-                // не забыть добавить альтернативный способ ввода (типа, нажимаешь кнопку, и появляется
-                // окошко для редактирования текста)
             	if (curNota instanceof Nota == false) {
                     ((Phantom)curNota).backspace();
                     break;
