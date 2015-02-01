@@ -50,6 +50,10 @@ public class FileProcessor {
         }
     }
 
+    public static void saveMID ( File f ) {
+		
+    }
+
     public static void savePDF ( File f ) {
         // TODO: todo
     }
@@ -83,7 +87,7 @@ public class FileProcessor {
 
             while (Pointer.move(1)) {
                 strmOut.write( NEWACCORD ); // Ноль здесь будет знаком конца аккорда
-                Nota n = (Nota)Pointer.curNota;
+                Nota n = (Nota)Pointer.pointsAt;
                 if (n.isTriol) tri = true;
                 do {
                     strmOut.write( (byte)n.tune );
@@ -92,9 +96,9 @@ public class FileProcessor {
 
                     n = n.accord;
                 } while (n != null);
-                if (Pointer.curNota.slog != null && Pointer.curNota.slog != "") {
+                if (Pointer.pointsAt.slog != null && Pointer.pointsAt.slog != "") {
                     strmOut.write( EOS ); // Говорим, что дальше идёт текст
-                    strmOut.write( Pointer.curNota.slog.getBytes("UTF-8") );
+                    strmOut.write( Pointer.pointsAt.slog.getBytes("UTF-8") );
                     strmOut.write( EOS );
                 }
                 if (tri) bajt |= (1 << 3);
@@ -191,7 +195,7 @@ public class FileProcessor {
 
 					while (b >= MINTUNE && b != -1) {
 						cislic = strmIn.read();
-						((Nota)Pointer.curNota).append(new Nota(b, (int)cislic, 0));
+						((Nota)Pointer.pointsAt).append(new Nota(b, (int)cislic, 0));
 						b = strmIn.read();
 					}
 					break;
@@ -267,7 +271,7 @@ public class FileProcessor {
 						tune = b;
 						cislic = strmIn.read();
 						channel = strmIn.read();
-						((Nota)Pointer.curNota).append(new Nota(tune, (int)cislic, (int)channel));
+						((Nota)Pointer.pointsAt).append(new Nota(tune, (int)cislic, (int)channel));
 						b = strmIn.read();
 					}
 					break;

@@ -46,6 +46,6 @@ public class OneShotThread extends Thread{
     	} catch (InvalidMidiDataException e) {
     		System.out.println("InvalidMidiDataException");
     	}
-        playMusThread.openNotes[nota.tune] = null;
+        PlayMusThread.openNotes[nota.tune] = null;
     }
 }

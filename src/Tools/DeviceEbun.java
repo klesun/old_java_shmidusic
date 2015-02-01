@@ -14,7 +14,7 @@ import BackEnd.DumpReceiver;
 import BackEnd.MidiCommon;
 import Musica.NotnyStan;
 import static Musica.NotnyStan.CHANNEL;
-import Musica.playMusThread;
+import Musica.PlayMusThread;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.ShortMessage;
 
@@ -91,10 +91,9 @@ public class DeviceEbun {
             MidiOutputDevice.open();
             sintReceiver = MidiOutputDevice.getReceiver();
         } catch (MidiUnavailableException e) {
-            out("Не открывается аут ваш");
+			out("Не отдался нам Gervill " + e);
         }
-        if (sintReceiver == null) {  out("Не отдался нам Gervill");
-            System.exit(1); }
+
         return 0;
     }
 	
@@ -113,8 +112,8 @@ public class DeviceEbun {
     
 	public static int playEntire(NotnyStan stan){
 		stop = false;
-		playMusThread thr;
-		thr = new playMusThread(stan);
+		PlayMusThread thr;
+		thr = new PlayMusThread(stan);
 		thr.start();
 		return 0;
 	}

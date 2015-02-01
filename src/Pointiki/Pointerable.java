@@ -40,6 +40,4 @@ public abstract class Pointerable {
     }
 	
 	public abstract void changeDur(int i, boolean b);
-
-    public boolean isTriol = false;
 }

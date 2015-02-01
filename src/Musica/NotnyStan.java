@@ -3,15 +3,21 @@
 
 package Musica;
 
+import BackEnd.MidiCommon;
 import GraphTmp.DrawPanel;
 import Pointiki.Nota;
 import Pointiki.Phantom;
 import Pointiki.Pointer;
 import Pointiki.Pointerable;
 import Tools.DeviceEbun;
+import static Tools.DeviceEbun.MidiOutputDevice;
+import static Tools.DeviceEbun.sintReceiver;
 import Tools.FileProcessor;
 
 import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiUnavailableException;
 
 public class NotnyStan {
 	public byte channelFlags = -1;
@@ -69,9 +75,9 @@ public class NotnyStan {
 
     public void addPhantom() {
         Phantom phan = new Phantom(this);
-        phan.prev = Pointer.curNota;
-        phan.next = Pointer.curNota.getNext();
-        Pointer.curNota.setNext( phan );
+        phan.prev = Pointer.pointsAt;
+        phan.next = Pointer.pointsAt.getNext();
+        Pointer.pointsAt.setNext( phan );
         if (phan.next != null) phan.next.prev = phan;
 
         ++noshuCount;
@@ -97,14 +103,10 @@ public class NotnyStan {
     	unclosed[tune] = nota;
     	++closerCount;
     	
-    	if (Pointer.curNota.isTriol) {
-    		// TODO: OLOLOLOLOLO!!!!
-    	}
-    	
     	// Делаем проверку: если с прошлого нажатия прошло меньше Эпсилон времени, значит - это один аккорд
     	if (Pointer.pos >= 0){
-    		if (Pointer.curNota instanceof Nota) {
-	    		Nota prev = (Nota)Pointer.curNota;
+    		if (Pointer.pointsAt instanceof Nota) {
+	    		Nota prev = (Nota)Pointer.pointsAt;
 		    	if (nota.myTime - prev.myTime < EPSILON) {
 		    		prev.append(nota);
 		    		drawPanel.repaint();
@@ -115,15 +117,15 @@ public class NotnyStan {
 
     	switch (mode) {
     	case append:
-    		if (Pointer.curNota instanceof Nota == false) break;
-    		((Nota)Pointer.curNota).append(nota);
+    		if (Pointer.pointsAt instanceof Nota == false) break;
+    		((Nota)Pointer.pointsAt).append(nota);
     		drawPanel.repaint();
 	        break;    
     	case insert:    		
     		
-    		nota.prev = Pointer.curNota;
-    		nota.next = Pointer.curNota.getNext();
-    		Pointer.curNota.next = nota;
+    		nota.prev = Pointer.pointsAt;
+    		nota.next = Pointer.pointsAt.getNext();
+    		Pointer.pointsAt.next = nota;
     		if (nota.next != null) nota.getNext().prev = nota;
     		
     		nota.isFirst = true;	        
@@ -162,7 +164,7 @@ public class NotnyStan {
     	Pointerable nota = lastRetrieved;
     	if (nota == null) return;
     	lastRetrieved = nota.retrieve;    	
-    	if (Pointer.curNota == nota) {
+    	if (Pointer.pointsAt == nota) {
     		delNotu();
     		return;
     	} else rez = Pointer.moveTo(nota);
@@ -174,8 +176,8 @@ public class NotnyStan {
     }
     
     public boolean delNotu(){
-        if (Pointer.curNota == phantomka) return Pointer.move(1);
-        Pointerable elem = Pointer.curNota;
+        if (Pointer.pointsAt == phantomka) return Pointer.move(1);
+        Pointerable elem = Pointer.pointsAt;
         //nota.clearAccord();
         if (elem.prev != null) {
             Pointer.move(-1);
@@ -211,8 +213,8 @@ public class NotnyStan {
     
     public Nota addFromFile(int tune, int cislic, int channel){
     	Nota newbie = new Nota(tune, (int)cislic, channel);
-        newbie.prev = Pointer.curNota;
-		Pointer.curNota.next = newbie;
+        newbie.prev = Pointer.pointsAt;
+		Pointer.pointsAt.next = newbie;
 		newbie.isFirst = true;	        
     	++noshuCount;
     	Pointer.move(1);
@@ -251,25 +253,26 @@ public class NotnyStan {
 	}
 
     public void triolnutj() {
-        if (Pointer.curNota.isTriol) {
-            Pointer.curNota.isTriol = false;
-            drawPanel.repaint();
-            return;
-        }
-        // TODO: пробежаться по этим трём аккордам, сложить аккЛен, если делится с остатком на три - браковать, без остатка - всё хорошо
-        // Проверка, всё ли с нотами впорядке
-        if (Pointer.curNota instanceof Nota == false) return;
-        Nota base = ((Nota)Pointer.curNota);
-        Nota tmp = (Nota)(Pointer.curNota);
-        for (int i = 0; i < 2; ++i) {
-            if (tmp.next instanceof Nota==false) return;
-            tmp = (Nota)(tmp.next);
-            if (tmp == null) return;
-            if (tmp instanceof Nota == false) return;
-            if (tmp.isTriol/* || tmp.cislic != base.cislic*/) return;
-        }
-        base.isTriol = true;
-        drawPanel.repaint();
+		if (Pointer.pointsAt instanceof Nota) {
+			Nota baseNota = (Nota)Pointer.pointsAt;
+			if (baseNota.isTriol) {
+				baseNota.isTriol = false;
+				drawPanel.repaint();
+				return;
+			}
+			// TODO: пробежаться по этим трём аккордам, сложить аккЛен, если делится с остатком на три - браковать, без остатка - всё хорошо
+			// Проверка, всё ли с нотами впорядке
+			Nota tmp = (Nota)(Pointer.pointsAt);
+			for (int i = 0; i < 2; ++i) {
+				if (tmp.next instanceof Nota==false) return;
+				tmp = (Nota)(tmp.next);
+				if (tmp == null) return;
+				if (tmp instanceof Nota == false) return;
+				if (tmp.isTriol/* || tmp.cislic != base.cislic*/) return;
+			}
+			baseNota.isTriol = true;
+			drawPanel.repaint();
+		}
     }
 
 	public int changeChannelFlag(int channel) {
@@ -293,7 +296,7 @@ public class NotnyStan {
     	Pointer.moveToBegin();
     	Voices golosa = new Voices();
     	while (!checken && Pointer.move(1)) {
-    		golosa.calculate(Pointer.curNota);    		    		
+    		golosa.calculate(Pointer.pointsAt);    		    		
     	}
     	checken = true;
     }

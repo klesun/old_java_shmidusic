@@ -32,7 +32,7 @@ public class Voices {
 	}
 	
 	public void calculate(Pointerable anonimus) {
-		if (Pointer.curNota instanceof Nota == false) return;
+		if (Pointer.pointsAt instanceof Nota == false) return;
 		Nota nota = (Nota)anonimus;
 		Nota root = nota;
 		int count = nota.getNoteCountInAccord();

@@ -215,7 +215,7 @@ public class DrawPanel extends JPanel {
 
 
             Nota rezNota =(Nota) theNota;
-            if (rezNota == Pointer.curNota)
+            if (rezNota == Pointer.pointsAt)
                 curAccord = 0;
             while (theNota != null){
             	drawNotu( (Nota)theNota, g );
@@ -268,7 +268,7 @@ public class DrawPanel extends JPanel {
     private int drawNotu(Nota theNota, Graphics g) {
 
 		int thisY = MARY + toOtGraph - STEPY * (theNota.pos + theNota.okt * 7);
-		if (stan.getChannelFlag(theNota.channel)) {
+		if (stan.getChannelFlag(theNota.channel) || true) { // стоит придумать, может отображать их по-другому... или показывать сбоку, какие каналы отключены... займись этим.
 			if (theNota.isBemol) {
 				g.drawImage(vseKartinki[2], gPos-(int)Math.round(0.5* STEPX), thisY + 3* STEPY +2, this);
 			} // Хочу, чтобы он рисовал от ноты, поэтому не инкапсулировал бемоль

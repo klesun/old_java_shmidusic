@@ -9,12 +9,12 @@ public class Pointer {
     public static int pos;
     public static int gpos = 0;
     public static NotnyStan stan = null;
-    public static Pointerable curNota;
+    public static Pointerable pointsAt;
     public static Phantom beginNota;    
     public static int init(NotnyStan newStan){
         pos = -1;
         stan = newStan;
-        curNota = stan.phantomka;
+        pointsAt = stan.phantomka;
         return 0;
     }
     
@@ -24,7 +24,7 @@ public class Pointer {
             return 66;
         }
     	pos = -1;
-    	curNota = beginNota;
+    	pointsAt = beginNota;
     	return 0;
     }
     
@@ -34,12 +34,12 @@ public class Pointer {
             System.out.println("There is no stan you're talking about");
             return 66;
         }
-    	curNota.underPtr = false;
+    	pointsAt.underPtr = false;
     	pos = 0;    	
     	gpos = 0;
     	if (beginNota.next == null) return -1;
-    	curNota = beginNota.next;
-    	curNota.underPtr = true;
+    	pointsAt = beginNota.next;
+    	pointsAt.underPtr = true;
         return 0;
     }
     public static int moveToEnd(){
@@ -47,9 +47,9 @@ public class Pointer {
             System.out.println("There is no stan you're talking about");
             return 66;
         }
-    	curNota.underPtr = false;
+    	pointsAt.underPtr = false;
     	while (move(1) != false);
-    	curNota.underPtr = true;
+    	pointsAt.underPtr = true;
         return 0;
     }
     
@@ -71,47 +71,43 @@ public class Pointer {
             return 66;
         }
     	moveToBegin();
-    	while (nota != curNota  &&  move(1));
-    	if (nota != curNota) return -1;
+    	while (nota != pointsAt  &&  move(1));
+    	if (nota != pointsAt) return -1;
     	else return 0;
     }
     
     public static boolean move(int q) {
-        return moveBo(q, false);
-    }
-    
-    public static boolean move(int q, boolean tru) {
-        return moveBo(q, tru);
+        return move(q, false);
     }
     
     public static boolean moveSis(int n) { // TODO: logic mistake... somewhere here
     	int stepCount = n * stan.drawPanel.stepInOneSys;
     	while (stepCount > 0) {
-    		stepCount -= curNota.gsize*2;
+    		stepCount -= pointsAt.gsize*2;
     		moveRealtime(1, SOUND_OFF);
     	}
     	while (stepCount < 0) {
     		moveRealtime(-1, SOUND_OFF);
-    		stepCount += curNota.gsize*2;
+    		stepCount += pointsAt.gsize*2;
     	}
     	return true;
     }
     
     public static boolean moveRealtime(int q, boolean shouldISound){
     	while (q < 0) {
-			if (curNota == null) return false;
+			if (pointsAt == null) return false;
 			move(-1, shouldISound);
 			q += 1;
     	}
     	while (q > 0) {
-			if (curNota == null) return false;
+			if (pointsAt == null) return false;
 			move(1, shouldISound);
 			q -= 1;
     	}
     	return true;
     }
     
-    public static boolean moveBo(int q, boolean withSound){
+    public static boolean move(int q, boolean withSound){
     	nNotiVAccorde = -1;
         pointsOneNotaInAccord = false;
     	
@@ -123,27 +119,28 @@ public class Pointer {
         int delta=0;        
     	pos += q;
     	
-        curNota.underPtr = false;
+        pointsAt.underPtr = false;
         while (q > 0) {
-        	delta+=curNota.gsize;
-        	curNota = curNota.next;
+        	delta+=pointsAt.gsize;
+        	pointsAt = pointsAt.next;
         	--q;
         }
         while (q < 0) {        	
-        	curNota = curNota.prev;
-        	delta-=curNota.gsize;
+        	pointsAt = pointsAt.prev;
+        	delta-=pointsAt.gsize;
         	++q;
         }                
         gpos += delta;
-        curNota.underPtr = true;
+        pointsAt.underPtr = true;
 		accordinaNota = null;
-        if (curNota instanceof Phantom) stan.checkValues((Phantom)curNota);
-
-        
-        if (withSound) playMusThread.playAccordDivided(curNota, 1);
+        if (pointsAt instanceof Phantom) {
+			stan.checkValues((Phantom)pointsAt);
+		} else if (withSound && pointsAt instanceof Nota) {
+			PlayMusThread.playAccord((Nota)pointsAt);
+		}
         //stan.drawPanel.checkCam();
         stan.drawPanel.repaint();
-		System.out.print(curNota.toString());
+		System.out.print(pointsAt.toString());
         return true;
     }
     
@@ -152,7 +149,7 @@ public class Pointer {
             System.out.println("There is no stan you're talking about");
             return false;
         }
-    	for ( Pointerable tmp = curNota; tmp != null; tmp = tmp.next ) {
+    	for ( Pointerable tmp = pointsAt; tmp != null; tmp = tmp.next ) {
     		if (tmp == iskomajaNota) return false; 
     	}
     	return true;
@@ -166,8 +163,8 @@ public class Pointer {
     	Pointer.nNotiVAccorde = -1;
 	}
 	public static void nextAcc() {    
-    	if (curNota instanceof Nota == false) {
-    		if (curNota instanceof Phantom) ((Phantom)curNota).chooseNextParam();
+    	if (pointsAt instanceof Nota == false) {
+    		if (pointsAt instanceof Phantom) ((Phantom)pointsAt).chooseNextParam();
     		return;
     	}
     	if (nNotiVAccorde >= 0){
@@ -179,7 +176,7 @@ public class Pointer {
     		}
     	} else {
     		pointsOneNotaInAccord = true;
-    		accordinaNota = (Nota)Pointer.curNota;
+    		accordinaNota = (Nota)Pointer.pointsAt;
     		nNotiVAccorde = 0;
     	}
     }

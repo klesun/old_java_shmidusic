@@ -14,7 +14,7 @@ import BackEnd.MidiCommon;
 import GraphTmp.DrawPanel;
 import GraphTmp.GraphMusica;
 import Musica.NotnyStan;
-import Musica.playMusThread;
+import Musica.PlayMusThread;
 import Pointiki.Nota;
 import Pointiki.Phantom;
 import Pointiki.Pointer;
@@ -42,7 +42,7 @@ public class KeyEventi implements KeyListener {
     
 	public void keyPressed(KeyEvent e) {
 		System.out.println("Нажали кнопку");
-		Pointerable curNota = Pointer.curNota;
+		Pointerable curNota = Pointer.pointsAt;
         int rVal;
 
         if ( ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0) && ((e.getModifiers() & KeyEvent.ALT_MASK) == 0) ) {
@@ -89,13 +89,17 @@ public class KeyEventi implements KeyListener {
                     rVal = c2.showSaveDialog(parent);
                     if (rVal == JFileChooser.APPROVE_OPTION) {
                         File fn = c2.getSelectedFile();
-                        if ( (!fn.getAbsolutePath().endsWith(".png")) && (!fn.getAbsolutePath().endsWith(".pdf")) ) {
+                        if ( (!fn.getAbsolutePath().endsWith(".png")) && (!fn.getAbsolutePath().endsWith(".pdf")) && (!fn.getAbsolutePath().endsWith(".mid")) ) {
                             fn = new File(fn + ".png");
                             FileProcessor.savePNG(fn);
                         } else if (fn.getAbsolutePath().endsWith(".png")) {
-                            System.out.println("Ща сохраню");
+                            System.out.println("Ща сохраню png");
                             fn = new File(fn+"");
                             FileProcessor.savePNG(fn);
+                        } else if (fn.getAbsolutePath().endsWith(".mid")) {
+                            System.out.println("Ща сохраню midi");
+                            fn = new File(fn+"");
+                            FileProcessor.saveMID(fn);
                         } else {
                             fn = new File(fn+"");
                             FileProcessor.savePDF(fn);
@@ -158,40 +162,42 @@ public class KeyEventi implements KeyListener {
 
         switch (e.getKeyCode()) {
             case KeyEvent.VK_RIGHT:
-                playMusThread.shutTheFuckUp();
+                PlayMusThread.shutTheFuckUp();
                 Pointer.moveRealtime(1, Pointer.SOUND_ON);
                 //stan.drawPanel.checkCam();
                 break;
             case KeyEvent.VK_LEFT:
-                playMusThread.shutTheFuckUp();
+                PlayMusThread.shutTheFuckUp();
                 Pointer.moveRealtime(-1, Pointer.SOUND_ON);
                 //stan.drawPanel.checkCam();
                 break;
             case KeyEvent.VK_UP:
-                playMusThread.shutTheFuckUp();
+                PlayMusThread.shutTheFuckUp();
                 Pointer.moveSis(-1);
                 stan.drawPanel.checkCam();
                 break;
             case KeyEvent.VK_DOWN:
-                playMusThread.shutTheFuckUp();
+                PlayMusThread.shutTheFuckUp();
                 Pointer.moveSis(1);
                 stan.drawPanel.checkCam();
                 break;
             case KeyEvent.VK_HOME:
             	System.out.println("Вошли в event");
-                playMusThread.shutTheFuckUp();
+                PlayMusThread.shutTheFuckUp();
             	Pointer.moveToBegin();
                 stan.drawPanel.checkCam();
                 System.out.println("Закончили event");
                 break;
             case KeyEvent.VK_END:
-                playMusThread.shutTheFuckUp();
+                PlayMusThread.shutTheFuckUp();
             	Pointer.moveToEnd();
                 stan.drawPanel.checkCam();
                 break;
             case KeyEvent.VK_ENTER:
-                playMusThread.shutTheFuckUp();
-                Pointer.move(0, true);
+                PlayMusThread.shutTheFuckUp();
+				if (Pointer.accordinaNota != null) {
+					PlayMusThread.playNotu(Pointer.accordinaNota, 1);
+				} else if (Pointer.pointsAt instanceof Nota) PlayMusThread.playAccord((Nota)Pointer.pointsAt);
                 break;
             case KeyEvent.VK_SHIFT:
             	System.out.println("Вы нажали Tab!");
@@ -291,11 +297,7 @@ public class KeyEventi implements KeyListener {
             	}
 
                 if (e.getKeyCode() == '-') {
-                    if (Pointer.curNota.isTriol)
-                        Pointer.move(3, true);
-                    else {
-                        Pointer.move(1, true);
-                    }
+					Pointer.move(1, true);
                 }
             	System.out.println(curNota.slog);
                 Albert.repaint();

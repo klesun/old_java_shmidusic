@@ -36,6 +36,8 @@ final public class Nota extends Pointerable {
     
     boolean mergeNext = false;
     public boolean isTriolChild = false;
+
+	public boolean isTriol = false;
     
     public Nota(int tune){
         this.tune = tune;             
