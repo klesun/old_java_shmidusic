@@ -3,8 +3,14 @@
 
 package Musica;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import BackEnd.MidiCommon;
 import GraphTmp.DrawPanel;
+import Pointiki.Accord;
 import Pointiki.Nota;
 import Pointiki.Phantom;
 import Pointiki.Pointer;
@@ -286,20 +292,40 @@ public class NotnyStan {
 		return (channelFlags & (1 << channel)) > 0;
 	}
 
-    public void slianie() {
+	public List<Pointerable> getRootNoteList() {
+		// TODO: бляяяяять
+		List<Pointerable> rootNoteList = new ArrayList<Pointerable>();  
+		Pointerable curNota = Pointer.beginNota;
+		while (curNota != null) {
+			rootNoteList.add(curNota);
+			curNota = curNota.getNext();
+		}
+		Map<String, Object> huj = new HashMap<String, Object>();
 
-    }
-    
-    public boolean checken = true;
-    public void checkTessi() {
-    	mode = aMode.passive;
-    	Pointer.moveToBegin();
-    	Voices golosa = new Voices();
-    	while (!checken && Pointer.move(1)) {
-    		golosa.calculate(Pointer.pointsAt);    		    		
-    	}
-    	checken = true;
-    }
+		return rootNoteList;
+	}
+
+	public Accord[] getExternalRepresentation() {
+		List<Pointerable> noteList = getRootNoteList();
+		return new Accord[13];
+	}
+
+	// TODO: убрать нахуй
+	public void slianie() {
+	
+	}
+
+	// TODO: убрать нахуй
+	public boolean checken = true;
+	public void checkTessi() {
+		mode = aMode.passive;
+		Pointer.moveToBegin();
+		Voices golosa = new Voices();
+		while (!checken && Pointer.move(1)) {
+			golosa.calculate(Pointer.pointsAt);    		    		
+		}
+		checken = true;
+	}
 }
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/jython
 # -*- coding: utf-8 -*-
 
-from GraphTmp import GraphMusica
+# from GraphTmp import GraphMusica
 from java.lang import System
 from java.io import *
 
@@ -13,6 +13,6 @@ try:
 except Exception:
 	print("Убейся головой о стену")
 
-app = GraphMusica()
-app.setVisible(True)
+# app = GraphMusica()
+# app.setVisible(True)
 	

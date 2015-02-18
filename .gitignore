@@ -4,3 +4,5 @@ bin
 build.xml
 manifest.mf
 Thumbs.db
+.*
+libs/*

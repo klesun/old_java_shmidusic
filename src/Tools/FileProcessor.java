@@ -7,6 +7,7 @@ import Pointiki.Phantom;
 import Pointiki.Pointer;
 
 import javax.imageio.ImageIO;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -14,15 +15,17 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import jython.JythonFactory;
+
 public class FileProcessor {
     final static byte NEWACCORD = 0;
     final static byte EOS = 1; // End Of String
     final static byte LYRICS = 2;
     final static byte VERSION = 3;
-		final static byte VERSION_BEFORE_VERSIONING = 0;
-		final static byte VERSION_32_FIRST = 32;
-		final static byte VERSION_33_CHANNELS = 33;
-		final static byte CURRENT_VERSION = VERSION_33_CHANNELS;
+	final static byte VERSION_BEFORE_VERSIONING = 0;
+	final static byte VERSION_32_FIRST = 32;
+	final static byte VERSION_33_CHANNELS = 33;
+	final static byte CURRENT_VERSION = VERSION_33_CHANNELS;
     final static byte PHANT = 4;
     final static byte FLAGS = 16;
     final static int MAXSLOG = 255;
@@ -63,6 +66,7 @@ public class FileProcessor {
     }
 
     public static int saveKlsnFile( File f ){
+    	JythonFactory.saveKlsnAsJson(stan);
         if (ourFile == null) ourFile = f;
         FileOutputStream strmOut;
         try {
