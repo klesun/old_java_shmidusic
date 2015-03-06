@@ -36,6 +36,5 @@ To create music you'll have to have some midi-piano plugged into your midi-port 
 | press-multiple-keys | will insert an accord agter pointed note |
 | press-the-very-left-Do-bekar | will insert muted note (like pause). It's very helpful, when you need to play next accord, before current ends |
 | . | . |
-| //================================================================ | . |
 | . | . |
 *If you (for some reason) want to use my program, please contact me at arturklesun@gmail.com, i'll give you love and support. I will be very glad if you contact me, 'cause "Баги сами себя не выпилят"<br />
