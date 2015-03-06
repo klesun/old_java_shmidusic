@@ -8,7 +8,7 @@ To create music you'll have to have some midi-piano plugged into your midi-port 
 commands:
 
 // MAIN OPERATIONS
-ctrl-o    Open a .klsn-extension file. Some of them you can find at https://github.com/ArturKlesun/Yuzefa/tree/master/a_opuses_klsn33;
+ctrl-o    Open a .klsn-extension file. Some of them you can find at https://drive.google.com/folderview?id=0B_PiTxsew2JrZlg1eWlzdVlPTUE&usp=sharing
 
 ctrl-s    Save to .klsn file
 ctrl-p    Play/Stop music
