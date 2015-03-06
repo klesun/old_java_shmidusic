@@ -4,7 +4,7 @@ You wanna "java Main.class" to run the program.<br />
 <br />
 Program will most probably say something like "midi input device not detected blabla, type a number" you should type 1 and press enter.<br />
 <br />
-To create music you'll have to have some midi-piano plugged into your midi-port (if you have one). It may not work, i didn't tested with other device than my piano, but i don't care.<br />
+To create music you'll have to have some midi-piano plugged into your midi-port (if you have one). It may not work, i didn't tested with other device than my piano, but i don't really care.<br />
 <br />
 
 | shortcut | action |
