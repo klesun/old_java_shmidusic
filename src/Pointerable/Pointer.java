@@ -138,8 +138,7 @@ public class Pointer {
 		} else if (withSound && pointsAt instanceof Nota) {
 			PlayMusThread.playAccord((Nota)pointsAt);
 		}
-        //stan.drawPanel.checkCam();
-        stan.drawPanel.repaint();
+
         return true;
     }
     

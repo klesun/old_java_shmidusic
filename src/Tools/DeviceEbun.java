@@ -63,10 +63,7 @@ public class DeviceEbun {
         return true;
     }
 	
-    // Закопипастено с Нотного Стана
-    // public MidiDevice device;
     public static boolean stop = true;
-    // MidiDevice outputDevice = null;
 	public static Receiver sintReceiver = null;
     public static void stopMusic(){
         stop = true;
@@ -109,14 +106,6 @@ public class DeviceEbun {
 		ShortMessage instrMess = new ShortMessage();
 		instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, CHANNEL, instrument, 0);
 		sintReceiver.send(instrMess, -1);
-	}
-    
-	public static int playEntire(NotnyStan stan){
-		stop = false;
-		PlayMusThread thr;
-		thr = new PlayMusThread(stan);
-		thr.start();
-		return 0;
 	}
 
     private static void out(String strMessage) {

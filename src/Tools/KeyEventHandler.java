@@ -26,7 +26,7 @@ public class KeyEventHandler implements KeyListener {
 	JFileChooser chooserSave = new JFileChooser("/var/www/desktop/Yuzefa");
 	JFileChooser chooserExport = new JFileChooser("/var/www/desktop/Yuzefa");
 	
-	DrawPanel albert;
+	public DrawPanel albert;
 	final NotnyStan stan;
 	JFrame parent;
 	
@@ -44,7 +44,7 @@ public class KeyEventHandler implements KeyListener {
 	}
 
 	public void handleMidi( int tune, int forca, int elapsed, long timestamp) {
-		this.stan.addNotu(tune, forca, elapsed);
+		this.stan.addPressed(tune, forca, elapsed);
 		this.albert.repaint();
 	}
 	
@@ -60,10 +60,12 @@ public class KeyEventHandler implements KeyListener {
 				case 'z': case 'Z': case 'Я': case 'я':
 				    System.out.println("Вы нажали контрол-З");
 				    stan.retrieveLast();
+				    this.albert.repaint();
 				    break;
 				case 'y': case 'Y': case 'Н': case 'н':
 				    System.out.println("Вы нажали контрол-У");
 				    stan.detrieveNotu();
+				    this.albert.repaint();
 				    break;
 				case 's': case 'S': case 'Ы': case 'ы':
 					JFileChooser c = chooserSave;
@@ -94,6 +96,7 @@ public class KeyEventHandler implements KeyListener {
 				        	}
 				        }
 				    }
+				    this.albert.repaint();
 				    break;
 				case 'e': case 'E': case 'у': case 'У':
 				    JFileChooser c2 = chooserExport;
@@ -122,10 +125,12 @@ public class KeyEventHandler implements KeyListener {
 				    break;
 				case 'P': case 'p': case 'З': case 'з':
 				    System.out.println("Вы нажали ctrl+p!");
-				    if (DeviceEbun.stop)
-				        DeviceEbun.playEntire(stan);
-				    else
+				    if (DeviceEbun.stop) {
+				    	DeviceEbun.stop = false;
+						(new PlayMusThread(this, this.stan)).start();
+				    } else {
 				        DeviceEbun.stopMusic();
+				    }
 				    break;
 				case 'D': case 'd': case 'В': case 'в':
 				    System.out.println("Вы нажали ctrl+д это менять аутпут!");
@@ -135,6 +140,7 @@ public class KeyEventHandler implements KeyListener {
 				case 'U': case 'u': case 'Г': case 'г':
 				    System.out.println("Вы нажали ctrl+u!");
 				    stan.add(new Phantom());
+				    this.albert.repaint();
 				    break;
 				case '+':case '=':
 				    System.out.println("ctrl+=");
@@ -146,6 +152,7 @@ public class KeyEventHandler implements KeyListener {
 				    break;
 				case '3':
 				    stan.triolnutj();
+				    this.albert.repaint();
 				    break;
 				case '0':
 				    System.out.println("Вы нажали 0!");
@@ -167,33 +174,39 @@ public class KeyEventHandler implements KeyListener {
 			case KeyEvent.VK_RIGHT:
 			    PlayMusThread.shutTheFuckUp();
 			    Pointer.moveRealtime(1, Pointer.SOUND_ON);
+			    this.albert.repaint();
 			    //stan.drawPanel.checkCam();
 			    break;
 			case KeyEvent.VK_LEFT:
 			    PlayMusThread.shutTheFuckUp();
 			    Pointer.moveRealtime(-1, Pointer.SOUND_ON);
+			    this.albert.repaint();
 			    //stan.drawPanel.checkCam();
 			    break;
 			case KeyEvent.VK_UP:
 			    PlayMusThread.shutTheFuckUp();
 			    Pointer.moveSis(-1);
+			    this.albert.repaint();
 			    stan.drawPanel.checkCam();
 			    break;
 			case KeyEvent.VK_DOWN:
 			    PlayMusThread.shutTheFuckUp();
 			    Pointer.moveSis(1);
+			    this.albert.repaint();
 			    stan.drawPanel.checkCam();
 			    break;
 			case KeyEvent.VK_HOME:
 				System.out.println("Вошли в event");
 			    PlayMusThread.shutTheFuckUp();
 				Pointer.moveToBegin();
+				this.albert.repaint();
 			    stan.drawPanel.checkCam();
 			    System.out.println("Закончили event");
 			    break;
 			case KeyEvent.VK_END:
 			    PlayMusThread.shutTheFuckUp();
 				Pointer.moveToEnd();
+				this.albert.repaint();
 			    stan.drawPanel.checkCam();
 			    break;
 			case KeyEvent.VK_ENTER:
@@ -218,6 +231,7 @@ public class KeyEventHandler implements KeyListener {
 				} else if (curNota instanceof Phantom) {
 			        ((Phantom)curNota).changeValue(1);
 			        stan.checkValues((Phantom)curNota);
+			        this.albert.repaint();
 				}
 			    break;
 			case KeyEvent.VK_SUBTRACT:
@@ -228,11 +242,13 @@ public class KeyEventHandler implements KeyListener {
 				    albert.repaint();
 			    } else if (curNota instanceof Phantom) {
 			        ((Phantom)curNota).changeValue(-1);
+			        this.albert.repaint();
 			    }
 			    break;
 			case KeyEvent.VK_DELETE:
 				System.out.println("Вы нажали Delete!");
 			    stan.delNotu();
+			    this.albert.repaint();
 			    break;
 			case KeyEvent.VK_PAGE_DOWN:
 				System.out.println("Вы нажали pageDown!");
@@ -288,7 +304,7 @@ public class KeyEventHandler implements KeyListener {
 							albert.repaint();
 						}
 					} else {
-						cifra = Math.min(cifra, ((Nota)curNota).getNoteCountInAccord());
+						cifra = Math.min(cifra, ((IAccord)curNota).getNotaList().size());
 						while(cifra-- > 0) { 
 							Pointer.nextAcc(); 
 						}

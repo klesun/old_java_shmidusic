@@ -76,14 +76,16 @@ public class NotnyStan {
 	int closerCount = 0;
 	
 	public NotnyStan(){
-	    bassKey = true;
-	    vioKey2 = false;
-	    bassKey2 = false;
-	
-	    Pointer.init(this);
-	    FileProcessor.init(this);
-	    Pointer.beginNota = phantomka;
-	    mode = aMode.insert;
+		bassKey = true;
+		vioKey2 = false;
+		bassKey2 = false;
+		
+		Pointer.init(this);
+		FileProcessor.init(this);
+		Pointer.beginNota = phantomka;
+		this.checkValues(this.phantomka);
+		
+		mode = aMode.insert;
 	}
 
 	public NotnyStan add(Pointerable elem) {
@@ -110,45 +112,33 @@ public class NotnyStan {
 	    return newbie;
 	}
 	
-	public void addNotu(int tune, int forca, int elapsed) {
-		if (forca == 0) {
+	public void addPressed(int tune, int forca, int elapsed) {
+		if (forca == 0) { // key up
 			if (unclosed[tune] == null) return;
 			Nota closer = new Nota(tune, (long)elapsed);
 			--closerCount;
 			unclosed[tune].length = (int)(closer.keydownTimestamp - unclosed[tune].keydownTimestamp);
-			return;
-		}
-		if (mode == aMode.passive || mode == aMode.playin) {
-			// Показать, какую ноту ты нажимаешь
-			return;
-		}
-		
-		Nota nota = new Nota(tune, (long)elapsed);    	
-		unclosed[tune] = nota;
-		++closerCount;
-		
-		// Делаем проверку: если с прошлого нажатия прошло меньше Эпсилон времени, значит - это один аккорд
-		if (Pointer.pointsAt instanceof IAccord) {  // deprecated
-			IAccord prev = (IAccord)Pointer.pointsAt;
-	    	if (nota.keydownTimestamp - prev.getFirstKeydownTimestamp() < ACCORD_EPSILON) {
-	    		out("zhopa " + nota.keydownTimestamp + " " + prev.getFirstKeydownTimestamp());
-	    		prev.add(nota);
-	    		drawPanel.repaint();
-	    	}
-		}
+		} else {
+			if (mode == aMode.passive || mode == aMode.playin) {
+				// Показать, какую ноту ты нажимаешь
+				return;
+			}
+			
+			Nota nota = new Nota(tune, (long)elapsed);    	
+			unclosed[tune] = nota;
+			++closerCount;
 
-		switch (mode) {
-			case append:
-				if (Pointer.pointsAt instanceof IAccord) {
-					((IAccord)Pointer.pointsAt).add(nota);
-					drawPanel.repaint(); 
-				}
-				break;
-			case insert:
+			// Делаем проверку: если с прошлого нажатия прошло меньше Эпсилон времени, значит - это один аккорд
+			if (Pointer.pointsAt instanceof IAccord) {  // deprecated
+				IAccord prevAccord = (IAccord)Pointer.pointsAt;
+		    	if (nota.keydownTimestamp - prevAccord.getFirstKeydownTimestamp() < ACCORD_EPSILON || this.mode == aMode.append) {
+		    		prevAccord.add(nota);
+		    	} else {
+		    		this.add(new Accord().add(nota));
+		    	}
+			} else {
 				this.add(new Accord().add(nota));
-				//if (noshuCount > 3) drawPanel.checkCam();
-				break;
-		    default: break;
+			}
 		}
 	}
 	
@@ -166,7 +156,6 @@ public class NotnyStan {
 		++noshuCount;
 		--deleted;
 		if ( Pointer.isAfter(cur) ) ++Pointer.pos;
-		drawPanel.repaint();
 	}
 	Pointerable lastRetrieved = null;
 	
@@ -183,7 +172,6 @@ public class NotnyStan {
 		else {
 			out("Воскресшей ноты на стане нет");
 		}
-		drawPanel.repaint();    	
 	}
 	
 	public boolean delNotu(){
@@ -239,7 +227,6 @@ public class NotnyStan {
 	        this.tempo = tempo;
 	        this.volume = volume;
 			setInstrument(instrument);
-	        drawPanel.repaint();
 	    }
 	}
 	
@@ -257,7 +244,6 @@ public class NotnyStan {
 			Nota baseNota = (Nota)Pointer.pointsAt;
 			if (baseNota.isTriol) {
 				baseNota.isTriol = false;
-				drawPanel.repaint();
 				return;
 			}
 			// TODO: пробежаться по этим трём аккордам, сложить аккЛен, если делится с остатком на три - браковать, без остатка - всё хорошо
@@ -271,7 +257,6 @@ public class NotnyStan {
 				if (tmp.isTriol/* || tmp.cislic != base.cislic*/) return;
 			}
 			baseNota.isTriol = true;
-			drawPanel.repaint();
 		}
 	}
 	

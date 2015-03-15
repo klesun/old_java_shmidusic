@@ -43,8 +43,8 @@ public class DrawPanel extends JPanel {
 	int width = this.getWidth(), height = this.getHeight();
 	public int stepInOneSys = (int)Math.floor(width / STEPX - 2*MARGIN_H);
 	
-	public static BufferedImage[] vseKartinki = new BufferedImage[6]; // TODO: поменять этот уродский массив на ключ-значение
-	public static BufferedImage[] vseKartinki0 = new BufferedImage[6];
+	public BufferedImage[] vseKartinki = new BufferedImage[6]; // TODO: поменять этот уродский массив на ключ-значение
+	public BufferedImage[] vseKartinki0 = new BufferedImage[6];
 	
 	NotnyStan stan;
 	
@@ -126,7 +126,6 @@ public class DrawPanel extends JPanel {
 	        triang.lineTo( xPoints[ k ], yPoints[ k ] );
 	    triang.closePath();
 	    stan.drawPanel = this;
-	    stan.checkValues(stan.phantomka);
 	}
 	
 	int curCislic = 0;
@@ -154,6 +153,8 @@ public class DrawPanel extends JPanel {
 		
 		taktCount = 1;
 		maxSys = 0;
+		
+		// TODO: use stan.getChildList() instead
 		for (Pointerable anonimus = Pointer.beginNota; anonimus != null; anonimus = anonimus.next) {
 		    // Рисуем нотный стан
 		    if (gPos >= stepInOneSys* STEPX) {
@@ -174,6 +175,8 @@ public class DrawPanel extends JPanel {
 		    if (anonimus instanceof Phantom) {
 				drawPhantom((Phantom)(anonimus), g);
 				gPos += 2* STEPX * anonimus.getWidth();
+		    } else {
+		    	if (Pointer.pointsAt == anonimus) { g.drawImage( this.getPointerBitmap(), gPos, MARY- STEPY *14, this ); }   // Картинка указателя
 		    }
 			if (anonimus instanceof Nota) {
 				Nota theNota = (Nota)anonimus;
@@ -192,17 +195,18 @@ public class DrawPanel extends JPanel {
 				
 				g.setColor(Color.BLACK);
 				
-				if (maxSys != lastMaxSys) {
-				    this.setPreferredSize(new Dimension(width-20, maxy+SISDISPLACE*STEPY));	//	Needed for the scroll bars to appear
-				    lastMaxSys = maxSys;
-				}
+				// moved outside if, hope nothing broken
+//				if (maxSys != lastMaxSys) {
+//				    this.setPreferredSize(new Dimension(width-20, maxy+SISDISPLACE*STEPY));	//	Needed for the scroll bars to appear
+//				    lastMaxSys = maxSys;
+//				}
 				
 				
 				Nota tmp = theNota;
 				boolean checkVa = false;
 				
 				while (tmp!=null) {
-					if (tmp.okt > 6) checkVa = true;
+					if (tmp.getOctava() > 6) checkVa = true;
 					tmp = tmp.accord;
 				}
 				
@@ -244,20 +248,13 @@ public class DrawPanel extends JPanel {
 				
 				// TODO: уродская копипаста - снести оригинал, как только он перестанет использоваться
 
-				Nota theNota = accord.getNotaList().get(0); // i feel a bit risky, what if it's not?
-
 				// if (theNota.isTriol) { // TODO: store this info in accord (i.e. something like tupletDenominator = 3, 7 ...)
 
 				checkTakt(g);
 				
 				g.setColor(Color.BLACK);
-				
-				if (maxSys != lastMaxSys) {
-				    this.setPreferredSize(new Dimension(width-20, maxy+SISDISPLACE*STEPY));	//	Needed for the scroll bars to appear
-				    lastMaxSys = maxSys;
-				}
 
-				boolean checkVa = (accord.getHighest() != null && accord.getHighest().okt > 6); // draws notas one octave downer when true
+				boolean checkVa = (accord.getHighest() != null && accord.getHighest().getOctava() > 6); // draws notas one octave downer when true
 
 				if (checkVa) {
 					g.setColor(Color.BLUE);
@@ -266,16 +263,22 @@ public class DrawPanel extends JPanel {
 					g.setColor(Color.BLACK);
 				}
 
+				// TODO: i get ConcurrentModificationException sometimes. Should do something about this
 				for (Nota tmp: accord.getNotaList()) {
 					curAccord = accord.getNotaList().indexOf(tmp);
-					drawNotu( (Nota)theNota, g , MARY);
+					drawNotu( (Nota)tmp, g , MARY);
 				}
 				
 				if (checkVa) {
 					MARY -= 7* STEPY;
 				}
 				
-				gPos += 2 * STEPX * theNota.getWidth();
+				gPos += 2 * STEPX * accord.getWidth();
+			}
+
+			if (maxSys != lastMaxSys) {
+			    this.setPreferredSize(new Dimension(width-20, maxy+SISDISPLACE*STEPY));	//	Needed for the scroll bars to appear
+			    lastMaxSys = maxSys;
 			}
 		}
 		maxgPos = gPos;
@@ -303,9 +306,9 @@ public class DrawPanel extends JPanel {
 	int x0, y0, x1,y1;
 	private int drawNotu(Nota theNota, Graphics g, int yIndent) {
 	
-		int thisY = yIndent + toOtGraph - STEPY * (theNota.pos + theNota.okt * 7);
+		int thisY = yIndent + toOtGraph - STEPY * (theNota.getAcademicIndex() + theNota.getOctava() * 7);
 		if (stan.getChannelFlag(theNota.channel) || true) { // стоит придумать, может отображать их по-другому... или показывать сбоку, какие каналы отключены... займись этим.
-			if (theNota.isBemol) {
+			if (theNota.isBemol()) {
 				g.drawImage(vseKartinki[2], gPos-(int)Math.round(0.5* STEPX), thisY + 3* STEPY +2, this);
 			} // Хочу, чтобы он рисовал от ноты, поэтому не инкапсулировал бемоль // ну и мудак
 			if (curAccord == Pointer.nNotiVAccorde) {
@@ -328,14 +331,14 @@ public class DrawPanel extends JPanel {
 			y0 = thisY;
 		} else if (triol == 3) {
 			drawTriolLine(x0, y0, thisY, g);
-		}        
-		if (theNota.underPtr) g.drawImage( vseKartinki[3], gPos, yIndent- STEPY *14, this );   // Картинка указателя
+		}
 	
-		boolean chet = (theNota.pos % 2 == 1) ^ (theNota.okt % 2 == 1);
-		if (theNota.okt > 6) chet = !chet;
-		if (chet) g.drawLine(gPos - notaWidth*4/25, thisY + STEPY * 7, gPos + notaWidth*22/25, thisY + STEPY * 7);
 		// полоска для до...
-		if (theNota.slog != null && theNota.slog != ""){
+		boolean chet = (theNota.pos % 2 == 1) ^ (theNota.getOctava() % 2 == 1);
+		if (theNota.getOctava() > 6) chet = !chet;
+		if (chet) g.drawLine(gPos - notaWidth*4/25, thisY + STEPY * 7, gPos + notaWidth*22/25, thisY + STEPY * 7);
+		
+		if (theNota.slog != ""){
 			g.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12)); // 12 - 7px w  h == 12*4/5
 			g.setColor(Color.WHITE);
 			g.fillRect(gPos-2, yIndent - 6*STEPY - 12*4/5 - 2, 7*theNota.slog.length() + 4, 12*4/5 + 4);
@@ -437,6 +440,12 @@ public class DrawPanel extends JPanel {
 	
 	private void out(String str) {
 		System.out.println(str);
+	}
+
+	// getters/setters
+
+	public BufferedImage getPointerBitmap() {
+		return this.vseKartinki[3];
 	}
 }
 

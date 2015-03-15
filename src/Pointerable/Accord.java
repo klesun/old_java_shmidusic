@@ -53,7 +53,7 @@ public class Accord extends Pointerable implements IAccord { // TODO: remove thi
 
 		// TODO: not finished
 		for (Nota nota: this.notaList) {
-			int yIndent = DrawPanel.STEPY * nota.pos + nota.okt * 7;
+			int yIndent = DrawPanel.STEPY * nota.getAcademicIndex() + nota.getOctava() * 7;
 			g.drawImage(nota.getImage(), 0, yIndent, null);
 			
 			// TODO: lame, it should be in Nota.getImage

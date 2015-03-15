@@ -10,10 +10,10 @@ public class OneShotThread extends Thread{
 	Nota nota;
 	static int EPSILON = 0;
 	int volume;
-	int divi = 1;
+	int tupletDenominator = 1;
 	
-	public OneShotThread(Nota nota, int divi){
-	    this.divi = divi;
+	public OneShotThread(Nota nota, int tupletDenominator){
+	    this.tupletDenominator = tupletDenominator;
 	    this.nota = nota;
 	    volume = (int)Math.round(nota.forca * NotnyStan.volume);
 	    if (volume > 127) volume = 127;
@@ -30,7 +30,7 @@ public class OneShotThread extends Thread{
 		try {
 			ShortMessage onMessage = new ShortMessage();
 			ShortMessage offMessage = new ShortMessage();
-			int time = (short)( msIns*nota.numerator/NotnyStan.DEFAULT_ZNAM*4/NotnyStan.tempo*60 / divi );
+			int time = (short)( msIns*nota.numerator/NotnyStan.DEFAULT_ZNAM*4/NotnyStan.tempo*60 / tupletDenominator );
 			if (nota.tune == 36) volume = 0;
 			onMessage.setMessage( ShortMessage.NOTE_ON, NotnyStan.CHANNEL, (byte)nota.tune, (byte)volume);
 			sintReceiver.send(onMessage, -1);
