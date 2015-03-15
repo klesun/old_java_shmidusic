@@ -1,12 +1,16 @@
 package Tools;
 
-import GraphTmp.DrawPanel;
+import Gui.DrawPanel;
 import Musica.NotnyStan;
-import Pointiki.Nota;
-import Pointiki.Phantom;
-import Pointiki.Pointer;
+import Pointerable.IAccord;
+import Pointerable.Nota;
+import Pointerable.Phantom;
+import Pointerable.Pointer;
 
 import javax.imageio.ImageIO;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -14,137 +18,165 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
-import jython.JythonFactory;
+import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Dictionary;
 
 public class FileProcessor {
-    final static byte NEWACCORD = 0;
-    final static byte EOS = 1; // End Of String
-    final static byte LYRICS = 2;
-    final static byte VERSION = 3;
+	final static byte NEWACCORD = 0;
+	final static byte EOS = 1; // End Of String
+	final static byte LYRICS = 2;
+	final static byte VERSION = 3;
 	final static byte VERSION_BEFORE_VERSIONING = 0;
 	final static byte VERSION_32_FIRST = 32;
 	final static byte VERSION_33_CHANNELS = 33;
 	final static byte CURRENT_VERSION = VERSION_33_CHANNELS;
-    final static byte PHANT = 4;
-    final static byte FLAGS = 16;
-    final static int MAXSLOG = 255;
-    final static int MINTUNE = 32;
-    static File ourFile = null;
-    static NotnyStan stan = null;
-
-    public static void init(NotnyStan stanNew) {
-        stan = stanNew;
-    }
-
-    public static void savePNG ( File f ) {
-        DrawPanel albert = stan.drawPanel;
-        if (albert == null) out("Что ты пытаешься сохранить, мудак?!");
-        BufferedImage img = new BufferedImage(albert.getWidth(),albert.getHeight(), BufferedImage.TYPE_INT_ARGB);
-        Graphics g = img.createGraphics();
-        g.setColor(Color.GREEN);
-        g.fillRect(15,15,80,80);
-        albert.paintComponent(g);
-
-        try {
-            ImageIO.write(img, "png", f);
-        } catch (IOException e) {
-            out("Ошибка рисования");
-        }
-    }
-
-    public static void saveMID ( File f ) {
+	final static byte PHANT = 4;
+	final static byte FLAGS = 16;
+	final static int MAXSLOG = 255;
+	final static int MINTUNE = 32;
+	static File ourFile = null;
+	static NotnyStan stan = null; // OOOOOOOOO, гузно себе статичным сделай извращенец
+	
+	public static void init(NotnyStan stanNew) {
+	    stan = stanNew;
+	}
+	
+	public static void savePNG ( File f ) {
+	    DrawPanel albert = stan.drawPanel;
+	    if (albert == null) out("Что ты пытаешься сохранить, мудак?!");
+	    BufferedImage img = new BufferedImage(albert.getWidth(),albert.getHeight(), BufferedImage.TYPE_INT_ARGB);
+	    Graphics g = img.createGraphics();
+	    g.setColor(Color.GREEN);
+	    g.fillRect(15,15,80,80);
+	    albert.paintComponent(g);
+	
+	    try {
+	        ImageIO.write(img, "png", f);
+	    } catch (IOException e) {
+	        out("Ошибка рисования");
+	    }
+	}
+	
+	public static void saveMID ( File f ) {
 		
-    }
+	}
+	
+	public static void savePDF ( File f ) {
+	    // TODO: todo
+	}
+	
+	private static void out(String str) {
+	    System.out.println(str);
+	}
 
-    public static void savePDF ( File f ) {
-        // TODO: todo
-    }
+	public static int saveJsonFile( File f, NotnyStan stan ) {
+		try {
+			JSONObject js = new JSONObject("{}");
+			js.put("stanExternalRepresentation", stan.getExternalRepresentation());
+			try {
+				PrintWriter out = new PrintWriter(f);
+				out.println(js.toString(2));
+				out.close(); 
+			} catch (IOException exc) { System.out.println("У нас тут жорпа с файлом " ); exc.printStackTrace(); }
+		} catch (JSONException exc) { System.out.println("У нас тут жорпа с жсоном " ); exc.printStackTrace(); }
+		return 0;
+	}
 
-    private static void out(String str) {
-        System.out.println(str);
-    }
-
-    public static int saveKlsnFile( File f ){
-    	JythonFactory.saveKlsnAsJson(stan);
-        if (ourFile == null) ourFile = f;
-        FileOutputStream strmOut;
-        try {
-            strmOut = new FileOutputStream( f );
-            int rezPos = Pointer.pos;
-            Pointer.moveOut();
-            // TODO: Записать данные из фантомки (темп, тактовая длина...)
-            strmOut.write( VERSION );
-            strmOut.write( CURRENT_VERSION );
-            strmOut.write( VERSION );
-
-            strmOut.write( PHANT );
-
-            strmOut.write((byte)( (stan.tempo >> 8) & 255 ));
-            strmOut.write((byte)(stan.tempo & 255));
-            strmOut.write((byte)Math.round(stan.volume * 100));
-            strmOut.write((byte)(stan.cislic));
-
-            strmOut.write( PHANT );
-            boolean tri = false;
-            byte bajt = 0;
-
-            while (Pointer.move(1)) {
-                strmOut.write( NEWACCORD ); // Ноль здесь будет знаком конца аккорда
-                Nota n = (Nota)Pointer.pointsAt;
-                if (n.isTriol) tri = true;
-                do {
-                    strmOut.write( (byte)n.tune );
-                    strmOut.write( (byte)n.cislic );
+	public static int openJsonFile( File f, NotnyStan stan ) {
+		try {
+			byte[] encoded = Files.readAllBytes(f.toPath());
+			String js = new String(encoded, StandardCharsets.UTF_8);
+			try {
+				JSONObject jsObject = new JSONObject(js);
+				stan.reconstructFromJson(jsObject.getJSONObject("stanExternalRepresentation"));
+			} catch (Exception exc) { System.out.println("У нас тут жорпа с открытием жсона " ); exc.printStackTrace(); }
+		} catch (IOException exc) { System.out.println("Жопа при открытии жс файла"); exc.printStackTrace(); }
+		return 0;
+	}
+	
+	public static int saveKlsnFile( File f ){
+		if (ourFile == null) ourFile = f;
+		FileOutputStream strmOut;
+		try {
+			strmOut = new FileOutputStream( f );
+			int rezPos = Pointer.pos;
+			Pointer.moveOut();
+			// TODO: Записать данные из фантомки (темп, тактовая длина...)
+			strmOut.write( VERSION );
+			strmOut.write( CURRENT_VERSION );
+			strmOut.write( VERSION );
+			
+			strmOut.write( PHANT );
+			
+			strmOut.write((byte)( (stan.tempo >> 8) & 255 ));
+			strmOut.write((byte)(stan.tempo & 255));
+			strmOut.write((byte)Math.round(stan.volume * 100));
+			strmOut.write((byte)(stan.cislic));
+			
+			strmOut.write( PHANT );
+			boolean tri = false;
+			byte bajt = 0;
+			
+			while (Pointer.move(1)) {
+				strmOut.write( NEWACCORD ); // Ноль здесь будет знаком конца аккорда
+				Nota n = (Nota)Pointer.pointsAt;
+				if (n.isTriol) tri = true;
+				do {
+				    strmOut.write( (byte)n.tune );
+				    strmOut.write( (byte)n.numerator );
 					strmOut.write( (byte)n.channel );
-
-                    n = n.accord;
-                } while (n != null);
-                if (Pointer.pointsAt.slog != null && Pointer.pointsAt.slog != "") {
-                    strmOut.write( EOS ); // Говорим, что дальше идёт текст
-                    strmOut.write( Pointer.pointsAt.slog.getBytes("UTF-8") );
-                    strmOut.write( EOS );
-                }
-                if (tri) bajt |= (1 << 3);
-                if (bajt != 0) {
-                    strmOut.write(FLAGS);
-                    strmOut.write(bajt);
-                    strmOut.write(FLAGS);
-                    bajt = 0;
-                    tri = false;
-                }
-            }
-            Pointer.moveTo(rezPos);
-            strmOut.close();
-        } catch (IOException e) {
-            out("С файлом (кто бы мог подумать) что-то не так");
-            return -1;
-        }
-        return 0;
-    }
-
-    public static int openKlsnFile( File f ) {
-        out("Открыли файл");
-        if (ourFile == null) ourFile = f;
-        try {
-            FileInputStream strmIn = new FileInputStream( f );
-            if (f.canRead() == false) {
-                strmIn.close();
-                return -2;
-            }
-
-            int version;
-            int b = strmIn.read();
-            if (b != VERSION) {
+				
+				    n = n.accord;
+				} while (n != null);
+				if (Pointer.pointsAt instanceof IAccord && ((IAccord)Pointer.pointsAt).getSlog() != "") {
+				    strmOut.write( EOS ); // Говорим, что дальше идёт текст
+				    strmOut.write( ((IAccord)Pointer.pointsAt).getSlog().getBytes("UTF-8") );
+				    strmOut.write( EOS );
+				}
+				if (tri) bajt |= (1 << 3);
+				if (bajt != 0) {
+				    strmOut.write(FLAGS);
+				    strmOut.write(bajt);
+				    strmOut.write(FLAGS);
+				    bajt = 0;
+				    tri = false;
+				}
+			}
+			Pointer.moveTo(rezPos);
+			strmOut.close();
+		} catch (IOException e) {
+		    out("С файлом (кто бы мог подумать) что-то не так");
+		    return -1;
+		}
+		return 0;
+	}
+	
+	public static int openKlsnFile( File f ) {
+	    out("Открыли файл");
+	    if (ourFile == null) ourFile = f;
+	    try {
+	        FileInputStream strmIn = new FileInputStream( f );
+	        if (f.canRead() == false) {
+	            strmIn.close();
+	            return -2;
+	        }
+	
+	        int version;
+	        int b = strmIn.read();
+	        if (b != VERSION) {
 				version = 0;
 				System.out.println("Хуйня, товарищи, версия-то не указана!");
 			} else {
-                version = b = strmIn.read();
+	            version = b = strmIn.read();
 				System.out.println(version+"-ая версия сейва, товарищи!");
-                strmIn.read();
-                b = strmIn.read();
-            }
-
+	            strmIn.read();
+	            b = strmIn.read();
+	        }
+	
 			switch (version) {
 				case VERSION_32_FIRST:
 					klsnOpen32(b, strmIn);
@@ -159,17 +191,17 @@ public class FileProcessor {
 					// throw new UnknownVersionOrWrongFileException();
 					break;
 			}
-
-            strmIn.close();
+	
+	        strmIn.close();
 			return 0;
-        } catch (IOException e){
-            out("Не открывается файл для чтения");
-            return -1;
-        }
-        /*out("Закрыли файл");
-        return 0;*/
-    }
-
+	    } catch (IOException e){
+	        out("Не открывается файл для чтения");
+	        return -1;
+	    }
+	    /*out("Закрыли файл");
+	    return 0;*/
+	}
+	
 	private static int klsnOpen32 (int firstByte, FileInputStream strmIn) throws IOException {
 		stan.clearStan();
 		int b = firstByte;
@@ -186,7 +218,7 @@ public class FileProcessor {
 					phantomka.valueTempo = temptempo;
 					phantomka.valueVolume = ((double)strmIn.read()) / 100;
 					phantomka.setCislicFromFile(strmIn.read());
-
+	
 					stan.checkValues(phantomka);
 					strmIn.read();
 					b = strmIn.read();
@@ -196,10 +228,10 @@ public class FileProcessor {
 					cislic = strmIn.read();
 					last = stan.addFromFile(tune, cislic, 0);
 					b = strmIn.read();
-
+	
 					while (b >= MINTUNE && b != -1) {
 						cislic = strmIn.read();
-						((Nota)Pointer.pointsAt).append(new Nota(b, (int)cislic, 0));
+						((Nota)Pointer.pointsAt).add(new Nota(b, (int)cislic, 0));
 						b = strmIn.read();
 					}
 					break;
@@ -217,7 +249,7 @@ public class FileProcessor {
 					b = strmIn.read();
 					last.setSlog( new String(bajti, 0, i, "UTF-8") );
 					out(last.slog);
-
+	
 					break;
 				case FLAGS:
 					b = strmIn.read();
@@ -230,7 +262,7 @@ public class FileProcessor {
 					// Пропускаем неизвестные тэги (главное, чтобы в этих тэгах
 					// все числа были больше 32)
 					out("Неизвестные тэги? "+b);
-
+	
 					int subB = b;
 					while ( (b = strmIn.read()) != subB );
 					b = strmIn.read();
@@ -239,7 +271,7 @@ public class FileProcessor {
 		} // while b!=-1
 		return 0;
 	}
-
+	
 	// чистейший копипаст... но структура файла становится совсем другой от одной строчки, так что так, наверное, лучше...
 	// когда будет готово, можно просто пересохранить все файлы и снести оригинал
 	private static int klsnOpen33 (int firstByte, FileInputStream strmIn) throws IOException {
@@ -251,7 +283,7 @@ public class FileProcessor {
 		Nota last = null;
 		while ( b != -1 ) {
 			switch (b) {
-				case PHANT: // TODO: Возможно, ошибка
+				case PHANT: // TODO: Возможно, ошибка // НДАВАЗМОЖНА
 					int temptempo = 0;
 					temptempo |= ((int)(strmIn.read()) << 8);
 					temptempo |= (strmIn.read());
@@ -259,7 +291,7 @@ public class FileProcessor {
 					phantomka.valueTempo = temptempo;
 					phantomka.valueVolume = ((double)strmIn.read()) / 100;
 					phantomka.setCislicFromFile(strmIn.read());
-
+				
 					stan.checkValues(phantomka);
 					strmIn.read();
 					b = strmIn.read();
@@ -270,12 +302,12 @@ public class FileProcessor {
 					channel = strmIn.read();
 					last = stan.addFromFile(tune, cislic, channel);
 					b = strmIn.read();
-
+				
 					while (b >= MINTUNE && b != -1) {
 						tune = b;
 						cislic = strmIn.read();
 						channel = strmIn.read();
-						((Nota)Pointer.pointsAt).append(new Nota(tune, (int)cislic, (int)channel));
+						((Nota)Pointer.pointsAt).add(new Nota(tune, (int)cislic, (int)channel));
 						b = strmIn.read();
 					}
 					break;
@@ -293,7 +325,7 @@ public class FileProcessor {
 					b = strmIn.read();
 					last.setSlog( new String(bajti, 0, i, "UTF-8") );
 					out(last.slog);
-
+				
 					break;
 				case FLAGS:
 					b = strmIn.read();
@@ -306,7 +338,7 @@ public class FileProcessor {
 					// Пропускаем неизвестные тэги (главное, чтобы в этих тэгах
 					// все числа были больше 32)
 					out("Неизвестные тэги? "+b);
-
+				
 					int subB = b;
 					while ( (b = strmIn.read()) != subB );
 					b = strmIn.read();

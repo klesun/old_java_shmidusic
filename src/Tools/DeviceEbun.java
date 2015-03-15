@@ -10,11 +10,12 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.Transmitter;
 
-import BackEnd.DumpReceiver;
-import BackEnd.MidiCommon;
+import Midi.DumpReceiver;
+import Midi.MidiCommon;
 import Musica.NotnyStan;
 import static Musica.NotnyStan.CHANNEL;
 import Musica.PlayMusThread;
+
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.ShortMessage;
 
@@ -23,7 +24,7 @@ public class DeviceEbun {
 	public static MidiDevice MidiInputDevice; 
 	public static MidiDevice MidiOutputDevice;
 	
-	public static boolean openInDevice(NotnyStan stan) {
+	public static boolean openInDevice(KeyEventHandler eventHandler) {
 		int count = MidiCommon.listDevicesAndExit(true, false);
         MidiCommon.listDevicesAndExit(false,true,false);
     	MidiDevice.Info	info;
@@ -49,7 +50,7 @@ public class DeviceEbun {
         }
 
         Receiver r = null;
-        r = new DumpReceiver(stan);
+        r = new DumpReceiver(eventHandler);
         try { Transmitter t = device.getTransmitter();
             t.setReceiver(r); }
         catch (MidiUnavailableException e) { out("В жопу трансмиттер устройства к ресиверу не подключается:");

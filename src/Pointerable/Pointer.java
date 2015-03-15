@@ -1,4 +1,4 @@
-package Pointiki;
+package Pointerable;
 
 import Musica.*;
 
@@ -83,12 +83,12 @@ public class Pointer {
     public static boolean moveSis(int n) { // TODO: logic mistake... somewhere here
     	int stepCount = n * stan.drawPanel.stepInOneSys;
     	while (stepCount > 0) {
-    		stepCount -= pointsAt.gsize*2;
+    		stepCount -= pointsAt.getWidth() * 2;
     		moveRealtime(1, SOUND_OFF);
     	}
     	while (stepCount < 0) {
     		moveRealtime(-1, SOUND_OFF);
-    		stepCount += pointsAt.gsize*2;
+    		stepCount += pointsAt.getWidth() * 2;
     	}
     	return true;
     }
@@ -121,13 +121,13 @@ public class Pointer {
     	
         pointsAt.underPtr = false;
         while (q > 0) {
-        	delta+=pointsAt.gsize;
+        	delta += pointsAt.getWidth();
         	pointsAt = pointsAt.next;
         	--q;
         }
         while (q < 0) {        	
         	pointsAt = pointsAt.prev;
-        	delta-=pointsAt.gsize;
+        	delta -= pointsAt.getWidth();
         	++q;
         }                
         gpos += delta;
@@ -140,7 +140,6 @@ public class Pointer {
 		}
         //stan.drawPanel.checkCam();
         stan.drawPanel.repaint();
-		System.out.print(pointsAt.toString());
         return true;
     }
     

@@ -1,4 +1,4 @@
-package BackEnd;
+package Midi;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;

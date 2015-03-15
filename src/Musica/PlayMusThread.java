@@ -3,9 +3,9 @@ package Musica;
 import javax.sound.midi.*;
 
 import Musica.NotnyStan.aMode;
-import Pointiki.Nota;
-import Pointiki.Pointer;
-import Pointiki.Pointerable;
+import Pointerable.Nota;
+import Pointerable.Pointer;
+import Pointerable.Pointerable;
 import Tools.DeviceEbun;
 
 import java.util.ArrayList;
@@ -60,7 +60,7 @@ public class PlayMusThread extends Thread {
     	while (tmp != null) {
 			// убрать костыль нахуй! стан не должен появляться у этого объекта абы когда
     		if ((stan == null) || stan.getChannelFlag(tmp.channel)) playNotu(tmp, divi);
-    		time = Math.min( time, (short)( msIns*tmp.cislic/tmp.znamen*4/NotnyStan.tempo*60 / divi ) );
+    		time = Math.min( time, (short)( msIns*tmp.numerator/NotnyStan.DEFAULT_ZNAM*4/NotnyStan.tempo*60 / divi ) );
     		// 4 - будем брать четвертную как основную, 60 - потому что темпо измеряется в ударах в минуту, а у нас секунды (вообще, даже, миллисекунды)
     		tmp = tmp.accord;
     	}

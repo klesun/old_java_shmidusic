@@ -1,13 +1,31 @@
-package Pointiki;
+package Pointerable;
 
-import GraphTmp.DrawPanel;
+import Gui.DrawPanel;
 import Musica.NotnyStan;
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.*;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
-public class Phantom extends Pointerable{	
+import org.json.JSONException;
+import org.json.JSONObject;
+
+public class Phantom extends Pointerable {	
+
+    NotnyStan stan;
+   
+	public int valueTempo = 120;
+	public int valueInstrument = 0;
+	public double valueVolume = 0.5;
+	public int znamen = NotnyStan.DEFAULT_ZNAM;
+
+	public Phantom() {
+        znamen = 8;
+        numerator = 8;
+        underPtr = true;
+	}
 
 	@Override
 	public BufferedImage getImage() {
@@ -17,7 +35,7 @@ public class Phantom extends Pointerable{
 		Graphics g = rez.getGraphics();
 		g.setColor(Color.black);
 
-		int tz=znamen, tc = cislic;
+		int tz=znamen, tc = numerator;
 		while (tz>4 && tc%2==0) {
 			tz /= 2;
 			tc /= 2;
@@ -48,20 +66,40 @@ public class Phantom extends Pointerable{
 		g.setColor(Color.decode("0x00A13E"));
 		g.drawString((int)(valueVolume*100)+"%", tpx, tpy + inches*4/5 + DrawPanel.notaHeight*2/5);
 
-return rez;
-	}
-
-    NotnyStan stan;
-
-	public Phantom(NotnyStan stan){
-        this.stan = stan;
-        znamen = 8;
-        cislic = 8;
-        underPtr = true;
+		return rez;
 	}
 
 	@Override
 	public void changeDur(int i, boolean b) {}
+
+	@Override
+	public Dictionary<String, Object> getExternalRepresentationSuccessed() {
+		Dictionary<String, Object> dict = new Hashtable<String, Object>();
+		dict.put("tempo", this.valueTempo);
+		dict.put("volume", this.valueVolume);
+		dict.put("instrument", this.valueInstrument);
+		dict.put("denominator", this.znamen);
+
+		return dict;
+	}
+
+	@Override
+	public Phantom reconstructFromJson(JSONObject jsObject) throws JSONException {
+		System.out.println(jsObject);
+		this.valueTempo = jsObject.getInt("tempo");
+		this.valueVolume = jsObject.getDouble("volume");
+		this.valueInstrument = jsObject.getInt("instrument");
+		this.znamen = jsObject.getInt("denominator");
+
+		return this;
+	}
+
+	public Phantom update(Phantom rival) throws JSONException {
+		JSONObject js = new JSONObject("{}"); 
+		js = new JSONObject(js.put("lol", rival.getExternalRepresentation()).get("lol").toString());
+		this.reconstructFromJson(js);
+		return this;
+	}
 
     public enum WhatToChange {
         cislicelj,
@@ -96,9 +134,6 @@ return rez;
         } // switch(enum)
 	}
 
-    public int valueTempo = 120;
-	public int valueInstrument = 0;
-    public double valueVolume = 0.5;
     public int tryToWrite( char c ) {
         if (c < '0' || c > '9') return -1;
         switch (changeMe) {
@@ -122,15 +157,14 @@ return rez;
                 System.out.println("Неизвестный енум");
                 break;
         } // switch(enum)
-        stan.checkValues(this);
         return 0;
     }
 
     public void changeValue(int n) {
         switch (changeMe) {
             case cislicelj:
-                cislic += n;
-                cislic = cislic < 1 ? 1 : cislic % 257;
+                numerator += n;
+                numerator = numerator < 1 ? 1 : numerator % 257;
                 break;
             case tempo:
                 valueTempo += n;
@@ -149,7 +183,6 @@ return rez;
                 System.out.println("Неизвестный енум");
                 break;
         } // switch(enum)
-        stan.checkValues(this);
     }
 
     public void backspace() {
@@ -170,16 +203,22 @@ return rez;
 				System.out.println("Неизвестный енум");
 				break;
         } // switch(enum)
-        stan.checkValues(this);
     }
 
     public void setCislicFromFile( int fileCis ) {
         fileCis /= 8;
-        cislic = fileCis;
+        numerator = fileCis;
     }
 
     private double log2(int n){
         return Math.log(n)/Math.log(2);
+    }
+   
+    // getters/setters
+    
+    // implements(Pointerable)
+    public int getWidth() {
+    	return 1;
     }
 	
 }
