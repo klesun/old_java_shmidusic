@@ -44,7 +44,7 @@ public class Window extends JFrame implements ActionListener {
 				int p3 = s.indexOf(',', p2+1);
 				int w = Integer.parseInt(s.substring(p+1, p2));
 				int h = Integer.parseInt(s.substring(p2+1, p3));
-				albert.stretch(w,h);
+				albert.refresh();
 			}
 		});               
 		

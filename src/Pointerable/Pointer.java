@@ -81,7 +81,7 @@ public class Pointer {
     }
     
     public static boolean moveSis(int n) { // TODO: logic mistake... somewhere here
-    	int stepCount = n * stan.drawPanel.stepInOneSys;
+    	int stepCount = n * stan.drawPanel.getStepInOneSysCount();
     	while (stepCount > 0) {
     		stepCount -= pointsAt.getWidth() * 2;
     		moveRealtime(1, SOUND_OFF);

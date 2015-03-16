@@ -26,31 +26,22 @@ public class DrawPanel extends JPanel {
 	public static int NORMAL_HEIGHT = 40;
 	public static int notaWidth = 20;
 	public static int NORMAL_WIDTH = 25;
-	public static int STEPY = notaHeight/8; // Графика
-	public static int STEPX = notaWidth; // Графика
-	double MARGIN_V = 15; // Сколько отступов сделать сверху перед рисованием полосочек
-	double MARGIN_H = 1;
+	public static int STEPY = notaHeight/8; // Графика // TODO: move it into Constants class maybe?
+	public static int STEPX = notaWidth; // Графика // TODO: move it into Constants class maybe?
+	double MARGIN_V = 15; // Сколько отступов сделать сверху перед рисованием полосочек // TODO: move it into Constants class maybe?
+	double MARGIN_H = 1; // TODO: move it into Constants class maybe?
 	int MARX = (int)Math.round(MARGIN_H* STEPX);
 	int MARY = (int)Math.round(MARGIN_V* STEPY);
-	int notnMar = 4;
 	int gPos = MARX;
-	int maxgPos = 0;
-	int to4kaOt4eta = 0;
 	int toOtGraph = 38* STEPY;
 	int maxy = 0;
 	int SISDISPLACE = 40;
 	
-	int width = this.getWidth(), height = this.getHeight();
-	public int stepInOneSys = (int)Math.floor(width / STEPX - 2*MARGIN_H);
-	
-	public BufferedImage[] vseKartinki = new BufferedImage[6]; // TODO: поменять этот уродский массив на ключ-значение
-	public BufferedImage[] vseKartinki0 = new BufferedImage[6];
+	public static BufferedImage[] vseKartinki = new BufferedImage[6]; // TODO: поменять этот уродский массив на ключ-значение
+	public static BufferedImage[] vseKartinki0 = new BufferedImage[6];
 	
 	NotnyStan stan;
-	
 	GeneralPath triang;
-	
-	Set<Nota> stillPlayin = new TreeSet<Nota>();
 	
 	public void incScale(int n) {
 	    notaHeight += 8*n;
@@ -66,7 +57,7 @@ public class DrawPanel extends JPanel {
 	    refresh();
 	}
 	
-	private void refresh() {
+	public void refresh() {
 	    STEPY = notaHeight/8;
 	    STEPX = notaWidth;
 	    for (int i = 0; i < vseKartinki.length; ++i ) { // >_<
@@ -75,7 +66,6 @@ public class DrawPanel extends JPanel {
 	    MARX = (int)Math.round(MARGIN_H* STEPX);
 	    MARY = (int)Math.round(MARGIN_V* STEPY);
 	    toOtGraph = 38* STEPY;
-	    stepInOneSys = (int)Math.floor(width / STEPX - 2*MARGIN_H);
 	
 	    Nota.refreshSizes();
 	    maxy = 0;
@@ -147,8 +137,7 @@ public class DrawPanel extends JPanel {
 		g.setColor(Color.BLUE);
 		g.drawImage(vseKartinki[1], STEPX, 11* STEPY + MARY +2, this);   //bass
 		g.drawImage(vseKartinki[0], STEPX, MARY - 3* STEPY, this);       //violin
-		this.to4kaOt4eta = stan.to4kaOt4eta;
-		gPos = MARX + notnMar* STEPX -2* STEPX;
+		gPos = MARX + 4 * STEPX -2* STEPX;
 		curCislic = 0;
 		
 		taktCount = 1;
@@ -157,18 +146,18 @@ public class DrawPanel extends JPanel {
 		// TODO: use stan.getChildList() instead
 		for (Pointerable anonimus = Pointer.beginNota; anonimus != null; anonimus = anonimus.next) {
 		    // Рисуем нотный стан
-		    if (gPos >= stepInOneSys* STEPX) {
+		    if (gPos >= getStepInOneSysCount() * STEPX) {
 				// Переходим на новую октаву
 				++maxSys;
 				g.drawImage(vseKartinki[1], STEPX, (SISDISPLACE+11)* STEPY + MARY +2, this);
 				g.drawImage(vseKartinki[0], STEPX, MARY + (SISDISPLACE-3)* STEPY, this);
 				for (int j=0; j<(stan.bassKey? 11: 5); ++j){
 				    if (j == 5) continue;
-				    g.drawLine(MARX, MARY + j* STEPY *2, width - MARX*2, MARY + j* STEPY *2);
+				    g.drawLine(MARX, MARY + j* STEPY *2, this.getWidth() - MARX*2, MARY + j* STEPY *2);
 				}
 				
 				
-				gPos = MARX + notnMar* STEPX;
+				gPos = MARX + 4 * STEPX;
 				MARY += SISDISPLACE* STEPY;
 		
 		    }
@@ -221,7 +210,7 @@ public class DrawPanel extends JPanel {
 				if (rezNota == Pointer.pointsAt)
 				    curAccord = 0;
 				while (theNota != null){
-					drawNotu( (Nota)theNota, g, MARY );
+					drawNotu( (Nota)theNota, g, MARY, this.gPos );
 					theNota = (Nota)theNota.accord;
 				    if (curAccord != -2) {
 				        ++curAccord;
@@ -266,7 +255,7 @@ public class DrawPanel extends JPanel {
 				// TODO: i get ConcurrentModificationException sometimes. Should do something about this
 				for (Nota tmp: accord.getNotaList()) {
 					curAccord = accord.getNotaList().indexOf(tmp);
-					drawNotu( (Nota)tmp, g , MARY);
+					drawNotu( (Nota)tmp, g , MARY, this.gPos);
 				}
 				
 				if (checkVa) {
@@ -277,14 +266,13 @@ public class DrawPanel extends JPanel {
 			}
 
 			if (maxSys != lastMaxSys) {
-			    this.setPreferredSize(new Dimension(width-20, maxy+SISDISPLACE*STEPY));	//	Needed for the scroll bars to appear
+			    this.setPreferredSize(new Dimension(this.getWidth() - 20, maxy+SISDISPLACE*STEPY));	//	Needed for the scroll bars to appear
 			    lastMaxSys = maxSys;
 			}
 		}
-		maxgPos = gPos;
 		for (int i=0; i<(stan.bassKey? 11: 5); ++i){
 			if (i == 5) continue;
-			g.drawLine(MARX, MARY + i* STEPY *2, width - MARX*2, MARY + i* STEPY *2);
+			g.drawLine(MARX, MARY + i* STEPY *2, this.getWidth() - MARX*2, MARY + i* STEPY *2);
 		}        
 		
 		if (MARY>maxy) maxy=MARY;
@@ -296,25 +284,18 @@ public class DrawPanel extends JPanel {
 	
 	int tp = 0;
 	
-	void stretch(int w, int h){
-	    width = w;
-	    height = h;
-	    stepInOneSys = (int)Math.floor(width / STEPX - 2*MARGIN_H);
-	    refresh();
-	}
-	
 	int x0, y0, x1,y1;
-	private int drawNotu(Nota theNota, Graphics g, int yIndent) {
+	private int drawNotu(Nota theNota, Graphics g, int yIndent, int xIndent) {
 	
 		int thisY = yIndent + toOtGraph - STEPY * (theNota.getAcademicIndex() + theNota.getOctava() * 7);
 		if (stan.getChannelFlag(theNota.channel) || true) { // стоит придумать, может отображать их по-другому... или показывать сбоку, какие каналы отключены... займись этим.
 			if (theNota.isBemol()) {
-				g.drawImage(vseKartinki[2], gPos-(int)Math.round(0.5* STEPX), thisY + 3* STEPY +2, this);
+				g.drawImage(vseKartinki[2], xIndent-(int)Math.round(0.5* STEPX), thisY + 3* STEPY +2, this);
 			} // Хочу, чтобы он рисовал от ноты, поэтому не инкапсулировал бемоль // ну и мудак
 			if (curAccord == Pointer.nNotiVAccorde) {
-				g.drawImage(theNota.getImageColor(), gPos, thisY, this);
+				g.drawImage(theNota.getImageColor(), xIndent, thisY, this);
 			} else {
-				g.drawImage(theNota.getImage(), gPos, thisY, this);
+				g.drawImage(theNota.getImage(), xIndent, thisY, this);
 			}
 			int n = theNota.numerator;
 			boolean to4ka = false;
@@ -323,11 +304,11 @@ public class DrawPanel extends JPanel {
 				n -= n/3;
 			}
 			g.setColor(Color.BLACK);
-			if (to4ka) g.fillOval(gPos + notaWidth*4/5, thisY + notaHeight*7/8, notaHeight/8, notaHeight/8);
+			if (to4ka) g.fillOval(xIndent + notaWidth*4/5, thisY + notaHeight*7/8, notaHeight/8, notaHeight/8);
 		}
 	
 		if (triol == 1) {
-			x0 = gPos + (15)*notaHeight/NORMAL_HEIGHT;
+			x0 = xIndent + (15)*notaHeight/NORMAL_HEIGHT;
 			y0 = thisY;
 		} else if (triol == 3) {
 			drawTriolLine(x0, y0, thisY, g);
@@ -336,14 +317,14 @@ public class DrawPanel extends JPanel {
 		// полоска для до...
 		boolean chet = (theNota.pos % 2 == 1) ^ (theNota.getOctava() % 2 == 1);
 		if (theNota.getOctava() > 6) chet = !chet;
-		if (chet) g.drawLine(gPos - notaWidth*4/25, thisY + STEPY * 7, gPos + notaWidth*22/25, thisY + STEPY * 7);
+		if (chet) g.drawLine(xIndent - notaWidth*4/25, thisY + STEPY * 7, xIndent + notaWidth*22/25, thisY + STEPY * 7);
 		
 		if (theNota.slog != ""){
 			g.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12)); // 12 - 7px w  h == 12*4/5
 			g.setColor(Color.WHITE);
-			g.fillRect(gPos-2, yIndent - 6*STEPY - 12*4/5 - 2, 7*theNota.slog.length() + 4, 12*4/5 + 4);
+			g.fillRect(xIndent-2, yIndent - 6*STEPY - 12*4/5 - 2, 7*theNota.slog.length() + 4, 12*4/5 + 4);
 			g.setColor(Color.BLACK);
-			g.drawString(theNota.slog, gPos, yIndent - 6*STEPY);
+			g.drawString(theNota.slog, xIndent, yIndent - 6*STEPY);
 			g.setColor(Color.BLACK);
 		}
 	
@@ -400,13 +381,13 @@ public class DrawPanel extends JPanel {
 					out("Неизвестный енум в ДоуПанеле");
 					break;
 			}
-		    g.drawImage(vseKartinki[3], gPos - 7*notaWidth/25 + deltaX, MARY - STEPY * 14 + deltaY, this);
+		    g.drawImage(this.getPointerBitmap(), gPos - 7*notaWidth/25 + deltaX, MARY - STEPY * 14 + deltaY, this);
 		}
 	}
 	
 	public void checkCam(){
 	    JScrollBar vertical = scroll.getVerticalScrollBar();
-	    vertical.setValue( SISDISPLACE* STEPY * (Pointer.pos / (stepInOneSys/2-2) -1) );
+	    vertical.setValue( SISDISPLACE* STEPY * (Pointer.pos / (getStepInOneSysCount() / 2 - 2) -1) );
 	    repaint();
 	}
 	
@@ -435,7 +416,7 @@ public class DrawPanel extends JPanel {
 	}
 	
 	int getSys(int n){
-		return n/(stepInOneSys/2-2);
+		return n/(getStepInOneSysCount() / 2 - 2);
 	}
 	
 	private void out(String str) {
@@ -446,6 +427,10 @@ public class DrawPanel extends JPanel {
 
 	public BufferedImage getPointerBitmap() {
 		return this.vseKartinki[3];
+	}
+
+	public int getStepInOneSysCount() {
+		return (int)Math.floor(this.getWidth() / this.STEPX - 2 * this.MARGIN_H);
 	}
 }
 
