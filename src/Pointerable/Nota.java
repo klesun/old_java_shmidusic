@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.LinkedHashMap;
 
 import javax.imageio.ImageIO;
 
@@ -117,15 +118,6 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	}
 	
 	@Override
-	public Nota reconstructFromJson(JSONObject jsObject) throws JSONException {
-		this.tune = jsObject.getInt("tune");
-		this.numerator = jsObject.getInt("numerator");
-		this.channel = jsObject.getInt("channel");
-	
-		return this;
-	}
-	
-	@Override
 	public Pointerable getNext() {
 	    if (isTriol) return next.next.next;
 	    else return next;
@@ -173,6 +165,10 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 			}
 			++n;
 		}
+	}
+
+	public Boolean isLongerThan(Nota rival) {
+		return this.getNumerator() * rival.getDenominator() > rival.getNumerator() * this.getDenominator(); 
 	}
 	 
 	public int getAccLen(){
@@ -253,13 +249,22 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	// getters/setters
 	
 	// implements(Pointerable)
-	public Dictionary<String, Object> getExternalRepresentationSuccessed() {
-		Dictionary<String, Object> dict = new Hashtable<String, Object>();
+	public LinkedHashMap<String, Object> getExternalRepresentationSuccessed() {
+		LinkedHashMap<String, Object> dict = new LinkedHashMap<String, Object>();
 		dict.put("tune", this.tune);
 		dict.put("numerator", this.numerator);
 		dict.put("channel", this.channel);
 	
 		return dict;
+	}
+
+	// implements(Pointerable)
+	public Nota reconstructFromJson(JSONObject jsObject) throws JSONException {
+		this.tune = jsObject.getInt("tune");
+		this.numerator = jsObject.getInt("numerator");
+		this.channel = jsObject.getInt("channel");
+	
+		return this;
 	}
 
 	// implements(Pointerable)
@@ -269,6 +274,15 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 
 		return width;
 	}
+
+	public int getNumerator() {
+		return this.numerator;
+	}
+
+	public int getDenominator() {
+		// TODO: for tuplets
+		return 1;
+	}	
 
 	public void setChannel(int channel) {
 		this.channel = channel;
@@ -390,8 +404,8 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	}
 
 	// implements(IAccord)
-	public int getFirstKeydownTimestamp() {
-		return this.keydownTimestamp;
+	public Nota getEarliest() {
+		return this;
 	}
 	// implements(IAccord)
 	public ArrayList<Nota> getNotaList() {

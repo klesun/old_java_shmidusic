@@ -9,6 +9,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.LinkedHashMap;
 
 import javax.imageio.ImageIO;
 
@@ -76,8 +77,8 @@ public class Phantom extends Pointerable {
 	public void changeDur(int i, boolean b) {}
 
 	@Override
-	public Dictionary<String, Object> getExternalRepresentationSuccessed() {
-		Dictionary<String, Object> dict = new Hashtable<String, Object>();
+	public LinkedHashMap<String, Object> getExternalRepresentationSuccessed() {
+		LinkedHashMap<String, Object> dict = new LinkedHashMap<String, Object>();
 		dict.put("tempo", this.valueTempo);
 		dict.put("volume", this.valueVolume);
 		dict.put("instrument", this.valueInstrument);

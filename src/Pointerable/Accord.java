@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.LinkedHashMap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,8 +28,8 @@ public class Accord extends Pointerable implements IAccord { // TODO: remove thi
 	}
 
 	// Implement
-	public Dictionary<String, Object> getExternalRepresentationSuccessed() {
-		Dictionary<String, Object> dict = new Hashtable<String, Object>();
+	public LinkedHashMap<String, Object> getExternalRepresentationSuccessed() {
+		LinkedHashMap<String, Object> dict = new LinkedHashMap<String, Object>();
 		dict.put("notaList", this.notaList.stream().map(n -> n.getExternalRepresentation()).toArray());
 		dict.put("slog", this.slog);
 		return dict;
@@ -96,13 +97,16 @@ public class Accord extends Pointerable implements IAccord { // TODO: remove thi
 	}
 
 	// implements(IAccord)
-	public int getFirstKeydownTimestamp() {
-		Nota firstPressed = this.getNotaList().stream().reduce(null, (a, b) -> a != null && a.keydownTimestamp < b.keydownTimestamp ? a : b); 
-		return firstPressed != null ? firstPressed.keydownTimestamp : 0;
+	public Nota getEarliest() {
+		return this.getNotaList().stream().reduce(null, (a, b) -> a != null && a.keydownTimestamp < b.keydownTimestamp ? a : b);
 	}
 
 	public Nota getHighest() {
 		return this.getNotaList().stream().reduce(null, (a, b) -> a != null && a.tune > b.tune ? a : b);
+	}
+
+	public Nota getShortest() {
+		return this.getNotaList().stream().reduce(null, (a, b) -> a != null && !a.isLongerThan(b) ? a : b);
 	}
 
 	public void setNotaList(ArrayList<Nota> notaList) {

@@ -131,7 +131,7 @@ public class NotnyStan {
 			// Делаем проверку: если с прошлого нажатия прошло меньше Эпсилон времени, значит - это один аккорд
 			if (Pointer.pointsAt instanceof IAccord) {  // deprecated
 				IAccord prevAccord = (IAccord)Pointer.pointsAt;
-		    	if (nota.keydownTimestamp - prevAccord.getFirstKeydownTimestamp() < ACCORD_EPSILON || this.mode == aMode.append) {
+		    	if (nota.keydownTimestamp - prevAccord.getEarliest().keydownTimestamp < ACCORD_EPSILON || this.mode == aMode.append) {
 		    		prevAccord.add(nota);
 		    	} else {
 		    		this.add(new Accord().add(nota));

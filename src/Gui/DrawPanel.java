@@ -117,8 +117,7 @@ public class DrawPanel extends JPanel {
 	    triang.closePath();
 	    stan.drawPanel = this;
 	}
-	
-	int curCislic = 0;
+
 	int taktCount = 1;
 	int curAccord = -2;
 	
@@ -129,7 +128,7 @@ public class DrawPanel extends JPanel {
 	int lastMaxSys = 1;
 	boolean trolling = false;
 	
-	public void paintComponent(Graphics g) {
+	synchronized public void paintComponent(Graphics g) {
 		triolTaktSum = 0;
 		
 		g.setColor(Color.WHITE);
@@ -138,11 +137,12 @@ public class DrawPanel extends JPanel {
 		g.drawImage(vseKartinki[1], STEPX, 11* STEPY + MARY +2, this);   //bass
 		g.drawImage(vseKartinki[0], STEPX, MARY - 3* STEPY, this);       //violin
 		gPos = MARX + 4 * STEPX -2* STEPX;
-		curCislic = 0;
 		
 		taktCount = 1;
 		maxSys = 0;
-		
+
+		int curCislic = 0;
+		int curZnamen = 1;
 		// TODO: use stan.getChildList() instead
 		for (Pointerable anonimus = Pointer.beginNota; anonimus != null; anonimus = anonimus.next) {
 		    // Рисуем нотный стан
@@ -178,19 +178,10 @@ public class DrawPanel extends JPanel {
 				if (trolling) {            	
 					triolTaktSum += theNota.getAccLen();
 				} else {
-					curCislic += theNota.getAccLen();            	
+					curCislic += theNota.getAccLen();
 				}
-				checkTakt(g);
-				
-				g.setColor(Color.BLACK);
-				
-				// moved outside if, hope nothing broken
-//				if (maxSys != lastMaxSys) {
-//				    this.setPreferredSize(new Dimension(width-20, maxy+SISDISPLACE*STEPY));	//	Needed for the scroll bars to appear
-//				    lastMaxSys = maxSys;
-//				}
-				
-				
+				curCislic = drawTaktLineIfNeeded(curCislic, curZnamen, g);
+
 				Nota tmp = theNota;
 				boolean checkVa = false;
 				
@@ -204,7 +195,8 @@ public class DrawPanel extends JPanel {
 					g.drawString("8va", gPos, MARY-4* STEPY);
 					MARY += 7* STEPY;
 				}
-				
+
+				drawText(theNota.getSlog(), g, gPos, MARY);
 				
 				Nota rezNota = (Nota)theNota;
 				if (rezNota == Pointer.pointsAt)
@@ -224,7 +216,7 @@ public class DrawPanel extends JPanel {
 					triol = 0;
 					curCislic += triolTaktSum / 3;
 					triolTaktSum = 0;            	
-					checkTakt(g);            	
+					curCislic = drawTaktLineIfNeeded(curCislic, curZnamen, g);            	
 				}
 				
 				if (checkVa) {
@@ -239,9 +231,8 @@ public class DrawPanel extends JPanel {
 
 				// if (theNota.isTriol) { // TODO: store this info in accord (i.e. something like tupletDenominator = 3, 7 ...)
 
-				checkTakt(g);
-				
-				g.setColor(Color.BLACK);
+				curCislic += accord.getShortest() != null ? accord.getShortest().getNumerator() : 0;
+				curCislic = drawTaktLineIfNeeded(curCislic, curZnamen, g);
 
 				boolean checkVa = (accord.getHighest() != null && accord.getHighest().getOctava() > 6); // draws notas one octave downer when true
 
@@ -252,16 +243,18 @@ public class DrawPanel extends JPanel {
 					g.setColor(Color.BLACK);
 				}
 
-				// TODO: i get ConcurrentModificationException sometimes. Should do something about this
+				// TODO: i get ConcurrentModificationException sometimes. Hope, it was fixed by mine synchronized
 				for (Nota tmp: accord.getNotaList()) {
 					curAccord = accord.getNotaList().indexOf(tmp);
 					drawNotu( (Nota)tmp, g , MARY, this.gPos);
 				}
+
+				drawText(accord.getSlog(), g, gPos, MARY);
 				
 				if (checkVa) {
 					MARY -= 7* STEPY;
 				}
-				
+
 				gPos += 2 * STEPX * accord.getWidth();
 			}
 
@@ -281,6 +274,15 @@ public class DrawPanel extends JPanel {
 		
 		this.revalidate();	//	Needed to recalc the scroll bars
 	} // paintComponent
+
+	private static void drawText(String text, Graphics surface, int x, int y) {
+		surface.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12)); // 12 - 7px w  h == 12*4/5
+		surface.setColor(Color.WHITE);
+		surface.fillRect(x-2, y - 6*STEPY - 12*4/5 - 2, 7*text.length() + 4, 12*4/5 + 4);
+		surface.setColor(Color.BLACK);
+		surface.drawString(text, x, y - 6*STEPY);
+		surface.setColor(Color.BLACK);
+	}
 	
 	int tp = 0;
 	
@@ -318,15 +320,6 @@ public class DrawPanel extends JPanel {
 		boolean chet = (theNota.pos % 2 == 1) ^ (theNota.getOctava() % 2 == 1);
 		if (theNota.getOctava() > 6) chet = !chet;
 		if (chet) g.drawLine(xIndent - notaWidth*4/25, thisY + STEPY * 7, xIndent + notaWidth*22/25, thisY + STEPY * 7);
-		
-		if (theNota.slog != ""){
-			g.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12)); // 12 - 7px w  h == 12*4/5
-			g.setColor(Color.WHITE);
-			g.fillRect(xIndent-2, yIndent - 6*STEPY - 12*4/5 - 2, 7*theNota.slog.length() + 4, 12*4/5 + 4);
-			g.setColor(Color.BLACK);
-			g.drawString(theNota.slog, xIndent, yIndent - 6*STEPY);
-			g.setColor(Color.BLACK);
-		}
 	
 		return 0;
 	} 
@@ -400,7 +393,7 @@ public class DrawPanel extends JPanel {
 		repaint();
 	}
 	
-	private void checkTakt(Graphics g) {
+	private int drawTaktLineIfNeeded(int curCislic, int curZnamen, Graphics g) {
 		if (curCislic >= stan.cislic) {
 	    	curCislic %= stan.cislic;
 	        g.setColor(Color.BLACK);
@@ -413,6 +406,7 @@ public class DrawPanel extends JPanel {
 	
 	        ++taktCount;
 		}
+		return curCislic;
 	}
 	
 	int getSys(int n){

@@ -72,11 +72,11 @@ public class KeyEventHandler implements KeyListener {
 					rVal = c.showSaveDialog(parent);
 					if (rVal == JFileChooser.APPROVE_OPTION) {
 						File fn = c.getSelectedFile();
-						if (!fn.getAbsolutePath().endsWith(".klsn")) {
-						    fn = new File(fn + ".klsn");
+						if (!fn.getAbsolutePath().endsWith(".json")) {
+						    fn = new File(fn + ".json");
 						}
 						
-						FileProcessor.saveKlsnFile(fn);
+//						FileProcessor.saveKlsnFile(fn);
 						File jsFile = new File(fn.toString().substring(0, (int)(fn.toString().length() - 4)) + "json");
 						FileProcessor.saveJsonFile(jsFile, stan);
 					}

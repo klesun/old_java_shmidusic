@@ -2,6 +2,7 @@ package Pointerable;
 
 import java.awt.image.BufferedImage;
 import java.util.Dictionary;
+import java.util.LinkedHashMap;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,13 +44,13 @@ public abstract class Pointerable {
 	}
 
 	public abstract void changeDur(int i, boolean b);
-	public abstract Dictionary<String, Object> getExternalRepresentationSuccessed();
+	public abstract LinkedHashMap<String, Object> getExternalRepresentationSuccessed();
 	public abstract Pointerable reconstructFromJson(JSONObject jsObj) throws JSONException;
 	abstract public BufferedImage getImage();
 	public abstract int getWidth(); // TODO: for now it returns not in pixels, but in conventional unit (one Accord without text takes one conventional unit)
 
-	public Dictionary<String, Object> getExternalRepresentation() {
-		Dictionary<String, Object> dict = this.getExternalRepresentationSuccessed();
+	public LinkedHashMap<String, Object> getExternalRepresentation() {
+		LinkedHashMap<String, Object> dict = this.getExternalRepresentationSuccessed();
 		dict.put("pointerableClass", this.getClass().getSimpleName());
 
 		return dict;
