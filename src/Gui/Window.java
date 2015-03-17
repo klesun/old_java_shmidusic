@@ -12,8 +12,9 @@ public class Window extends JFrame implements ActionListener {
 
 	final NotnyStan stan;
 	DrawPanel albert;    
-	int XP_MINWIDTH = 1024/2;
-	int XP_MINHEIGHT = 735/2; // потому что знаю
+	int XP_MINWIDTH = 1024;
+//	int XP_MINHEIGHT = 735/2; // потому что знаю
+	int XP_MINHEIGHT = 540; // my beloved netbook
 	
 	public Window(){
 		super("Да будет такая музыка!"); //Заголовок окна

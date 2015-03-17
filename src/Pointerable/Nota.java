@@ -116,12 +116,7 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 			return false;
 		return true;
 	}
-	
-	@Override
-	public Pointerable getNext() {
-	    if (isTriol) return next.next.next;
-	    else return next;
-	}
+
 	@Override
 	public void setNext( Pointerable elem ) {
 	    if (isTriol) {

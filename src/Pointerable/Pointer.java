@@ -135,8 +135,8 @@ public class Pointer {
 		accordinaNota = null;
         if (pointsAt instanceof Phantom) {
 			stan.checkValues((Phantom)pointsAt);
-		} else if (withSound && pointsAt instanceof Nota) {
-			PlayMusThread.playAccord((Nota)pointsAt);
+		} else if (withSound && pointsAt instanceof IAccord) {
+			PlayMusThread.playAccord((IAccord)pointsAt);
 		}
 
         return true;
