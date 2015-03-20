@@ -2,6 +2,7 @@ package Gui;
 
 import Musica.*;
 import Pointerable.Accord;
+import Pointerable.IAccord;
 import Pointerable.Nota;
 import Pointerable.Phantom;
 import Pointerable.Pointer;
@@ -19,7 +20,7 @@ import java.net.URL;
 import java.util.*;
 
 
-public class DrawPanel extends JPanel {
+public class SheetMusic extends JPanel {
 	JScrollPane scroll;
 	
 	public static int notaHeight = 32;
@@ -32,16 +33,16 @@ public class DrawPanel extends JPanel {
 	double MARGIN_H = 1; // TODO: move it into Constants class maybe?
 	int MARX = (int)Math.round(MARGIN_H* STEPX);
 	int MARY = (int)Math.round(MARGIN_V* STEPY);
-	int gPos = MARX;
 	int toOtGraph = 38* STEPY;
 	int maxy = 0;
 	int SISDISPLACE = 40;
 	
-	public static BufferedImage[] vseKartinki = new BufferedImage[6]; // TODO: поменять этот уродский массив на ключ-значение
+	public static BufferedImage[] vseKartinki = new BufferedImage[6]; // TODO: поменять этот уродский массив на ключ-значение // Гузно у тебя уродское
 	public static BufferedImage[] vseKartinki0 = new BufferedImage[6];
-	
-	NotnyStan stan;
 	GeneralPath triang;
+	
+	Staff stan;
+	ArrayList<Staff> staffList = new ArrayList();
 	
 	public void incScale(int n) {
 	    notaHeight += 8*n;
@@ -86,7 +87,7 @@ public class DrawPanel extends JPanel {
 	    return tmp;
 	}
 	
-	public DrawPanel(final NotnyStan stan) {
+	public SheetMusic(final Staff stan) {
 	    this.stan = stan;
 	    URL curUr = getClass().getResource("../");
 	    System.out.println(curUr.getPath());
@@ -130,156 +131,88 @@ public class DrawPanel extends JPanel {
 	
 	synchronized public void paintComponent(Graphics g) {
 		triolTaktSum = 0;
-		
-		g.setColor(Color.WHITE);
-		g.fillRect(0,0,this.getWidth(),this.getHeight());
-		g.setColor(Color.BLUE);
-		g.drawImage(vseKartinki[1], STEPX, 11* STEPY + MARY +2, this);   //bass
-		g.drawImage(vseKartinki[0], STEPX, MARY - 3* STEPY, this);       //violin
-		gPos = MARX + 4 * STEPX -2* STEPX;
-		
-		taktCount = 1;
-		maxSys = 0;
 
-		int curCislic = 0;
-		int curZnamen = 1;
-		// TODO: use stan.getChildList() instead
-		for (Pointerable anonimus = Pointer.beginNota; anonimus != null; anonimus = anonimus.next) {
-		    // Рисуем нотный стан
-		    if (gPos >= getStepInOneSysCount() * STEPX) {
-				// Переходим на новую октаву
-				++maxSys;
-				g.drawImage(vseKartinki[1], STEPX, (SISDISPLACE+11)* STEPY + MARY +2, this);
-				g.drawImage(vseKartinki[0], STEPX, MARY + (SISDISPLACE-3)* STEPY, this);
-				for (int j=0; j<(stan.bassKey? 11: 5); ++j){
-				    if (j == 5) continue;
-				    g.drawLine(MARX, MARY + j* STEPY *2, this.getWidth() - MARX*2, MARY + j* STEPY *2);
-				}
-				
-				
-				gPos = MARX + 4 * STEPX;
-				MARY += SISDISPLACE* STEPY;
-		
-		    }
-		    if (anonimus instanceof Phantom) {
-				drawPhantom((Phantom)(anonimus), g);
-				gPos += 2* STEPX * anonimus.getWidth();
-		    } else {
-		    	if (Pointer.pointsAt == anonimus) { g.drawImage( this.getPointerBitmap(), gPos, MARY- STEPY *14, this ); }   // Картинка указателя
-		    }
-			if (anonimus instanceof Nota) {
-				Nota theNota = (Nota)anonimus;
-				
-				if (theNota.isTriol) {
-					trolling = true;
-				    triol = 1;
-				}            
-				
-				if (trolling) {            	
-					triolTaktSum += theNota.getAccLen();
-				} else {
-					curCislic += theNota.getAccLen();
-				}
-				curCislic = drawTaktLineIfNeeded(curCislic, curZnamen, g);
+		for (Staff stave: this.getStaveList()) {
+			g.setColor(Color.WHITE);
+			g.fillRect(0,0,this.getWidth(),this.getHeight());
+			g.setColor(Color.BLUE);
+			g.drawImage(vseKartinki[1], STEPX, 11* STEPY + MARY +2, this);   //bass
+			g.drawImage(vseKartinki[0], STEPX, MARY - 3* STEPY, this);       //violin
+			int gPos = MARX + 4 * STEPX -2* STEPX;
 
-				Nota tmp = theNota;
-				boolean checkVa = false;
-				
-				while (tmp!=null) {
-					if (tmp.getOctava() > 6) checkVa = true;
-					tmp = tmp.accord;
-				}
-				
-				g.setColor(Color.BLUE);
-				if (checkVa) {
-					g.drawString("8va", gPos, MARY-4* STEPY);
-					MARY += 7* STEPY;
+			taktCount = 1;
+			maxSys = 0;
+
+			int curCislic = 0;
+			int curZnamen = 1;
+
+			drawPhantom((Phantom)(stave.getPhantom()), g, gPos, MARY);
+			gPos += 2* STEPX * stave.getPhantom().getWidth();
+			for (IAccord anonimus: stave.getAccordList()) {
+				// Рисуем нотный стан
+				if (gPos >= getStepInOneSysCount() * STEPX) {
+					// Переходим на новую октаву
+					++maxSys;
+					g.drawImage(vseKartinki[1], STEPX, (SISDISPLACE+11)* STEPY + MARY +2, this);
+					g.drawImage(vseKartinki[0], STEPX, MARY + (SISDISPLACE-3)* STEPY, this);
+					for (int j=0; j<(stan.bassKey? 11: 5); ++j){
+						if (j == 5) continue;
+						g.drawLine(MARX, MARY + j* STEPY *2, this.getWidth() - MARX*2, MARY + j* STEPY *2);
+					}
+
+
+					gPos = MARX + 4 * STEPX;
+					MARY += SISDISPLACE* STEPY;
+
 				}
 
-				drawText(theNota.getSlog(), g, gPos, MARY);
+				if (Pointer.pointsAt == anonimus) { g.drawImage( this.getPointerBitmap(), gPos, MARY- STEPY *14, this ); }   // Картинка указателя
 				
-				Nota rezNota = (Nota)theNota;
-				if (rezNota == Pointer.pointsAt)
-				    curAccord = 0;
-				while (theNota != null){
-					drawNotu( (Nota)theNota, g, MARY, this.gPos );
-					theNota = (Nota)theNota.accord;
-				    if (curAccord != -2) {
-				        ++curAccord;
-				    }
-				}
-				theNota = rezNota;
-				curAccord = -2;
-				if (trolling) ++triol;
-				if (triol == 4) {
-					trolling = false;
-					triol = 0;
-					curCislic += triolTaktSum / 3;
-					triolTaktSum = 0;            	
-					curCislic = drawTaktLineIfNeeded(curCislic, curZnamen, g);            	
-				}
-				
-				if (checkVa) {
-					MARY -= 7* STEPY;
-				}
-				
-				gPos += 2 * STEPX * theNota.getWidth();
-			} /* =) */ else if (anonimus instanceof Accord) {
-				Accord accord = (Accord)anonimus;
-				
-				// TODO: уродская копипаста - снести оригинал, как только он перестанет использоваться
 
-				// if (theNota.isTriol) { // TODO: store this info in accord (i.e. something like tupletDenominator = 3, 7 ...)
+				if (anonimus instanceof Accord && ((Accord)anonimus).getNotaList().size() > 0) {
+					Accord accord = (Accord)anonimus;
 
-				curCislic += accord.getShortest() != null ? accord.getShortest().getNumerator() : 0;
-				curCislic = drawTaktLineIfNeeded(curCislic, curZnamen, g);
+					// if (theNota.isTriol) { // TODO: store this info in accord (i.e. something like tupletDenominator = 3, 7 ...)
 
-				boolean checkVa = (accord.getHighest() != null && accord.getHighest().getOctava() > 6); // draws notas one octave downer when true
+					curCislic += accord.getShortest().getNumerator();
+					curCislic = drawTaktLineIfNeeded(curCislic, curZnamen, g, gPos);
 
-				if (checkVa) {
-					g.setColor(Color.BLUE);
-					g.drawString("8va", gPos, MARY-4* STEPY);
-					MARY += 7* STEPY;
-					g.setColor(Color.BLACK);
+					if (accord.getHighest().isBotommedToFitSystem()) { drawText("8va", g, gPos, MARY - 4 * STEPY, Color.BLUE); }
+
+					// TODO: i get ConcurrentModificationException sometimes. Hope, it was fixed by mine synchronized
+					for (Nota tmp: accord.getNotaList()) {
+						curAccord = accord.getNotaList().indexOf(tmp);
+						drawNotu( (Nota)tmp, g , MARY + (accord.getHighest().isBotommedToFitSystem() ? 7 * STEPY : 0), gPos);
+					}
+
+					drawText(accord.getSlog(), g, gPos, MARY, Color.BLACK);
+
+					gPos += 2 * STEPX * accord.getWidth();
 				}
 
-				// TODO: i get ConcurrentModificationException sometimes. Hope, it was fixed by mine synchronized
-				for (Nota tmp: accord.getNotaList()) {
-					curAccord = accord.getNotaList().indexOf(tmp);
-					drawNotu( (Nota)tmp, g , MARY, this.gPos);
+				if (maxSys != lastMaxSys) {
+					this.setPreferredSize(new Dimension(this.getWidth() - 20, maxy+SISDISPLACE*STEPY));	//	Needed for the scroll bars to appear
+					lastMaxSys = maxSys;
 				}
-
-				drawText(accord.getSlog(), g, gPos, MARY);
-				
-				if (checkVa) {
-					MARY -= 7* STEPY;
-				}
-
-				gPos += 2 * STEPX * accord.getWidth();
+			}
+			
+			for (int i=0; i<(stan.bassKey? 11: 5); ++i){
+				if (i == 5) continue;
+				g.drawLine(MARX, MARY + i* STEPY *2, this.getWidth() - MARX*2, MARY + i* STEPY *2);
 			}
 
-			if (maxSys != lastMaxSys) {
-			    this.setPreferredSize(new Dimension(this.getWidth() - 20, maxy+SISDISPLACE*STEPY));	//	Needed for the scroll bars to appear
-			    lastMaxSys = maxSys;
-			}
+			if (MARY>maxy) maxy=MARY;
+			MARY = (int)Math.round(MARGIN_V* STEPY);
 		}
-		for (int i=0; i<(stan.bassKey? 11: 5); ++i){
-			if (i == 5) continue;
-			g.drawLine(MARX, MARY + i* STEPY *2, this.getWidth() - MARX*2, MARY + i* STEPY *2);
-		}        
-		
-		if (MARY>maxy) maxy=MARY;
-		MARY = (int)Math.round(MARGIN_V* STEPY);
-		g.drawString(Pointer.nNotiVAccorde+"", 20, 10);
 		
 		this.revalidate();	//	Needed to recalc the scroll bars
 	} // paintComponent
 
-	private static void drawText(String text, Graphics surface, int x, int y) {
+	private static void drawText(String text, Graphics surface, int x, int y, Color color) {
 		surface.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12)); // 12 - 7px w  h == 12*4/5
 		surface.setColor(Color.WHITE);
 		surface.fillRect(x-2, y - 6*STEPY - 12*4/5 - 2, 7*text.length() + 4, 12*4/5 + 4);
-		surface.setColor(Color.BLACK);
+		surface.setColor(color);
 		surface.drawString(text, x, y - 6*STEPY);
 		surface.setColor(Color.BLACK);
 	}
@@ -289,7 +222,7 @@ public class DrawPanel extends JPanel {
 	int x0, y0, x1,y1;
 	private int drawNotu(Nota theNota, Graphics g, int yIndent, int xIndent) {
 	
-		int thisY = yIndent + toOtGraph - STEPY * (theNota.getAcademicIndex() + theNota.getOctava() * 7);
+		int thisY = yIndent + this.toOtGraph - STEPY * (theNota.getAcademicIndex() + theNota.getOctava() * 7);
 		if (stan.getChannelFlag(theNota.channel) || true) { // стоит придумать, может отображать их по-другому... или показывать сбоку, какие каналы отключены... займись этим.
 			if (theNota.isBemol()) {
 				g.drawImage(vseKartinki[2], xIndent-(int)Math.round(0.5* STEPX), thisY + 3* STEPY +2, this);
@@ -313,19 +246,16 @@ public class DrawPanel extends JPanel {
 			x0 = xIndent + (15)*notaHeight/NORMAL_HEIGHT;
 			y0 = thisY;
 		} else if (triol == 3) {
-			drawTriolLine(x0, y0, thisY, g);
+			drawTriolLine(x0, y0, xIndent, thisY, g);
 		}
-	
-		// полоска для до...
-		boolean chet = (theNota.pos % 2 == 1) ^ (theNota.getOctava() % 2 == 1);
-		if (theNota.getOctava() > 6) chet = !chet;
-		if (chet) g.drawLine(xIndent - notaWidth*4/25, thisY + STEPY * 7, xIndent + notaWidth*22/25, thisY + STEPY * 7);
+
+		if (theNota.isStriked()) g.drawLine(xIndent - notaWidth*4/25, thisY + STEPY * 7, xIndent + notaWidth*22/25, thisY + STEPY * 7);
 	
 		return 0;
 	} 
 	
-	private void drawTriolLine(int x0, int y0, int thisY, Graphics g ) {
-		x1 = gPos + (15)*notaHeight/NORMAL_HEIGHT;
+	private void drawTriolLine(int x0, int y0, int x1, int thisY, Graphics g ) {
+		x1 += (15)*notaHeight/NORMAL_HEIGHT;
 		y1 = thisY;
 		--x0; --x1;
 		g.setColor(Color.BLACK);
@@ -347,34 +277,20 @@ public class DrawPanel extends JPanel {
 		}
 	}
 	
-	private void drawPhantom(Phantom phantomka, Graphics g) {
-		int dX = notaWidth/5, dY = notaHeight*2;
-		g.drawImage(phantomka.getImage(), gPos - dX, MARY - dY, this);
+	private void drawPhantom(Phantom phantomka, Graphics g, int xIndent, int yIndent) {
+		int dX = this.getNotaWidth()/5, dY = this.getNotaHeight()*2;
+		g.drawImage(phantomka.getImage(), xIndent - dX, yIndent - dY, this);
 		if (phantomka.underPtr) {
-			int deltaY = 0;
-			int deltaX = 0;
+			int deltaY = 0, deltaX = 0;
 			switch (phantomka.changeMe) {
-				case cislicelj:
-					deltaY += 9 * STEPY;
-					break;
-				case znamenatelj:
-					deltaY += 11 * STEPY;
-					break;
-				case tempo:
-					deltaY -= 1 * STEPY;
-					break;
-				case instrument:
-		            deltaY += 4 * STEPY;
-					deltaX += STEPX / 4;
-		            break;
-				case volume:
-					deltaY += 24 * STEPY;
-					break;
-				default:
-					out("Неизвестный енум в ДоуПанеле");
-					break;
+				case cislicelj:	deltaY += 9 * STEPY; break;
+				case znamenatelj: deltaY += 11 * STEPY; break;
+				case tempo: deltaY -= 1 * STEPY; break;
+				case instrument: deltaY += 4 * STEPY; deltaX += STEPX / 4; break;
+				case volume: deltaY += 24 * STEPY; break;
+				default: out("Неизвестный енум в ДоуПанеле"); break;
 			}
-		    g.drawImage(this.getPointerBitmap(), gPos - 7*notaWidth/25 + deltaX, MARY - STEPY * 14 + deltaY, this);
+		    g.drawImage(this.getPointerBitmap(), xIndent - 7*notaWidth/25 + deltaX, yIndent - STEPY * 14 + deltaY, this);
 		}
 	}
 	
@@ -393,16 +309,16 @@ public class DrawPanel extends JPanel {
 		repaint();
 	}
 	
-	private int drawTaktLineIfNeeded(int curCislic, int curZnamen, Graphics g) {
+	private int drawTaktLineIfNeeded(int curCislic, int curZnamen, Graphics g, int xIndent) {
 		if (curCislic >= stan.cislic) {
 	    	curCislic %= stan.cislic;
 	        g.setColor(Color.BLACK);
 	        if (curCislic > 0) {
 	            g.setColor(Color.BLUE);
 	        }
-	        g.drawLine(gPos + STEPX * 3 / 2, MARY - STEPY * 5, gPos + STEPX * 3 / 2, MARY + STEPY * 20);
+	        g.drawLine(xIndent + STEPX * 3 / 2, MARY - STEPY * 5, xIndent + STEPX * 3 / 2, MARY + STEPY * 20);
 	        g.setColor(Color.decode("0x00A13E"));
-	        g.drawString(taktCount + "", gPos + STEPX, MARY - STEPY * 9);
+	        g.drawString(taktCount + "", xIndent + STEPX, MARY - STEPY * 9);
 	
 	        ++taktCount;
 		}
@@ -419,12 +335,31 @@ public class DrawPanel extends JPanel {
 
 	// getters/setters
 
+	public ArrayList<Staff> getStaveList() {
+		ArrayList staveList = (ArrayList)this.staffList.clone();
+		staveList.add(this.stan);
+		return staveList;
+	}
+
+	public SheetMusic addNewStaff() {
+		this.staffList.add(new Staff());
+		return this;
+	}
+
 	public BufferedImage getPointerBitmap() {
 		return this.vseKartinki[3];
 	}
 
 	public int getStepInOneSysCount() {
 		return (int)Math.floor(this.getWidth() / this.STEPX - 2 * this.MARGIN_H);
+	}
+
+	public int getNotaWidth() {
+		return this.notaWidth;
+	}
+
+	public int getNotaHeight() {
+		return this.notaHeight;
 	}
 }
 

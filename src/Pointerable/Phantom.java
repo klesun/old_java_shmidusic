@@ -1,7 +1,7 @@
 package Pointerable;
 
-import Gui.DrawPanel;
-import Musica.NotnyStan;
+import Gui.SheetMusic;
+import Musica.Staff;
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
@@ -18,12 +18,12 @@ import org.json.JSONObject;
 
 public class Phantom extends Pointerable {	
 
-    NotnyStan stan;
+    Staff stan;
    
 	public int valueTempo = 120;
 	public int valueInstrument = 0;
 	public double valueVolume = 0.5;
-	public int znamen = NotnyStan.DEFAULT_ZNAM;
+	public int znamen = Staff.DEFAULT_ZNAM;
 
 	public Phantom() {
         znamen = 8;
@@ -33,8 +33,8 @@ public class Phantom extends Pointerable {
 
 	@Override
 	public BufferedImage getImage() {
-		int w = DrawPanel.notaWidth*5;
-		int h = DrawPanel.notaHeight*6;
+		int w = SheetMusic.notaWidth*5;
+		int h = SheetMusic.notaHeight*6;
 		BufferedImage rez = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 		Graphics g = rez.getGraphics();
 		g.setColor(Color.black);
@@ -44,7 +44,7 @@ public class Phantom extends Pointerable {
 			tz /= 2;
 			tc /= 2;
 		}
-		int inches = DrawPanel.notaHeight*5/8, taktX= 0, taktY=DrawPanel.notaHeight*2; // 25, 80
+		int inches = SheetMusic.notaHeight*5/8, taktX= 0, taktY=SheetMusic.notaHeight*2; // 25, 80
 		g.setFont(new Font(Font.MONOSPACED, Font.BOLD, inches)); // 12 - 7px width
 		g.drawString(tc+"", 0 + taktX, inches*4/5 + taktY);
 		int delta = 0 + (tc>9 && tz<10? inches*7/12/2: 0) + ( tc>99 && tz<100?inches*7/12/2:0 );
@@ -52,23 +52,23 @@ public class Phantom extends Pointerable {
 
 		int tpx = 0, tpy = 0;
 		g.drawImage(Nota.notaImg[3], tpx, tpy, null);
-		inches = DrawPanel.notaHeight*9/20;
+		inches = SheetMusic.notaHeight*9/20;
 		g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, inches)); // 12 - 7px width
-		g.drawString(" = "+valueTempo, tpx + DrawPanel.notaWidth*4/5, tpy + inches*4/5 + DrawPanel.notaHeight*13/20);
+		g.drawString(" = "+valueTempo, tpx + SheetMusic.notaWidth*4/5, tpy + inches*4/5 + SheetMusic.notaHeight*13/20);
 
 		// instrument
-		tpy = DrawPanel.notaHeight;
-		g.drawImage(DrawPanel.vseKartinki[5], 0, tpy, null);
+		tpy = SheetMusic.notaHeight;
+		g.drawImage(SheetMusic.vseKartinki[5], 0, tpy, null);
 		g.setFont(new Font(Font.SERIF, Font.BOLD, inches)); // 12 - 7px width
 		g.setColor(Color.decode("0xaa00ff"));
-		g.drawString(" "+valueInstrument, 0 + DrawPanel.notaWidth*3/5, tpy + inches*4/5 + DrawPanel.notaHeight*11/20);
+		g.drawString(" "+valueInstrument, 0 + SheetMusic.notaWidth*3/5, tpy + inches*4/5 + SheetMusic.notaHeight*11/20);
 
 		// Volume
-		tpx = 0; tpy = DrawPanel.notaHeight*37/10;
-		g.drawImage(DrawPanel.vseKartinki[4], tpx+DrawPanel.notaWidth*2/25, tpy, null);
-		inches = DrawPanel.notaHeight*3/10;
+		tpx = 0; tpy = SheetMusic.notaHeight*37/10;
+		g.drawImage(SheetMusic.vseKartinki[4], tpx+SheetMusic.notaWidth*2/25, tpy, null);
+		inches = SheetMusic.notaHeight*3/10;
 		g.setColor(Color.decode("0x00A13E"));
-		g.drawString((int)(valueVolume*100)+"%", tpx, tpy + inches*4/5 + DrawPanel.notaHeight*2/5);
+		g.drawString((int)(valueVolume*100)+"%", tpx, tpy + inches*4/5 + SheetMusic.notaHeight*2/5);
 
 		return rez;
 	}

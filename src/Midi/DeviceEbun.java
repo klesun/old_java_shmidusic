@@ -1,4 +1,4 @@
-package Tools;
+package Midi;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,9 +12,10 @@ import javax.sound.midi.Transmitter;
 
 import Midi.DumpReceiver;
 import Midi.MidiCommon;
-import Musica.NotnyStan;
-import static Musica.NotnyStan.CHANNEL;
+import Musica.Staff;
+import static Musica.Staff.CHANNEL;
 import Musica.PlayMusThread;
+import Tools.KeyEventHandler;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.ShortMessage;

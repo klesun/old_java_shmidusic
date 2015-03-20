@@ -1,6 +1,6 @@
 package Midi;
 
-import Musica.NotnyStan;
+import Musica.Staff;
 import Tools.KeyEventHandler;
 
 import	javax.sound.midi.MidiMessage;

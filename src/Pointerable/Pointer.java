@@ -8,15 +8,24 @@ public class Pointer {
 	
     public static int pos;
     public static int gpos = 0;
-    public static NotnyStan stan = null;
+    public static Staff stan = null;
     public static Pointerable pointsAt;
     public static Phantom beginNota;    
-    public static int init(NotnyStan newStan){
+    public static int init(Staff newStan){
         pos = -1;
         stan = newStan;
         pointsAt = stan.phantomka;
         return 0;
     }
+
+	private static Pointer instance = null;
+
+	public static Pointer getInstance() {
+		if (Pointer.instance == null) {
+			Pointer.instance = new Pointer();
+		}
+		return Pointer.instance;
+	}
     
     public static int moveOut(){
         if (stan == null) {
@@ -181,6 +190,12 @@ public class Pointer {
 
 	public static Nota getCurrentAccordinuNotu() {
 		return accordinaNota;
+	}
+
+	// getters/setters
+
+	public int getPos() {
+		return this.pos;
 	}
 
 }

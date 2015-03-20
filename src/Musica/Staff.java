@@ -11,7 +11,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import Gui.DrawPanel;
+import Gui.SheetMusic;
 import Midi.MidiCommon;
 import Pointerable.Accord;
 import Pointerable.IAccord;
@@ -19,9 +19,9 @@ import Pointerable.Nota;
 import Pointerable.Phantom;
 import Pointerable.Pointer;
 import Pointerable.Pointerable;
-import Tools.DeviceEbun;
-import static Tools.DeviceEbun.MidiOutputDevice;
-import static Tools.DeviceEbun.sintReceiver;
+import Midi.DeviceEbun;
+import static Midi.DeviceEbun.MidiOutputDevice;
+import static Midi.DeviceEbun.sintReceiver;
 import Tools.FileProcessor;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -33,7 +33,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class NotnyStan {
+public class Staff {
 	public byte channelFlags = -1;
 	int sessionId = (int)Math.random()*Integer.MAX_VALUE;
 	
@@ -63,19 +63,19 @@ public class NotnyStan {
 	
 	public int noshuCount = 0;
 	
-	public DrawPanel drawPanel;
+	public SheetMusic drawPanel;
 	public int to4kaOt4eta = 66; // какой позиции соответствует нижняя до скрипичного ключа
 	
 	public Phantom phantomka = new Phantom();
-	public Pointerable firstDeleted = new Nota(1);
-	public Pointerable lastDeleted = firstDeleted;
+	public Accord firstDeleted = new Accord().add(new Nota(1));
+	public Accord lastDeleted = firstDeleted;
 
 	private ArrayList<Pointerable> accordList = new ArrayList<Pointerable>();
 	private int pointerPos = 0;
 
 	int closerCount = 0;
 	
-	public NotnyStan(){
+	public Staff(){
 		bassKey = true;
 		vioKey2 = false;
 		bassKey2 = false;
@@ -88,7 +88,7 @@ public class NotnyStan {
 		mode = aMode.insert;
 	}
 
-	public NotnyStan add(Pointerable elem) {
+	public Staff add(Accord elem) {
 
 		// deprecated
 		elem.prev = Pointer.pointsAt;
@@ -103,13 +103,6 @@ public class NotnyStan {
 		this.accordList.add(pointerPos++, elem);
 		
 		return this;
-	}
-	
-	public Nota addFromFile(int tune, int cislic, int channel){
-		Nota newbie = new Nota(tune, (int)cislic, channel);
-		this.add(newbie);
-
-	    return newbie;
 	}
 	
 	public void addPressed(int tune, int forca, int elapsed) {
@@ -146,7 +139,7 @@ public class NotnyStan {
 	
 	public void retrieveLast(){
 		if (deleted == 0) return;
-		Pointerable cur = lastDeleted;
+		Accord cur = lastDeleted;
 		lastDeleted = lastDeleted.next;
 		cur.next = cur.prev.next;
 		cur.prev.next = cur;
@@ -176,7 +169,7 @@ public class NotnyStan {
 	
 	public boolean delNotu(){
 	    if (Pointer.pointsAt == phantomka) return Pointer.move(1);
-	    Pointerable elem = Pointer.pointsAt;
+	    Accord elem = (Accord)Pointer.pointsAt;
 	    //nota.clearAccord();
 	    if (elem.prev != null) {
 	        Pointer.move(-1);
@@ -193,8 +186,8 @@ public class NotnyStan {
 	        phantomka.next = null;
 	    }
 	    
-	    elem.next = lastDeleted;
-	    lastDeleted = elem;
+	    elem.next = this.lastDeleted;
+	    this.lastDeleted = elem;
 	    --noshuCount;
 	    ++deleted;
 	    drawPanel.repaint();
@@ -220,7 +213,7 @@ public class NotnyStan {
 	// TODO: stan should store current Phantom and these values should be getting from there directly, NO DENORMALIZING
 	public void checkValues(Phantom rak) {
 	    int cislic = rak.numerator, znamen=rak.znamen, tempo = rak.valueTempo; double volume = rak.valueVolume; int instrument = rak.valueInstrument;
-	    if (cislic!=this.cislic || znamen!=DEFAULT_ZNAM || tempo!=NotnyStan.tempo || volume!=this.volume) {
+	    if (cislic!=this.cislic || znamen!=DEFAULT_ZNAM || tempo!=Staff.tempo || volume!=this.volume) {
 	        // Всё равно ж перерисовывать надо будет
 	        int k = DEFAULT_ZNAM / znamen;
 	        this.cislic = cislic*k;
@@ -239,27 +232,6 @@ public class NotnyStan {
 		}
 	}
 	
-	public void triolnutj() {
-		if (Pointer.pointsAt instanceof Nota) {
-			Nota baseNota = (Nota)Pointer.pointsAt;
-			if (baseNota.isTriol) {
-				baseNota.isTriol = false;
-				return;
-			}
-			// TODO: пробежаться по этим трём аккордам, сложить аккЛен, если делится с остатком на три - браковать, без остатка - всё хорошо
-			// Проверка, всё ли с нотами впорядке
-			Nota tmp = (Nota)(Pointer.pointsAt);
-			for (int i = 0; i < 2; ++i) {
-				if (tmp.next instanceof Nota==false) return;
-				tmp = (Nota)(tmp.next);
-				if (tmp == null) return;
-				if (tmp instanceof Nota == false) return;
-				if (tmp.isTriol/* || tmp.cislic != base.cislic*/) return;
-			}
-			baseNota.isTriol = true;
-		}
-	}
-	
 	public int changeChannelFlag(int channel) {
 		if (channel > 7 || channel < 0) return -1;
 		channelFlags ^= 1 << channel;
@@ -269,28 +241,6 @@ public class NotnyStan {
 	public Boolean getChannelFlag(int channel) {
 		if (channel > 7 || channel < 0) return false;
 		return (channelFlags & (1 << channel)) > 0;
-	}
-	
-	public ArrayList<Pointerable> getChildList() {
-		ArrayList<Pointerable> list = new ArrayList<Pointerable>();
-		Pointerable curNota = this.phantomka;
-		while (curNota != null) {
-			if (curNota instanceof Phantom) {
-				list.add(curNota);
-			} else if (curNota instanceof IAccord) { // TODO: just list.add(curNota), once Nota is no more Pointerable
-				IAccord notaNota = (IAccord)curNota;
-				Accord accord = new Accord();
-	
-				accord.setNotaList(notaNota.getNotaList());
-				accord.setSlog(notaNota.getSlog());
-
-				list.add(accord);
-			}
-	
-			curNota = curNota.getNext();
-		}
-
-		return list;
 	}
 	
 	public Dictionary<String, Object> getExternalRepresentation() {
@@ -303,16 +253,49 @@ public class NotnyStan {
 	public int reconstructFromJson(JSONObject jsObject) throws JSONException {
 		this.clearStan();
 		JSONArray childJsonList = jsObject.getJSONArray("childList");
-		for (int idx = 0; idx < childJsonList.length(); ++idx) {
+		this.getPhantom().update(new Phantom().reconstructFromJson(childJsonList.getJSONObject(0))); // TODO: it is so lame, but i spent hours to save all these files in this format
+		for (int idx = 1; idx < childJsonList.length(); ++idx) { // TODO: store Phantom as dict field, not list value
 			JSONObject childJs = childJsonList.getJSONObject(idx);
 			Pointerable child = Pointerable.getSuccessor(childJs.getString("pointerableClass"));
-			if (child instanceof Phantom && Pointer.pointsAt instanceof Phantom) {
-				((Phantom)Pointer.pointsAt).update((Phantom)child);
-			} else {
-				this.add(child.reconstructFromJson(childJs));
-			}
+			this.add((Accord)child.reconstructFromJson(childJs));
 		}
 		return 0;
+	}
+
+	// getters/setters
+
+	private Pointer getPointer() {
+		return Pointer.getInstance();
+	}
+
+	public Accord getFocusedAccord() {
+		ArrayList<Pointerable> childList = this.getChildList();
+		if (childList.size() > this.getPointer().getPos() && childList.get(this.getPointer().getPos()) instanceof Accord) {
+			return (Accord)childList.get(this.getPointer().getPos());
+		} else {
+			return null;
+		}
+	}
+
+	public Phantom getPhantom() {
+		return this.phantomka;
+	}
+
+	public ArrayList<Accord> getAccordList() {
+		ArrayList<Accord> list = new ArrayList<Accord>();
+		Accord accord = this.phantomka.getNext();
+		while (accord != null) {
+			list.add(accord);
+			accord = accord.getNext();
+		}
+
+		return list;
+	}
+	
+	public ArrayList<Pointerable> getChildList() {
+		ArrayList childList = this.getAccordList();
+		childList.add(0, this.getPhantom());
+		return childList;
 	}
 }
 

@@ -17,28 +17,23 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import Gui.Constants;
-import Gui.DrawPanel;
-import Musica.NotnyStan;
+import Gui.SheetMusic;
+import Musica.Staff;
 
-final public class Nota extends Pointerable implements IAccord { // TODO: this temporary interface was invented to ease moving Accord storage from Nota
-	public int channel = 0;
-	public boolean userDefinedChannel = false;
-	
+final public class Nota extends Pointerable implements IAccord { // TODO: this temporary interface was invented to ease moving Accord storage from Nota	
 	// TODO: store time Nota was pressed and released into file maybe? Just becuse we can!
 	public static int time = 0;
 	
-	public int length = 1;
-	
-	double autoDur = .25;
-	boolean userDurDef = false;
-	
+	public int length = 1;	
 	public Nota accord;
 	
 	public int tune;
+	public int channel = 0;
+
 	public int forca;
 	public int keydownTimestamp;
-	
-	public int pos;
+
+	public int tupletDenominator = 1;
 
 	// deprecated
 	public boolean isTriol = false;
@@ -67,14 +62,6 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 		keydownTimestamp = time;
 	}
 	
-	public Nota(int tune, int forca, int cislic, int autoDur){
-		this(tune);
-		
-	    this.numerator = cislic;
-	    this.autoDur = autoDur / 1000.0;
-	            
-	}
-	
 	private static String normalizeString(String str, int desiredLength) {
 		return String.format("%1$-" + desiredLength + "s", str);
 	}
@@ -92,7 +79,7 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 		while (curNota != null) {
 			result += "\t" + curNota.getInfoString() + "\n";
 			curNota = curNota.accord; } 
-	    String s = "nota: "+tune+"; pos: "+getAcademicIndex()+"; okt: "+getOctava()+"; "+strTune(pos);
+	    String s = "nota: "+tune+"; pos: "+getAcademicIndex()+"; okt: "+getOctava()+"; "+strTune(this.getAcademicIndex());
 	    return result;
 	}
 	
@@ -118,7 +105,7 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	}
 
 	@Override
-	public void setNext( Pointerable elem ) {
+	public void setNext( Accord elem ) {
 	    if (isTriol) {
 	        next.next.next = elem;
 	    } else next = elem;
@@ -126,18 +113,17 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	
 	@Override
 	public void changeDur(int n, boolean single){
-		userDurDef = true;
-	    if (isTriol) {
-	        Nota tmp = this;
-	        for (int i=0;i<2;++i) {
-	            tmp.next.changeDur(n, false);
-	            tmp = (Nota)(tmp.next);
-	        }
-	    }
+//		if (isTriol) {
+//			Nota tmp = this;
+//			for (int i=0;i<2;++i) {
+//				tmp.next.changeDur(n, false);
+//				tmp = (Nota)(tmp.next);
+//			}
+//		}
 		if ( (accord != null) && (single == false) ) accord.changeDur(n, false); 
-		
-		if (numerator == NotnyStan.DEFAULT_ZNAM*2) {
-			numerator = NotnyStan.DEFAULT_ZNAM;
+
+		if (numerator == Staff.DEFAULT_ZNAM*2) {
+			numerator = Staff.DEFAULT_ZNAM;
 			n = 0;
 		}
 		if (numerator < 4) {
@@ -198,7 +184,7 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	}
 	public static void refreshSizes() {
 	    int w1, h1; Graphics2D g;
-	    w1 = DrawPanel.notaWidth; h1 = DrawPanel.notaHeight;
+	    w1 = SheetMusic.notaWidth; h1 = SheetMusic.notaHeight;
 	    for (int idx = 0; idx < 8; ++idx ) {
 	        notaImg[idx] = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
 	        g = notaImg[idx].createGraphics();
@@ -212,7 +198,7 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	        notaImgCol[idx] = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
 	        g = notaImgCol[idx].createGraphics();
 	        g.setColor(new Color(127,255,0));
-	        g.fillRect(0, 0, DrawPanel.notaWidth, DrawPanel.notaHeight);
+	        g.fillRect(0, 0, SheetMusic.notaWidth, SheetMusic.notaHeight);
 	        g.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN, 1.0f));
 	        g.drawImage(notaImg[idx], 0, 0, w1, h1, null);
 	        g.dispose();                       
@@ -223,7 +209,7 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	        	coloredNotas[chan][idx] = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
 	            g = coloredNotas[chan][idx].createGraphics();
 	            g.setColor(calcColor(chan));
-	            g.fillRect(0, 0, DrawPanel.notaWidth, DrawPanel.notaHeight);
+	            g.fillRect(0, 0, SheetMusic.notaWidth, SheetMusic.notaHeight);
 	            g.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN, 1.0f));
 	            g.drawImage(notaImg[idx], 0, 0, w1, h1, null);
 	            g.dispose();
@@ -275,9 +261,17 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	}
 
 	public int getDenominator() {
-		// TODO: for tuplets
-		return 1;
-	}	
+		return 1 * this.getTupletDenominator();
+	}
+
+	public int getTupletDenominator() {
+		return this.tupletDenominator;
+	}
+
+	public Nota setTupletDenominator(int value) {
+		this.tupletDenominator = value;
+		return this;
+	}
 
 	public void setChannel(int channel) {
 		this.channel = channel;
@@ -298,7 +292,16 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	public Boolean isBemol() {
 		// 0 - до, 2 - ре, 4 - ми, 5 - фа, 7 - соль, 9 - ля, 10 - си
 		int[] bemolTuneList = new int[]{1,3,6,8,10};
-	    return Arrays.asList(bemolTuneList).contains(this.tune % 12);
+		return inArray(bemolTuneList, this.tune % 12);
+	}
+
+	public Boolean isBotommedToFitSystem() { // 8va
+		return this.getOctava() > 6;
+	}
+
+	public Boolean isStriked() {
+		boolean chet = (this.getAcademicIndex() % 2 == 1) ^ (this.getOctava() % 2 == 1);
+		return this.isBotommedToFitSystem() ? !chet : chet;
 	}
 
 	// private methods
@@ -365,6 +368,14 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	        case 6: return "си";
 	        default: return "ша-бемоль";
 	    }
+	}
+
+	// retarded language
+	private static Boolean inArray(int[] arr, int n) {
+		for (int i = 0; i < arr.length; ++i) {
+			if (arr[i] == n) return true;
+		}
+		return false;
 	}
 
 	// deprecated

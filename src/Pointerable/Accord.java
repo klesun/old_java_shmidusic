@@ -14,7 +14,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import Gui.Constants;
-import Gui.DrawPanel;
+import Gui.SheetMusic;
 
 public class Accord extends Pointerable implements IAccord { // TODO: remove this interface, once Nota does not store the accord
 
@@ -49,12 +49,12 @@ public class Accord extends Pointerable implements IAccord { // TODO: remove thi
 
 	@Override
 	public BufferedImage getImage() {
-		BufferedImage img = new BufferedImage(DrawPanel.STEPX * 2, DrawPanel.STEPY * 14, BufferedImage.TYPE_INT_ARGB);
+		BufferedImage img = new BufferedImage(SheetMusic.STEPX * 2, SheetMusic.STEPY * 14, BufferedImage.TYPE_INT_ARGB);
 		Graphics g = img.getGraphics();
 
 		// TODO: not finished
 		for (Nota nota: this.notaList) {
-			int yIndent = DrawPanel.STEPY * nota.getAcademicIndex() + nota.getOctava() * 7;
+			int yIndent = SheetMusic.STEPY * nota.getAcademicIndex() + nota.getOctava() * 7;
 			g.drawImage(nota.getImage(), 0, yIndent, null);
 			
 			// TODO: lame, it should be in Nota.getImage
@@ -65,6 +65,18 @@ public class Accord extends Pointerable implements IAccord { // TODO: remove thi
 //			if (theNota.cislic  % 3 == 0) g.fillOval(gPos + notaWidth*4/5, thisY + notaHeight*7/8, notaHeight/8, notaHeight/8);
 		}
 		return img;
+	}
+	
+	// responsees to events (actions)
+	
+	public void triggerTuplets(int denominator) {
+		if (getFocused() != null) {
+			getFocused().setTupletDenominator(getFocused().getTupletDenominator() == 1 ? denominator : 1);
+		} else {
+			for (Nota nota: this.getNotaList()) {
+				nota.setTupletDenominator(nota.getTupletDenominator() == 1 ? denominator : 1);
+			}
+		}
 	}
 
 	@Override
@@ -107,6 +119,14 @@ public class Accord extends Pointerable implements IAccord { // TODO: remove thi
 
 	public Nota getShortest() {
 		return this.getNotaList().stream().reduce(null, (a, b) -> a != null && !a.isLongerThan(b) ? a : b);
+	}
+
+	public Nota getFocused() {
+		return getFocusedIndex() > -1 ? this.getNotaList().get(getFocusedIndex()) : null;
+	}
+
+	public int getFocusedIndex() {
+		return Pointer.nNotiVAccorde;
 	}
 
 	public void setNotaList(ArrayList<Nota> notaList) {

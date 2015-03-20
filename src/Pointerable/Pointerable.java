@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import Musica.NotnyStan;
+import Musica.Staff;
 
 public abstract class Pointerable {
 
@@ -15,12 +15,12 @@ public abstract class Pointerable {
 	
 	public int numerator = 16; // TODO: it should be Accord (or Nota?) specific
 	
-	public Pointerable next;
+	public Accord next;
 	public Pointerable prev;
     public Pointerable retrieve;
 
-    public Pointerable getNext() { return next; }
-    public void setNext( Pointerable elem ) { next = elem; }
+    public Accord getNext() { return next; }
+    public void setNext( Accord elem ) { next = elem; }
     
     public Pointerable() {
     }

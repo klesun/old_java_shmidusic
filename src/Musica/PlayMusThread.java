@@ -2,12 +2,12 @@ package Musica;
 
 import javax.sound.midi.*;
 
-import Musica.NotnyStan.aMode;
+import Musica.Staff.aMode;
 import Pointerable.IAccord;
 import Pointerable.Nota;
 import Pointerable.Pointer;
 import Pointerable.Pointerable;
-import Tools.DeviceEbun;
+import Midi.DeviceEbun;
 import Tools.KeyEventHandler;
 
 import java.util.ArrayList;
@@ -17,10 +17,10 @@ public class PlayMusThread extends Thread {
 
 	boolean stop = false;
     Receiver sintReceiver = DeviceEbun.sintReceiver;
-	private static NotnyStan stan;
+	private static Staff stan;
 	private KeyEventHandler eventHandler = null;
 	
-	public PlayMusThread(KeyEventHandler eventHandler, NotnyStan stan){ 
+	public PlayMusThread(KeyEventHandler eventHandler, Staff stan){ 
 		this.eventHandler = eventHandler;
 		this.stan = stan; 
 	}
@@ -68,7 +68,7 @@ public class PlayMusThread extends Thread {
     	for (Nota tmp: accord.getNotaList()) {
 			// убрать костыль нахуй! стан не должен появляться у этого объекта абы когда
     		if ((stan == null) || stan.getChannelFlag(tmp.channel)) playNotu(tmp, divi);
-    		time = Math.min( time, (short)( msIns*tmp.numerator/NotnyStan.DEFAULT_ZNAM*4/NotnyStan.tempo*60 / divi ) );
+    		time = Math.min( time, (short)( msIns*tmp.numerator/Staff.DEFAULT_ZNAM*4/Staff.tempo*60 / divi ) );
     		// 4 - будем брать четвертную как основную, 60 - потому что темпо измеряется в ударах в минуту, а у нас секунды (вообще, даже, миллисекунды)
     		tmp = tmp.accord;
     	}
