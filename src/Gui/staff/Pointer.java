@@ -1,5 +1,10 @@
-package Pointerable;
+package Gui.staff;
 
+import Gui.staff.Staff;
+import Gui.staff.pointerable.Accord;
+import Gui.staff.pointerable.Nota;
+import Gui.staff.pointerable.Phantom;
+import Gui.staff.pointerable.Pointerable;
 import Musica.*;
 
 public class Pointer {
@@ -90,7 +95,7 @@ public class Pointer {
     }
     
     public static boolean moveSis(int n) { // TODO: logic mistake... somewhere here
-    	int stepCount = n * stan.drawPanel.getStepInOneSysCount();
+    	int stepCount = n * stan.parentSheetMusic.getStepInOneSysCount();
     	while (stepCount > 0) {
     		stepCount -= pointsAt.getWidth() * 2;
     		moveRealtime(1, SOUND_OFF);
@@ -144,8 +149,8 @@ public class Pointer {
 		accordinaNota = null;
         if (pointsAt instanceof Phantom) {
 			stan.checkValues((Phantom)pointsAt);
-		} else if (withSound && pointsAt instanceof IAccord) {
-			PlayMusThread.playAccord((IAccord)pointsAt);
+		} else if (withSound && pointsAt instanceof Accord) {
+			PlayMusThread.playAccord((Accord)pointsAt);
 		}
 
         return true;
@@ -169,11 +174,11 @@ public class Pointer {
 		accordinaNota = null;
     	Pointer.nNotiVAccorde = -1;
 	}
+
+	// TODO: repair for accords
 	public static void nextAcc() {    
-    	if (pointsAt instanceof Nota == false) {
-    		if (pointsAt instanceof Phantom) ((Phantom)pointsAt).chooseNextParam();
-    		return;
-    	}
+
+		//((Accord)Pointer.pointsAt).focusNext();
     	if (nNotiVAccorde >= 0){
     		if (accordinaNota.accord != null) {
     			accordinaNota = accordinaNota.accord;
@@ -183,7 +188,6 @@ public class Pointer {
     		}
     	} else {
     		pointsOneNotaInAccord = true;
-    		accordinaNota = (Nota)Pointer.pointsAt;
     		nNotiVAccorde = 0;
     	}
     }

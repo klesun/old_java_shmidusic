@@ -1,5 +1,6 @@
-package Pointerable;
+package Gui.staff.pointerable;
 
+import Gui.staff.Pointer;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
@@ -14,34 +15,40 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import Gui.Constants;
+import Gui.staff.Staff;
 import Gui.SheetMusic;
+import Gui.staff.Staff;
 
-public class Accord extends Pointerable implements IAccord { // TODO: remove this interface, once Nota does not store the accord
+public class Accord extends Pointerable {
+
+	Staff parentStaff = null;
 
 	ArrayList<Nota> notaList = new ArrayList<Nota>();
 	String slog = "";
 
-	// Implement
+	public Accord(Staff parentStaff) {
+		this.parentStaff = parentStaff;
+	}
+
 	public Accord add(Nota nota) {
 		this.notaList.add(nota);
 		return this;
 	}
 
-	// Implement
-	public LinkedHashMap<String, Object> getExternalRepresentationSuccessed() {
+	public LinkedHashMap<String, Object> getObjectState() {
 		LinkedHashMap<String, Object> dict = new LinkedHashMap<String, Object>();
-		dict.put("notaList", this.notaList.stream().map(n -> n.getExternalRepresentation()).toArray());
+		dict.put("notaList", this.notaList.stream().map(n -> n.getObjectState()).toArray());
 		dict.put("slog", this.slog);
 		return dict;
 	}
 
 	@Override
-	public Accord reconstructFromJson(JSONObject jsObject) throws JSONException {
+	public Accord setObjectStateFromJson(JSONObject jsObject) throws JSONException {
 		this.slog = jsObject.getString("slog");
 		JSONArray notaJsonList = jsObject.getJSONArray("notaList");
 		for (int idx = 0; idx < notaJsonList.length(); ++idx) {
 			JSONObject childJs = notaJsonList.getJSONObject(idx);
-			this.add((new Nota(63)).reconstructFromJson(childJs));
+			this.add((new Nota(63)).setObjectStateFromJson(childJs));
 		}
 
 		return this;
@@ -49,12 +56,13 @@ public class Accord extends Pointerable implements IAccord { // TODO: remove thi
 
 	@Override
 	public BufferedImage getImage() {
-		BufferedImage img = new BufferedImage(SheetMusic.STEPX * 2, SheetMusic.STEPY * 14, BufferedImage.TYPE_INT_ARGB);
+		SheetMusic sheet = this.parentStaff.parentSheetMusic;
+		BufferedImage img = new BufferedImage(sheet.getStepWidth() * 2, sheet.getStepHeight() * 14, BufferedImage.TYPE_INT_ARGB);
 		Graphics g = img.getGraphics();
 
 		// TODO: not finished
 		for (Nota nota: this.notaList) {
-			int yIndent = SheetMusic.STEPY * nota.getAcademicIndex() + nota.getOctava() * 7;
+			int yIndent = sheet.getStepHeight() * nota.getAcademicIndex() + nota.getOctava() * 7;
 			g.drawImage(nota.getImage(), 0, yIndent, null);
 			
 			// TODO: lame, it should be in Nota.getImage
@@ -86,13 +94,11 @@ public class Accord extends Pointerable implements IAccord { // TODO: remove thi
 
 	// getters/setters
 
-	// implements(IAccord)
 	public String getSlog() {
 		return this.slog;
 	}
 
-	// implements(IAccord)
-	public IAccord setSlog(String value) {
+	public Accord setSlog(String value) {
 		this.slog = value;
 		return this;
 	}
@@ -103,12 +109,10 @@ public class Accord extends Pointerable implements IAccord { // TODO: remove thi
 		return width > 0 ? width : 1;
 	}
 
-	// implements(IAccord)
 	public ArrayList<Nota> getNotaList() {
 		return this.notaList;
 	}
 
-	// implements(IAccord)
 	public Nota getEarliest() {
 		return this.getNotaList().stream().reduce(null, (a, b) -> a != null && a.keydownTimestamp < b.keydownTimestamp ? a : b);
 	}

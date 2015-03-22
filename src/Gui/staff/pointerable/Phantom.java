@@ -1,7 +1,8 @@
-package Pointerable;
+package Gui.staff.pointerable;
 
 import Gui.SheetMusic;
-import Musica.Staff;
+import Gui.staff.Staff;
+import Gui.staff.Staff;
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
@@ -18,14 +19,16 @@ import org.json.JSONObject;
 
 public class Phantom extends Pointerable {	
 
-    Staff stan;
+    Staff parentStaff;
    
 	public int valueTempo = 120;
 	public int valueInstrument = 0;
 	public double valueVolume = 0.5;
+	public int numerator = 8;
 	public int znamen = Staff.DEFAULT_ZNAM;
 
-	public Phantom() {
+	public Phantom(Staff staff) {
+		this.parentStaff = staff;
         znamen = 8;
         numerator = 8;
         underPtr = true;
@@ -33,8 +36,9 @@ public class Phantom extends Pointerable {
 
 	@Override
 	public BufferedImage getImage() {
-		int w = SheetMusic.notaWidth*5;
-		int h = SheetMusic.notaHeight*6;
+		SheetMusic sheet = this.parentStaff.parentSheetMusic;
+		int w = sheet.getNotaWidth() * 5;
+		int h = sheet.getNotaHeight() * 6;
 		BufferedImage rez = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 		Graphics g = rez.getGraphics();
 		g.setColor(Color.black);
@@ -44,7 +48,7 @@ public class Phantom extends Pointerable {
 			tz /= 2;
 			tc /= 2;
 		}
-		int inches = SheetMusic.notaHeight*5/8, taktX= 0, taktY=SheetMusic.notaHeight*2; // 25, 80
+		int inches = sheet.getNotaHeight()*5/8, taktX= 0, taktY=sheet.getNotaHeight()*2; // 25, 80
 		g.setFont(new Font(Font.MONOSPACED, Font.BOLD, inches)); // 12 - 7px width
 		g.drawString(tc+"", 0 + taktX, inches*4/5 + taktY);
 		int delta = 0 + (tc>9 && tz<10? inches*7/12/2: 0) + ( tc>99 && tz<100?inches*7/12/2:0 );
@@ -52,23 +56,23 @@ public class Phantom extends Pointerable {
 
 		int tpx = 0, tpy = 0;
 		g.drawImage(Nota.notaImg[3], tpx, tpy, null);
-		inches = SheetMusic.notaHeight*9/20;
+		inches = sheet.getNotaHeight()*9/20;
 		g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, inches)); // 12 - 7px width
-		g.drawString(" = "+valueTempo, tpx + SheetMusic.notaWidth*4/5, tpy + inches*4/5 + SheetMusic.notaHeight*13/20);
+		g.drawString(" = "+valueTempo, tpx + sheet.getNotaWidth()*4/5, tpy + inches*4/5 + sheet.getNotaHeight()*13/20);
 
 		// instrument
-		tpy = SheetMusic.notaHeight;
+		tpy = sheet.getNotaHeight();
 		g.drawImage(SheetMusic.vseKartinki[5], 0, tpy, null);
 		g.setFont(new Font(Font.SERIF, Font.BOLD, inches)); // 12 - 7px width
 		g.setColor(Color.decode("0xaa00ff"));
-		g.drawString(" "+valueInstrument, 0 + SheetMusic.notaWidth*3/5, tpy + inches*4/5 + SheetMusic.notaHeight*11/20);
+		g.drawString(" "+valueInstrument, 0 + sheet.getNotaWidth()*3/5, tpy + inches*4/5 + sheet.getNotaHeight()*11/20);
 
 		// Volume
-		tpx = 0; tpy = SheetMusic.notaHeight*37/10;
-		g.drawImage(SheetMusic.vseKartinki[4], tpx+SheetMusic.notaWidth*2/25, tpy, null);
-		inches = SheetMusic.notaHeight*3/10;
+		tpx = 0; tpy = sheet.getNotaHeight()*37/10;
+		g.drawImage(SheetMusic.vseKartinki[4], tpx+sheet.getNotaWidth()*2/25, tpy, null);
+		inches = sheet.getNotaHeight()*3/10;
 		g.setColor(Color.decode("0x00A13E"));
-		g.drawString((int)(valueVolume*100)+"%", tpx, tpy + inches*4/5 + SheetMusic.notaHeight*2/5);
+		g.drawString((int)(valueVolume*100)+"%", tpx, tpy + inches*4/5 + sheet.getNotaHeight()*2/5);
 
 		return rez;
 	}
@@ -77,7 +81,7 @@ public class Phantom extends Pointerable {
 	public void changeDur(int i, boolean b) {}
 
 	@Override
-	public LinkedHashMap<String, Object> getExternalRepresentationSuccessed() {
+	public LinkedHashMap<String, Object> getObjectState() {
 		LinkedHashMap<String, Object> dict = new LinkedHashMap<String, Object>();
 		dict.put("tempo", this.valueTempo);
 		dict.put("volume", this.valueVolume);
@@ -88,8 +92,7 @@ public class Phantom extends Pointerable {
 	}
 
 	@Override
-	public Phantom reconstructFromJson(JSONObject jsObject) throws JSONException {
-		System.out.println(jsObject);
+	public Phantom setObjectStateFromJson(JSONObject jsObject) throws JSONException {
 		this.valueTempo = jsObject.getInt("tempo");
 		this.valueVolume = jsObject.getDouble("volume");
 		this.valueInstrument = jsObject.getInt("instrument");
@@ -100,8 +103,8 @@ public class Phantom extends Pointerable {
 
 	public Phantom update(Phantom rival) throws JSONException {
 		JSONObject js = new JSONObject("{}"); 
-		js = new JSONObject(js.put("lol", rival.getExternalRepresentation()).get("lol").toString());
-		this.reconstructFromJson(js);
+		js = new JSONObject(js.put("lol", rival.getObjectState()).get("lol").toString());
+		this.setObjectStateFromJson(js);
 		return this;
 	}
 

@@ -9,7 +9,7 @@ import java.net.URL;
 
 import javax.imageio.ImageIO;
 
-import Pointerable.Nota;
+import Gui.staff.pointerable.Nota;
 
 public class BitmapGenerator {
 //	private static BitmapGenerator instance = null;

@@ -1,14 +1,15 @@
 package Musica;
 
+import Gui.staff.Staff;
 import javax.sound.midi.*;
 
-import Musica.Staff.aMode;
-import Pointerable.IAccord;
-import Pointerable.Nota;
-import Pointerable.Pointer;
-import Pointerable.Pointerable;
+import Gui.staff.Staff.aMode;
+import Gui.staff.pointerable.Nota;
+import Gui.staff.Pointer;
+import Gui.staff.pointerable.Pointerable;
 import Midi.DeviceEbun;
-import Tools.KeyEventHandler;
+import Gui.KeyEventHandler;
+import Gui.staff.pointerable.Accord;
 
 import java.util.ArrayList;
 
@@ -35,8 +36,8 @@ public class PlayMusThread extends Thread {
     	aMode tmpMode = Pointer.stan.mode;
     	Pointer.stan.mode = aMode.playin;    	 
     	do {
-            if (Pointer.pointsAt instanceof IAccord) {
-            	IAccord accord = (IAccord)Pointer.pointsAt;
+            if (Pointer.pointsAt instanceof Accord) {
+            	Accord accord = (Accord)Pointer.pointsAt;
 //				if (nota.isTriol) {
 //					for (int i=0;i<3;++i) {
 //						time = playAccordDivided(nota, 3);
@@ -49,21 +50,21 @@ public class PlayMusThread extends Thread {
 //					continue;
 //				}
 				time = playAccord(accord);
-				this.eventHandler.albert.repaint();
+				this.eventHandler.sheet.repaint();
 				try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна"+e); }
 			}
         } while (DeviceEbun.stop == false && Pointer.move(1));
         DeviceEbun.stop = true;
-    	Pointer.stan.drawPanel.checkCam();
+    	Pointer.stan.parentSheetMusic.checkCam();
     	Pointer.stan.mode = tmpMode;
     }
 
-	public static int playAccord(IAccord accord)
+	public static int playAccord(Accord accord)
 	{
 		return playAccordDivided(accord, 1);
 	}
 
-    public static int playAccordDivided(IAccord accord, int divi) {
+    public static int playAccordDivided(Accord accord, int divi) {
     	int time = Short.MAX_VALUE;
     	for (Nota tmp: accord.getNotaList()) {
 			// убрать костыль нахуй! стан не должен появляться у этого объекта абы когда

@@ -1,4 +1,4 @@
-package Pointerable;
+package Gui.staff.pointerable;
 
 
 import java.awt.*;
@@ -18,9 +18,10 @@ import org.json.JSONObject;
 
 import Gui.Constants;
 import Gui.SheetMusic;
-import Musica.Staff;
+import Gui.staff.Staff;
+import Gui.staff.Staff;
 
-final public class Nota extends Pointerable implements IAccord { // TODO: this temporary interface was invented to ease moving Accord storage from Nota	
+final public class Nota { // TODO: this temporary interface was invented to ease moving Accord storage from Nota	
 	// TODO: store time Nota was pressed and released into file maybe? Just becuse we can!
 	public static int time = 0;
 	
@@ -33,6 +34,7 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	public int forca;
 	public int keydownTimestamp;
 
+	public int numerator = 16;
 	public int tupletDenominator = 1;
 
 	// deprecated
@@ -45,7 +47,6 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	    forca = 127;
 	    slog = "";
 	    if (!bufInited) {
-	    	bufInit();
 	    	bufInited = true;        	
 	    }
 	}
@@ -103,23 +104,9 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 			return false;
 		return true;
 	}
-
-	@Override
-	public void setNext( Accord elem ) {
-	    if (isTriol) {
-	        next.next.next = elem;
-	    } else next = elem;
-	}
 	
-	@Override
 	public void changeDur(int n, boolean single){
-//		if (isTriol) {
-//			Nota tmp = this;
-//			for (int i=0;i<2;++i) {
-//				tmp.next.changeDur(n, false);
-//				tmp = (Nota)(tmp.next);
-//			}
-//		}
+
 		if ( (accord != null) && (single == false) ) accord.changeDur(n, false); 
 
 		if (numerator == Staff.DEFAULT_ZNAM*2) {
@@ -160,10 +147,10 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	private static Boolean bufInited = false;
 	public static BufferedImage notaImg0[] = new BufferedImage[8];
 	public static BufferedImage notaImg[] = new BufferedImage[8];
-	public static BufferedImage notaImgCol[] = new BufferedImage[8];
+	public static BufferedImage[] notaImageFocused = new BufferedImage[8];
 	public static BufferedImage[][] coloredNotas = new BufferedImage[10][8];
 
-	static void bufInit() { // функция запускается только при создании первого экземпляра класса
+	public static void bufInit(SheetMusic sheet) {
 		File notRes[] = new File[8];
 	    for (int idx = -1; idx<7; ++idx){
 	    	String str = "imgs/" + pow(2, idx) + "_sized.png";
@@ -179,12 +166,12 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	    
 	    for (int i = 0; i < 10; ++i) coloredNotas[i] = new BufferedImage[8];        
 	    
-	    refreshSizes();
+	    refreshSizes(sheet);
 	
 	}
-	public static void refreshSizes() {
+	public static void refreshSizes(SheetMusic sheet) {
 	    int w1, h1; Graphics2D g;
-	    w1 = SheetMusic.notaWidth; h1 = SheetMusic.notaHeight;
+	    w1 = sheet.getNotaWidth(); h1 = sheet.getNotaHeight();
 	    for (int idx = 0; idx < 8; ++idx ) {
 	        notaImg[idx] = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
 	        g = notaImg[idx].createGraphics();
@@ -195,10 +182,10 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	        g.drawImage(scaledImage, 0, 0, w1, h1, null);
 	        g.dispose();
 	
-	        notaImgCol[idx] = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
-	        g = notaImgCol[idx].createGraphics();
+	        notaImageFocused[idx] = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
+	        g = notaImageFocused[idx].createGraphics();
 	        g.setColor(new Color(127,255,0));
-	        g.fillRect(0, 0, SheetMusic.notaWidth, SheetMusic.notaHeight);
+	        g.fillRect(0, 0, sheet.getNotaWidth(), sheet.getNotaHeight());
 	        g.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN, 1.0f));
 	        g.drawImage(notaImg[idx], 0, 0, w1, h1, null);
 	        g.dispose();                       
@@ -209,7 +196,7 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	        	coloredNotas[chan][idx] = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
 	            g = coloredNotas[chan][idx].createGraphics();
 	            g.setColor(calcColor(chan));
-	            g.fillRect(0, 0, SheetMusic.notaWidth, SheetMusic.notaHeight);
+	            g.fillRect(0, 0, sheet.getNotaWidth(), sheet.getNotaHeight());
 	            g.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN, 1.0f));
 	            g.drawImage(notaImg[idx], 0, 0, w1, h1, null);
 	            g.dispose();
@@ -222,15 +209,15 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 		return channel > -1? coloredNotas[channel][idx]: notaImg[idx];
 	}
 	
-	public BufferedImage getImageColor() {
+	public BufferedImage getImageFocused() {
 	    int idx = (int)(Math.ceil(7 - Math.log(numerator) / Math.log(2) ));
-	    return notaImgCol[idx];
+	    return notaImageFocused[idx];
 	}
 
 	// getters/setters
 	
 	// implements(Pointerable)
-	public LinkedHashMap<String, Object> getExternalRepresentationSuccessed() {
+	public LinkedHashMap<String, Object> getObjectState() {
 		LinkedHashMap<String, Object> dict = new LinkedHashMap<String, Object>();
 		dict.put("tune", this.tune);
 		dict.put("numerator", this.numerator);
@@ -240,7 +227,7 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 	}
 
 	// implements(Pointerable)
-	public Nota reconstructFromJson(JSONObject jsObject) throws JSONException {
+	public Nota setObjectStateFromJson(JSONObject jsObject) throws JSONException {
 		this.tune = jsObject.getInt("tune");
 		this.numerator = jsObject.getInt("numerator");
 		this.channel = jsObject.getInt("channel");
@@ -376,51 +363,5 @@ final public class Nota extends Pointerable implements IAccord { // TODO: this t
 			if (arr[i] == n) return true;
 		}
 		return false;
-	}
-
-	// deprecated
-	
-	// implements(IAccord)
-	public String getSlog() {
-		return this.slog;
-	}
-
-	// implements(IAccord)
-	public IAccord setSlog(String value) {
-		this.slog = value;
-		return this;
-	}
-
-	// implement(IAccord)
-	public Nota add(Nota newbie) {
-		Nota cur = this;
-		Nota rez = cur;		
-	    do {
-	    	if (cur.tune == newbie.tune) return this; 
-	    	if (cur.tune < newbie.tune) {
-	    		int tmp = cur.tune;
-	    		cur.setTune(newbie.tune);
-	    		newbie.setTune(tmp);
-	    	}
-	    	rez = cur;
-	    	cur = cur.accord;
-	    } while (cur != null);
-		rez.accord = newbie;
-		return this;
-	}
-
-	// implements(IAccord)
-	public Nota getEarliest() {
-		return this;
-	}
-	// implements(IAccord)
-	public ArrayList<Nota> getNotaList() {
-		ArrayList<Nota> list = new ArrayList<Nota>();
-		Nota tmp = this;
-		while (tmp != null) {
-			list.add(tmp);
-			tmp = tmp.accord;
-		}
-		return list;
 	}
 }

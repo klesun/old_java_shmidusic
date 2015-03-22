@@ -12,10 +12,10 @@ import javax.sound.midi.Transmitter;
 
 import Midi.DumpReceiver;
 import Midi.MidiCommon;
-import Musica.Staff;
-import static Musica.Staff.CHANNEL;
+import Gui.staff.Staff;
+import static Gui.staff.Staff.CHANNEL;
 import Musica.PlayMusThread;
-import Tools.KeyEventHandler;
+import Gui.KeyEventHandler;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.ShortMessage;

@@ -1,7 +1,7 @@
 package Midi;
 
-import Musica.Staff;
-import Tools.KeyEventHandler;
+import Gui.staff.Staff;
+import Gui.KeyEventHandler;
 
 import	javax.sound.midi.MidiMessage;
 import	javax.sound.midi.ShortMessage;

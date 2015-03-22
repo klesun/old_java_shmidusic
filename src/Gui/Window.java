@@ -1,7 +1,7 @@
 package Gui;
 
+import Gui.staff.Staff;
 import Musica.*;
-import Tools.KeyEventHandler;
 
 import javax.swing.*;
 
@@ -10,7 +10,6 @@ import java.awt.event.*;
 
 public class Window extends JFrame implements ActionListener {
 
-	final Staff stan;
 	SheetMusic albert;    
 	int XP_MINWIDTH = 1024;
 //	int XP_MINHEIGHT = 735/2; // потому что знаю
@@ -19,12 +18,11 @@ public class Window extends JFrame implements ActionListener {
 	public Window(){
 		super("Да будет такая музыка!"); //Заголовок окна
 		
-		this.stan = new Staff();
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		this.setLayout(new BorderLayout());
 		JScrollPane elder;
-		this.add(elder = new JScrollPane(albert = new SheetMusic(stan)), BorderLayout.CENTER);
+		this.add(elder = new JScrollPane(albert = new SheetMusic()), BorderLayout.CENTER);
 		elder.getVerticalScrollBar().setUnitIncrement(16);
 		albert.scroll = elder;
 		
@@ -49,7 +47,7 @@ public class Window extends JFrame implements ActionListener {
 			}
 		});               
 		
-		this.addKeyListener(new KeyEventHandler(stan, albert, Window.this));
+		this.addKeyListener(new KeyEventHandler(albert, Window.this));
 	}  
 	
 	

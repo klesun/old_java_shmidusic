@@ -1,4 +1,4 @@
-package Pointerable;
+package Gui.staff.pointerable;
 
 import java.awt.image.BufferedImage;
 import java.util.Dictionary;
@@ -7,13 +7,11 @@ import java.util.LinkedHashMap;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import Musica.Staff;
+import Gui.staff.Staff;
 
 public abstract class Pointerable {
 
 	public boolean underPtr = false;
-	
-	public int numerator = 16; // TODO: it should be Accord (or Nota?) specific
 	
 	public Accord next;
 	public Pointerable prev;
@@ -21,9 +19,6 @@ public abstract class Pointerable {
 
     public Accord getNext() { return next; }
     public void setNext( Accord elem ) { next = elem; }
-    
-    public Pointerable() {
-    }
 	
 	public static int round(double n) { // TODO: seems to be unused
     			if (n >= 96 + 16) return 128; // 
@@ -44,23 +39,8 @@ public abstract class Pointerable {
 	}
 
 	public abstract void changeDur(int i, boolean b);
-	public abstract LinkedHashMap<String, Object> getExternalRepresentationSuccessed();
-	public abstract Pointerable reconstructFromJson(JSONObject jsObj) throws JSONException;
+	public abstract LinkedHashMap<String, Object> getObjectState();
+	public abstract Pointerable setObjectStateFromJson(JSONObject jsObj) throws JSONException;
 	abstract public BufferedImage getImage();
 	public abstract int getWidth(); // TODO: for now it returns not in pixels, but in conventional unit (one Accord without text takes one conventional unit)
-
-	public LinkedHashMap<String, Object> getExternalRepresentation() {
-		LinkedHashMap<String, Object> dict = this.getExternalRepresentationSuccessed();
-		dict.put("pointerableClass", this.getClass().getSimpleName());
-
-		return dict;
-	}
-
-	final public static Pointerable getSuccessor(String className) {
-		if (className.equals("Accord")) return new Accord();
-		if (className.equals("Phantom")) return new Phantom();
-		if (className.equals("Nota")) return new Nota(63); // Deprecated (and not just because we put here random hardcoded tune)
-
-		return null;
-	}
 }

@@ -1,5 +1,6 @@
-package Tools;
+package Gui;
 
+import Gui.staff.pointerable.Accord;
 import javax.swing.*;
 
 import java.awt.*;
@@ -14,26 +15,26 @@ import Gui.SheetMusic;
 import Gui.Window;
 import Midi.DeviceEbun;
 import Midi.MidiCommon;
-import Musica.Staff;
+import Gui.staff.Staff;
 import Musica.PlayMusThread;
-import Pointerable.IAccord;
-import Pointerable.Nota;
-import Pointerable.Phantom;
-import Pointerable.Pointer;
-import Pointerable.Pointerable;
+import Gui.staff.pointerable.Nota;
+import Gui.staff.pointerable.Phantom;
+import Gui.staff.Pointer;
+import Gui.staff.pointerable.Pointerable;
+import Tools.FileProcessor;
 
 public class KeyEventHandler implements KeyListener {
 
 	JFileChooser chooserSave = new JFileChooser("/var/www/desktop/Yuzefa");
 	JFileChooser chooserExport = new JFileChooser("/var/www/desktop/Yuzefa");
 
-	public SheetMusic albert;
-	final Staff stan;
+	public SheetMusic sheet;
+	final Staff staff;
 	JFrame parent;
 
-	public KeyEventHandler(Staff stan, SheetMusic Albert, JFrame parent) {
-		this.stan = stan;
-		this.albert = Albert;
+	public KeyEventHandler(SheetMusic albert, JFrame parent) {
+		this.sheet = albert;
+		this.staff = albert.stan;
 		this.parent = parent;
 
 		chooserSave.setFileFilter(new FileNameExtensionFilter(
@@ -48,8 +49,8 @@ public class KeyEventHandler implements KeyListener {
 	}
 
 	public void handleMidi(int tune, int forca, int elapsed, long timestamp) {
-		this.stan.addPressed(tune, forca, elapsed);
-		this.albert.repaint();
+		this.staff.addPressed(tune, forca, elapsed);
+		this.sheet.repaint();
 	}
 
 	public void keyPressed(KeyEvent e) {
@@ -60,13 +61,13 @@ public class KeyEventHandler implements KeyListener {
 			switch (e.getKeyCode()) {
 			case 'z':case 'Z':case 'Я':case 'я':
 				System.out.println("Вы нажали контрол-З");
-				stan.retrieveLast();
-				this.albert.repaint();
+				staff.retrieveLast();
+				this.sheet.repaint();
 				break;
 			case 'y':case 'Y':case 'Н':case 'н':
 				System.out.println("Вы нажали контрол-У");
-				stan.detrieveNotu();
-				this.albert.repaint();
+				staff.detrieveNotu();
+				this.sheet.repaint();
 				break;
 			case 's':case 'S':case 'Ы':case 'ы':
 				JFileChooser c = chooserSave;
@@ -81,11 +82,11 @@ public class KeyEventHandler implements KeyListener {
 					File jsFile = new File(fn.toString().substring(0,
 							(int) (fn.toString().length() - 4))
 							+ "json");
-					FileProcessor.saveJsonFile(jsFile, stan);
+					FileProcessor.saveJsonFile(jsFile, staff);
 				}
 				break;
 			case 'j':case 'J':case 'о':case 'О':
-				FileProcessor.saveJsonFile(null, stan);
+				FileProcessor.saveJsonFile(null, staff);
 				break;
 			case 'o':case 'O':case 'щ':case 'Щ':
 				int i = okcancel("Are your sure? Unsaved data will be lost."); // 2 - cancel, 0 - ok
@@ -93,11 +94,11 @@ public class KeyEventHandler implements KeyListener {
 					int sVal = chooserSave.showOpenDialog(parent);
 					if (sVal == JFileChooser.APPROVE_OPTION) {
 						if (chooserSave.getSelectedFile().getAbsolutePath().endsWith(".json")) {
-							FileProcessor.openJsonFile(chooserSave.getSelectedFile(), this.stan);
+							FileProcessor.openJsonFile(chooserSave.getSelectedFile(), this.staff);
 						}
 					}
 				}
-				this.albert.repaint();
+				this.sheet.repaint();
 				break;
 			case 'e':case 'E':case 'у':case 'У':
 				JFileChooser c2 = chooserExport;
@@ -108,18 +109,11 @@ public class KeyEventHandler implements KeyListener {
 							&& (!fn.getAbsolutePath().endsWith(".pdf"))
 							&& (!fn.getAbsolutePath().endsWith(".mid"))) {
 						fn = new File(fn + ".png");
-						FileProcessor.savePNG(fn);
+						FileProcessor.savePNG(fn, this.sheet.getFocusedStaff());
 					} else if (fn.getAbsolutePath().endsWith(".png")) {
 						System.out.println("Ща сохраню png");
 						fn = new File(fn + "");
-						FileProcessor.savePNG(fn);
-					} else if (fn.getAbsolutePath().endsWith(".mid")) {
-						System.out.println("Ща сохраню midi");
-						fn = new File(fn + "");
-						FileProcessor.saveMID(fn);
-					} else {
-						fn = new File(fn + "");
-						FileProcessor.savePDF(fn);
+						FileProcessor.savePNG(fn, this.sheet.getFocusedStaff());
 					}
 				}
 				if (rVal == JFileChooser.CANCEL_OPTION) {
@@ -130,7 +124,7 @@ public class KeyEventHandler implements KeyListener {
 				System.out.println("Вы нажали ctrl+p!");
 				if (DeviceEbun.stop) {
 					DeviceEbun.stop = false;
-					(new PlayMusThread(this, this.stan)).start();
+					(new PlayMusThread(this, this.staff)).start();
 				} else {
 					DeviceEbun.stopMusic();
 				}
@@ -141,24 +135,24 @@ public class KeyEventHandler implements KeyListener {
 				DeviceEbun.changeOutDevice();
 				break;
 			case 'U':case 'u':case 'Г':case 'г':
-				this.albert.addNewStaff();
-				this.albert.repaint();
+				this.sheet.addNewStaff();
+				this.sheet.repaint();
 				break;
 			case '+':case '=':
 				System.out.println("ctrl+=");
-				stan.drawPanel.incScale(1);
+				staff.parentSheetMusic.changeScale(1);
 				break;
 			case '-':case '_':
 				System.out.println("ctrl+-");
-				stan.drawPanel.incScale(-1);
+				staff.parentSheetMusic.changeScale(-1);
 				break;
 			case 't':case 'T': case 'Е': case 'е':
-				if (this.stan.getFocusedAccord() != null) { this.stan.getFocusedAccord().triggerTuplets(3); }
-				this.albert.repaint();
+				if (this.staff.getFocusedAccord() != null) { this.staff.getFocusedAccord().triggerTuplets(3); }
+				this.sheet.repaint();
 				break;
 			case '0':
 				System.out.println("Вы нажали 0!");
-				stan.changeMode();
+				staff.changeMode();
 				break;
 
 			default:
@@ -169,8 +163,8 @@ public class KeyEventHandler implements KeyListener {
 				&& ((e.getModifiers() & KeyEvent.ALT_MASK) != 0)) {
 			int cod = e.getKeyCode();
 			if (cod >= '0' && cod <= '9') {
-				stan.changeChannelFlag(cod - '0');
-				albert.repaint();
+				staff.changeChannelFlag(cod - '0');
+				sheet.repaint();
 			}
 		}
 
@@ -178,129 +172,130 @@ public class KeyEventHandler implements KeyListener {
 		case KeyEvent.VK_RIGHT:
 			PlayMusThread.shutTheFuckUp();
 			Pointer.moveRealtime(1, Pointer.SOUND_ON);
-			this.albert.repaint();
+			this.sheet.repaint();
 			// stan.drawPanel.checkCam();
 			break;
 		case KeyEvent.VK_LEFT:
 			PlayMusThread.shutTheFuckUp();
 			Pointer.moveRealtime(-1, Pointer.SOUND_ON);
-			this.albert.repaint();
+			this.sheet.repaint();
 			// stan.drawPanel.checkCam();
 			break;
 		case KeyEvent.VK_UP:
 			PlayMusThread.shutTheFuckUp();
 			Pointer.moveSis(-1);
-			this.albert.repaint();
-			stan.drawPanel.checkCam();
+			this.sheet.repaint();
+			staff.parentSheetMusic.checkCam();
 			break;
 		case KeyEvent.VK_DOWN:
 			PlayMusThread.shutTheFuckUp();
 			Pointer.moveSis(1);
-			this.albert.repaint();
-			stan.drawPanel.checkCam();
+			this.sheet.repaint();
+			staff.parentSheetMusic.checkCam();
 			break;
 		case KeyEvent.VK_HOME:
 			System.out.println("Вошли в event");
 			PlayMusThread.shutTheFuckUp();
 			Pointer.moveToBegin();
-			this.albert.repaint();
-			stan.drawPanel.checkCam();
+			this.sheet.repaint();
+			staff.parentSheetMusic.checkCam();
 			System.out.println("Закончили event");
 			break;
 		case KeyEvent.VK_END:
 			PlayMusThread.shutTheFuckUp();
 			Pointer.moveToEnd();
-			this.albert.repaint();
-			stan.drawPanel.checkCam();
+			this.sheet.repaint();
+			staff.parentSheetMusic.checkCam();
 			break;
 		case KeyEvent.VK_ENTER:
 			PlayMusThread.shutTheFuckUp();
 			if (Pointer.accordinaNota != null) {
 				PlayMusThread.playNotu(Pointer.accordinaNota, 1);
-			} else if (Pointer.pointsAt instanceof Nota)
-				PlayMusThread.playAccord((Nota) Pointer.pointsAt);
+			} else {
+				PlayMusThread.playAccord((Accord)Pointer.pointsAt);
+			}
 			break;
 		case KeyEvent.VK_SHIFT:
 			System.out.println("Вы нажали Tab!");
 			Pointer.nextAcc();
-			albert.repaint();
+			sheet.repaint();
 			break;
 
 		case KeyEvent.VK_ADD:
 			System.out.println("Вы нажали плюс!");
-			if (curNota instanceof Nota) {
+			if (curNota instanceof Accord) {
 				if (Pointer.pointsOneNotaInAccord == false)
 					curNota.changeDur(1, false);
 				else
 					Pointer.accordinaNota.changeDur(1, true);
-				albert.repaint();
+				sheet.repaint();
 
 			} else if (curNota instanceof Phantom) {
 				((Phantom) curNota).changeValue(1);
-				stan.checkValues((Phantom) curNota);
-				this.albert.repaint();
+				staff.checkValues((Phantom) curNota);
+				this.sheet.repaint();
 			}
 			break;
 		case KeyEvent.VK_SUBTRACT:
 			System.out.println("Вы нажали минус!");
-			if (curNota instanceof Nota) {
+			if (curNota instanceof Accord) {
 				if (Pointer.pointsOneNotaInAccord == false)
 					curNota.changeDur(-1, false);
 				else
 					Pointer.accordinaNota.changeDur(-1, true);
-				albert.repaint();
+				sheet.repaint();
 			} else if (curNota instanceof Phantom) {
 				((Phantom) curNota).changeValue(-1);
-				this.albert.repaint();
+				this.sheet.repaint();
 			}
 			break;
 		case KeyEvent.VK_DELETE:
 			System.out.println("Вы нажали Delete!");
-			stan.delNotu();
-			this.albert.repaint();
+			staff.delNotu();
+			this.sheet.repaint();
 			break;
 		case KeyEvent.VK_PAGE_DOWN:
 			System.out.println("Вы нажали pageDown!");
-			stan.drawPanel.page(1);
+			staff.parentSheetMusic.page(1);
 			break;
 		case KeyEvent.VK_PAGE_UP:
 			System.out.println("Вы нажали pageUp!");
-			stan.drawPanel.page(-1);
+			staff.parentSheetMusic.page(-1);
 			break;
 		case KeyEvent.VK_BACK_SPACE:
 			if (curNota instanceof Phantom) {
 				((Phantom) curNota).backspace();
-				stan.checkValues((Phantom) curNota);
+				staff.checkValues((Phantom) curNota);
 				break;
-			} else if (curNota instanceof IAccord) {
-				IAccord accord = (IAccord) curNota;
+			} else if (curNota instanceof Accord) {
+				Accord accord = (Accord) curNota;
 				String slog = accord.getSlog();
 				if (slog.length() < 2) {
 
-					if (slog.length() == 0 && curNota.prev instanceof IAccord) {
-						IAccord prevAccord = (IAccord) curNota.prev;
+					if (slog.length() == 0 && curNota.prev instanceof Accord) {
+						Accord prevAccord = (Accord) curNota.prev;
 						slog = prevAccord.getSlog();
 						if (slog.length() < 2) {
 							prevAccord.setSlog("");
 						} else {
-							((IAccord) curNota.prev).setSlog(slog.substring(0, slog.length() - 1));
+							((Accord) curNota.prev).setSlog(slog.substring(0, slog.length() - 1));
 						}
 					}
 					accord.setSlog("");
 				} else {
-					((IAccord) curNota).setSlog(slog.substring(0, slog.length() - 1));
+					((Accord) curNota).setSlog(slog.substring(0, slog.length() - 1));
 				}
 			}
-			albert.repaint();
+			sheet.repaint();
 			break;
 		case '0':case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8':case '9':
 		case KeyEvent.VK_NUMPAD0:case KeyEvent.VK_NUMPAD1:case KeyEvent.VK_NUMPAD2:case KeyEvent.VK_NUMPAD3:case KeyEvent.VK_NUMPAD4:
 		case KeyEvent.VK_NUMPAD5:case KeyEvent.VK_NUMPAD6:case KeyEvent.VK_NUMPAD7:case KeyEvent.VK_NUMPAD8:case KeyEvent.VK_NUMPAD9:
 			if (curNota instanceof Phantom) {
 				((Phantom) curNota).tryToWrite(e.getKeyChar());
-				stan.checkValues((Phantom) curNota);
+				staff.checkValues((Phantom) curNota);
 				break;
-			} else if (curNota instanceof Nota) {
+			} else if (curNota instanceof Accord) {
 				int cifra = (e.getKeyCode() >= '0' && e.getKeyCode() <= '9') ? e
 						.getKeyCode() - '0' : e.getKeyCode()
 						- KeyEvent.VK_NUMPAD0;
@@ -310,27 +305,27 @@ public class KeyEventHandler implements KeyListener {
 						nota.setChannel(cifra);
 					} else {
 						Pointer.resetAcc();
-						albert.repaint();
+						sheet.repaint();
 					}
 				} else {
-					cifra = Math.min(cifra, ((IAccord) curNota).getNotaList()
+					cifra = Math.min(cifra, ((Accord)curNota).getNotaList()
 							.size());
 					while (cifra-- > 0) {
 						Pointer.nextAcc();
 					}
-					albert.repaint();
+					sheet.repaint();
 				}
 			} // не работает - сделай
 			break;
 		default:
-			if (stan.mode == Staff.aMode.playin)
+			if (staff.mode == Staff.aMode.playin)
 				break;
 
 			System.out.println("Keycode " + e.getKeyCode());
 			if (e.getKeyCode() >= 32 || e.getKeyCode() == 0) {
 				// Это символ - напечатать
-				if (curNota instanceof IAccord) {
-					IAccord accord = (IAccord) curNota;
+				if (curNota instanceof Accord) {
+					Accord accord = (Accord) curNota;
 					accord.setSlog(accord.getSlog().concat("" + e.getKeyChar()));
 				}
 			}
@@ -338,7 +333,7 @@ public class KeyEventHandler implements KeyListener {
 			if (e.getKeyCode() == '-') {
 				Pointer.move(1, true);
 			}
-			albert.repaint();
+			sheet.repaint();
 			break;
 		}
 	}

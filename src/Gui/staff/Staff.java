@@ -1,7 +1,7 @@
 // TODO: мэрджить ноты, типа целая+(половинная+четвёртая=половинная с точкой) = целая с двумя точками
 // потому что делать точки плюсиком - это убого!
 
-package Musica;
+package Gui.staff;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -13,12 +13,10 @@ import java.util.Map;
 
 import Gui.SheetMusic;
 import Midi.MidiCommon;
-import Pointerable.Accord;
-import Pointerable.IAccord;
-import Pointerable.Nota;
-import Pointerable.Phantom;
-import Pointerable.Pointer;
-import Pointerable.Pointerable;
+import Gui.staff.pointerable.Accord;
+import Gui.staff.pointerable.Nota;
+import Gui.staff.pointerable.Phantom;
+import Gui.staff.pointerable.Pointerable;
 import Midi.DeviceEbun;
 import static Midi.DeviceEbun.MidiOutputDevice;
 import static Midi.DeviceEbun.sintReceiver;
@@ -63,11 +61,11 @@ public class Staff {
 	
 	public int noshuCount = 0;
 	
-	public SheetMusic drawPanel;
+	public SheetMusic parentSheetMusic;
 	public int to4kaOt4eta = 66; // какой позиции соответствует нижняя до скрипичного ключа
 	
-	public Phantom phantomka = new Phantom();
-	public Accord firstDeleted = new Accord().add(new Nota(1));
+	public Phantom phantomka = null;
+	public Accord firstDeleted = new Accord(this).add(new Nota(1));
 	public Accord lastDeleted = firstDeleted;
 
 	private ArrayList<Pointerable> accordList = new ArrayList<Pointerable>();
@@ -75,15 +73,18 @@ public class Staff {
 
 	int closerCount = 0;
 	
-	public Staff(){
+	public Staff(SheetMusic sheet){
+		this.parentSheetMusic = sheet;
+		
 		bassKey = true;
 		vioKey2 = false;
 		bassKey2 = false;
 		
-		Pointer.init(this);
-		FileProcessor.init(this);
+		this.phantomka = new Phantom(this);
 		Pointer.beginNota = phantomka;
 		this.checkValues(this.phantomka);
+		
+		Pointer.init(this);
 		
 		mode = aMode.insert;
 	}
@@ -122,15 +123,15 @@ public class Staff {
 			++closerCount;
 
 			// Делаем проверку: если с прошлого нажатия прошло меньше Эпсилон времени, значит - это один аккорд
-			if (Pointer.pointsAt instanceof IAccord) {  // deprecated
-				IAccord prevAccord = (IAccord)Pointer.pointsAt;
+			if (Pointer.pointsAt instanceof Accord) {  // deprecated
+				Accord prevAccord = (Accord)Pointer.pointsAt;
 		    	if (nota.keydownTimestamp - prevAccord.getEarliest().keydownTimestamp < ACCORD_EPSILON || this.mode == aMode.append) {
 		    		prevAccord.add(nota);
 		    	} else {
-		    		this.add(new Accord().add(nota));
+		    		this.add(new Accord(this).add(nota));
 		    	}
 			} else {
-				this.add(new Accord().add(nota));
+				this.add(new Accord(this).add(nota));
 			}
 		}
 	}
@@ -190,7 +191,7 @@ public class Staff {
 	    this.lastDeleted = elem;
 	    --noshuCount;
 	    ++deleted;
-	    drawPanel.repaint();
+	    parentSheetMusic.repaint();
 	    return true;
 	}
 	
@@ -245,7 +246,7 @@ public class Staff {
 	
 	public Dictionary<String, Object> getExternalRepresentation() {
 		Dictionary<String, Object> dict = new Hashtable<String, Object>();
-		dict.put("childList", this.getChildList().stream().map(p -> p.getExternalRepresentation()).toArray());
+		dict.put("childList", this.getChildList().stream().map(p -> p.getObjectState()).toArray());
 		
 		return dict;
 	}
@@ -253,16 +254,15 @@ public class Staff {
 	public int reconstructFromJson(JSONObject jsObject) throws JSONException {
 		this.clearStan();
 		JSONArray childJsonList = jsObject.getJSONArray("childList");
-		this.getPhantom().update(new Phantom().reconstructFromJson(childJsonList.getJSONObject(0))); // TODO: it is so lame, but i spent hours to save all these files in this format
+		this.getPhantom().update(new Phantom(this).setObjectStateFromJson(childJsonList.getJSONObject(0))); // TODO: it is so lame, but i spent hours to save all these files in this format
 		for (int idx = 1; idx < childJsonList.length(); ++idx) { // TODO: store Phantom as dict field, not list value
 			JSONObject childJs = childJsonList.getJSONObject(idx);
-			Pointerable child = Pointerable.getSuccessor(childJs.getString("pointerableClass"));
-			this.add((Accord)child.reconstructFromJson(childJs));
+			this.add(new Accord(this).setObjectStateFromJson(childJs));
 		}
 		return 0;
 	}
 
-	// getters/setters
+	// getters
 
 	private Pointer getPointer() {
 		return Pointer.getInstance();
@@ -275,10 +275,6 @@ public class Staff {
 		} else {
 			return null;
 		}
-	}
-
-	public Phantom getPhantom() {
-		return this.phantomka;
 	}
 
 	public ArrayList<Accord> getAccordList() {
@@ -296,6 +292,12 @@ public class Staff {
 		ArrayList childList = this.getAccordList();
 		childList.add(0, this.getPhantom());
 		return childList;
+	}
+
+	// field getters/setters
+
+	public Phantom getPhantom() {
+		return this.phantomka;
 	}
 }
 

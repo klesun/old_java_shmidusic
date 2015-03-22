@@ -1,8 +1,9 @@
 package Musica;
 
+import Gui.staff.Staff;
 import javax.sound.midi.*;
 
-import Pointerable.Nota;
+import Gui.staff.pointerable.Nota;
 import Midi.DeviceEbun;
 
 public class OneShotThread extends Thread{

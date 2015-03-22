@@ -1,11 +1,10 @@
 package Tools;
 
 import Gui.SheetMusic;
-import Musica.Staff;
-import Pointerable.IAccord;
-import Pointerable.Nota;
-import Pointerable.Phantom;
-import Pointerable.Pointer;
+import Gui.staff.Staff;
+import Gui.staff.pointerable.Nota;
+import Gui.staff.pointerable.Phantom;
+import Gui.staff.Pointer;
 
 import javax.imageio.ImageIO;
 
@@ -26,27 +25,9 @@ import java.util.ArrayList;
 import java.util.Dictionary;
 
 public class FileProcessor {
-	final static byte NEWACCORD = 0;
-	final static byte EOS = 1; // End Of String
-	final static byte LYRICS = 2;
-	final static byte VERSION = 3;
-	final static byte VERSION_BEFORE_VERSIONING = 0;
-	final static byte VERSION_32_FIRST = 32;
-	final static byte VERSION_33_CHANNELS = 33;
-	final static byte CURRENT_VERSION = VERSION_33_CHANNELS;
-	final static byte PHANT = 4;
-	final static byte FLAGS = 16;
-	final static int MAXSLOG = 255;
-	final static int MINTUNE = 32;
-	static File ourFile = null;
-	static Staff stan = null; // OOOOOOOOO, гузно себе статичным сделай извращенец
 	
-	public static void init(Staff stanNew) {
-	    stan = stanNew;
-	}
-	
-	public static void savePNG ( File f ) {
-	    SheetMusic albert = stan.drawPanel;
+	public static void savePNG ( File f, Staff staff ) {
+	    SheetMusic albert = staff.parentSheetMusic;
 	    if (albert == null) out("Что ты пытаешься сохранить, мудак?!");
 	    BufferedImage img = new BufferedImage(albert.getWidth(),albert.getHeight(), BufferedImage.TYPE_INT_ARGB);
 	    Graphics g = img.createGraphics();
@@ -59,14 +40,6 @@ public class FileProcessor {
 	    } catch (IOException e) {
 	        out("Ошибка рисования");
 	    }
-	}
-	
-	public static void saveMID ( File f ) {
-		
-	}
-	
-	public static void savePDF ( File f ) {
-	    // TODO: todo
 	}
 	
 	private static void out(String str) {
