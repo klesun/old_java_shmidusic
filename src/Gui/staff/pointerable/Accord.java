@@ -18,13 +18,22 @@ import Gui.Constants;
 import Gui.staff.Staff;
 import Gui.SheetMusic;
 import Gui.staff.Staff;
+import Tools.IModel;
 
-public class Accord extends Pointerable {
+public class Accord implements IModel {
 
 	Staff parentStaff = null;
 
 	ArrayList<Nota> notaList = new ArrayList<Nota>();
 	String slog = "";
+
+	int focusedIndex = -1;
+	BufferedImage surface = null;
+	Boolean surfaceChanged = true;
+
+	// TODO: deprecated
+	public Accord prev = null;
+	public Accord next = null;
 
 	public Accord(Staff parentStaff) {
 		this.parentStaff = parentStaff;
@@ -32,6 +41,8 @@ public class Accord extends Pointerable {
 
 	public Accord add(Nota nota) {
 		this.notaList.add(nota);
+		nota.parentAccord = this;
+		requestNewSurfaceBacursively();
 		return this;
 	}
 
@@ -42,44 +53,54 @@ public class Accord extends Pointerable {
 		return dict;
 	}
 
-	@Override
 	public Accord setObjectStateFromJson(JSONObject jsObject) throws JSONException {
 		this.slog = jsObject.getString("slog");
 		JSONArray notaJsonList = jsObject.getJSONArray("notaList");
 		for (int idx = 0; idx < notaJsonList.length(); ++idx) {
 			JSONObject childJs = notaJsonList.getJSONObject(idx);
-			this.add((new Nota(63)).setObjectStateFromJson(childJs));
+			this.add((new Nota(this)).setObjectStateFromJson(childJs));
 		}
 
 		return this;
 	}
 
-	@Override
 	public BufferedImage getImage() {
-		SheetMusic sheet = this.parentStaff.parentSheetMusic;
-		BufferedImage img = new BufferedImage(sheet.getStepWidth() * 2, sheet.getStepHeight() * 14, BufferedImage.TYPE_INT_ARGB);
-		Graphics g = img.getGraphics();
-
-		// TODO: not finished
-		for (Nota nota: this.notaList) {
-			int yIndent = sheet.getStepHeight() * nota.getAcademicIndex() + nota.getOctava() * 7;
-			g.drawImage(nota.getImage(), 0, yIndent, null);
-			
-			// TODO: lame, it should be in Nota.getImage
-//			if (nota.isBemol) {
-//				g.drawImage(vseKartinki[2], gPos-(int)Math.round(0.5* STEPX), thisY + 3* STEPY +2, this);
-//			}
-
-//			if (theNota.cislic  % 3 == 0) g.fillOval(gPos + notaWidth*4/5, thisY + notaHeight*7/8, notaHeight/8, notaHeight/8);
+		if (this.surfaceChanged) {
+			this.recalcSurface();
+			this.surfaceChanged = false;
 		}
-		return img;
+		return this.surface;
+	}
+ 
+	private void recalcSurface() {
+		this.surface = new BufferedImage(this.getWidth(), this.getHeight() + 5, BufferedImage.TYPE_INT_ARGB);
+		Graphics surface = this.surface.getGraphics();
+		surface.setColor(Color.blue);
+
+		if (getHighest().isBotommedToFitSystem()) { surface.drawString("8va", 0, 0 - 4 * parentStaff.parentSheetMusic.getStepHeight()); }
+		surface.setColor(Color.black);
+		
+		for (Nota nota: getNotaList()) {
+			// TODO: draw some arrow near focused nota
+			int notaY = this.getLowestPossibleNotaY() - parentStaff.parentSheetMusic.getStepHeight() * (nota.getAcademicIndex() + nota.getOctava() * 7);
+			notaY += (this.getHighest().isBotommedToFitSystem() ? 7 * parentStaff.parentSheetMusic.getStepHeight() : 0);
+			surface.drawImage(nota.getImage(this.getFocusedNota() == nota), 0, notaY, null);
+		}
+
+		surface.drawString(this.getSlog(), 0, 0 + Constants.FONT_HEIGHT);
+	}
+
+	public Accord requestNewSurfaceBacursively() {
+		this.surfaceChanged = true;
+		parentStaff.parentSheetMusic.parentWindow.keyHandler.shouldRepaint = true;
+		return this;
 	}
 	
 	// responsees to events (actions)
 	
 	public void triggerTuplets(int denominator) {
-		if (getFocused() != null) {
-			getFocused().setTupletDenominator(getFocused().getTupletDenominator() == 1 ? denominator : 1);
+		if (getFocusedNota() != null) {
+			getFocusedNota().setTupletDenominator(getFocusedNota().getTupletDenominator() == 1 ? denominator : 1);
 		} else {
 			for (Nota nota: this.getNotaList()) {
 				nota.setTupletDenominator(nota.getTupletDenominator() == 1 ? denominator : 1);
@@ -87,26 +108,33 @@ public class Accord extends Pointerable {
 		}
 	}
 
-	@Override
 	public void changeDur(int i, boolean b) {
 		// should not be used, cause interface is not ready for accords
 	}
 
-	// getters/setters
+	public void focusNextNota() {
 
-	public String getSlog() {
-		return this.slog;
+		if (this.getFocusedIndex() >= this.getNotaList().size()) {
+			this.setFocusedIndex(-1);
+		} else {
+			this.setFocusedIndex(this.getFocusedIndex() + 1);
+		}
 	}
 
-	public Accord setSlog(String value) {
-		this.slog = value;
-		return this;
+	// getters/setters
+
+	public int getWidth() {
+		return Math.max(this.getSlog().length() * Constants.FONT_WIDTH, this.getEarliest().getWidth());
 	}
 
 	// implements(Pointerable)
-	public int getWidth() {
+	public int getTakenStepCount() {
 		int width = (int)Math.ceil( this.slog.length() * Constants.FONT_WIDTH / (Constants.STEP_H * 2) );
 		return width > 0 ? width : 1;
+	}
+
+	public int getHeight() {
+		return this.getLowestPossibleNotaY();
 	}
 
 	public ArrayList<Nota> getNotaList() {
@@ -125,15 +153,35 @@ public class Accord extends Pointerable {
 		return this.getNotaList().stream().reduce(null, (a, b) -> a != null && !a.isLongerThan(b) ? a : b);
 	}
 
-	public Nota getFocused() {
+	public Nota getFocusedNota() {
 		return getFocusedIndex() > -1 ? this.getNotaList().get(getFocusedIndex()) : null;
 	}
 
-	public int getFocusedIndex() {
-		return Pointer.nNotiVAccorde;
+	public int getLowestPossibleNotaY () {
+		return 50 * parentStaff.parentSheetMusic.getStepHeight();
 	}
 
-	public void setNotaList(ArrayList<Nota> notaList) {
-		this.notaList = notaList;
+	// field getters/setters
+	
+	public String getSlog() {
+		return this.slog;
+	}
+
+	public Accord setSlog(String value) {
+		this.slog = value;
+		requestNewSurfaceBacursively();
+		return this;
+	}
+
+	public int getFocusedIndex() {
+		return this.focusedIndex;
+	}
+
+	public Accord setFocusedIndex(int value) {
+		value = value >= this.getNotaList().size() ? this.getNotaList().size() - 1 : value;
+		value = value < -1 ? -1 : value;
+		this.focusedIndex = value;
+		requestNewSurfaceBacursively();
+		return this;
 	}
 }

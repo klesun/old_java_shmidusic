@@ -20,47 +20,38 @@ import Gui.Constants;
 import Gui.SheetMusic;
 import Gui.staff.Staff;
 import Gui.staff.Staff;
+import Tools.IModel;
 
-final public class Nota { // TODO: this temporary interface was invented to ease moving Accord storage from Nota	
+final public class Nota implements IModel { // TODO: this temporary interface was invented to ease moving Accord storage from Nota	
 	// TODO: store time Nota was pressed and released into file maybe? Just becuse we can!
 	public static int time = 0;
 	
 	public int length = 1;	
-	public Nota accord;
+	public Nota accord; // TODO: eliminate
 	
 	public int tune;
 	public int channel = 0;
-
-	public int forca;
-	public int keydownTimestamp;
+	public Boolean isSharp = false;
 
 	public int numerator = 16;
 	public int tupletDenominator = 1;
 
+	public int forca;
+	public int keydownTimestamp;
+
+	public Accord parentAccord = null;
+	public Boolean surfaceChanged = true;
+	private BufferedImage surface = null;
+
 	// deprecated
-	public boolean isTriol = false;
-    public String slog = "";
-	
-	public Nota(int tune){
-	    this.tune = tune;             
-	    setTune(tune);
-	    forca = 127;
-	    slog = "";
-	    if (!bufInited) {
-	    	bufInited = true;        	
-	    }
+	public Nota() {
+		this.setTune(63);
+		this.forca = 127;
 	}
-	
-	public Nota(int tune, int cislic, int channel) {
-		this(tune);
-		this.numerator = cislic;
-		setChannel(channel);
-	}
-	
-	public Nota(int tune, long elapsed){  	    	
-	    this(tune);
-	    time += elapsed;
-		keydownTimestamp = time;
+
+	public Nota(Accord accord) {
+		this();
+		accord.add(this);
 	}
 	
 	private static String normalizeString(String str, int desiredLength) {
@@ -68,7 +59,7 @@ final public class Nota { // TODO: this temporary interface was invented to ease
 	}
 	
 	public String getInfoString() {
-		return	normalizeString(strTune(this.getAcademicIndex()) + (isBemol() ? "-бемоль" : ""),12) +
+		return	normalizeString(strTune(this.getAcademicIndex()) + (isEbony() ? "-бемоль" : ""),12) +
 				normalizeString(getOctava() + " " + oktIdxToString(getOctava()), 19) +
 				normalizeString(channel+"", 2);
 	}
@@ -76,10 +67,7 @@ final public class Nota { // TODO: this temporary interface was invented to ease
 	@Override
 	public String toString() {
 		String result = "аккорд:\n";
-		Nota curNota = this;
-		while (curNota != null) {
-			result += "\t" + curNota.getInfoString() + "\n";
-			curNota = curNota.accord; } 
+		result += "\t" + this.getInfoString() + "\n";
 	    String s = "nota: "+tune+"; pos: "+getAcademicIndex()+"; okt: "+getOctava()+"; "+strTune(this.getAcademicIndex());
 	    return result;
 	}
@@ -105,9 +93,8 @@ final public class Nota { // TODO: this temporary interface was invented to ease
 		return true;
 	}
 	
+	// TODO: broken
 	public void changeDur(int n, boolean single){
-
-		if ( (accord != null) && (single == false) ) accord.changeDur(n, false); 
 
 		if (numerator == Staff.DEFAULT_ZNAM*2) {
 			numerator = Staff.DEFAULT_ZNAM;
@@ -137,11 +124,6 @@ final public class Nota { // TODO: this temporary interface was invented to ease
 
 	public Boolean isLongerThan(Nota rival) {
 		return this.getNumerator() * rival.getDenominator() > rival.getNumerator() * this.getDenominator(); 
-	}
-	 
-	public int getAccLen(){
-		if (accord != null) return Math.min(numerator, accord.getAccLen());
-		else return numerator;
 	}
 	
 	private static Boolean bufInited = false;
@@ -204,44 +186,110 @@ final public class Nota { // TODO: this temporary interface was invented to ease
 	    }
 	}
 	
-	public BufferedImage getImage() {
-		int idx = (int)(Math.ceil(7 - Math.log(numerator) / Math.log(2) ));
-		return channel > -1? coloredNotas[channel][idx]: notaImg[idx];
+	public BufferedImage getImage(Boolean isFocused) {
+		if (this.surfaceChanged) {
+			this.recalcSurface(isFocused);
+			this.surfaceChanged = false;
+		}
+		return this.surface;
 	}
-	
-	public BufferedImage getImageFocused() {
-	    int idx = (int)(Math.ceil(7 - Math.log(numerator) / Math.log(2) ));
-	    return notaImageFocused[idx];
+
+	private void recalcSurface(Boolean isFocused) {
+		this.surface = new BufferedImage(this.getWidth(), this.getHeight() + 5, BufferedImage.TYPE_INT_ARGB);
+		Graphics surface = this.surface.getGraphics();
+		surface.setColor(Color.BLACK);
+
+		// TODO: sharp is drawn on same lineage as flat lol
+		if (this.isEbony()) {
+			surface.drawImage(isSharp ? getSheet().getSharpImage() : getSheet().getFlatImage(), getSheet().getStepWidth() / 2, 3 * getSheet().getStepHeight() +2, null);
+		}
+
+		int idx = (int)(Math.ceil(7 - Math.log(numerator) / Math.log(2) ));
+		BufferedImage tmpImg = channel > -1 ? coloredNotas[channel][idx] : notaImg[idx];
+
+		surface.drawImage(tmpImg, getNotaImgX(), 0, null);
+
+		if (this.tupletDenominator != 1) { for (int i = 0; i < 3; ++i) { surface.drawLine(getStickX(), i, getStickX() -6, i); } }
+		
+		// TODO: looks like, is not drawn properly
+		if (this.numerator % 3 == 0) surface.fillOval(getWidth()*2/5, getHeight()*7/8, getHeight()/8, getHeight()/8);
+
+		if (isStriked()) surface.drawLine(getWidth()*10/25, getSheet().getStepHeight() * 7, getWidth()*22/25, getSheet().getStepHeight() * 7);
+	}
+
+	public Nota requestNewSurfaceBacursively() {
+		this.surfaceChanged = true;
+		parentAccord.requestNewSurfaceBacursively();
+		return this;
 	}
 
 	// getters/setters
 	
-	// implements(Pointerable)
 	public LinkedHashMap<String, Object> getObjectState() {
 		LinkedHashMap<String, Object> dict = new LinkedHashMap<String, Object>();
 		dict.put("tune", this.tune);
 		dict.put("numerator", this.numerator);
 		dict.put("channel", this.channel);
+		dict.put("isSharp", this.isSharp);
+		dict.put("tupletDenominator", this.tupletDenominator);
 	
 		return dict;
 	}
 
-	// implements(Pointerable)
 	public Nota setObjectStateFromJson(JSONObject jsObject) throws JSONException {
 		this.tune = jsObject.getInt("tune");
 		this.numerator = jsObject.getInt("numerator");
 		this.channel = jsObject.getInt("channel");
+		if (jsObject.has("isSharp")) { this.isSharp = jsObject.getBoolean("isSharp"); }
+		if (jsObject.has("tupletDenominator")) { this.tupletDenominator = jsObject.getInt("tupletDenominator"); }
 	
 		return this;
 	}
 
 	// implements(Pointerable)
 	public int getWidth() {
-		int width = (int)Math.ceil( slog.length() * Constants.FONT_WIDTH / (Constants.STEP_H * 2) );
-		if (width < 1) width = 1;
-
-		return width;
+		// TODO: use it in Accord.getWidth()
+//		int width = (int)Math.ceil( slog.length() * Constants.FONT_WIDTH / (Constants.STEP_H * 2) );
+//		if (width < 1) width = 1;
+		return this.parentAccord.parentStaff.parentSheetMusic.getNotaWidth() * 2;
 	}
+
+	public int getHeight() {
+		return this.parentAccord.parentStaff.parentSheetMusic.getNotaHeight();
+	}
+
+	public int getOctava() {
+		return this.tune/12;
+	}
+
+	public int getAcademicIndex() {
+		return Nota.tuneToAcademicIndex(this.tune);
+	}
+
+	public Boolean isEbony() {
+		// 0 - до, 2 - ре, 4 - ми, 5 - фа, 7 - соль, 9 - ля, 10 - си
+		int[] bemolTuneList = new int[]{ 1,3,6,8,10 };
+		return inArray(bemolTuneList, this.tune % 12);
+	}
+
+	public Boolean isBotommedToFitSystem() { // 8va
+		return this.getOctava() > 6;
+	}
+
+	public Boolean isStriked() {
+		boolean chet = (this.getAcademicIndex() % 2 == 1) ^ (this.getOctava() % 2 == 1);
+		return this.isBotommedToFitSystem() ? !chet : chet;
+	}
+
+	public int getNotaImgX() {
+		return this.getWidth() / 2;
+	}
+
+	public int getStickX() {
+		return this.getNotaImgX() + getSheet().getStepWidth() / 2;
+	}
+
+	// field getters/setters
 
 	public int getNumerator() {
 		return this.numerator;
@@ -257,41 +305,39 @@ final public class Nota { // TODO: this temporary interface was invented to ease
 
 	public Nota setTupletDenominator(int value) {
 		this.tupletDenominator = value;
+		this.surfaceChanged = true;
 		return this;
 	}
 
-	public void setChannel(int channel) {
+	public Nota setChannel(int channel) {
 		this.channel = channel;
+		this.surfaceChanged = true;
+		return this;
 	}
 
-	private void setTune(int value){		
+	public Nota setTune(int value){		
 		this.tune = value;
+		return this;
+	}
+	
+	public Nota setKeydownTimestamp(int value) {
+		this.keydownTimestamp = value;
+		return this;
 	}
 
-	public int getOctava() {
-		return this.tune/12;
-	}
-
-	public int getAcademicIndex() {
-		return Nota.tuneToAcademicIndex(this.tune);
-	}
-
-	public Boolean isBemol() {
-		// 0 - до, 2 - ре, 4 - ми, 5 - фа, 7 - соль, 9 - ля, 10 - си
-		int[] bemolTuneList = new int[]{1,3,6,8,10};
-		return inArray(bemolTuneList, this.tune % 12);
-	}
-
-	public Boolean isBotommedToFitSystem() { // 8va
-		return this.getOctava() > 6;
-	}
-
-	public Boolean isStriked() {
-		boolean chet = (this.getAcademicIndex() % 2 == 1) ^ (this.getOctava() % 2 == 1);
-		return this.isBotommedToFitSystem() ? !chet : chet;
+	public Nota triggerIsSharp() {
+		this.isSharp = !this.isSharp;
+		this.requestNewSurfaceBacursively();
+		return this;
 	}
 
 	// private methods
+
+	private SheetMusic getSheet() {
+		return this.parentAccord.parentStaff.parentSheetMusic;
+	}
+			
+	// private static methods
 
 	private static int pow(int n, int k){
 		if (k == 5) return 16;

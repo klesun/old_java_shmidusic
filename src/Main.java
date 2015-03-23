@@ -16,5 +16,12 @@ public class Main {
 		}
 		Window app = new Window();
 		app.setVisible(true);
+
+		while (true) {
+			try {
+				Thread.sleep(40);
+				app.keyHandler.handleFrameTimer();
+			} catch (InterruptedException exc) { System.out.println("Кто разбудил мой трэд?!"); }
+		}
 	}
 }

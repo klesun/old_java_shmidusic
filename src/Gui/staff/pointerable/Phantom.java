@@ -3,6 +3,7 @@ package Gui.staff.pointerable;
 import Gui.SheetMusic;
 import Gui.staff.Staff;
 import Gui.staff.Staff;
+import Tools.IModel;
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
@@ -17,7 +18,7 @@ import javax.imageio.ImageIO;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Phantom extends Pointerable {	
+public class Phantom implements IModel {	
 
     Staff parentStaff;
    
@@ -31,10 +32,8 @@ public class Phantom extends Pointerable {
 		this.parentStaff = staff;
         znamen = 8;
         numerator = 8;
-        underPtr = true;
 	}
 
-	@Override
 	public BufferedImage getImage() {
 		SheetMusic sheet = this.parentStaff.parentSheetMusic;
 		int w = sheet.getNotaWidth() * 5;
@@ -77,10 +76,8 @@ public class Phantom extends Pointerable {
 		return rez;
 	}
 
-	@Override
 	public void changeDur(int i, boolean b) {}
 
-	@Override
 	public LinkedHashMap<String, Object> getObjectState() {
 		LinkedHashMap<String, Object> dict = new LinkedHashMap<String, Object>();
 		dict.put("tempo", this.valueTempo);
@@ -91,7 +88,6 @@ public class Phantom extends Pointerable {
 		return dict;
 	}
 
-	@Override
 	public Phantom setObjectStateFromJson(JSONObject jsObject) throws JSONException {
 		this.valueTempo = jsObject.getInt("tempo");
 		this.valueVolume = jsObject.getDouble("volume");
@@ -224,7 +220,7 @@ public class Phantom extends Pointerable {
     // getters/setters
     
     // implements(Pointerable)
-    public int getWidth() {
+    public int getTakenStepCount() {
     	return 1;
     }
 	

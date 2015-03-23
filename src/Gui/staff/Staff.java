@@ -16,11 +16,11 @@ import Midi.MidiCommon;
 import Gui.staff.pointerable.Accord;
 import Gui.staff.pointerable.Nota;
 import Gui.staff.pointerable.Phantom;
-import Gui.staff.pointerable.Pointerable;
 import Midi.DeviceEbun;
 import static Midi.DeviceEbun.MidiOutputDevice;
 import static Midi.DeviceEbun.sintReceiver;
 import Tools.FileProcessor;
+import Tools.IModel;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
@@ -39,7 +39,7 @@ public class Staff {
 	public static final int DEFAULT_ZNAM = 64;
 	public int cislic = 64;
 	Nota unclosed[] = new Nota[256];
-	int ACCORD_EPSILON = 50; // in milliseconds
+	final public static int ACCORD_EPSILON = 50; // in milliseconds
 	
 	public static int tempo = 120;
 	public static int instrument = 0;
@@ -65,10 +65,10 @@ public class Staff {
 	public int to4kaOt4eta = 66; // какой позиции соответствует нижняя до скрипичного ключа
 	
 	public Phantom phantomka = null;
-	public Accord firstDeleted = new Accord(this).add(new Nota(1));
+	public Accord firstDeleted = new Accord(this);
 	public Accord lastDeleted = firstDeleted;
 
-	private ArrayList<Pointerable> accordList = new ArrayList<Pointerable>();
+	private ArrayList<Accord> accordList = new ArrayList<>();
 	private int pointerPos = 0;
 
 	int closerCount = 0;
@@ -92,8 +92,8 @@ public class Staff {
 	public Staff add(Accord elem) {
 
 		// deprecated
-		elem.prev = Pointer.pointsAt;
-		elem.next = Pointer.pointsAt.next;
+		elem.prev = getFocusedIndex() - 1 >= 0 ? getAccordList().get(getFocusedIndex() - 1) : null;
+		elem.next = getFocusedIndex() + 1 < getAccordList().size() ? getAccordList().get(getFocusedIndex() + 1) : null;
 		Pointer.pointsAt.next = elem;
 		if (elem.next != null) elem.next.prev = elem;
 		++noshuCount;
@@ -106,10 +106,10 @@ public class Staff {
 		return this;
 	}
 	
-	public void addPressed(int tune, int forca, int elapsed) {
+	public void addPressed(int tune, int forca, int timestamp) {
 		if (forca == 0) { // key up
 			if (unclosed[tune] == null) return;
-			Nota closer = new Nota(tune, (long)elapsed);
+			Nota closer = new Nota().setTune(tune).setKeydownTimestamp(timestamp);
 			--closerCount;
 			unclosed[tune].length = (int)(closer.keydownTimestamp - unclosed[tune].keydownTimestamp);
 		} else {
@@ -118,58 +118,56 @@ public class Staff {
 				return;
 			}
 			
-			Nota nota = new Nota(tune, (long)elapsed);    	
+			Nota nota;
+
+			if (getFocusedAccord() != null && (timestamp - getFocusedAccord().getEarliest().keydownTimestamp < ACCORD_EPSILON)) {
+				nota = new Nota(getFocusedAccord()).setTune(tune).setKeydownTimestamp(timestamp);
+			} else {
+				Accord newAccord = new Accord(this);
+				nota = new Nota(newAccord).setTune(tune).setKeydownTimestamp(timestamp);
+				this.add(newAccord);
+			}
+			
 			unclosed[tune] = nota;
 			++closerCount;
-
-			// Делаем проверку: если с прошлого нажатия прошло меньше Эпсилон времени, значит - это один аккорд
-			if (Pointer.pointsAt instanceof Accord) {  // deprecated
-				Accord prevAccord = (Accord)Pointer.pointsAt;
-		    	if (nota.keydownTimestamp - prevAccord.getEarliest().keydownTimestamp < ACCORD_EPSILON || this.mode == aMode.append) {
-		    		prevAccord.add(nota);
-		    	} else {
-		    		this.add(new Accord(this).add(nota));
-		    	}
-			} else {
-				this.add(new Accord(this).add(nota));
-			}
 		}
 	}
 	
 	int deleted = 0;
 	
-	public void retrieveLast(){
-		if (deleted == 0) return;
-		Accord cur = lastDeleted;
-		lastDeleted = lastDeleted.next;
-		cur.next = cur.prev.next;
-		cur.prev.next = cur;
-		if (cur.next != null) cur.next.prev = cur;
-		cur.retrieve = lastRetrieved;
-		lastRetrieved = cur;
-		++noshuCount;
-		--deleted;
-		if ( Pointer.isAfter(cur) ) ++Pointer.pos;
-	}
-	Pointerable lastRetrieved = null;
-	
-	public void detrieveNotu(){ 
-		int rez = -1;
-		Pointerable nota = lastRetrieved;
-		if (nota == null) return;
-		lastRetrieved = nota.retrieve;    	
-		if (Pointer.pointsAt == nota) {
-			delNotu();
-			return;
-		} else rez = Pointer.moveTo(nota);
-		if (rez == 0) delNotu();
-		else {
-			out("Воскресшей ноты на стане нет");
-		}
-	}
+	// TODO: maybe repair the ctrl+z one day (rewrite it completely pls)
+//	public void retrieveLast(){
+//		if (deleted == 0) return;
+//		Accord cur = lastDeleted;
+//		lastDeleted = lastDeleted.next;
+//		cur.next = cur.prev.next;
+//		cur.prev.next = cur;
+//		if (cur.next != null) cur.next.prev = cur;
+//		cur.retrieve = lastRetrieved;
+//		lastRetrieved = cur;
+//		++noshuCount;
+//		--deleted;
+//		if ( Pointer.isAfter(cur) ) ++Pointer.pos;
+//	}
+//	Accord lastRetrieved = null;
+//	
+//	public void detrieveNotu(){ 
+//		int rez = -1;
+//		Accord accord = lastRetrieved;
+//		if (accord == null) return;
+//		lastRetrieved = accord.retrieve;    	
+//		if (Pointer.pointsAt == accord) {
+//			delNotu();
+//			return;
+//		} else rez = Pointer.moveTo(accord);
+//		if (rez == 0) delNotu();
+//		else {
+//			out("Воскресшей ноты на стане нет");
+//		}
+//	}
 	
 	public boolean delNotu(){
-	    if (Pointer.pointsAt == phantomka) return Pointer.move(1);
+	    if (this.getFocusedAccord() == null) return Pointer.move(1);
 	    Accord elem = (Accord)Pointer.pointsAt;
 	    //nota.clearAccord();
 	    if (elem.prev != null) {
@@ -184,7 +182,6 @@ public class Staff {
 	        --Pointer.pos;
 	    } else {
 	        Pointer.moveOut();
-	        phantomka.next = null;
 	    }
 	    
 	    elem.next = this.lastDeleted;
@@ -269,26 +266,20 @@ public class Staff {
 	}
 
 	public Accord getFocusedAccord() {
-		ArrayList<Pointerable> childList = this.getChildList();
-		if (childList.size() > this.getPointer().getPos() && childList.get(this.getPointer().getPos()) instanceof Accord) {
-			return (Accord)childList.get(this.getPointer().getPos());
+		ArrayList<Accord> accordList = this.getAccordList();
+		if (this.getFocusedIndex() != -1 && accordList.size() > this.getPointer().getPos()) {
+			return (Accord)accordList.get(this.getPointer().getPos());
 		} else {
 			return null;
 		}
 	}
 
 	public ArrayList<Accord> getAccordList() {
-		ArrayList<Accord> list = new ArrayList<Accord>();
-		Accord accord = this.phantomka.getNext();
-		while (accord != null) {
-			list.add(accord);
-			accord = accord.getNext();
-		}
-
-		return list;
+		ArrayList<Accord> list = new ArrayList<>();
+		return this.getAccordList();
 	}
 	
-	public ArrayList<Pointerable> getChildList() {
+	public ArrayList<IModel> getChildList() {
 		ArrayList childList = this.getAccordList();
 		childList.add(0, this.getPhantom());
 		return childList;
@@ -298,6 +289,10 @@ public class Staff {
 
 	public Phantom getPhantom() {
 		return this.phantomka;
+	}
+
+	public int getFocusedIndex() {
+		return this.getPointer().getPos();
 	}
 }
 

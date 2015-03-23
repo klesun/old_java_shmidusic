@@ -4,7 +4,6 @@ import Gui.staff.Staff;
 import Gui.staff.pointerable.Accord;
 import Gui.staff.pointerable.Nota;
 import Gui.staff.pointerable.Phantom;
-import Gui.staff.pointerable.Pointerable;
 import Musica.*;
 
 public class Pointer {
@@ -14,12 +13,11 @@ public class Pointer {
     public static int pos;
     public static int gpos = 0;
     public static Staff stan = null;
-    public static Pointerable pointsAt;
+    public static Accord pointsAt = null;
     public static Phantom beginNota;    
     public static int init(Staff newStan){
         pos = -1;
         stan = newStan;
-        pointsAt = stan.phantomka;
         return 0;
     }
 
@@ -38,7 +36,7 @@ public class Pointer {
             return 66;
         }
     	pos = -1;
-    	pointsAt = beginNota;
+    	pointsAt = null;
     	return 0;
     }
     
@@ -48,12 +46,10 @@ public class Pointer {
             System.out.println("There is no stan you're talking about");
             return 66;
         }
-    	pointsAt.underPtr = false;
     	pos = 0;    	
     	gpos = 0;
-    	if (beginNota.next == null) return -1;
-    	pointsAt = beginNota.next;
-    	pointsAt.underPtr = true;
+    	if (stan.getAccordList().size() == 0) return -1;
+    	pointsAt = stan.getAccordList().get(0);
         return 0;
     }
     public static int moveToEnd(){
@@ -61,9 +57,7 @@ public class Pointer {
             System.out.println("There is no stan you're talking about");
             return 66;
         }
-    	pointsAt.underPtr = false;
     	while (move(1) != false);
-    	pointsAt.underPtr = true;
         return 0;
     }
     
@@ -79,14 +73,14 @@ public class Pointer {
 
         return 0;
     }
-    public static int moveTo(Pointerable nota){
+    public static int moveTo(Accord accord){
         if (stan == null) {
             System.out.println("There is no stan you're talking about");
             return 66;
         }
     	moveToBegin();
-    	while (nota != pointsAt  &&  move(1));
-    	if (nota != pointsAt) return -1;
+    	while (accord != pointsAt  &&  move(1));
+    	if (accord != pointsAt) return -1;
     	else return 0;
     }
     
@@ -97,12 +91,12 @@ public class Pointer {
     public static boolean moveSis(int n) { // TODO: logic mistake... somewhere here
     	int stepCount = n * stan.parentSheetMusic.getStepInOneSysCount();
     	while (stepCount > 0) {
-    		stepCount -= pointsAt.getWidth() * 2;
+    		stepCount -= pointsAt.getTakenStepCount() * 2;
     		moveRealtime(1, SOUND_OFF);
     	}
     	while (stepCount < 0) {
     		moveRealtime(-1, SOUND_OFF);
-    		stepCount += pointsAt.getWidth() * 2;
+    		stepCount += pointsAt.getTakenStepCount() * 2;
     	}
     	return true;
     }
@@ -133,36 +127,32 @@ public class Pointer {
         int delta=0;        
     	pos += q;
     	
-        pointsAt.underPtr = false;
         while (q > 0) {
-        	delta += pointsAt.getWidth();
+        	delta += pointsAt.getTakenStepCount();
         	pointsAt = pointsAt.next;
         	--q;
         }
         while (q < 0) {        	
         	pointsAt = pointsAt.prev;
-        	delta -= pointsAt.getWidth();
+        	delta -= pointsAt.getTakenStepCount();
         	++q;
         }                
         gpos += delta;
-        pointsAt.underPtr = true;
 		accordinaNota = null;
-        if (pointsAt instanceof Phantom) {
-			stan.checkValues((Phantom)pointsAt);
-		} else if (withSound && pointsAt instanceof Accord) {
+        if (withSound && pointsAt != null) {
 			PlayMusThread.playAccord((Accord)pointsAt);
 		}
 
         return true;
     }
     
-    public static boolean isAfter(Pointerable iskomajaNota){
+    public static boolean isAfter(Accord accord){
         if (stan == null) {
             System.out.println("There is no stan you're talking about");
             return false;
         }
-    	for ( Pointerable tmp = pointsAt; tmp != null; tmp = tmp.next ) {
-    		if (tmp == iskomajaNota) return false; 
+    	for ( Accord tmp = pointsAt; tmp != null; tmp = tmp.next ) {
+    		if (tmp == accord) return false; 
     	}
     	return true;
     }
@@ -174,23 +164,6 @@ public class Pointer {
 		accordinaNota = null;
     	Pointer.nNotiVAccorde = -1;
 	}
-
-	// TODO: repair for accords
-	public static void nextAcc() {    
-
-		//((Accord)Pointer.pointsAt).focusNext();
-    	if (nNotiVAccorde >= 0){
-    		if (accordinaNota.accord != null) {
-    			accordinaNota = accordinaNota.accord;
-    			++Pointer.nNotiVAccorde;
-    		} else { 
-    			resetAcc();
-    		}
-    	} else {
-    		pointsOneNotaInAccord = true;
-    		nNotiVAccorde = 0;
-    	}
-    }
 
 	public static Nota getCurrentAccordinuNotu() {
 		return accordinaNota;

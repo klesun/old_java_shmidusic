@@ -7,10 +7,6 @@ import	javax.sound.midi.MidiMessage;
 import	javax.sound.midi.ShortMessage;
 import	javax.sound.midi.Receiver;
 
-
-
-/**	Displays the file format information of a MIDI file.
- */
 public class DumpReceiver implements Receiver {
 
 	public static long seByteCount = 0;
@@ -40,6 +36,6 @@ public class DumpReceiver implements Receiver {
 	    	// Handle instrument change/pitch-bend/tune/etc // Actually, useless
 	    	return;
 	    }
-	    this.eventHandler.handleMidi( tune, forca, elapsed, timestamp );
+	    this.eventHandler.handleMidiEvent( tune, forca, elapsed, (int)timestamp );
 	}
 }

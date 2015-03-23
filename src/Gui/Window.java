@@ -10,7 +10,8 @@ import java.awt.event.*;
 
 public class Window extends JFrame implements ActionListener {
 
-	SheetMusic albert;    
+	SheetMusic albert;
+	public KeyEventHandler keyHandler = null;
 	int XP_MINWIDTH = 1024;
 //	int XP_MINHEIGHT = 735/2; // потому что знаю
 	int XP_MINHEIGHT = 540; // my beloved netbook
@@ -22,7 +23,7 @@ public class Window extends JFrame implements ActionListener {
 		
 		this.setLayout(new BorderLayout());
 		JScrollPane elder;
-		this.add(elder = new JScrollPane(albert = new SheetMusic()), BorderLayout.CENTER);
+		this.add(elder = new JScrollPane(albert = new SheetMusic(this)), BorderLayout.CENTER);
 		elder.getVerticalScrollBar().setUnitIncrement(16);
 		albert.scroll = elder;
 		
@@ -45,9 +46,10 @@ public class Window extends JFrame implements ActionListener {
 				int h = Integer.parseInt(s.substring(p2+1, p3));
 				albert.refresh();
 			}
-		});               
+		});
 		
-		this.addKeyListener(new KeyEventHandler(albert, Window.this));
+		this.keyHandler = new KeyEventHandler(albert, Window.this);
+		this.addKeyListener(this.keyHandler);
 	}  
 	
 	

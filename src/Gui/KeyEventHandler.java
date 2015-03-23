@@ -20,8 +20,8 @@ import Musica.PlayMusThread;
 import Gui.staff.pointerable.Nota;
 import Gui.staff.pointerable.Phantom;
 import Gui.staff.Pointer;
-import Gui.staff.pointerable.Pointerable;
 import Tools.FileProcessor;
+import java.util.LinkedList;
 
 public class KeyEventHandler implements KeyListener {
 
@@ -31,6 +31,8 @@ public class KeyEventHandler implements KeyListener {
 	public SheetMusic sheet;
 	final Staff staff;
 	JFrame parent;
+
+	LinkedList<int[]> midiEventQueue = new LinkedList();
 
 	public KeyEventHandler(SheetMusic albert, JFrame parent) {
 		this.sheet = albert;
@@ -48,27 +50,42 @@ public class KeyEventHandler implements KeyListener {
 		DeviceEbun.openOutDevice();
 	}
 
-	public void handleMidi(int tune, int forca, int elapsed, long timestamp) {
-		this.staff.addPressed(tune, forca, elapsed);
-		this.sheet.repaint();
+	public Boolean shouldRepaint = false;
+
+	public void handleMidiEvent(int tune, int forca, int elapsed, int timestamp) {
+		this.midiEventQueue.add(new int[]{tune, forca, timestamp});
+	}
+
+	public void handleFrameTimer() {
+		int[] midiRecord;
+		while ((midiRecord = this.midiEventQueue.poll()) != null) {
+			this.staff.addPressed(midiRecord[0], midiRecord[1], midiRecord[2]);
+			this.shouldRepaint = true;
+		}
+		if (this.shouldRepaint) {
+			try {
+				this.sheet.repaint();
+			} catch (java.util.ConcurrentModificationException exc) { System.out.println("Пошли в жопу пидорасы"); }
+			this.shouldRepaint = false;
+		}
 	}
 
 	public void keyPressed(KeyEvent e) {
-		Pointerable curNota = Pointer.pointsAt;
+		Accord curNota = this.sheet.getFocusedStaff().getFocusedAccord();
 		int rVal;
-
+		
 		if (((e.getModifiers() & KeyEvent.CTRL_MASK) != 0) && ((e.getModifiers() & KeyEvent.ALT_MASK) == 0)) {
 			switch (e.getKeyCode()) {
 			case 'z':case 'Z':case 'Я':case 'я':
-				System.out.println("Вы нажали контрол-З");
-				staff.retrieveLast();
-				this.sheet.repaint();
-				break;
+//				System.out.println("Вы нажали контрол-З");
+//				staff.retrieveLast();
+//				this.sheet.repaint();
+//				break;
 			case 'y':case 'Y':case 'Н':case 'н':
-				System.out.println("Вы нажали контрол-У");
-				staff.detrieveNotu();
-				this.sheet.repaint();
-				break;
+//				System.out.println("Вы нажали контрол-У");
+//				staff.detrieveNotu();
+//				this.sheet.repaint();
+//				break;
 			case 's':case 'S':case 'Ы':case 'ы':
 				JFileChooser c = chooserSave;
 				rVal = c.showSaveDialog(parent);
@@ -154,9 +171,23 @@ public class KeyEventHandler implements KeyListener {
 				System.out.println("Вы нажали 0!");
 				staff.changeMode();
 				break;
+			case KeyEvent.VK_DOWN:
+				System.out.println("Вы нажали Tab!");
+				this.sheet.getFocusedStaff().getFocusedAccord().focusNextNota();
+				sheet.repaint();
+				break;
 
 			default:
 				break;
+			}
+			return;
+		} else if ((e.getModifiers() & KeyEvent.SHIFT_MASK) != 0 && e.getKeyCode() == KeyEvent.VK_3) {
+			if (this.sheet.getFocusedStaff().getFocusedAccord().getFocusedIndex() == -1) {
+				for (Nota nota: this.sheet.getFocusedStaff().getFocusedAccord().getNotaList()) {
+					nota.triggerIsSharp();
+				}
+			} else {
+				this.sheet.getFocusedStaff().getFocusedAccord().getFocusedNota().triggerIsSharp();
 			}
 			return;
 		} else if (((e.getModifiers() & KeyEvent.CTRL_MASK) == 0)
@@ -209,45 +240,34 @@ public class KeyEventHandler implements KeyListener {
 			break;
 		case KeyEvent.VK_ENTER:
 			PlayMusThread.shutTheFuckUp();
-			if (Pointer.accordinaNota != null) {
-				PlayMusThread.playNotu(Pointer.accordinaNota, 1);
-			} else {
-				PlayMusThread.playAccord((Accord)Pointer.pointsAt);
-			}
-			break;
-		case KeyEvent.VK_SHIFT:
-			System.out.println("Вы нажали Tab!");
-			Pointer.nextAcc();
-			sheet.repaint();
+			PlayMusThread.playAccord(this.sheet.getFocusedStaff().getFocusedAccord());
 			break;
 
 		case KeyEvent.VK_ADD:
 			System.out.println("Вы нажали плюс!");
-			if (curNota instanceof Accord) {
-				if (Pointer.pointsOneNotaInAccord == false)
-					curNota.changeDur(1, false);
-				else
-					Pointer.accordinaNota.changeDur(1, true);
-				sheet.repaint();
-
-			} else if (curNota instanceof Phantom) {
-				((Phantom) curNota).changeValue(1);
-				staff.checkValues((Phantom) curNota);
-				this.sheet.repaint();
+			if (this.sheet.getFocusedStaff().getFocusedAccord() != null) {
+				if (this.sheet.getFocusedStaff().getFocusedAccord().getFocusedIndex() == -1) {
+					this.sheet.getFocusedStaff().getFocusedAccord().changeDur(1, false);
+				} else {
+					this.sheet.getFocusedStaff().getFocusedAccord().getFocusedNota().changeDur(1, true);
+				}
+			} else {
+				this.sheet.getFocusedStaff().getPhantom().changeValue(1);
 			}
+			sheet.repaint();
 			break;
 		case KeyEvent.VK_SUBTRACT:
 			System.out.println("Вы нажали минус!");
-			if (curNota instanceof Accord) {
-				if (Pointer.pointsOneNotaInAccord == false)
-					curNota.changeDur(-1, false);
-				else
-					Pointer.accordinaNota.changeDur(-1, true);
-				sheet.repaint();
-			} else if (curNota instanceof Phantom) {
-				((Phantom) curNota).changeValue(-1);
-				this.sheet.repaint();
+			if (this.sheet.getFocusedStaff().getFocusedAccord() != null) {
+				if (this.sheet.getFocusedStaff().getFocusedAccord().getFocusedIndex() == -1) {
+					this.sheet.getFocusedStaff().getFocusedAccord().changeDur(-1, false);
+				} else {
+					this.sheet.getFocusedStaff().getFocusedAccord().getFocusedNota().changeDur(-1, true);
+				}
+			} else {
+				this.sheet.getFocusedStaff().getPhantom().changeValue(-1);
 			}
+			this.sheet.repaint();
 			break;
 		case KeyEvent.VK_DELETE:
 			System.out.println("Вы нажали Delete!");
@@ -263,23 +283,16 @@ public class KeyEventHandler implements KeyListener {
 			staff.parentSheetMusic.page(-1);
 			break;
 		case KeyEvent.VK_BACK_SPACE:
-			if (curNota instanceof Phantom) {
-				((Phantom) curNota).backspace();
-				staff.checkValues((Phantom) curNota);
+			if (this.sheet.getFocusedStaff().getFocusedAccord() == null) {
+				this.sheet.getFocusedStaff().getPhantom().backspace();
 				break;
-			} else if (curNota instanceof Accord) {
+			} else {
 				Accord accord = (Accord) curNota;
 				String slog = accord.getSlog();
 				if (slog.length() < 2) {
 
-					if (slog.length() == 0 && curNota.prev instanceof Accord) {
-						Accord prevAccord = (Accord) curNota.prev;
-						slog = prevAccord.getSlog();
-						if (slog.length() < 2) {
-							prevAccord.setSlog("");
-						} else {
-							((Accord) curNota.prev).setSlog(slog.substring(0, slog.length() - 1));
-						}
+					if (slog.length() == 0) {
+						Pointer.move(-1);
 					}
 					accord.setSlog("");
 				} else {
@@ -291,9 +304,8 @@ public class KeyEventHandler implements KeyListener {
 		case '0':case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8':case '9':
 		case KeyEvent.VK_NUMPAD0:case KeyEvent.VK_NUMPAD1:case KeyEvent.VK_NUMPAD2:case KeyEvent.VK_NUMPAD3:case KeyEvent.VK_NUMPAD4:
 		case KeyEvent.VK_NUMPAD5:case KeyEvent.VK_NUMPAD6:case KeyEvent.VK_NUMPAD7:case KeyEvent.VK_NUMPAD8:case KeyEvent.VK_NUMPAD9:
-			if (curNota instanceof Phantom) {
-				((Phantom) curNota).tryToWrite(e.getKeyChar());
-				staff.checkValues((Phantom) curNota);
+			if (this.sheet.getFocusedStaff().getFocusedAccord() == null) {
+				this.sheet.getFocusedStaff().getPhantom().tryToWrite(e.getKeyChar());
 				break;
 			} else if (curNota instanceof Accord) {
 				int cifra = (e.getKeyCode() >= '0' && e.getKeyCode() <= '9') ? e
@@ -311,7 +323,7 @@ public class KeyEventHandler implements KeyListener {
 					cifra = Math.min(cifra, ((Accord)curNota).getNotaList()
 							.size());
 					while (cifra-- > 0) {
-						Pointer.nextAcc();
+						this.sheet.getFocusedStaff().getFocusedAccord().focusNextNota();
 					}
 					sheet.repaint();
 				}
@@ -321,7 +333,6 @@ public class KeyEventHandler implements KeyListener {
 			if (staff.mode == Staff.aMode.playin)
 				break;
 
-			System.out.println("Keycode " + e.getKeyCode());
 			if (e.getKeyCode() >= 32 || e.getKeyCode() == 0) {
 				// Это символ - напечатать
 				if (curNota instanceof Accord) {

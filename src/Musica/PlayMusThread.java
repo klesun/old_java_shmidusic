@@ -6,7 +6,6 @@ import javax.sound.midi.*;
 import Gui.staff.Staff.aMode;
 import Gui.staff.pointerable.Nota;
 import Gui.staff.Pointer;
-import Gui.staff.pointerable.Pointerable;
 import Midi.DeviceEbun;
 import Gui.KeyEventHandler;
 import Gui.staff.pointerable.Accord;
@@ -71,7 +70,6 @@ public class PlayMusThread extends Thread {
     		if ((stan == null) || stan.getChannelFlag(tmp.channel)) playNotu(tmp, divi);
     		time = Math.min( time, (short)( msIns*tmp.numerator/Staff.DEFAULT_ZNAM*4/Staff.tempo*60 / divi ) );
     		// 4 - будем брать четвертную как основную, 60 - потому что темпо измеряется в ударах в минуту, а у нас секунды (вообще, даже, миллисекунды)
-    		tmp = tmp.accord;
     	}
     	return time;
     	
