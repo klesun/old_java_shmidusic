@@ -20,7 +20,7 @@ import org.json.JSONObject;
 
 public class Phantom implements IModel {	
 
-    Staff parentStaff;
+    public Staff parentStaff;
    
 	public int valueTempo = 120;
 	public int valueInstrument = 0;

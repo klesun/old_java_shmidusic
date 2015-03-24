@@ -42,7 +42,7 @@ public class Accord implements IModel {
 	public Accord add(Nota nota) {
 		this.notaList.add(nota);
 		nota.parentAccord = this;
-		requestNewSurfaceBacursively();
+		requestNewSurface();
 		return this;
 	}
 
@@ -90,9 +90,9 @@ public class Accord implements IModel {
 		surface.drawString(this.getSlog(), 0, 0 + Constants.FONT_HEIGHT);
 	}
 
-	public Accord requestNewSurfaceBacursively() {
+	public Accord requestNewSurface() {
 		this.surfaceChanged = true;
-		parentStaff.parentSheetMusic.parentWindow.keyHandler.shouldRepaint = true;
+		parentStaff.requestNewSurface();
 		return this;
 	}
 	
@@ -169,7 +169,7 @@ public class Accord implements IModel {
 
 	public Accord setSlog(String value) {
 		this.slog = value;
-		requestNewSurfaceBacursively();
+		requestNewSurface();
 		return this;
 	}
 
@@ -181,7 +181,7 @@ public class Accord implements IModel {
 		value = value >= this.getNotaList().size() ? this.getNotaList().size() - 1 : value;
 		value = value < -1 ? -1 : value;
 		this.focusedIndex = value;
-		requestNewSurfaceBacursively();
+		requestNewSurface();
 		return this;
 	}
 }

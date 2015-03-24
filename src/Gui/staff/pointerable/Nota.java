@@ -217,9 +217,9 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 		if (isStriked()) surface.drawLine(getWidth()*10/25, getSheet().getStepHeight() * 7, getWidth()*22/25, getSheet().getStepHeight() * 7);
 	}
 
-	public Nota requestNewSurfaceBacursively() {
+	public Nota requestNewSurface() {
 		this.surfaceChanged = true;
-		parentAccord.requestNewSurfaceBacursively();
+		parentAccord.requestNewSurface();
 		return this;
 	}
 
@@ -327,7 +327,7 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 
 	public Nota triggerIsSharp() {
 		this.isSharp = !this.isSharp;
-		this.requestNewSurfaceBacursively();
+		this.requestNewSurface();
 		return this;
 	}
 

@@ -214,28 +214,25 @@ public class KeyEventHandler implements KeyListener {
 			break;
 		case KeyEvent.VK_UP:
 			PlayMusThread.shutTheFuckUp();
-			Pointer.moveSis(-1);
-			this.sheet.repaint();
+			System.out.println("hujguzno " + sheet.getWidth());
+			sheet.getFocusedStaff().setFocusedIndex(sheet.getFocusedStaff().getFocusedIndex() - sheet.getFocusedStaff().getNotaInRowCount());
+			this.requestNewSurface();
 			staff.parentSheetMusic.checkCam();
 			break;
 		case KeyEvent.VK_DOWN:
 			PlayMusThread.shutTheFuckUp();
-			Pointer.moveSis(1);
-			this.sheet.repaint();
+			sheet.getFocusedStaff().setFocusedIndex(sheet.getFocusedStaff().getFocusedIndex() + sheet.getFocusedStaff().getNotaInRowCount());
+			this.requestNewSurface();
 			staff.parentSheetMusic.checkCam();
 			break;
 		case KeyEvent.VK_HOME:
-			System.out.println("Вошли в event");
 			PlayMusThread.shutTheFuckUp();
-			Pointer.moveToBegin();
-			this.sheet.repaint();
+			sheet.getFocusedStaff().setFocusedIndex(-1);
 			staff.parentSheetMusic.checkCam();
-			System.out.println("Закончили event");
 			break;
 		case KeyEvent.VK_END:
 			PlayMusThread.shutTheFuckUp();
-			Pointer.moveToEnd();
-			this.sheet.repaint();
+			sheet.getFocusedStaff().setFocusedIndex(sheet.getFocusedStaff().getAccordList().size() - 1);
 			staff.parentSheetMusic.checkCam();
 			break;
 		case KeyEvent.VK_ENTER:
@@ -272,7 +269,7 @@ public class KeyEventHandler implements KeyListener {
 		case KeyEvent.VK_DELETE:
 			System.out.println("Вы нажали Delete!");
 			staff.delNotu();
-			this.sheet.repaint();
+			this.requestNewSurface();
 			break;
 		case KeyEvent.VK_PAGE_DOWN:
 			System.out.println("Вы нажали pageDown!");
@@ -347,6 +344,10 @@ public class KeyEventHandler implements KeyListener {
 			sheet.repaint();
 			break;
 		}
+	}
+
+	public void requestNewSurface() {
+		this.shouldRepaint = true;
 	}
 
 	public void keyReleased(KeyEvent e) {

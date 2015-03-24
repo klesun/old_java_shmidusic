@@ -35,19 +35,8 @@ public class PlayMusThread extends Thread {
     	aMode tmpMode = Pointer.stan.mode;
     	Pointer.stan.mode = aMode.playin;    	 
     	do {
-            if (Pointer.pointsAt instanceof Accord) {
-            	Accord accord = (Accord)Pointer.pointsAt;
-//				if (nota.isTriol) {
-//					for (int i=0;i<3;++i) {
-//						time = playAccordDivided(nota, 3);
-//						try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна"+e); }
-//						if (i==2) break; // Простите, поздно, хочу спать, лень псифсать правилллбно
-//						Pointer.move(1);
-//						this.stan.drawPanel.repaint();
-//						if (Pointer.pointsAt instanceof Nota) { nota = (Nota)Pointer.pointsAt; } else { System.out.println("Таки этот день настал: фантомка (или пауза) между триоли"); };
-//					}
-//					continue;
-//				}
+            if (Pointer.stan.getFocusedAccord() != null) {
+            	Accord accord = Pointer.stan.getFocusedAccord();
 				time = playAccord(accord);
 				this.eventHandler.sheet.repaint();
 				try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна"+e); }

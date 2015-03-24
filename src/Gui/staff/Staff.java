@@ -3,6 +3,7 @@
 
 package Gui.staff;
 
+import Gui.Settings;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -69,7 +70,7 @@ public class Staff {
 	public Accord lastDeleted = firstDeleted;
 
 	private ArrayList<Accord> accordList = new ArrayList<>();
-	private int pointerPos = 0;
+	private int focusedIndex = -1;
 
 	int closerCount = 0;
 	
@@ -81,7 +82,6 @@ public class Staff {
 		bassKey2 = false;
 		
 		this.phantomka = new Phantom(this);
-		Pointer.beginNota = phantomka;
 		this.checkValues(this.phantomka);
 		
 		Pointer.init(this);
@@ -90,19 +90,7 @@ public class Staff {
 	}
 
 	public Staff add(Accord elem) {
-
-		// deprecated
-		elem.prev = getFocusedIndex() - 1 >= 0 ? getAccordList().get(getFocusedIndex() - 1) : null;
-		elem.next = getFocusedIndex() + 1 < getAccordList().size() ? getAccordList().get(getFocusedIndex() + 1) : null;
-		Pointer.pointsAt.next = elem;
-		if (elem.next != null) elem.next.prev = elem;
-		++noshuCount;
-		Pointer.move(0); // я был здесь, сказал пойнтер с крутым видом
-		Pointer.move(1);
-		
-		// apprecated
-		this.accordList.add(pointerPos++, elem);
-		
+		this.accordList.add(++focusedIndex, elem);
 		return this;
 	}
 	
@@ -166,30 +154,13 @@ public class Staff {
 //		}
 //	}
 	
-	public boolean delNotu(){
-	    if (this.getFocusedAccord() == null) return Pointer.move(1);
-	    Accord elem = (Accord)Pointer.pointsAt;
-	    //nota.clearAccord();
-	    if (elem.prev != null) {
-	        Pointer.move(-1);
-	        elem.prev.next = elem.next;
-	        if (elem.next != null) elem.next.prev = elem.prev;
-	    } else if (elem.next != null) {
-	        Pointer.move(1);
-	        elem.prev.next = elem.next;
-	        if (elem.next != null) elem.next.prev = elem.prev;
-	
-	        --Pointer.pos;
-	    } else {
-	        Pointer.moveOut();
-	    }
-	    
-	    elem.next = this.lastDeleted;
-	    this.lastDeleted = elem;
-	    --noshuCount;
-	    ++deleted;
-	    parentSheetMusic.repaint();
-	    return true;
+	public Staff delNotu() {
+	    if (this.getFocusedAccord() != null) { 
+			this.getAccordList().remove(this.focusedIndex--); 
+		} else {
+			this.getPointer().move(1);
+		}
+		return this;
 	}
 	
 	public int changeMode(){
@@ -201,7 +172,8 @@ public class Staff {
 	}
 	
 	public void clearStan() {
-		while (delNotu());
+		this.getAccordList().clear();
+		this.setFocusedIndex(-1);
 	}
 	
 	private void out(String str) {
@@ -259,6 +231,10 @@ public class Staff {
 		return 0;
 	}
 
+	public void requestNewSurface() {
+		this.parentSheetMusic.requestNewSurface();
+	}
+
 	// getters
 
 	private Pointer getPointer() {
@@ -266,23 +242,39 @@ public class Staff {
 	}
 
 	public Accord getFocusedAccord() {
-		ArrayList<Accord> accordList = this.getAccordList();
-		if (this.getFocusedIndex() != -1 && accordList.size() > this.getPointer().getPos()) {
-			return (Accord)accordList.get(this.getPointer().getPos());
+		if (this.getFocusedIndex() > -1) {
+			return getAccordList().get(getFocusedIndex());
 		} else {
 			return null;
 		}
 	}
 
 	public ArrayList<Accord> getAccordList() {
-		ArrayList<Accord> list = new ArrayList<>();
-		return this.getAccordList();
+		return this.accordList;
+	}
+
+	public List<List<Accord>> getAccordRowList() {
+		List<List<Accord>> resultList = new ArrayList<>();
+		for (int fromIdx = 0; fromIdx < this.getAccordList().size(); fromIdx += getNotaInRowCount()) {
+			resultList.add(this.getAccordList().subList(fromIdx, Math.min(fromIdx + getNotaInRowCount(), this.getAccordList().size())));
+		}
+
+		if (resultList.isEmpty()) { resultList.add(new ArrayList<>()); }		
+		return resultList;
 	}
 	
 	public ArrayList<IModel> getChildList() {
 		ArrayList childList = this.getAccordList();
 		childList.add(0, this.getPhantom());
 		return childList;
+	}
+
+	public int getWidth() {
+		return parentSheetMusic.getWidth() - parentSheetMusic.MARGIN_H * 2;
+	}
+
+	public int getNotaInRowCount() {
+		return this.getWidth() / (Settings.inst().getNotaWidth() * 2) - 3; // - 3 because violin key and phantom
 	}
 
 	// field getters/setters
@@ -292,7 +284,15 @@ public class Staff {
 	}
 
 	public int getFocusedIndex() {
-		return this.getPointer().getPos();
+		return this.focusedIndex;
+	}
+
+	public Staff setFocusedIndex(int value) {
+		value = value < -1 ? -1 : value;
+		value = value >= getAccordList().size() ? getAccordList().size() - 1 : value;
+		this.focusedIndex = value;
+		this.requestNewSurface();
+		return this;
 	}
 }
 
