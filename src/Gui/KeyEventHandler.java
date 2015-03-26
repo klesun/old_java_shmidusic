@@ -1,6 +1,6 @@
 package Gui;
 
-import Gui.staff.pointerable.Accord;
+import Model.Accord.Accord;
 import javax.swing.*;
 
 import java.awt.*;
@@ -8,18 +8,13 @@ import java.awt.event.*;
 import java.io.File;
 
 import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import Gui.SheetMusic;
-import Gui.Window;
 import Midi.DeviceEbun;
-import Midi.MidiCommon;
-import Gui.staff.Staff;
+import Model.Staff;
 import Musica.PlayMusThread;
-import Gui.staff.pointerable.Nota;
-import Gui.staff.pointerable.Phantom;
-import Gui.staff.Pointer;
+import Model.Accord.Nota.Nota;
+import Model.StaffHandler;
 import Tools.FileProcessor;
 import java.util.LinkedList;
 
@@ -70,119 +65,124 @@ public class KeyEventHandler implements KeyListener {
 		}
 	}
 
+	@Override
 	public void keyPressed(KeyEvent e) {
-		Accord curNota = this.sheet.getFocusedStaff().getFocusedAccord();
+		Accord curAccord = this.sheet.getFocusedStaff().getFocusedAccord();
 		int rVal;
+
+		// new SheetHandler(this.sheet).handleKey(e);
+		new StaffHandler(this.sheet.getFocusedStaff()).handleKey(e);
 		
 		if (((e.getModifiers() & KeyEvent.CTRL_MASK) != 0) && ((e.getModifiers() & KeyEvent.ALT_MASK) == 0)) {
 			switch (e.getKeyCode()) {
-			case 'z':case 'Z':case 'Я':case 'я':
-//				System.out.println("Вы нажали контрол-З");
-//				staff.retrieveLast();
-//				this.sheet.repaint();
-//				break;
-			case 'y':case 'Y':case 'Н':case 'н':
-//				System.out.println("Вы нажали контрол-У");
-//				staff.detrieveNotu();
-//				this.sheet.repaint();
-//				break;
-			case 's':case 'S':case 'Ы':case 'ы':
-				JFileChooser c = chooserSave;
-				rVal = c.showSaveDialog(parent);
-				if (rVal == JFileChooser.APPROVE_OPTION) {
-					File fn = c.getSelectedFile();
-					if (!fn.getAbsolutePath().endsWith(".json")) {
-						fn = new File(fn + ".json");
-					}
+				case 'z':case 'Z':case 'Я':case 'я':
+	//				System.out.println("Вы нажали контрол-З");
+	//				staff.retrieveLast();
+	//				this.sheet.repaint();
+	//				break;
+				case 'y':case 'Y':case 'Н':case 'н':
+	//				System.out.println("Вы нажали контрол-У");
+	//				staff.detrieveNotu();
+	//				this.sheet.repaint();
+	//				break;
+				case 's':case 'S':case 'Ы':case 'ы':
+					JFileChooser c = chooserSave;
+					rVal = c.showSaveDialog(parent);
+					if (rVal == JFileChooser.APPROVE_OPTION) {
+						File fn = c.getSelectedFile();
+						if (!fn.getAbsolutePath().endsWith(".json")) {
+							fn = new File(fn + ".json");
+						}
 
-					// FileProcessor.saveKlsnFile(fn);
-					File jsFile = new File(fn.toString().substring(0,
-							(int) (fn.toString().length() - 4))
-							+ "json");
-					FileProcessor.saveJsonFile(jsFile, staff);
-				}
-				break;
-			case 'j':case 'J':case 'о':case 'О':
-				FileProcessor.saveJsonFile(null, staff);
-				break;
-			case 'o':case 'O':case 'щ':case 'Щ':
-				int i = okcancel("Are your sure? Unsaved data will be lost."); // 2 - cancel, 0 - ok
-				if (i == 0) {
-					int sVal = chooserSave.showOpenDialog(parent);
-					if (sVal == JFileChooser.APPROVE_OPTION) {
-						if (chooserSave.getSelectedFile().getAbsolutePath().endsWith(".json")) {
-							FileProcessor.openJsonFile(chooserSave.getSelectedFile(), this.staff);
+						// FileProcessor.saveKlsnFile(fn);
+						File jsFile = new File(fn.toString().substring(0,
+								(int) (fn.toString().length() - 4))
+								+ "json");
+						FileProcessor.saveJsonFile(jsFile, staff);
+					}
+					break;
+				case 'j':case 'J':case 'о':case 'О':
+					FileProcessor.saveJsonFile(null, staff);
+					break;
+				case 'o':case 'O':case 'щ':case 'Щ':
+					int i = okcancel("Are your sure? Unsaved data will be lost."); // 2 - cancel, 0 - ok
+					if (i == 0) {
+						int sVal = chooserSave.showOpenDialog(parent);
+						if (sVal == JFileChooser.APPROVE_OPTION) {
+							if (chooserSave.getSelectedFile().getAbsolutePath().endsWith(".json")) {
+								FileProcessor.openJsonFile(chooserSave.getSelectedFile(), this.staff);
+							}
 						}
 					}
-				}
-				this.sheet.repaint();
-				break;
-			case 'e':case 'E':case 'у':case 'У':
-				JFileChooser c2 = chooserExport;
-				rVal = c2.showSaveDialog(parent);
-				if (rVal == JFileChooser.APPROVE_OPTION) {
-					File fn = c2.getSelectedFile();
-					if ((!fn.getAbsolutePath().endsWith(".png"))
-							&& (!fn.getAbsolutePath().endsWith(".pdf"))
-							&& (!fn.getAbsolutePath().endsWith(".mid"))) {
-						fn = new File(fn + ".png");
-						FileProcessor.savePNG(fn, this.sheet.getFocusedStaff());
-					} else if (fn.getAbsolutePath().endsWith(".png")) {
-						System.out.println("Ща сохраню png");
-						fn = new File(fn + "");
-						FileProcessor.savePNG(fn, this.sheet.getFocusedStaff());
-					}
-				}
-				if (rVal == JFileChooser.CANCEL_OPTION) {
+					this.sheet.repaint();
 					break;
-				}
-				break;
-			case 'P':case 'p':case 'З':case 'з':
-				System.out.println("Вы нажали ctrl+p!");
-				if (DeviceEbun.stop) {
-					DeviceEbun.stop = false;
-					(new PlayMusThread(this, this.staff)).start();
-				} else {
-					DeviceEbun.stopMusic();
-				}
-				break;
-			case 'D':case 'd':case 'В':case 'в':
-				System.out.println("Вы нажали ctrl+д это менять аутпут!");
-				MidiCommon.listDevicesAndExit(false, true, false);
-				DeviceEbun.changeOutDevice();
-				break;
-			case 'U':case 'u':case 'Г':case 'г':
-				this.sheet.addNewStaff();
-				this.sheet.repaint();
-				break;
-			case '+':case '=':
-				System.out.println("ctrl+=");
-				staff.parentSheetMusic.changeScale(1);
-				break;
-			case '-':case '_':
-				System.out.println("ctrl+-");
-				staff.parentSheetMusic.changeScale(-1);
-				break;
-			case 't':case 'T': case 'Е': case 'е':
-				if (this.staff.getFocusedAccord() != null) { this.staff.getFocusedAccord().triggerTuplets(3); }
-				this.sheet.repaint();
-				break;
-			case '0':
-				System.out.println("Вы нажали 0!");
-				staff.changeMode();
-				break;
-			case KeyEvent.VK_DOWN:
-				System.out.println("Вы нажали Tab!");
-				this.sheet.getFocusedStaff().getFocusedAccord().focusNextNota();
-				sheet.repaint();
-				break;
+				case 'e':case 'E':case 'у':case 'У':
+					JFileChooser c2 = chooserExport;
+					rVal = c2.showSaveDialog(parent);
+					if (rVal == JFileChooser.APPROVE_OPTION) {
+						File fn = c2.getSelectedFile();
+						if ((!fn.getAbsolutePath().endsWith(".png"))
+								&& (!fn.getAbsolutePath().endsWith(".pdf"))
+								&& (!fn.getAbsolutePath().endsWith(".mid"))) {
+							fn = new File(fn + ".png");
+							FileProcessor.savePNG(fn, this.sheet.getFocusedStaff());
+						} else if (fn.getAbsolutePath().endsWith(".png")) {
+							System.out.println("Ща сохраню png");
+							fn = new File(fn + "");
+							FileProcessor.savePNG(fn, this.sheet.getFocusedStaff());
+						}
+					}
+					if (rVal == JFileChooser.CANCEL_OPTION) {
+						break;
+					}
+					break;
+				case 'U':case 'u':case 'Г':case 'г':
+					this.sheet.addNewStaff();
+					this.sheet.repaint();
+					break;
+				case '+':case '=':
+					System.out.println("ctrl+=");
+					staff.parentSheetMusic.changeScale(1);
+					break;
+				case '-':case '_':
+					System.out.println("ctrl+-");
+					staff.parentSheetMusic.changeScale(-1);
+					break;
+				case 't':case 'T': case 'Е': case 'е':
+					if (this.staff.getFocusedAccord() != null) { this.staff.getFocusedAccord().triggerTuplets(3); }
+					this.requestNewSurface();
+					break;
+				case '0':
+					System.out.println("Вы нажали 0!");
+					staff.changeMode();
+					break;
+				case KeyEvent.VK_DOWN:
+					System.out.println("Вы нажали Tab!");
+					if (this.sheet.getFocusedStaff().getFocusedAccord() != null) {
+						this.sheet.getFocusedStaff().getFocusedAccord().moveFocus(+1);
+					} else {
+						this.sheet.getFocusedStaff().getPhantom().chooseNextParam();
+					}
 
-			default:
-				break;
+					sheet.repaint();
+					break;
+				case KeyEvent.VK_UP:
+					System.out.println("Вы нажали Tab!");
+					if (this.sheet.getFocusedStaff().getFocusedAccord() != null) {
+						this.sheet.getFocusedStaff().getFocusedAccord().moveFocus(-1);
+					} else {
+						// this.sheet.getFocusedStaff().getPhantom().choosePrevParam();
+					}
+
+					sheet.repaint();
+					break;
+
+				default:
+					break;
 			}
 			return;
 		} else if ((e.getModifiers() & KeyEvent.SHIFT_MASK) != 0 && e.getKeyCode() == KeyEvent.VK_3) {
-			if (this.sheet.getFocusedStaff().getFocusedAccord().getFocusedIndex() == -1) {
+			if (this.sheet.getFocusedStaff().getFocusedAccord().getFocusedNota() == null) {
 				for (Nota nota: this.sheet.getFocusedStaff().getFocusedAccord().getNotaList()) {
 					nota.triggerIsSharp();
 				}
@@ -202,19 +202,18 @@ public class KeyEventHandler implements KeyListener {
 		switch (e.getKeyCode()) {
 		case KeyEvent.VK_RIGHT:
 			PlayMusThread.shutTheFuckUp();
-			Pointer.moveRealtime(1, Pointer.SOUND_ON);
+			sheet.getFocusedStaff().moveFocus(1);
 			this.sheet.repaint();
 			// stan.drawPanel.checkCam();
 			break;
 		case KeyEvent.VK_LEFT:
 			PlayMusThread.shutTheFuckUp();
-			Pointer.moveRealtime(-1, Pointer.SOUND_ON);
+			sheet.getFocusedStaff().moveFocus(-1);
 			this.sheet.repaint();
 			// stan.drawPanel.checkCam();
 			break;
 		case KeyEvent.VK_UP:
 			PlayMusThread.shutTheFuckUp();
-			System.out.println("hujguzno " + sheet.getWidth());
 			sheet.getFocusedStaff().setFocusedIndex(sheet.getFocusedStaff().getFocusedIndex() - sheet.getFocusedStaff().getNotaInRowCount());
 			this.requestNewSurface();
 			staff.parentSheetMusic.checkCam();
@@ -244,9 +243,9 @@ public class KeyEventHandler implements KeyListener {
 			System.out.println("Вы нажали плюс!");
 			if (this.sheet.getFocusedStaff().getFocusedAccord() != null) {
 				if (this.sheet.getFocusedStaff().getFocusedAccord().getFocusedIndex() == -1) {
-					this.sheet.getFocusedStaff().getFocusedAccord().changeDur(1, false);
+					this.sheet.getFocusedStaff().getFocusedAccord().changeLength(1);
 				} else {
-					this.sheet.getFocusedStaff().getFocusedAccord().getFocusedNota().changeDur(1, true);
+					this.sheet.getFocusedStaff().getFocusedAccord().getFocusedNota().changeDur(1);
 				}
 			} else {
 				this.sheet.getFocusedStaff().getPhantom().changeValue(1);
@@ -257,9 +256,9 @@ public class KeyEventHandler implements KeyListener {
 			System.out.println("Вы нажали минус!");
 			if (this.sheet.getFocusedStaff().getFocusedAccord() != null) {
 				if (this.sheet.getFocusedStaff().getFocusedAccord().getFocusedIndex() == -1) {
-					this.sheet.getFocusedStaff().getFocusedAccord().changeDur(-1, false);
+					this.sheet.getFocusedStaff().getFocusedAccord().changeLength(-1);
 				} else {
-					this.sheet.getFocusedStaff().getFocusedAccord().getFocusedNota().changeDur(-1, true);
+					this.sheet.getFocusedStaff().getFocusedAccord().getFocusedNota().changeDur(-1);
 				}
 			} else {
 				this.sheet.getFocusedStaff().getPhantom().changeValue(-1);
@@ -284,16 +283,16 @@ public class KeyEventHandler implements KeyListener {
 				this.sheet.getFocusedStaff().getPhantom().backspace();
 				break;
 			} else {
-				Accord accord = (Accord) curNota;
+				Accord accord = (Accord) curAccord;
 				String slog = accord.getSlog();
 				if (slog.length() < 2) {
 
 					if (slog.length() == 0) {
-						Pointer.move(-1);
+						sheet.getFocusedStaff().moveFocus(-1);
 					}
 					accord.setSlog("");
 				} else {
-					((Accord) curNota).setSlog(slog.substring(0, slog.length() - 1));
+					((Accord) curAccord).setSlog(slog.substring(0, slog.length() - 1));
 				}
 			}
 			sheet.repaint();
@@ -304,24 +303,22 @@ public class KeyEventHandler implements KeyListener {
 			if (this.sheet.getFocusedStaff().getFocusedAccord() == null) {
 				this.sheet.getFocusedStaff().getPhantom().tryToWrite(e.getKeyChar());
 				break;
-			} else if (curNota instanceof Accord) {
+			} else {
 				int cifra = (e.getKeyCode() >= '0' && e.getKeyCode() <= '9') ? e
 						.getKeyCode() - '0' : e.getKeyCode()
 						- KeyEvent.VK_NUMPAD0;
-				Nota nota = Pointer.getCurrentAccordinuNotu();
+				Nota nota = curAccord.getFocusedNota();
 				if (nota != null) {
 					if (nota.channel != cifra) {
 						nota.setChannel(cifra);
 					} else {
-						Pointer.resetAcc();
+						curAccord.setFocusedIndex(-1);
 						sheet.repaint();
 					}
 				} else {
-					cifra = Math.min(cifra, ((Accord)curNota).getNotaList()
+					cifra = Math.min(cifra, ((Accord)curAccord).getNotaList()
 							.size());
-					while (cifra-- > 0) {
-						this.sheet.getFocusedStaff().getFocusedAccord().focusNextNota();
-					}
+					this.sheet.getFocusedStaff().getFocusedAccord().setFocusedIndex(cifra);
 					sheet.repaint();
 				}
 			} // не работает - сделай
@@ -332,14 +329,14 @@ public class KeyEventHandler implements KeyListener {
 
 			if (e.getKeyCode() >= 32 || e.getKeyCode() == 0) {
 				// Это символ - напечатать
-				if (curNota instanceof Accord) {
-					Accord accord = (Accord) curNota;
+				if (curAccord instanceof Accord) {
+					Accord accord = (Accord) curAccord;
 					accord.setSlog(accord.getSlog().concat("" + e.getKeyChar()));
 				}
 			}
 
 			if (e.getKeyCode() == '-') {
-				Pointer.move(1, true);
+				sheet.getFocusedStaff().moveFocus(1);
 			}
 			sheet.repaint();
 			break;

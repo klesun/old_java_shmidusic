@@ -1,14 +1,13 @@
 package Musica;
 
-import Gui.staff.Staff;
+import Model.Staff;
 import javax.sound.midi.*;
 
-import Gui.staff.Staff.aMode;
-import Gui.staff.pointerable.Nota;
-import Gui.staff.Pointer;
+import Model.Staff.aMode;
+import Model.Accord.Nota.Nota;
 import Midi.DeviceEbun;
-import Gui.KeyEventHandler;
-import Gui.staff.pointerable.Accord;
+import Model.Accord.Accord;
+import Model.StaffHandler;
 
 import java.util.ArrayList;
 
@@ -18,11 +17,11 @@ public class PlayMusThread extends Thread {
 	boolean stop = false;
     Receiver sintReceiver = DeviceEbun.sintReceiver;
 	private static Staff stan;
-	private KeyEventHandler eventHandler = null;
+	private StaffHandler eventHandler = null;
 	
-	public PlayMusThread(KeyEventHandler eventHandler, Staff stan){ 
+	public PlayMusThread(StaffHandler eventHandler){ 
 		this.eventHandler = eventHandler;
-		this.stan = stan; 
+		this.stan = eventHandler.getContext(); // избавься от этого статичного стана наконец!
 	}
 
 	final static int msIns = 1000;
@@ -32,19 +31,19 @@ public class PlayMusThread extends Thread {
         int time;
         
     	DeviceEbun.stop = false;
-    	aMode tmpMode = Pointer.stan.mode;
-    	Pointer.stan.mode = aMode.playin;    	 
+    	aMode tmpMode = eventHandler.getContext().mode;
+    	eventHandler.getContext().mode = aMode.playin;    	 
     	do {
-            if (Pointer.stan.getFocusedAccord() != null) {
-            	Accord accord = Pointer.stan.getFocusedAccord();
-				time = playAccord(accord);
-				this.eventHandler.sheet.repaint();
+            if (eventHandler.getContext().getFocusedAccord() != null) {
+				time = eventHandler.getContext().getFocusedAccord().getShortest().getTimeMiliseconds();
+//            	Accord accord = eventHandler.getContext().getFocusedAccord();
+//				time = playAccord(accord);
 				try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна"+e); }
 			}
-        } while (DeviceEbun.stop == false && Pointer.move(1));
+        } while (DeviceEbun.stop == false && eventHandler.getContext().moveFocus(1));
         DeviceEbun.stop = true;
-    	Pointer.stan.parentSheetMusic.checkCam();
-    	Pointer.stan.mode = tmpMode;
+    	eventHandler.getContext().parentSheetMusic.checkCam();
+    	eventHandler.getContext().mode = tmpMode;
     }
 
 	public static int playAccord(Accord accord)
@@ -53,11 +52,12 @@ public class PlayMusThread extends Thread {
 	}
 
     public static int playAccordDivided(Accord accord, int divi) {
+		int minute = 60 * 1000;
     	int time = Short.MAX_VALUE;
     	for (Nota tmp: accord.getNotaList()) {
 			// убрать костыль нахуй! стан не должен появляться у этого объекта абы когда
     		if ((stan == null) || stan.getChannelFlag(tmp.channel)) playNotu(tmp, divi);
-    		time = Math.min( time, (short)( msIns*tmp.numerator/Staff.DEFAULT_ZNAM*4/Staff.tempo*60 / divi ) );
+    		time = Math.min( time, (short)( minute*tmp.numerator/Staff.DEFAULT_ZNAM*4/Staff.tempo / divi ) );
     		// 4 - будем брать четвертную как основную, 60 - потому что темпо измеряется в ударах в минуту, а у нас секунды (вообще, даже, миллисекунды)
     	}
     	return time;

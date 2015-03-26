@@ -1,6 +1,6 @@
 package Gui;
 
-import Gui.staff.Staff;
+import Model.Staff;
 import Musica.*;
 
 import javax.swing.*;

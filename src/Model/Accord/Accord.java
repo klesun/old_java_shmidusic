@@ -1,13 +1,9 @@
-package Gui.staff.pointerable;
+package Model.Accord;
 
-import Gui.staff.Pointer;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.LinkedHashMap;
 
 import org.json.JSONArray;
@@ -15,14 +11,19 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import Gui.Constants;
-import Gui.staff.Staff;
+import Gui.Settings;
+import Model.Staff;
 import Gui.SheetMusic;
-import Gui.staff.Staff;
+import Model.Accord.Nota.Nota;
+import Model.Staff;
+import Tools.Fp;
 import Tools.IModel;
+import java.util.Arrays;
+import java.util.List;
 
 public class Accord implements IModel {
 
-	Staff parentStaff = null;
+	public Staff parentStaff = null;
 
 	ArrayList<Nota> notaList = new ArrayList<Nota>();
 	String slog = "";
@@ -46,6 +47,7 @@ public class Accord implements IModel {
 		return this;
 	}
 
+	@Override
 	public LinkedHashMap<String, Object> getObjectState() {
 		LinkedHashMap<String, Object> dict = new LinkedHashMap<String, Object>();
 		dict.put("notaList", this.notaList.stream().map(n -> n.getObjectState()).toArray());
@@ -53,6 +55,7 @@ public class Accord implements IModel {
 		return dict;
 	}
 
+	@Override
 	public Accord setObjectStateFromJson(JSONObject jsObject) throws JSONException {
 		this.slog = jsObject.getString("slog");
 		JSONArray notaJsonList = jsObject.getJSONArray("notaList");
@@ -80,11 +83,21 @@ public class Accord implements IModel {
 		if (getHighest().isBotommedToFitSystem()) { surface.drawString("8va", 0, 0 - 4 * parentStaff.parentSheetMusic.getStepHeight()); }
 		surface.setColor(Color.black);
 		
+		Boolean oneOctavaLower = this.getHighest().isBotommedToFitSystem();
 		for (Nota nota: getNotaList()) {
 			// TODO: draw some arrow near focused nota
 			int notaY = this.getLowestPossibleNotaY() - parentStaff.parentSheetMusic.getStepHeight() * (nota.getAcademicIndex() + nota.getOctava() * 7);
-			notaY += (this.getHighest().isBotommedToFitSystem() ? 7 * parentStaff.parentSheetMusic.getStepHeight() : 0);
+			notaY += oneOctavaLower ? 7 * parentStaff.parentSheetMusic.getStepHeight() : 0;
 			surface.drawImage(nota.getImage(this.getFocusedNota() == nota), 0, notaY, null);
+			if (oneOctavaLower ^ nota.isStriked()) {
+				List<Integer> p = Fp.vectorSum(nota.getTraitCoordinates(), Arrays.asList(0, notaY, 0, notaY));
+				surface.drawLine(p.get(0), p.get(1), p.get(2), p.get(3)); 
+			}
+			if (nota == this.getFocusedNota()) {
+				List<Integer> p = nota.getAncorPoint();
+				int r = Settings.inst().getStepHeight();
+				surface.fillOval(p.get(0) + r * 2, notaY + p.get(1) - r, r * 2, r * 2);
+			}
 		}
 
 		surface.drawString(this.getSlog(), 0, 0 + Constants.FONT_HEIGHT);
@@ -108,17 +121,25 @@ public class Accord implements IModel {
 		}
 	}
 
-	public void changeDur(int i, boolean b) {
-		// should not be used, cause interface is not ready for accords
-	}
+	public void moveFocus(int n) {
 
-	public void focusNextNota() {
-
-		if (this.getFocusedIndex() >= this.getNotaList().size()) {
+		if (this.getFocusedIndex() + n > this.getNotaList().size() - 1) {
 			this.setFocusedIndex(-1);
+		} else if (this.getFocusedIndex() + n < -1) {
+			this.setFocusedIndex(this.getNotaList().size() - 1);
 		} else {
 			this.setFocusedIndex(this.getFocusedIndex() + 1);
 		}
+	}
+
+	public void changeLength(int n) {
+//		if (this.getFocusedIndex() + n > this.getNotaList().size() - 1) {
+//			this.setFocusedIndex(-1);
+//		} else if (this.getFocusedIndex() + n < -1) {
+//			this.setFocusedIndex(this.getNotaList().size() - 1);
+//		} else {
+//			this.setFocusedIndex(this.getFocusedIndex() + 1);
+//		}
 	}
 
 	// getters/setters
@@ -129,8 +150,9 @@ public class Accord implements IModel {
 
 	// implements(Pointerable)
 	public int getTakenStepCount() {
-		int width = (int)Math.ceil( this.slog.length() * Constants.FONT_WIDTH / (Constants.STEP_H * 2) );
-		return width > 0 ? width : 1;
+//		int width = (int)Math.ceil( this.slog.length() * Constants.FONT_WIDTH / (Constants.STEP_H * 2) );
+//		return width > 0 ? width : 1;
+		return 2;
 	}
 
 	public int getHeight() {

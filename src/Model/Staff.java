@@ -1,32 +1,22 @@
 // TODO: мэрджить ноты, типа целая+(половинная+четвёртая=половинная с точкой) = целая с двумя точками
 // потому что делать точки плюсиком - это убого!
 
-package Gui.staff;
+package Model;
 
 import Gui.Settings;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 
 import Gui.SheetMusic;
-import Midi.MidiCommon;
-import Gui.staff.pointerable.Accord;
-import Gui.staff.pointerable.Nota;
-import Gui.staff.pointerable.Phantom;
+import Model.Accord.Accord;
+import Model.Accord.Nota.Nota;
 import Midi.DeviceEbun;
-import static Midi.DeviceEbun.MidiOutputDevice;
-import static Midi.DeviceEbun.sintReceiver;
-import Tools.FileProcessor;
+import Musica.PlayMusThread;
 import Tools.IModel;
 
 import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MidiDevice;
-import javax.sound.midi.MidiSystem;
-import javax.sound.midi.MidiUnavailableException;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,7 +27,7 @@ public class Staff {
 	int sessionId = (int)Math.random()*Integer.MAX_VALUE;
 	
 	public static final int CHANNEL = 0;
-	public static final int DEFAULT_ZNAM = 64;
+	public static final int DEFAULT_ZNAM = 64; // TODO: move it into some constants maybe
 	public int cislic = 64;
 	Nota unclosed[] = new Nota[256];
 	final public static int ACCORD_EPSILON = 50; // in milliseconds
@@ -83,9 +73,7 @@ public class Staff {
 		
 		this.phantomka = new Phantom(this);
 		this.checkValues(this.phantomka);
-		
-		Pointer.init(this);
-		
+				
 		mode = aMode.insert;
 	}
 
@@ -109,11 +97,10 @@ public class Staff {
 			Nota nota;
 
 			if (getFocusedAccord() != null && (timestamp - getFocusedAccord().getEarliest().keydownTimestamp < ACCORD_EPSILON)) {
-				nota = new Nota(getFocusedAccord()).setTune(tune).setKeydownTimestamp(timestamp);
+				getFocusedAccord().add(nota = new Nota(getFocusedAccord()).setTune(tune).setKeydownTimestamp(timestamp));
 			} else {
 				Accord newAccord = new Accord(this);
-				nota = new Nota(newAccord).setTune(tune).setKeydownTimestamp(timestamp);
-				this.add(newAccord);
+				this.add(newAccord.add(nota = new Nota(newAccord).setTune(tune).setKeydownTimestamp(timestamp)));
 			}
 			
 			unclosed[tune] = nota;
@@ -158,7 +145,8 @@ public class Staff {
 	    if (this.getFocusedAccord() != null) { 
 			this.getAccordList().remove(this.focusedIndex--); 
 		} else {
-			this.getPointer().move(1);
+			// TODO: i think this check should better be in event handler
+			this.moveFocus(1);
 		}
 		return this;
 	}
@@ -235,11 +223,17 @@ public class Staff {
 		this.parentSheetMusic.requestNewSurface();
 	}
 
-	// getters
+	public Boolean moveFocus(int n) {
+		Boolean stop = getFocusedIndex() + n < -1 || getFocusedIndex() + n > getAccordList().size() - 1;
+		setFocusedIndex(getFocusedIndex() + n);
 
-	private Pointer getPointer() {
-		return Pointer.getInstance();
+		if (getFocusedAccord() != null) {
+			PlayMusThread.playAccord(getFocusedAccord());
+		}
+		return !stop;
 	}
+
+	// getters
 
 	public Accord getFocusedAccord() {
 		if (this.getFocusedIndex() > -1) {

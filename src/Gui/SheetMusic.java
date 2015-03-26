@@ -1,9 +1,9 @@
 package Gui;
 
-import Gui.staff.Staff;
-import Gui.staff.pointerable.Accord;
-import Gui.staff.pointerable.Nota;
-import Gui.staff.pointerable.Phantom;
+import Model.Staff;
+import Model.Accord.Accord;
+import Model.Accord.Nota.Nota;
+import Model.Phantom;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -63,6 +63,10 @@ final public class SheetMusic extends JPanel {
 		this.stan = this.getFocusedStaff();
 	}
 
+	public int getTotalRowCount() {
+		// TODO: only when one Staff
+		return this.getStaffList().get(0).getAccordRowList().size();
+	}
 	
 	@Override
 	public void paintComponent(Graphics g) {
@@ -72,20 +76,15 @@ final public class SheetMusic extends JPanel {
 			g.setColor(Color.WHITE);
 			g.fillRect(0,0,this.getWidth(),this.getHeight());
 			g.setColor(Color.BLUE);
-			
-//			g.drawImage(vseKartinki[1], this.getStepWidth(), 11* this.getStepHeight() + highestLineY +2, this);   //bass
-//			g.drawImage(vseKartinki[0], this.getStepWidth(), highestLineY - 3* this.getStepHeight(), this);       //violin
+
 			int gPos = this.getMarginX() + 4 * this.getStepWidth() -2 * this.getStepWidth();
 
 			taktCount = 1;
-			int maxSys = 0;
-
 			int curCislic = 0;
 			int curZnamen = 1;
-			int lastMaxSys = 1;
 
 			drawPhantom(stave.getPhantom(), g, gPos, highestLineY);
-			gPos += 2* this.getStepWidth() * stave.getPhantom().getTakenStepCount();
+			gPos += 2* this.getStepWidth();
 
 			int i = 0;
 			for (List<Accord> row: stave.getAccordRowList()) {
@@ -107,60 +106,14 @@ final public class SheetMusic extends JPanel {
 						curCislic = drawTaktLineIfNeeded(curCislic, curZnamen, g, gPos + j * (2 * this.getStepWidth()), highestLineY + i * SISDISPLACE * getStepHeight());
 						g.drawImage(accord.getImage(), gPos + j * (2 * this.getStepWidth()), highestLineY + i * SISDISPLACE * getStepHeight() - 12 * getStepHeight(), this);
 					}
-
-					if (false) { // -_-
-						this.setPreferredSize(new Dimension(this.getWidth() - 20, maxy+SISDISPLACE*this.getStepHeight()));	//	Needed for the scroll bars to appear
-						lastMaxSys = maxSys;
-					}
 					++j;
 				}
 				++i;
 			}
+			
+			// TODO: maybe move it to checkCam() and call checkCam before repaint() ???
+			this.setPreferredSize(new Dimension(this.getWidth() - 20, this.getTotalRowCount() * SISDISPLACE * this.getStepHeight()));	//	Needed for the scroll bars to appear
 
-//			for (Accord accord: stave.getAccordList()) {
-//				// TODO: move into staff.getImage()
-//				
-//				if (gPos >= getStepInOneSystemCount() * this.getStepWidth()) {
-//					// Переходим на новую октаву
-//					++maxSys;
-//					g.drawImage(vseKartinki[1], this.getStepWidth(), (SISDISPLACE+11)* this.getStepHeight() + highestLineY +2, this);
-//					g.drawImage(vseKartinki[0], this.getStepWidth(), highestLineY + (SISDISPLACE-3)* this.getStepHeight(), this);
-//					for (int j=0; j<(stave.bassKey? 11: 5); ++j){
-//						if (j == 5) continue;
-//						g.drawLine(this.getMarginX(), highestLineY + j* this.getStepHeight() *2, this.getWidth() - this.getMarginX()*2, highestLineY + j* this.getStepHeight() *2);
-//					}
-//
-//
-//					gPos = this.getMarginX() + 4 * this.getStepWidth();
-//					highestLineY += SISDISPLACE* this.getStepHeight();
-//
-//				}
-//
-//				// Картинка указателя
-//				if (getFocusedStaff().getFocusedAccord() == accord) { g.drawImage(this.getPointerImage(), gPos + getStepWidth(), highestLineY- this.getStepHeight() *14, this ); }
-//
-//				if (accord.getNotaList().size() > 0) {
-//
-//					curCislic += accord.getShortest().getNumerator();
-//					curCislic = drawTaktLineIfNeeded(curCislic, curZnamen, g, gPos, highestLineY);
-//					g.drawImage(accord.getImage(), gPos, highestLineY - 12 * getStepHeight(), this);
-//					gPos += 2 * this.getStepWidth() * accord.getTakenStepCount();
-//				}
-//
-//				if (maxSys != lastMaxSys) {
-//					this.setPreferredSize(new Dimension(this.getWidth() - 20, maxy+SISDISPLACE*this.getStepHeight()));	//	Needed for the scroll bars to appear
-//					lastMaxSys = maxSys;
-//				}
-//			}
-
-//			g.setColor(Color.blue);
-//			for (int idx=0; i<(stave.bassKey? 11: 5); ++idx) {
-//				if (idx == 5) continue;
-//				g.drawLine(this.getMarginX(), highestLineY + idx* this.getStepHeight() *2, this.getWidth() - this.getMarginX()*2, highestLineY + idx* this.getStepHeight() *2);
-//			}
-//
-//			if (highestLineY>maxy) maxy=highestLineY;
-//			highestLineY = (int)Math.round(MARGIN_V* this.getStepHeight());
 		}
 		this.surfaceChanged = false;
 		this.revalidate();	//	Needed to recalc the scroll bars
@@ -201,8 +154,7 @@ final public class SheetMusic extends JPanel {
 		g.drawImage(phantomka.getImage(), xIndent - dX, yIndent - dY, this);
 		int deltaY = 0, deltaX = 0;
 		switch (phantomka.changeMe) {
-			case cislicelj:	deltaY += 9 * this.getStepHeight(); break;
-			case znamenatelj: deltaY += 11 * this.getStepHeight(); break;
+			case numerator:	deltaY += 9 * this.getStepHeight(); break;
 			case tempo: deltaY -= 1 * this.getStepHeight(); break;
 			case instrument: deltaY += 4 * this.getStepHeight(); deltaX += this.getStepWidth() / 4; break;
 			case volume: deltaY += 24 * this.getStepHeight(); break;

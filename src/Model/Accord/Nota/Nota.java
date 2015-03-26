@@ -1,7 +1,7 @@
-package Gui.staff.pointerable;
+package Model.Accord.Nota;
 
 
-import java.awt.*;
+import Model.Accord.Accord;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -17,10 +17,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import Gui.Constants;
+import Gui.Settings;
 import Gui.SheetMusic;
-import Gui.staff.Staff;
-import Gui.staff.Staff;
+import Model.Phantom;
+import Model.Staff;
+import Model.Staff;
+import static Musica.PlayMusThread.playNotu;
+import Tools.Fp;
 import Tools.IModel;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Graphics;
+import java.util.List;
 
 final public class Nota implements IModel { // TODO: this temporary interface was invented to ease moving Accord storage from Nota	
 	// TODO: store time Nota was pressed and released into file maybe? Just becuse we can!
@@ -51,7 +61,6 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 
 	public Nota(Accord accord) {
 		this();
-		accord.add(this);
 	}
 	
 	private static String normalizeString(String str, int desiredLength) {
@@ -64,13 +73,13 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 				normalizeString(channel+"", 2);
 	}
 	
-	@Override
-	public String toString() {
-		String result = "аккорд:\n";
-		result += "\t" + this.getInfoString() + "\n";
-	    String s = "nota: "+tune+"; pos: "+getAcademicIndex()+"; okt: "+getOctava()+"; "+strTune(this.getAcademicIndex());
-	    return result;
-	}
+//	@Override
+//	public String toString() {
+//		String result = "аккорд:\n";
+//		result += "\t" + this.getInfoString() + "\n";
+//	    String s = "nota: "+tune+"; pos: "+getAcademicIndex()+"; okt: "+getOctava()+"; "+strTune(this.getAcademicIndex());
+//	    return result;
+//	}
 	
 	@Override
 	public int hashCode() {
@@ -93,8 +102,8 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 		return true;
 	}
 	
-	// TODO: broken
-	public void changeDur(int n, boolean single){
+	// TODO: broken and bad name
+	public void changeDur(int n) {
 
 		if (numerator == Staff.DEFAULT_ZNAM*2) {
 			numerator = Staff.DEFAULT_ZNAM;
@@ -210,11 +219,7 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 		surface.drawImage(tmpImg, getNotaImgX(), 0, null);
 
 		if (this.tupletDenominator != 1) { for (int i = 0; i < 3; ++i) { surface.drawLine(getStickX(), i, getStickX() -6, i); } }
-		
-		// TODO: looks like, is not drawn properly
-		if (this.numerator % 3 == 0) surface.fillOval(getWidth()*2/5, getHeight()*7/8, getHeight()/8, getHeight()/8);
-
-		if (isStriked()) surface.drawLine(getWidth()*10/25, getSheet().getStepHeight() * 7, getWidth()*22/25, getSheet().getStepHeight() * 7);
+		if (this.numerator % 3 == 0) surface.fillOval(Settings.inst().getStepWidth() + getWidth()*2/5, getHeight()*7/8, getHeight()/8, getHeight()/8);
 	}
 
 	public Nota requestNewSurface() {
@@ -276,9 +281,20 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 		return this.getOctava() > 6;
 	}
 
+	// TODO: from accord
 	public Boolean isStriked() {
-		boolean chet = (this.getAcademicIndex() % 2 == 1) ^ (this.getOctava() % 2 == 1);
-		return this.isBotommedToFitSystem() ? !chet : chet;
+		return this.getAcademicIndex() % 2 == 1;
+	}
+
+	public List<Integer> getAncorPoint() {
+		return Arrays.asList(getWidth()*16/25, Settings.inst().getStepHeight() * 7);
+	}
+
+	public List<Integer> getTraitCoordinates() {
+		ArrayList result = new ArrayList();
+		result.addAll(Fp.vectorSum(getAncorPoint(), Arrays.asList(-getWidth()*6/25, 0)));
+		result.addAll(Fp.vectorSum(getAncorPoint(), Arrays.asList(+getWidth()*6/25, 0)));
+		return result;
 	}
 
 	public int getNotaImgX() {
@@ -287,6 +303,13 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 
 	public int getStickX() {
 		return this.getNotaImgX() + getSheet().getStepWidth() / 2;
+	}
+
+	public int getTimeMiliseconds() {
+		int minute = 60 * 1000;
+		Phantom config = parentAccord.parentStaff.getPhantom();
+		return minute * 4 / Staff.DEFAULT_ZNAM / config.valueTempo * getNumerator() / getDenominator();
+		// 4 - будем брать четвертную как основную
 	}
 
 	// field getters/setters
@@ -305,7 +328,7 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 
 	public Nota setTupletDenominator(int value) {
 		this.tupletDenominator = value;
-		this.surfaceChanged = true;
+		this.requestNewSurface();
 		return this;
 	}
 

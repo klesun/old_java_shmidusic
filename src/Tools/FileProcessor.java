@@ -1,10 +1,7 @@
 package Tools;
 
 import Gui.SheetMusic;
-import Gui.staff.Staff;
-import Gui.staff.pointerable.Nota;
-import Gui.staff.pointerable.Phantom;
-import Gui.staff.Pointer;
+import Model.Staff;
 
 import javax.imageio.ImageIO;
 
@@ -14,15 +11,10 @@ import org.json.JSONObject;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Dictionary;
 
 public class FileProcessor {
 	

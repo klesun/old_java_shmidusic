@@ -1,7 +1,7 @@
 
 package Tools;
 
-import Gui.staff.pointerable.Accord;
+import Model.Accord.Accord;
 import java.util.LinkedHashMap;
 import org.json.JSONException;
 import org.json.JSONObject;

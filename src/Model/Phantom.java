@@ -1,8 +1,10 @@
-package Gui.staff.pointerable;
+package Model;
 
+import Model.Accord.Nota.Nota;
 import Gui.SheetMusic;
-import Gui.staff.Staff;
-import Gui.staff.Staff;
+import Model.Staff;
+import Model.Staff;
+import Midi.DeviceEbun;
 import Tools.IModel;
 
 import java.awt.Graphics;
@@ -14,14 +16,15 @@ import java.util.Hashtable;
 import java.util.LinkedHashMap;
 
 import javax.imageio.ImageIO;
+import javax.sound.midi.InvalidMidiDataException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Phantom implements IModel {	
 
-    public Staff parentStaff;
-   
+	public Staff parentStaff;
+
 	public int valueTempo = 120;
 	public int valueInstrument = 0;
 	public double valueVolume = 0.5;
@@ -30,8 +33,8 @@ public class Phantom implements IModel {
 
 	public Phantom(Staff staff) {
 		this.parentStaff = staff;
-        znamen = 8;
-        numerator = 8;
+		znamen = 8;
+		numerator = 8;
 	}
 
 	public BufferedImage getImage() {
@@ -76,8 +79,6 @@ public class Phantom implements IModel {
 		return rez;
 	}
 
-	public void changeDur(int i, boolean b) {}
-
 	public LinkedHashMap<String, Object> getObjectState() {
 		LinkedHashMap<String, Object> dict = new LinkedHashMap<String, Object>();
 		dict.put("tempo", this.valueTempo);
@@ -88,6 +89,7 @@ public class Phantom implements IModel {
 		return dict;
 	}
 
+	@Override
 	public Phantom setObjectStateFromJson(JSONObject jsObject) throws JSONException {
 		this.valueTempo = jsObject.getInt("tempo");
 		this.valueVolume = jsObject.getDouble("volume");
@@ -104,18 +106,17 @@ public class Phantom implements IModel {
 		return this;
 	}
 
-    public enum WhatToChange {
-        cislicelj,
-        znamenatelj,
-        tempo,
-        volume,
+	public enum WhatToChange {
+		numerator,
+		tempo,
+		volume,
 		instrument;
-    }
-    public WhatToChange changeMe = WhatToChange.cislicelj;
+	}
+	public WhatToChange changeMe = WhatToChange.numerator;
 
 	public void chooseNextParam() {
-        switch (changeMe) {
-			case cislicelj:
+		switch (changeMe) {
+			case numerator:
 				changeMe = WhatToChange.tempo;
 				break;
 			case tempo:
@@ -125,71 +126,69 @@ public class Phantom implements IModel {
 				changeMe = WhatToChange.instrument;
 				break;
 			case instrument:
-				changeMe = WhatToChange.cislicelj;
-				break;
-			case znamenatelj: // okay...
-				changeMe = WhatToChange.cislicelj;
+				changeMe = WhatToChange.numerator;
 				break;
 			default:
-				changeMe = WhatToChange.cislicelj;
+				changeMe = WhatToChange.numerator;
 				System.out.println("Неизвестный енум");
 				break;
-        } // switch(enum)
+		}
 	}
 
-    public int tryToWrite( char c ) {
-        if (c < '0' || c > '9') return -1;
-        switch (changeMe) {
-            case tempo:
-                valueTempo *= 10;
-                valueTempo += c - '0';
-                valueTempo %= 12000;
-                break;
+	public int tryToWrite( char c ) {
+		if (c < '0' || c > '9') return -1;
+		switch (changeMe) {
+			case tempo:
+				valueTempo *= 10;
+				valueTempo += c - '0';
+				valueTempo %= 12000;
+				break;
 			case instrument:
-                valueInstrument *= 10;
-                valueInstrument += c - '0';
-                valueInstrument %= 256;
-                break;
-            case volume:
-                valueVolume *= 10;
-                System.out.println("c="+c+" c-'0'="+(c-'0'));
-                valueVolume += ((double)(c-'0'))/100;
-                if (valueVolume > 2.54) valueVolume = 2.54;
-                break;
-            default:
-                System.out.println("Неизвестный енум");
-                break;
-        } // switch(enum)
-        return 0;
-    }
+				valueInstrument *= 10;
+				valueInstrument += c - '0';
+				valueInstrument %= 256;
+				break;
+			case volume:
+				valueVolume *= 10;
+				System.out.println("c="+c+" c-'0'="+(c-'0'));
+				valueVolume += ((double)(c-'0'))/100;
+				if (valueVolume > 2.54) valueVolume = 2.54;
+				break;
+			default:
+				System.out.println("Неизвестный енум");
+				break;
+		}
+		return 0;
+	}
 
-    public void changeValue(int n) {
-        switch (changeMe) {
-            case cislicelj:
-                numerator += n;
-                numerator = numerator < 1 ? 1 : numerator % 257;
-                break;
-            case tempo:
-                valueTempo += n;
-                valueTempo = valueTempo < 1 ? 1 : valueTempo % 12000;
-                break;
+	public void changeValue(int n) {
+		switch (changeMe) {
+			case numerator:
+				numerator += n;
+				numerator = numerator < 1 ? 1 : numerator % 257;
+				break;
+			case tempo:
+				valueTempo += n;
+				valueTempo = valueTempo < 1 ? 1 : valueTempo % 12000;
+				break;
 			case instrument:
-                valueInstrument += n;
-				valueInstrument = valueInstrument < 0 ? 0 : valueInstrument % 256;
-                break;
-            case volume:
-                valueVolume += ((double)n)/100;
-                if (valueVolume < 0) valueVolume = 0;
-                if (valueVolume > 2.54) valueVolume = 2.54;
-                break;
-            default:
-                System.out.println("Неизвестный енум");
-                break;
-        } // switch(enum)
-    }
+				this.valueInstrument += n;
+				this.valueInstrument = valueInstrument < 0 ? 0 : valueInstrument % 256;
+				try {
+					DeviceEbun.changeInstrument(this.valueInstrument);
+				} catch (InvalidMidiDataException e) { System.out.println("Сука инструмент менять нихуя не получается"); }
+				break;
+			case volume:
+				valueVolume += ((double)n)/100;
+				if (valueVolume < 0) valueVolume = 0;
+				if (valueVolume > 2.54) valueVolume = 2.54;
+				break;
+			default: break;
+		}
+	}
 
-    public void backspace() {
-        switch (changeMe) {
+	public void backspace() {
+		switch (changeMe) {
 			case tempo:
 				valueTempo /= 10;
 				if (valueTempo < 1) valueTempo = 1;
@@ -205,23 +204,6 @@ public class Phantom implements IModel {
 			default:
 				System.out.println("Неизвестный енум");
 				break;
-        } // switch(enum)
-    }
-
-    public void setCislicFromFile( int fileCis ) {
-        fileCis /= 8;
-        numerator = fileCis;
-    }
-
-    private double log2(int n){
-        return Math.log(n)/Math.log(2);
-    }
-   
-    // getters/setters
-    
-    // implements(Pointerable)
-    public int getTakenStepCount() {
-    	return 1;
-    }
-	
+		} // switch(enum)
+	}
 }

@@ -12,8 +12,8 @@ import javax.sound.midi.Transmitter;
 
 import Midi.DumpReceiver;
 import Midi.MidiCommon;
-import Gui.staff.Staff;
-import static Gui.staff.Staff.CHANNEL;
+import Model.Staff;
+import static Model.Staff.CHANNEL;
 import Musica.PlayMusThread;
 import Gui.KeyEventHandler;
 
