@@ -129,6 +129,7 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 			}
 			++n;
 		}
+		this.requestNewSurface();
 	}
 
 	public Boolean isLongerThan(Nota rival) {

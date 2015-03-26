@@ -48,8 +48,9 @@ public class Accord implements IModel {
 	}
 
 	@Override
+	// TODO: maybe instead of LinkedHashMap use JSONArray from the very begining?
 	public LinkedHashMap<String, Object> getObjectState() {
-		LinkedHashMap<String, Object> dict = new LinkedHashMap<String, Object>();
+		LinkedHashMap<String, Object> dict = new LinkedHashMap<>();
 		dict.put("notaList", this.notaList.stream().map(n -> n.getObjectState()).toArray());
 		dict.put("slog", this.slog);
 		return dict;
@@ -122,24 +123,16 @@ public class Accord implements IModel {
 	}
 
 	public void moveFocus(int n) {
-
 		if (this.getFocusedIndex() + n > this.getNotaList().size() - 1) {
 			this.setFocusedIndex(-1);
-		} else if (this.getFocusedIndex() + n < -1) {
-			this.setFocusedIndex(this.getNotaList().size() - 1);
 		} else {
-			this.setFocusedIndex(this.getFocusedIndex() + 1);
+			this.setFocusedIndex(this.getFocusedIndex() + n);
 		}
 	}
 
 	public void changeLength(int n) {
-//		if (this.getFocusedIndex() + n > this.getNotaList().size() - 1) {
-//			this.setFocusedIndex(-1);
-//		} else if (this.getFocusedIndex() + n < -1) {
-//			this.setFocusedIndex(this.getNotaList().size() - 1);
-//		} else {
-//			this.setFocusedIndex(this.getFocusedIndex() + 1);
-//		}
+		// TODO: -_-
+		requestNewSurface();
 	}
 
 	// getters/setters
