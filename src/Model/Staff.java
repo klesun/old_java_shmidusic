@@ -3,6 +3,7 @@
 
 package Model;
 
+import Model.StaffConfig.StaffConfig;
 import Gui.Settings;
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -24,7 +25,7 @@ import org.json.JSONObject;
 
 public class Staff {
 	public byte channelFlags = -1;
-	int sessionId = (int)Math.random()*Integer.MAX_VALUE;
+	int sessionId = (int)(Math.random() * Integer.MAX_VALUE);
 	
 	public static final int CHANNEL = 0;
 	public static final int DEFAULT_ZNAM = 64; // TODO: move it into some constants maybe
@@ -55,7 +56,7 @@ public class Staff {
 	public SheetMusic parentSheetMusic;
 	public int to4kaOt4eta = 66; // какой позиции соответствует нижняя до скрипичного ключа
 	
-	public Phantom phantomka = null;
+	public StaffConfig phantomka = null;
 	public Accord firstDeleted = new Accord(this);
 	public Accord lastDeleted = firstDeleted;
 
@@ -71,7 +72,7 @@ public class Staff {
 		vioKey2 = false;
 		bassKey2 = false;
 		
-		this.phantomka = new Phantom(this);
+		this.phantomka = new StaffConfig(this);
 		this.checkValues(this.phantomka);
 				
 		mode = aMode.insert;
@@ -169,7 +170,7 @@ public class Staff {
 	}
 	
 	// TODO: stan should store current Phantom and these values should be getting from there directly, NO DENORMALIZING
-	public void checkValues(Phantom rak) {
+	public void checkValues(StaffConfig rak) {
 	    int cislic = rak.numerator, znamen=rak.znamen, tempo = rak.valueTempo; double volume = rak.valueVolume; int instrument = rak.valueInstrument;
 	    if (cislic!=this.cislic || znamen!=DEFAULT_ZNAM || tempo!=Staff.tempo || volume!=this.volume) {
 	        // Всё равно ж перерисовывать надо будет
@@ -211,7 +212,7 @@ public class Staff {
 	public int reconstructFromJson(JSONObject jsObject) throws JSONException {
 		this.clearStan();
 		JSONArray childJsonList = jsObject.getJSONArray("childList");
-		this.getPhantom().update(new Phantom(this).setObjectStateFromJson(childJsonList.getJSONObject(0))); // TODO: it is so lame, but i spent hours to save all these files in this format
+		this.getPhantom().update(new StaffConfig(this).setObjectStateFromJson(childJsonList.getJSONObject(0))); // TODO: it is so lame, but i spent hours to save all these files in this format
 		for (int idx = 1; idx < childJsonList.length(); ++idx) { // TODO: store Phantom as dict field, not list value
 			JSONObject childJs = childJsonList.getJSONObject(idx);
 			this.add(new Accord(this).setObjectStateFromJson(childJs));
@@ -227,7 +228,7 @@ public class Staff {
 		Boolean stop = getFocusedIndex() + n < -1 || getFocusedIndex() + n > getAccordList().size() - 1;
 		setFocusedIndex(getFocusedIndex() + n);
 
-		if (getFocusedAccord() != null) {
+		if (getFocusedAccord() != null && !stop) {
 			PlayMusThread.playAccord(getFocusedAccord());
 		}
 		return !stop;
@@ -273,7 +274,7 @@ public class Staff {
 
 	// field getters/setters
 
-	public Phantom getPhantom() {
+	public StaffConfig getPhantom() {
 		return this.phantomka;
 	}
 

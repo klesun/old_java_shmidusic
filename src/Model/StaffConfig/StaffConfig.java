@@ -1,27 +1,22 @@
-package Model;
+package Model.StaffConfig;
 
 import Model.Accord.Nota.Nota;
 import Gui.SheetMusic;
-import Model.Staff;
-import Model.Staff;
 import Midi.DeviceEbun;
+import Model.Staff;
 import Tools.IModel;
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.*;
-import java.io.File;
-import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.LinkedHashMap;
 
-import javax.imageio.ImageIO;
 import javax.sound.midi.InvalidMidiDataException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Phantom implements IModel {	
+public class StaffConfig implements IModel {	
 
 	public Staff parentStaff;
 
@@ -31,10 +26,14 @@ public class Phantom implements IModel {
 	public int numerator = 8;
 	public int znamen = Staff.DEFAULT_ZNAM;
 
-	public Phantom(Staff staff) {
+	public StaffConfig(Staff staff) {
 		this.parentStaff = staff;
 		znamen = 8;
 		numerator = 8;
+	}
+
+	public void requestNewSurface() {
+		parentStaff.requestNewSurface();
 	}
 
 	public BufferedImage getImage() {
@@ -79,6 +78,7 @@ public class Phantom implements IModel {
 		return rez;
 	}
 
+	@Override
 	public LinkedHashMap<String, Object> getObjectState() {
 		LinkedHashMap<String, Object> dict = new LinkedHashMap<String, Object>();
 		dict.put("tempo", this.valueTempo);
@@ -90,7 +90,7 @@ public class Phantom implements IModel {
 	}
 
 	@Override
-	public Phantom setObjectStateFromJson(JSONObject jsObject) throws JSONException {
+	public StaffConfig setObjectStateFromJson(JSONObject jsObject) throws JSONException {
 		this.valueTempo = jsObject.getInt("tempo");
 		this.valueVolume = jsObject.getDouble("volume");
 		this.valueInstrument = jsObject.getInt("instrument");
@@ -99,7 +99,7 @@ public class Phantom implements IModel {
 		return this;
 	}
 
-	public Phantom update(Phantom rival) throws JSONException {
+	public StaffConfig update(StaffConfig rival) throws JSONException {
 		JSONObject js = new JSONObject("{}"); 
 		js = new JSONObject(js.put("lol", rival.getObjectState()).get("lol").toString());
 		this.setObjectStateFromJson(js);

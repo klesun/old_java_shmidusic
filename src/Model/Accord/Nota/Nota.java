@@ -19,7 +19,7 @@ import org.json.JSONObject;
 import Gui.Constants;
 import Gui.Settings;
 import Gui.SheetMusic;
-import Model.Phantom;
+import Model.StaffConfig.StaffConfig;
 import Model.Staff;
 import Model.Staff;
 import static Musica.PlayMusThread.playNotu;
@@ -307,7 +307,7 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 
 	public int getTimeMiliseconds() {
 		int minute = 60 * 1000;
-		Phantom config = parentAccord.parentStaff.getPhantom();
+		StaffConfig config = parentAccord.parentStaff.getPhantom();
 		return minute * 4 / Staff.DEFAULT_ZNAM / config.valueTempo * getNumerator() / getDenominator();
 		// 4 - будем брать четвертную как основную
 	}

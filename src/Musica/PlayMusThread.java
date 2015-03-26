@@ -32,12 +32,11 @@ public class PlayMusThread extends Thread {
         
     	DeviceEbun.stop = false;
     	aMode tmpMode = eventHandler.getContext().mode;
-    	eventHandler.getContext().mode = aMode.playin;    	 
+    	eventHandler.getContext().mode = aMode.playin; 
+		eventHandler.getContext().moveFocus(0);
     	do {
             if (eventHandler.getContext().getFocusedAccord() != null) {
 				time = eventHandler.getContext().getFocusedAccord().getShortest().getTimeMiliseconds();
-//            	Accord accord = eventHandler.getContext().getFocusedAccord();
-//				time = playAccord(accord);
 				try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна"+e); }
 			}
         } while (DeviceEbun.stop == false && eventHandler.getContext().moveFocus(1));

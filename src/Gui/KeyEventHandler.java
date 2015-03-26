@@ -142,204 +142,28 @@ public class KeyEventHandler implements KeyListener {
 					break;
 				case '+':case '=':
 					System.out.println("ctrl+=");
-					staff.parentSheetMusic.changeScale(1);
+					this.sheet.changeScale(1);
 					break;
 				case '-':case '_':
 					System.out.println("ctrl+-");
-					staff.parentSheetMusic.changeScale(-1);
+					this.sheet.changeScale(-1);
 					break;
-				case 't':case 'T': case 'Е': case 'е':
-					if (this.staff.getFocusedAccord() != null) { this.staff.getFocusedAccord().triggerTuplets(3); }
-					this.requestNewSurface();
-					break;
-				case '0':
-					System.out.println("Вы нажали 0!");
-					staff.changeMode();
-					break;
-				case KeyEvent.VK_DOWN:
-					System.out.println("Вы нажали Tab!");
-					if (this.sheet.getFocusedStaff().getFocusedAccord() != null) {
-						this.sheet.getFocusedStaff().getFocusedAccord().moveFocus(+1);
-					} else {
-						this.sheet.getFocusedStaff().getPhantom().chooseNextParam();
-					}
-
-					sheet.repaint();
-					break;
-				case KeyEvent.VK_UP:
-					System.out.println("Вы нажали Tab!");
-					if (this.sheet.getFocusedStaff().getFocusedAccord() != null) {
-						this.sheet.getFocusedStaff().getFocusedAccord().moveFocus(-1);
-					} else {
-						// this.sheet.getFocusedStaff().getPhantom().choosePrevParam();
-					}
-
-					sheet.repaint();
-					break;
-
 				default:
 					break;
 			}
 			return;
-		} else if ((e.getModifiers() & KeyEvent.SHIFT_MASK) != 0 && e.getKeyCode() == KeyEvent.VK_3) {
-			if (this.sheet.getFocusedStaff().getFocusedAccord().getFocusedNota() == null) {
-				for (Nota nota: this.sheet.getFocusedStaff().getFocusedAccord().getNotaList()) {
-					nota.triggerIsSharp();
-				}
-			} else {
-				this.sheet.getFocusedStaff().getFocusedAccord().getFocusedNota().triggerIsSharp();
-			}
-			return;
-		} else if (((e.getModifiers() & KeyEvent.CTRL_MASK) == 0)
-				&& ((e.getModifiers() & KeyEvent.ALT_MASK) != 0)) {
-			int cod = e.getKeyCode();
-			if (cod >= '0' && cod <= '9') {
-				staff.changeChannelFlag(cod - '0');
-				sheet.repaint();
-			}
 		}
 
 		switch (e.getKeyCode()) {
-		case KeyEvent.VK_RIGHT:
-			PlayMusThread.shutTheFuckUp();
-			sheet.getFocusedStaff().moveFocus(1);
-			this.sheet.repaint();
-			// stan.drawPanel.checkCam();
-			break;
-		case KeyEvent.VK_LEFT:
-			PlayMusThread.shutTheFuckUp();
-			sheet.getFocusedStaff().moveFocus(-1);
-			this.sheet.repaint();
-			// stan.drawPanel.checkCam();
-			break;
-		case KeyEvent.VK_UP:
-			PlayMusThread.shutTheFuckUp();
-			sheet.getFocusedStaff().setFocusedIndex(sheet.getFocusedStaff().getFocusedIndex() - sheet.getFocusedStaff().getNotaInRowCount());
-			this.requestNewSurface();
-			staff.parentSheetMusic.checkCam();
-			break;
-		case KeyEvent.VK_DOWN:
-			PlayMusThread.shutTheFuckUp();
-			sheet.getFocusedStaff().setFocusedIndex(sheet.getFocusedStaff().getFocusedIndex() + sheet.getFocusedStaff().getNotaInRowCount());
-			this.requestNewSurface();
-			staff.parentSheetMusic.checkCam();
-			break;
-		case KeyEvent.VK_HOME:
-			PlayMusThread.shutTheFuckUp();
-			sheet.getFocusedStaff().setFocusedIndex(-1);
-			staff.parentSheetMusic.checkCam();
-			break;
-		case KeyEvent.VK_END:
-			PlayMusThread.shutTheFuckUp();
-			sheet.getFocusedStaff().setFocusedIndex(sheet.getFocusedStaff().getAccordList().size() - 1);
-			staff.parentSheetMusic.checkCam();
-			break;
-		case KeyEvent.VK_ENTER:
-			PlayMusThread.shutTheFuckUp();
-			PlayMusThread.playAccord(this.sheet.getFocusedStaff().getFocusedAccord());
-			break;
-
-		case KeyEvent.VK_ADD:
-			System.out.println("Вы нажали плюс!");
-			if (this.sheet.getFocusedStaff().getFocusedAccord() != null) {
-				if (this.sheet.getFocusedStaff().getFocusedAccord().getFocusedIndex() == -1) {
-					this.sheet.getFocusedStaff().getFocusedAccord().changeLength(1);
-				} else {
-					this.sheet.getFocusedStaff().getFocusedAccord().getFocusedNota().changeDur(1);
-				}
-			} else {
-				this.sheet.getFocusedStaff().getPhantom().changeValue(1);
-			}
-			sheet.repaint();
-			break;
-		case KeyEvent.VK_SUBTRACT:
-			System.out.println("Вы нажали минус!");
-			if (this.sheet.getFocusedStaff().getFocusedAccord() != null) {
-				if (this.sheet.getFocusedStaff().getFocusedAccord().getFocusedIndex() == -1) {
-					this.sheet.getFocusedStaff().getFocusedAccord().changeLength(-1);
-				} else {
-					this.sheet.getFocusedStaff().getFocusedAccord().getFocusedNota().changeDur(-1);
-				}
-			} else {
-				this.sheet.getFocusedStaff().getPhantom().changeValue(-1);
-			}
-			this.sheet.repaint();
-			break;
-		case KeyEvent.VK_DELETE:
-			System.out.println("Вы нажали Delete!");
-			staff.delNotu();
-			this.requestNewSurface();
-			break;
-		case KeyEvent.VK_PAGE_DOWN:
-			System.out.println("Вы нажали pageDown!");
-			staff.parentSheetMusic.page(1);
-			break;
-		case KeyEvent.VK_PAGE_UP:
-			System.out.println("Вы нажали pageUp!");
-			staff.parentSheetMusic.page(-1);
-			break;
-		case KeyEvent.VK_BACK_SPACE:
-			if (this.sheet.getFocusedStaff().getFocusedAccord() == null) {
-				this.sheet.getFocusedStaff().getPhantom().backspace();
+			case KeyEvent.VK_PAGE_DOWN:
+				System.out.println("Вы нажали pageDown!");
+				staff.parentSheetMusic.page(1);
 				break;
-			} else {
-				Accord accord = (Accord) curAccord;
-				String slog = accord.getSlog();
-				if (slog.length() < 2) {
-
-					if (slog.length() == 0) {
-						sheet.getFocusedStaff().moveFocus(-1);
-					}
-					accord.setSlog("");
-				} else {
-					((Accord) curAccord).setSlog(slog.substring(0, slog.length() - 1));
-				}
-			}
-			sheet.repaint();
-			break;
-		case '0':case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8':case '9':
-		case KeyEvent.VK_NUMPAD0:case KeyEvent.VK_NUMPAD1:case KeyEvent.VK_NUMPAD2:case KeyEvent.VK_NUMPAD3:case KeyEvent.VK_NUMPAD4:
-		case KeyEvent.VK_NUMPAD5:case KeyEvent.VK_NUMPAD6:case KeyEvent.VK_NUMPAD7:case KeyEvent.VK_NUMPAD8:case KeyEvent.VK_NUMPAD9:
-			if (this.sheet.getFocusedStaff().getFocusedAccord() == null) {
-				this.sheet.getFocusedStaff().getPhantom().tryToWrite(e.getKeyChar());
+			case KeyEvent.VK_PAGE_UP:
+				System.out.println("Вы нажали pageUp!");
+				staff.parentSheetMusic.page(-1);
 				break;
-			} else {
-				int cifra = (e.getKeyCode() >= '0' && e.getKeyCode() <= '9') ? e
-						.getKeyCode() - '0' : e.getKeyCode()
-						- KeyEvent.VK_NUMPAD0;
-				Nota nota = curAccord.getFocusedNota();
-				if (nota != null) {
-					if (nota.channel != cifra) {
-						nota.setChannel(cifra);
-					} else {
-						curAccord.setFocusedIndex(-1);
-						sheet.repaint();
-					}
-				} else {
-					cifra = Math.min(cifra, ((Accord)curAccord).getNotaList()
-							.size());
-					this.sheet.getFocusedStaff().getFocusedAccord().setFocusedIndex(cifra);
-					sheet.repaint();
-				}
-			} // не работает - сделай
-			break;
-		default:
-			if (staff.mode == Staff.aMode.playin)
-				break;
-
-			if (e.getKeyCode() >= 32 || e.getKeyCode() == 0) {
-				// Это символ - напечатать
-				if (curAccord instanceof Accord) {
-					Accord accord = (Accord) curAccord;
-					accord.setSlog(accord.getSlog().concat("" + e.getKeyChar()));
-				}
-			}
-
-			if (e.getKeyCode() == '-') {
-				sheet.getFocusedStaff().moveFocus(1);
-			}
-			sheet.repaint();
-			break;
+			default: break;
 		}
 	}
 

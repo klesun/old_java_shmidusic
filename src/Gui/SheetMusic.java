@@ -3,7 +3,7 @@ package Gui;
 import Model.Staff;
 import Model.Accord.Accord;
 import Model.Accord.Nota.Nota;
-import Model.Phantom;
+import Model.StaffConfig.StaffConfig;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -149,7 +149,7 @@ final public class SheetMusic extends JPanel {
 	    return tmp;
 	}
 	
-	private void drawPhantom(Phantom phantomka, Graphics g, int xIndent, int yIndent) {
+	private void drawPhantom(StaffConfig phantomka, Graphics g, int xIndent, int yIndent) {
 		int dX = this.getNotaWidth()/5, dY = this.getNotaHeight()*2;
 		g.drawImage(phantomka.getImage(), xIndent - dX, yIndent - dY, this);
 		int deltaY = 0, deltaX = 0;
