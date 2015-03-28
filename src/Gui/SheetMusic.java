@@ -32,13 +32,11 @@ final public class SheetMusic extends JPanel {
 	public static BufferedImage[] vseKartinki = new BufferedImage[7]; // TODO: поменять этот уродский массив на ключ-значение // Гузно у тебя уродское
 	public static BufferedImage[] vseKartinki0 = new BufferedImage[7];
 
-	int taktCount = 1;
 	int curAccord = -2;
 
 	private Boolean surfaceChanged = true;
 	private BufferedImage surface = null;
 	
-	Staff stan;
 	ArrayList<Staff> staffList = new ArrayList();
 	public Window parentWindow = null;
 		
@@ -60,7 +58,6 @@ final public class SheetMusic extends JPanel {
 	    }
 
 		this.addNewStaff();
-		this.stan = this.getFocusedStaff();
 	}
 
 	public int getTotalRowCount() {
@@ -70,45 +67,52 @@ final public class SheetMusic extends JPanel {
 	
 	@Override
 	public void paintComponent(Graphics g) {
+
+		int highestLineY = this.getMarginY();
+		g.setColor(Color.WHITE);
+		g.fillRect(0,0,this.getWidth(),this.getHeight());
+		int gPos = this.getMarginX() + 3 * this.dx();
+		
 		for (Staff stave: this.getStaffList()) {
-			int highestLineY = this.getMarginY();
+			//stave.getImage();
 
-			g.setColor(Color.WHITE);
-			g.fillRect(0,0,this.getWidth(),this.getHeight());
-			g.setColor(Color.BLUE);
-
-			int gPos = this.getMarginX() + 2 * this.getStepWidth();
-
-			taktCount = 1;
+			int taktCount = 1;
 			int curCislic = 0;
-			int curZnamen = 1;
 
-			drawPhantom(stave.getPhantom(), g, gPos, highestLineY);
-			gPos += this.getStepWidth();
+			drawPhantom(stave.getPhantom(), g, gPos - dx(), highestLineY);
 
 			int i = 0;
 			for (List<Accord> row: stave.getAccordRowList()) {
-				int y = highestLineY + i * SISDISPLACE * getStepHeight(); // bottommest y nota may be drawn on
-				g.drawImage(vseKartinki[1], this.getStepWidth(), 11 * this.getStepHeight() + y, this);
-				g.drawImage(vseKartinki[0], this.getStepWidth(), y -3 * this.getStepHeight(), this);
+				int y = highestLineY + i * SISDISPLACE * dy(); // bottommest y nota may be drawn on
+				g.drawImage(vseKartinki[1], this.dx(), 11 * dy() + y, this);
+				g.drawImage(vseKartinki[0], this.dx(), y -3 * dy(), this);
 				g.setColor(Color.BLUE);
 				for (int j = 0; j < 11; ++j){
 					if (j == 5) continue;
-					g.drawLine(this.getMarginX(), y + j* this.getStepHeight() *2, this.getWidth() - this.getMarginX()*2, y + j* this.getStepHeight() *2);
+					g.drawLine(this.getMarginX(), y + j* this.dy() *2, getWidth() - this.getMarginX()*2, y + j* dy() *2);
 				}
 
 				int j = 0;
 				for (Accord accord: row) {
-					int x = gPos + j * (2 * this.getStepWidth());
+					int x = gPos + j * (2 * dx());
 					if (getFocusedStaff().getFocusedAccord() == accord) { 
-						g.drawImage(this.getPointerImage(), x + getStepWidth(), y - this.getStepHeight() *14, this ); 
+						g.drawImage(this.getPointerImage(), x + dx(), y - this.dy() *14, this ); 
 					}
 
 					if (accord.getNotaList().size() > 0) {
 
-						curCislic += accord.getShortest().getNumerator();
-						curCislic = drawTaktLineIfNeeded(curCislic, curZnamen, g, x, y);
-						g.drawImage(accord.getImage(), x, y - 12 * getStepHeight(), this);
+						curCislic += accord.getShortest().getNumerator();	
+						if (curCislic >= getFocusedStaff().getPhantom().numerator * 8) { // потому что у нас шажок 1/8 когда меняем размер такта
+							curCislic %= getFocusedStaff().getPhantom().numerator * 8;
+							g.setColor(curCislic > 0 ? Color.BLUE : Color.BLACK);
+							g.drawLine(x + dx() * 2, y - dy() * 5, x + dx() * 2, y + dy() * 20);
+							g.setColor(Color.decode("0x00A13E"));
+							g.drawString(taktCount + "", x + dx(), y - dy() * 9);
+
+							++taktCount;
+						}
+						
+						accord.drawOn(g, x, y - 12 * dy());
 					}
 					++j;
 				}
@@ -116,7 +120,7 @@ final public class SheetMusic extends JPanel {
 			}
 			
 			// TODO: maybe move it to checkCam() and call checkCam before repaint() ???
-			this.setPreferredSize(new Dimension(this.getWidth() - 20, this.getTotalRowCount() * SISDISPLACE * this.getStepHeight()));	//	Needed for the scroll bars to appear
+			this.setPreferredSize(new Dimension(this.getWidth() - 20, this.getTotalRowCount() * SISDISPLACE * this.dy()));	//	Needed for the scroll bars to appear
 
 		}
 		this.surfaceChanged = false;
@@ -126,7 +130,6 @@ final public class SheetMusic extends JPanel {
 	public void changeScale(int n) {
 		Settings.inst().changeScale(n);
 		refreshImageSizes();
-		this.requestNewSurfaceForEachChild();
 	}
 	
 	// TODO: store (and refresh) images in Settings maybe
@@ -160,19 +163,19 @@ final public class SheetMusic extends JPanel {
 		g.drawImage(phantomka.getImage(), xIndent - dX, yIndent - dY, this);
 		int deltaY = 0, deltaX = 0;
 		switch (phantomka.changeMe) {
-			case numerator:	deltaY += 9 * this.getStepHeight(); break;
-			case tempo: deltaY -= 1 * this.getStepHeight(); break;
-			case instrument: deltaY += 4 * this.getStepHeight(); deltaX += this.getStepWidth() / 4; break;
-			case volume: deltaY += 24 * this.getStepHeight(); break;
+			case numerator:	deltaY += 9 * this.dy(); break;
+			case tempo: deltaY -= 1 * this.dy(); break;
+			case instrument: deltaY += 4 * this.dy(); deltaX += this.dx() / 4; break;
+			case volume: deltaY += 24 * this.dy(); break;
 			default: break;
 		}
-		if (phantomka.parentStaff.getFocusedAccord() == null) {
-			g.drawImage(this.getPointerImage(), xIndent - 7*this.getNotaWidth()/25 + deltaX, yIndent - this.getStepHeight() * 14 + deltaY, this);	
+		if (phantomka.getParentStaff().getFocusedAccord() == null) {
+			g.drawImage(this.getPointerImage(), xIndent - 7*this.getNotaWidth()/25 + deltaX, yIndent - this.dy() * 14 + deltaY, this);	
 		}
 	}
 
 	public int getFocusedSystemY() {
-		return SISDISPLACE * this.getStepHeight() * (getFocusedStaff().getFocusedIndex() / (getStepInOneSystemCount() / 2 - 2) -1);
+		return SISDISPLACE * this.dy() * (getFocusedStaff().getFocusedIndex() / (getStepInOneSystemCount() / 2 - 2) -1);
 	}
 	
 	public void checkCam() {
@@ -182,47 +185,17 @@ final public class SheetMusic extends JPanel {
 	
 	public void page(int pageCount) {
 		JScrollBar vertical = scroll.getVerticalScrollBar();
-		int pos = vertical.getValue()+pageCount*SISDISPLACE* this.getStepHeight();
+		int pos = vertical.getValue()+pageCount*SISDISPLACE* this.dy();
 		if (pos<0) pos = 0;
 		if (pos>vertical.getMaximum()) pos = vertical.getMaximum();
 		vertical.setValue(pos);
 		repaint();
 	}
-	
-	private int drawTaktLineIfNeeded(int curCislic, int curZnamen, Graphics g, int xIndent, int yIndent) {
-		if (curCislic >= stan.getPhantom().numerator * 8) { // потому что у нас шажок 1/8 когда меняем размер такта
-	    	curCislic %= stan.getPhantom().numerator * 8;
-	        g.setColor(Color.BLACK);
-	        if (curCislic > 0) {
-	            g.setColor(Color.BLUE);
-	        }
-	        g.drawLine(xIndent + this.getStepWidth() * 2, yIndent - this.getStepHeight() * 5, xIndent + this.getStepWidth() * 2, yIndent + this.getStepHeight() * 20);
-	        g.setColor(Color.decode("0x00A13E"));
-	        g.drawString(taktCount + "", xIndent + this.getStepWidth(), yIndent - this.getStepHeight() * 9);
-	
-	        ++taktCount;
-		}
-		return curCislic;
-	}
-
-	public SheetMusic requestNewSurface() {
-		this.surfaceChanged = true;
-		this.parentWindow.keyHandler.requestNewSurface();
-		return this;
-	}
-
-	public void requestNewSurfaceForEachChild() {
-		for (Staff staff: this.getStaffList()) {
-			staff.requestNewSurfaceForEachChild();
-		}
-	}
 
 	// getters/setters
 
 	public ArrayList<Staff> getStaffList() {
-		ArrayList staveList = (ArrayList)this.staffList.clone();
-		staveList.add(this.stan);
-		return staveList;
+		return this.staffList;
 	}
 
 	public Staff getFocusedStaff() {
@@ -248,7 +221,7 @@ final public class SheetMusic extends JPanel {
 	}
 
 	public int getStepInOneSystemCount() {
-		return (int)Math.floor(this.getWidth() / this.getStepWidth() - 2 * this.MARGIN_H);
+		return (int)Math.floor(this.getWidth() / this.dx() - 2 * this.MARGIN_H);
 	}
 
 	// TODO: use from Settings
@@ -261,22 +234,22 @@ final public class SheetMusic extends JPanel {
 		return Settings.inst().getNotaHeight();
 	}
 
-	public int getStepWidth() {
+	public int dx() {
 		return Settings.inst().getStepWidth();
 	}
 
-	public int getStepHeight() {
+	public int dy() {
 		return Settings.inst().getStepHeight();
 	}
 
 	// Until here
 
 	public int getMarginX() {
-		return (int)Math.round(MARGIN_H * this.getStepWidth());
+		return (int)Math.round(MARGIN_H * this.dx());
 	}
 
 	public int getMarginY() {
-		return (int)Math.round(MARGIN_V * this.getStepHeight());
+		return (int)Math.round(MARGIN_V * this.dy());
 	}
 }
 

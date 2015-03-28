@@ -12,8 +12,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import Midi.DeviceEbun;
 import Model.Staff;
-import Musica.PlayMusThread;
-import Model.Accord.Nota.Nota;
 import Model.StaffHandler;
 import Tools.FileProcessor;
 import java.util.LinkedList;
@@ -31,7 +29,7 @@ public class KeyEventHandler implements KeyListener {
 
 	public KeyEventHandler(SheetMusic albert, JFrame parent) {
 		this.sheet = albert;
-		this.staff = albert.stan;
+		this.staff = albert.getFocusedStaff();
 		this.parent = parent;
 
 		chooserSave.setFileFilter(new FileNameExtensionFilter(
@@ -67,7 +65,6 @@ public class KeyEventHandler implements KeyListener {
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		Accord curAccord = this.sheet.getFocusedStaff().getFocusedAccord();
 		int rVal;
 
 		// new SheetHandler(this.sheet).handleKey(e);
@@ -75,16 +72,6 @@ public class KeyEventHandler implements KeyListener {
 		
 		if (((e.getModifiers() & KeyEvent.CTRL_MASK) != 0) && ((e.getModifiers() & KeyEvent.ALT_MASK) == 0)) {
 			switch (e.getKeyCode()) {
-				case 'z':case 'Z':case 'Я':case 'я':
-	//				System.out.println("Вы нажали контрол-З");
-	//				staff.retrieveLast();
-	//				this.sheet.repaint();
-	//				break;
-				case 'y':case 'Y':case 'Н':case 'н':
-	//				System.out.println("Вы нажали контрол-У");
-	//				staff.detrieveNotu();
-	//				this.sheet.repaint();
-	//				break;
 				case 's':case 'S':case 'Ы':case 'ы':
 					JFileChooser c = chooserSave;
 					rVal = c.showSaveDialog(parent);

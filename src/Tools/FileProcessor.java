@@ -41,7 +41,7 @@ public class FileProcessor {
 	public static int saveJsonFile( File f, Staff stan ) {
 		try {
 			JSONObject js = new JSONObject("{}");
-			js.put("stanExternalRepresentation", stan.getExternalRepresentation());
+			js.put("stanExternalRepresentation", stan.getJsonRepresentation());
 			try {
 				PrintWriter out = new PrintWriter(f);
 				out.println(js.toString(2));

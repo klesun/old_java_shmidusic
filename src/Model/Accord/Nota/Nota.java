@@ -7,8 +7,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.LinkedHashMap;
 
 import javax.imageio.ImageIO;
@@ -16,15 +14,12 @@ import javax.imageio.ImageIO;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import Gui.Constants;
 import Gui.Settings;
 import Gui.SheetMusic;
+import Model.AbstractModel;
 import Model.StaffConfig.StaffConfig;
 import Model.Staff;
-import Model.Staff;
-import static Musica.PlayMusThread.playNotu;
 import Tools.Fp;
-import Tools.IModel;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -32,12 +27,12 @@ import java.awt.Image;
 import java.awt.Graphics;
 import java.util.List;
 
-final public class Nota implements IModel { // TODO: this temporary interface was invented to ease moving Accord storage from Nota	
-	// TODO: store time Nota was pressed and released into file maybe? Just becuse we can!
+public class Nota extends AbstractModel {
+	
+// TODO: store time Nota was pressed and released into file maybe? Just becuse we can!
 	public static int time = 0;
 	
 	public int length = 1;	
-	public Nota accord; // TODO: eliminate
 	
 	public int tune;
 	public int channel = 0;
@@ -46,23 +41,12 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 	public int numerator = 16;
 	public int tupletDenominator = 1;
 
-	public int forca;
 	public int keydownTimestamp;
 
-	public Accord parentAccord = null;
-	public Boolean surfaceChanged = true;
-	private BufferedImage surface = null;
-
-	// deprecated
-	public Nota() {
-		this.setTune(63);
-		this.forca = 127;
+	public Nota(Accord parent) {
+		super(parent);
 	}
 
-	public Nota(Accord accord) {
-		this();
-	}
-	
 	private static String normalizeString(String str, int desiredLength) {
 		return String.format("%1$-" + desiredLength + "s", str);
 	}
@@ -73,13 +57,13 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 				normalizeString(channel+"", 2);
 	}
 	
-//	@Override
-//	public String toString() {
-//		String result = "аккорд:\n";
-//		result += "\t" + this.getInfoString() + "\n";
-//	    String s = "nota: "+tune+"; pos: "+getAcademicIndex()+"; okt: "+getOctava()+"; "+strTune(this.getAcademicIndex());
-//	    return result;
-//	}
+	@Override
+	public String toString() {
+		String result = "аккорд:\n";
+		result += "\t" + this.getInfoString() + "\n";
+	    String s = "nota: "+tune+"; pos: "+getAcademicIndex()+"; okt: "+getOctava()+"; "+strTune(this.getAcademicIndex());
+	    return result;
+	}
 	
 	@Override
 	public int hashCode() {
@@ -129,7 +113,6 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 			}
 			++n;
 		}
-		this.requestNewSurface();
 	}
 
 	public Boolean isLongerThan(Nota rival) {
@@ -195,43 +178,27 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 	        }
 	    }
 	}
-	
-	public BufferedImage getImage(Boolean isFocused) {
-		if (this.surfaceChanged) {
-			this.recalcSurface(isFocused);
-			this.surfaceChanged = false;
-		}
-		return this.surface;
-	}
 
-	private void recalcSurface(Boolean isFocused) {
-		this.surface = new BufferedImage(this.getWidth(), this.getHeight() + 5, BufferedImage.TYPE_INT_ARGB);
-		Graphics surface = this.surface.getGraphics();
+	@Override
+	public void drawOn(Graphics surface, int x, int y) {
 		surface.setColor(Color.BLACK);
 
-		// TODO: sharp is drawn on same lineage as flat lol
 		if (this.isEbony()) {
-			surface.drawImage(isSharp ? getSheet().getSharpImage() : getSheet().getFlatImage(), getSheet().getStepWidth() / 2, 3 * getSheet().getStepHeight() +2, null);
+			surface.drawImage(isSharp ? getSheet().getSharpImage() : getSheet().getFlatImage(), x + getSheet().dx() / 2, y + 3 * getSheet().dy() +2, null);
 		}
 
 		int idx = (int)(Math.ceil(7 - Math.log(numerator) / Math.log(2) ));
 		BufferedImage tmpImg = channel > -1 ? coloredNotas[channel][idx] : notaImg[idx];
 
-		surface.drawImage(tmpImg, getNotaImgX(), 0, null);
+		surface.drawImage(tmpImg, x + getNotaImgRelX(), y, null);
 
-		if (this.tupletDenominator != 1) { for (int i = 0; i < 3; ++i) { surface.drawLine(getStickX(), i, getStickX() -6, i); } }
-		if (this.numerator % 3 == 0) surface.fillOval(Settings.inst().getStepWidth() + getWidth()*2/5, getHeight()*7/8, getHeight()/8, getHeight()/8);
-	}
-
-	public Nota requestNewSurface() {
-		this.surfaceChanged = true;
-		parentAccord.requestNewSurface();
-		return this;
+		if (this.tupletDenominator != 1) { for (int i = 0; i < 3; ++i) { surface.drawLine(x + getStickX(), y + i, x + getStickX() -6, y + i); } }
+		if (this.numerator % 3 == 0) surface.fillOval(x + Settings.inst().getStepWidth() + getWidth()*2/5, y + getHeight()*7/8, getHeight()/8, getHeight()/8);
 	}
 
 	// getters/setters
 	
-	public LinkedHashMap<String, Object> getObjectState() {
+	public LinkedHashMap<String, Object> getJsonRepresentation() {
 		LinkedHashMap<String, Object> dict = new LinkedHashMap<String, Object>();
 		dict.put("tune", this.tune);
 		dict.put("numerator", this.numerator);
@@ -242,7 +209,7 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 		return dict;
 	}
 
-	public Nota setObjectStateFromJson(JSONObject jsObject) throws JSONException {
+	public Nota reconstructFromJson(JSONObject jsObject) throws JSONException {
 		this.tune = jsObject.getInt("tune");
 		this.numerator = jsObject.getInt("numerator");
 		this.channel = jsObject.getInt("channel");
@@ -257,11 +224,11 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 		// TODO: use it in Accord.getWidth()
 //		int width = (int)Math.ceil( slog.length() * Constants.FONT_WIDTH / (Constants.STEP_H * 2) );
 //		if (width < 1) width = 1;
-		return this.parentAccord.parentStaff.parentSheetMusic.getNotaWidth() * 2;
+		return this.getParentAccord().getParentStaff().parentSheetMusic.getNotaWidth() * 2;
 	}
 
 	public int getHeight() {
-		return this.parentAccord.parentStaff.parentSheetMusic.getNotaHeight();
+		return this.getParentAccord().getParentStaff().parentSheetMusic.getNotaHeight();
 	}
 
 	public int getOctava() {
@@ -304,17 +271,17 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 		return result;
 	}
 
-	public int getNotaImgX() {
+	public int getNotaImgRelX() {
 		return this.getWidth() / 2;
 	}
 
 	public int getStickX() {
-		return this.getNotaImgX() + getSheet().getStepWidth() / 2;
+		return this.getNotaImgRelX() + getSheet().dx() / 2;
 	}
 
 	public int getTimeMiliseconds() {
 		int minute = 60 * 1000;
-		StaffConfig config = parentAccord.parentStaff.getPhantom();
+		StaffConfig config = getParentAccord().getParentStaff().getPhantom();
 		return minute * 4 / Staff.DEFAULT_ZNAM / config.valueTempo * getNumerator() / getDenominator();
 		// 4 - будем брать четвертную как основную
 	}
@@ -323,11 +290,16 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 		if (this.tune == 36) {
 			return 0; // пауза лол какбэ
 		} else {
-			return (byte)(this.forca * parentAccord.parentStaff.getPhantom().valueVolume);
+			// TODO: maybe could make basses louder?
+			return (byte)(127 * getParentAccord().getParentStaff().getPhantom().valueVolume);
 		}
 	}
 
 	// field getters/setters
+
+	public Accord getParentAccord() {
+		return (Accord)this.getParent();
+	}
 
 	public int getNumerator() {
 		return this.numerator;
@@ -343,13 +315,11 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 
 	public Nota setTupletDenominator(int value) {
 		this.tupletDenominator = value;
-		this.requestNewSurface();
 		return this;
 	}
 
 	public Nota setChannel(int channel) {
 		this.channel = channel;
-		this.surfaceChanged = true;
 		return this;
 	}
 
@@ -365,14 +335,13 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 
 	public Nota triggerIsSharp() {
 		this.isSharp = !this.isSharp;
-		this.requestNewSurface();
 		return this;
 	}
 
 	// private methods
 
 	private SheetMusic getSheet() {
-		return this.parentAccord.parentStaff.parentSheetMusic;
+		return this.getParentAccord().getParentStaff().parentSheetMusic;
 	}
 			
 	// private static methods
@@ -447,5 +416,25 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 			if (arr[i] == n) return true;
 		}
 		return false;
+	}
+
+	@Override
+	public List<? extends AbstractModel> getChildList() {
+		return new ArrayList<>();
+	}
+
+	@Override
+	public AbstractModel getFocusedChild() {
+		return null;
+	}
+
+	@Override
+	protected Boolean undoFinal() {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	protected Boolean redoFinal() {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 }

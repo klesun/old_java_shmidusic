@@ -4,7 +4,7 @@ import Model.Accord.Nota.Nota;
 import Gui.SheetMusic;
 import Midi.DeviceEbun;
 import Model.Staff;
-import Tools.IModel;
+import Model.IModel;
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
@@ -32,12 +32,8 @@ public class StaffConfig implements IModel {
 		numerator = 8;
 	}
 
-	public void requestNewSurface() {
-		parentStaff.requestNewSurface();
-	}
-
 	public BufferedImage getImage() {
-		SheetMusic sheet = this.parentStaff.parentSheetMusic;
+		SheetMusic sheet = this.getParentStaff().parentSheetMusic;
 		int w = sheet.getNotaWidth() * 5;
 		int h = sheet.getNotaHeight() * 6;
 		BufferedImage rez = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
@@ -79,7 +75,7 @@ public class StaffConfig implements IModel {
 	}
 
 	@Override
-	public LinkedHashMap<String, Object> getObjectState() {
+	public LinkedHashMap<String, Object> getJsonRepresentation() {
 		LinkedHashMap<String, Object> dict = new LinkedHashMap<String, Object>();
 		dict.put("tempo", this.valueTempo);
 		dict.put("volume", this.valueVolume);
@@ -90,7 +86,7 @@ public class StaffConfig implements IModel {
 	}
 
 	@Override
-	public StaffConfig setObjectStateFromJson(JSONObject jsObject) throws JSONException {
+	public StaffConfig reconstructFromJson(JSONObject jsObject) throws JSONException {
 		this.valueTempo = jsObject.getInt("tempo");
 		this.valueVolume = jsObject.getDouble("volume");
 		this.valueInstrument = jsObject.getInt("instrument");
@@ -101,9 +97,15 @@ public class StaffConfig implements IModel {
 
 	public StaffConfig update(StaffConfig rival) throws JSONException {
 		JSONObject js = new JSONObject("{}"); 
-		js = new JSONObject(js.put("lol", rival.getObjectState()).get("lol").toString());
-		this.setObjectStateFromJson(js);
+		js = new JSONObject(js.put("lol", rival.getJsonRepresentation()).get("lol").toString());
+		this.reconstructFromJson(js);
 		return this;
+	}
+
+	// field getters
+	
+	public Staff getParentStaff() {
+		return this.parentStaff;
 	}
 
 	public enum WhatToChange {

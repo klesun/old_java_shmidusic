@@ -6,24 +6,20 @@ package Model;
 import Model.StaffConfig.StaffConfig;
 import Gui.Settings;
 import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.List;
 
 import Gui.SheetMusic;
 import Model.Accord.Accord;
 import Model.Accord.Nota.Nota;
-import Midi.DeviceEbun;
 import Musica.PlayMusThread;
-import Tools.IModel;
+import java.util.LinkedHashMap;
 
-import javax.sound.midi.InvalidMidiDataException;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Staff {
+public class Staff implements IModel {
 	public byte channelFlags = -1;
 	int sessionId = (int)(Math.random() * Integer.MAX_VALUE);
 	
@@ -74,7 +70,7 @@ public class Staff {
 	public void addPressed(int tune, int forca, int timestamp) {
 		if (forca == 0) { // key up
 			if (unclosed[tune] == null) return;
-			Nota closer = new Nota().setTune(tune).setKeydownTimestamp(timestamp);
+			Nota closer = new Nota(null).setTune(tune).setKeydownTimestamp(timestamp);
 			--closerCount;
 			unclosed[tune].length = (int)(closer.keydownTimestamp - unclosed[tune].keydownTimestamp);
 		} else {
@@ -157,34 +153,35 @@ public class Staff {
 		if (channel > 7 || channel < 0) return false;
 		return (channelFlags & (1 << channel)) > 0;
 	}
-	
-	public Dictionary<String, Object> getExternalRepresentation() {
-		Dictionary<String, Object> dict = new Hashtable<String, Object>();
-		dict.put("childList", this.getChildList().stream().map(p -> p.getObjectState()).toArray());
+
+	@Override
+	public LinkedHashMap<String, Object> getJsonRepresentation() {
+		LinkedHashMap<String, Object> dict = new LinkedHashMap<>();
+		dict.put("staffConfig", this.getPhantom().getJsonRepresentation());
+		dict.put("accordList", this.getAccordList().stream().map(p -> p.getJsonRepresentation()).toArray());
 		
 		return dict;
 	}
 	
-	public int reconstructFromJson(JSONObject jsObject) throws JSONException {
+	@Override
+	public Staff reconstructFromJson(JSONObject jsObject) throws JSONException {
 		this.clearStan();
-		JSONArray childJsonList = jsObject.getJSONArray("childList");
-		this.getPhantom().update(new StaffConfig(this).setObjectStateFromJson(childJsonList.getJSONObject(0))); // TODO: it is so lame, but i spent hours to save all these files in this format
-		for (int idx = 1; idx < childJsonList.length(); ++idx) { // TODO: store Phantom as dict field, not list value
-			JSONObject childJs = childJsonList.getJSONObject(idx);
-			this.add(new Accord(this).setObjectStateFromJson(childJs));
+		JSONArray accordJsonList;
+		if (jsObject.has("childList")) { // TODO: deprecated. Run some script on all files, i won't manually resave all of them
+			accordJsonList = jsObject.getJSONArray("childList");
+			this.getPhantom().update(new StaffConfig(this).reconstructFromJson(accordJsonList.getJSONObject(0))); // TODO: it is so lame, but i spent hours to save all these files in this format
+			accordJsonList.remove(0);
+		} else {
+			accordJsonList = jsObject.getJSONArray("accordList");
+			JSONObject configJson = jsObject.getJSONObject("staffConfig");
+			this.getPhantom().update(new StaffConfig(this).reconstructFromJson(configJson));
 		}
-		return 0;
-	}
-
-	public void requestNewSurface() {
-		this.parentSheetMusic.requestNewSurface();
-	}
-
-	public void requestNewSurfaceForEachChild() {
-		this.getPhantom().requestNewSurface();
-		for (Accord accord: this.getAccordList()) {
-			accord.requestNewSurfaceForEachChild();
+		for (int idx = 0; idx < accordJsonList.length(); ++idx) {
+			JSONObject childJs = accordJsonList.getJSONObject(idx);
+			this.add(new Accord(this).reconstructFromJson(childJs));
 		}
+		
+		return this;
 	}
 
 	public Boolean moveFocus(int n) {
@@ -222,7 +219,7 @@ public class Staff {
 	}
 	
 	public ArrayList<IModel> getChildList() {
-		ArrayList childList = this.getAccordList();
+		ArrayList childList = this.getAccordList(); // Он передаёт ссылку ССЫЛКУ БЛЕАДЬ! Это не ебучий ПХП. Как страшно жить. ССЫЛКА. ЕБУЧАЯ ССЫЛКА
 		childList.add(0, this.getPhantom());
 		return childList;
 	}
@@ -249,7 +246,6 @@ public class Staff {
 		value = value < -1 ? -1 : value;
 		value = value >= getAccordList().size() ? getAccordList().size() - 1 : value;
 		this.focusedIndex = value;
-		this.requestNewSurface();
 		return this;
 	}
 }

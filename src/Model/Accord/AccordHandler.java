@@ -18,6 +18,17 @@ public class AccordHandler {
 		this.init();
 	}
 
+	public Boolean handleKey(KeyEvent e) {
+		List<Integer> key = Arrays.asList(e.getModifiers(), e.getKeyCode());
+		if (handleEvent.containsKey(key)) {
+			Consumer<KeyEvent> handle = handleEvent.get(key);
+			handle.accept(e);
+			getContext().getParentStaff().parentSheetMusic.parentWindow.keyHandler.requestNewSurface();
+			return true;
+		}
+		return false;
+	}
+
 	private void init() {
 		this.handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_T), (event) -> {
 			getContext().triggerTuplets(3); // TODO: do something, so if child event handled - parent no need
@@ -55,7 +66,7 @@ public class AccordHandler {
 			String slog = getContext().getSlog();
 			if (slog.length() < 2) {
 				if (slog.length() == 0) {
-					getContext().parentStaff.moveFocus(-1);
+					getContext().getParentStaff().moveFocus(-1);
 				}
 				getContext().setSlog("");
 			} else {
@@ -86,17 +97,6 @@ public class AccordHandler {
 				this.handleEvent.put(Arrays.asList(0, i), handlePressChar);
 			}
 		}
-	}
-
-	public Boolean handleKey(KeyEvent e) {
-		
-		List<Integer> key = Arrays.asList(e.getModifiers(), e.getKeyCode());
-		if (handleEvent.containsKey(key)) {
-			Consumer<KeyEvent> handle = handleEvent.get(key);
-			handle.accept(e);
-			return true;
-		}
-		return false;
 	}
 
 	public Accord getContext() {

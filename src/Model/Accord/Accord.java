@@ -12,107 +12,75 @@ import org.json.JSONObject;
 
 import Gui.Constants;
 import Gui.Settings;
-import Model.Staff;
-import Gui.SheetMusic;
+import Model.AbstractModel;
 import Model.Accord.Nota.Nota;
 import Model.Staff;
 import Tools.Fp;
-import Tools.IModel;
+import Model.IModel;
 import java.util.Arrays;
 import java.util.List;
 
-public class Accord implements IModel {
-
-	public Staff parentStaff = null;
+public class Accord extends AbstractModel {
 
 	ArrayList<Nota> notaList = new ArrayList<Nota>();
 	String slog = "";
 
+	public Staff parentStaff = null;
 	int focusedIndex = -1;
-	BufferedImage surface = null;
-	Boolean surfaceChanged = true;
 
-	// TODO: deprecated
-	public Accord prev = null;
-	public Accord next = null;
-
-	public Accord(Staff parentStaff) {
-		this.parentStaff = parentStaff;
+	public Accord(Staff parent) {
+		super(parent);
 	}
 
 	public Accord add(Nota nota) {
 		this.notaList.add(nota);
-		nota.parentAccord = this;
-		requestNewSurface();
 		return this;
 	}
 
 	@Override
 	// TODO: maybe instead of LinkedHashMap use JSONArray from the very begining?
-	public LinkedHashMap<String, Object> getObjectState() {
+	public LinkedHashMap<String, Object> getJsonRepresentation() {
 		LinkedHashMap<String, Object> dict = new LinkedHashMap<>();
-		dict.put("notaList", this.notaList.stream().map(n -> n.getObjectState()).toArray());
+		dict.put("notaList", this.notaList.stream().map(n -> n.getJsonRepresentation()).toArray());
 		dict.put("slog", this.slog);
 		return dict;
 	}
 
 	@Override
-	public Accord setObjectStateFromJson(JSONObject jsObject) throws JSONException {
+	public Accord reconstructFromJson(JSONObject jsObject) throws JSONException {
 		this.slog = jsObject.getString("slog");
 		JSONArray notaJsonList = jsObject.getJSONArray("notaList");
 		for (int idx = 0; idx < notaJsonList.length(); ++idx) {
 			JSONObject childJs = notaJsonList.getJSONObject(idx);
-			this.add((new Nota(this)).setObjectStateFromJson(childJs));
+			this.add((new Nota(this)).reconstructFromJson(childJs));
 		}
 
 		return this;
 	}
-
-	public BufferedImage getImage() {
-		if (this.surfaceChanged) {
-			this.recalcSurface();
-			this.surfaceChanged = false;
-		}
-		return this.surface;
-	}
  
-	private void recalcSurface() {
-		this.surface = new BufferedImage(this.getWidth(), this.getHeight() + 5, BufferedImage.TYPE_INT_ARGB);
-		Graphics surface = this.surface.getGraphics();
+	@Override
+	public void drawOn(Graphics surface, int x, int y) {
 		surface.setColor(Color.blue);
 
-		if (getHighest().isBotommedToFitSystem()) { surface.drawString("8va", 0, 0 - 4 * parentStaff.parentSheetMusic.getStepHeight()); }
+		if (getHighest().isBotommedToFitSystem()) { surface.drawString("8va", x, y - 4 * getParentStaff().parentSheetMusic.dy()); }
 		surface.setColor(Color.black);
 		
 		Boolean oneOctavaLower = this.getHighest().isBotommedToFitSystem();
 		for (Nota nota: getNotaList()) {
-			int notaY = getLowestPossibleNotaY() - Settings.getStepHeight() * nota.getAbsoluteAcademicIndex();
-			notaY += oneOctavaLower ? 7 * parentStaff.parentSheetMusic.getStepHeight() : 0;
-			surface.drawImage(nota.getImage(this.getFocusedNota() == nota), 0, notaY, null);
+			int notaY = y + getLowestPossibleNotaRelativeY() - Settings.getStepHeight() * nota.getAbsoluteAcademicIndex();
+			notaY += oneOctavaLower ? 7 * getParentStaff().parentSheetMusic.dy() : 0;
+			nota.drawOn(surface, x, notaY);
 			if (nota.isStriked() != oneOctavaLower) {
-				List<Integer> p = Fp.vectorSum(nota.getTraitCoordinates(), Arrays.asList(0, notaY, 0, notaY));
+				List<Integer> p = Fp.vectorSum(nota.getTraitCoordinates(), Arrays.asList(x, notaY, x, notaY));
 				surface.drawLine(p.get(0), p.get(1), p.get(2), p.get(3)); 
 			}
 			if (nota == this.getFocusedNota()) {
 				List<Integer> p = nota.getAncorPoint();
 				int r = Settings.inst().getStepHeight();
-				surface.fillOval(p.get(0) + r * 2, notaY + p.get(1) - r, r * 2, r * 2);
+				surface.fillOval(x + p.get(0) + r * 2, notaY + p.get(1) - r, r * 2, r * 2);
 			}
 		}
-
-		surface.drawString(this.getSlog(), 0, 0 + Constants.FONT_HEIGHT);
-	}
-
-	public Accord requestNewSurface() {
-		this.surfaceChanged = true;
-		parentStaff.requestNewSurface();
-		return this;
-	}
-	
-	public void requestNewSurfaceForEachChild() {
-		for (Nota nota: this.getNotaList()) {
-			nota.requestNewSurface();
-		}
+		surface.drawString(this.getSlog(), x, y + Constants.FONT_HEIGHT);
 	}
 
 	// responsees to events (actions)
@@ -135,11 +103,6 @@ public class Accord implements IModel {
 		}
 	}
 
-	public void changeLength(int n) {
-		// TODO: -_-
-		requestNewSurface();
-	}
-
 	// getters/setters
 
 	public int getWidth() {
@@ -154,7 +117,7 @@ public class Accord implements IModel {
 	}
 
 	public int getHeight() {
-		return this.getLowestPossibleNotaY();
+		return this.getLowestPossibleNotaRelativeY();
 	}
 
 	public ArrayList<Nota> getNotaList() {
@@ -177,11 +140,15 @@ public class Accord implements IModel {
 		return getFocusedIndex() > -1 ? this.getNotaList().get(getFocusedIndex()) : null;
 	}
 
-	public int getLowestPossibleNotaY () {
-		return 50 * parentStaff.parentSheetMusic.getStepHeight();
+	public int getLowestPossibleNotaRelativeY () {
+		return 50 * getParentStaff().parentSheetMusic.dy();
 	}
 
 	// field getters/setters
+
+	public Staff getParentStaff() {
+		return (Staff)this.getParent();
+	}
 	
 	public String getSlog() {
 		return this.slog;
@@ -189,7 +156,6 @@ public class Accord implements IModel {
 
 	public Accord setSlog(String value) {
 		this.slog = value;
-		requestNewSurface();
 		return this;
 	}
 
@@ -201,7 +167,26 @@ public class Accord implements IModel {
 		value = value >= this.getNotaList().size() ? this.getNotaList().size() - 1 : value;
 		value = value < -1 ? -1 : value;
 		this.focusedIndex = value;
-		requestNewSurface();
 		return this;
+	}
+
+	@Override
+	public List<? extends AbstractModel> getChildList() {
+		return this.getNotaList();
+	}
+
+	@Override
+	public AbstractModel getFocusedChild() {
+		return this.getFocusedNota();
+	}
+
+	@Override
+	protected Boolean undoFinal() {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	protected Boolean redoFinal() {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 }
