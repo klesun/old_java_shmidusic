@@ -25,7 +25,7 @@ public class AccordHandler {
 		this.handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_DOWN), (event) -> {
 			getContext().moveFocus(+1);
 		});
-		this.handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_T), (event) -> {
+		this.handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_UP), (event) -> {
 			getContext().moveFocus(-1);
 		});
 

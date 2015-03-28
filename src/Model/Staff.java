@@ -33,8 +33,6 @@ public class Staff {
 	Nota unclosed[] = new Nota[256];
 	final public static int ACCORD_EPSILON = 50; // in milliseconds
 	
-	public static int tempo = 120;
-	public static int instrument = 0;
 	public static double volume = 0.5;
 	
 	public enum aMode {
@@ -49,31 +47,21 @@ public class Staff {
 	} 
 	public aMode mode;
 	
-	public boolean bassKey, vioKey2, bassKey2;
-	
-	public int noshuCount = 0;
-	
 	public SheetMusic parentSheetMusic;
-	public int to4kaOt4eta = 66; // какой позиции соответствует нижняя до скрипичного ключа
 	
 	public StaffConfig phantomka = null;
 	public Accord firstDeleted = new Accord(this);
 	public Accord lastDeleted = firstDeleted;
 
 	private ArrayList<Accord> accordList = new ArrayList<>();
-	private int focusedIndex = -1;
+	public int focusedIndex = -1;
 
 	int closerCount = 0;
 	
 	public Staff(SheetMusic sheet){
 		this.parentSheetMusic = sheet;
 		
-		bassKey = true;
-		vioKey2 = false;
-		bassKey2 = false;
-		
 		this.phantomka = new StaffConfig(this);
-		this.checkValues(this.phantomka);
 				
 		mode = aMode.insert;
 	}
@@ -142,16 +130,6 @@ public class Staff {
 //		}
 //	}
 	
-	public Staff delNotu() {
-	    if (this.getFocusedAccord() != null) { 
-			this.getAccordList().remove(this.focusedIndex--); 
-		} else {
-			// TODO: i think this check should better be in event handler
-			this.moveFocus(1);
-		}
-		return this;
-	}
-	
 	public int changeMode(){
 	    if (mode == aMode.insert) mode = aMode.passive;
 	    else mode = aMode.insert;
@@ -167,28 +145,6 @@ public class Staff {
 	
 	private void out(String str) {
 		System.out.println(str);
-	}
-	
-	// TODO: stan should store current Phantom and these values should be getting from there directly, NO DENORMALIZING
-	public void checkValues(StaffConfig rak) {
-	    int cislic = rak.numerator, znamen=rak.znamen, tempo = rak.valueTempo; double volume = rak.valueVolume; int instrument = rak.valueInstrument;
-	    if (cislic!=this.cislic || znamen!=DEFAULT_ZNAM || tempo!=Staff.tempo || volume!=this.volume) {
-	        // Всё равно ж перерисовывать надо будет
-	        int k = DEFAULT_ZNAM / znamen;
-	        this.cislic = cislic*k;
-	        this.tempo = tempo;
-	        this.volume = volume;
-			setInstrument(instrument);
-	    }
-	}
-	
-	private void setInstrument(int instrument) {
-		if (instrument != this.instrument) {
-			try {
-				DeviceEbun.changeInstrument(instrument);
-				this.instrument = instrument;
-			} catch (InvalidMidiDataException e) { System.out.println("Сука инструмент менять нихуя не получается"); }
-		}
 	}
 	
 	public int changeChannelFlag(int channel) {
@@ -222,6 +178,13 @@ public class Staff {
 
 	public void requestNewSurface() {
 		this.parentSheetMusic.requestNewSurface();
+	}
+
+	public void requestNewSurfaceForEachChild() {
+		this.getPhantom().requestNewSurface();
+		for (Accord accord: this.getAccordList()) {
+			accord.requestNewSurfaceForEachChild();
+		}
 	}
 
 	public Boolean moveFocus(int n) {

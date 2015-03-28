@@ -19,7 +19,7 @@ public class Main {
 
 		while (true) {
 			try {
-				Thread.sleep(40);
+				Thread.sleep(20);
 				app.keyHandler.handleFrameTimer();
 			} catch (InterruptedException exc) { System.out.println("Кто разбудил мой трэд?!"); }
 		}

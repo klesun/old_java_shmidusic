@@ -19,19 +19,19 @@ public class Settings {
 		if (this.scaleKoefficient < -3) { this.scaleKoefficient = -3; };
 	}
 
-	public int getNotaWidth() {
-		return SheetMusic.NORMAL_WIDTH + 5 * this.scaleKoefficient;
+	public static int getNotaWidth() {
+		return SheetMusic.NORMAL_WIDTH + 5 * inst().scaleKoefficient;
 	}
 
-	public int getNotaHeight() {
-		return SheetMusic.NORMAL_HEIGHT + 8 * this.scaleKoefficient;
+	public static int getNotaHeight() {
+		return SheetMusic.NORMAL_HEIGHT + 8 * inst().scaleKoefficient;
 	}
 
-	public int getStepWidth() {
-		return this.getNotaWidth();
+	public static int getStepWidth() {
+		return inst().getNotaWidth();
 	}
 
-	public int getStepHeight() {
-		return this.getNotaHeight() / 8;
+	public static int getStepHeight() {
+		return inst().getNotaHeight() / 8;
 	}
 }

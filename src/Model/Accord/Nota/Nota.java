@@ -102,7 +102,7 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 		return true;
 	}
 	
-	// TODO: broken and bad name
+	// TODO: broken and bad name and gay
 	public void changeDur(int n) {
 
 		if (numerator == Staff.DEFAULT_ZNAM*2) {
@@ -269,7 +269,11 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 	}
 
 	public int getAcademicIndex() {
-		return Nota.tuneToAcademicIndex(this.tune);
+		int idx = Nota.tuneToAcademicIndex(this.tune);
+		if (isEbony() && isSharp) {
+			idx -= 1;
+		}
+		return idx;
 	}
 
 	public Boolean isEbony() {
@@ -281,10 +285,12 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 	public Boolean isBotommedToFitSystem() { // 8va
 		return this.getOctava() > 6;
 	}
-
-	// TODO: from accord
+	
+	public int getAbsoluteAcademicIndex() {
+		return getAcademicIndex() + getOctava() * 7;
+	}
 	public Boolean isStriked() {
-		return this.getAcademicIndex() % 2 == 1;
+		return getAbsoluteAcademicIndex() % 2 == 1;
 	}
 
 	public List<Integer> getAncorPoint() {
@@ -311,6 +317,14 @@ final public class Nota implements IModel { // TODO: this temporary interface wa
 		StaffConfig config = parentAccord.parentStaff.getPhantom();
 		return minute * 4 / Staff.DEFAULT_ZNAM / config.valueTempo * getNumerator() / getDenominator();
 		// 4 - будем брать четвертную как основную
+	}
+
+	public byte getVolume() {
+		if (this.tune == 36) {
+			return 0; // пауза лол какбэ
+		} else {
+			return (byte)(this.forca * parentAccord.parentStaff.getPhantom().valueVolume);
+		}
 	}
 
 	// field getters/setters

@@ -86,11 +86,10 @@ public class Accord implements IModel {
 		
 		Boolean oneOctavaLower = this.getHighest().isBotommedToFitSystem();
 		for (Nota nota: getNotaList()) {
-			// TODO: draw some arrow near focused nota
-			int notaY = this.getLowestPossibleNotaY() - parentStaff.parentSheetMusic.getStepHeight() * (nota.getAcademicIndex() + nota.getOctava() * 7);
+			int notaY = getLowestPossibleNotaY() - Settings.getStepHeight() * nota.getAbsoluteAcademicIndex();
 			notaY += oneOctavaLower ? 7 * parentStaff.parentSheetMusic.getStepHeight() : 0;
 			surface.drawImage(nota.getImage(this.getFocusedNota() == nota), 0, notaY, null);
-			if (oneOctavaLower ^ nota.isStriked()) {
+			if (nota.isStriked() != oneOctavaLower) {
 				List<Integer> p = Fp.vectorSum(nota.getTraitCoordinates(), Arrays.asList(0, notaY, 0, notaY));
 				surface.drawLine(p.get(0), p.get(1), p.get(2), p.get(3)); 
 			}
@@ -110,6 +109,12 @@ public class Accord implements IModel {
 		return this;
 	}
 	
+	public void requestNewSurfaceForEachChild() {
+		for (Nota nota: this.getNotaList()) {
+			nota.requestNewSurface();
+		}
+	}
+
 	// responsees to events (actions)
 	
 	public void triggerTuplets(int denominator) {

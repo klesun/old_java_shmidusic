@@ -93,12 +93,7 @@ public class KeyEventHandler implements KeyListener {
 						if (!fn.getAbsolutePath().endsWith(".json")) {
 							fn = new File(fn + ".json");
 						}
-
-						// FileProcessor.saveKlsnFile(fn);
-						File jsFile = new File(fn.toString().substring(0,
-								(int) (fn.toString().length() - 4))
-								+ "json");
-						FileProcessor.saveJsonFile(jsFile, staff);
+						FileProcessor.saveJsonFile(fn, staff);
 					}
 					break;
 				case 'j':case 'J':case 'о':case 'О':

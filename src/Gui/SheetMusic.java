@@ -77,34 +77,38 @@ final public class SheetMusic extends JPanel {
 			g.fillRect(0,0,this.getWidth(),this.getHeight());
 			g.setColor(Color.BLUE);
 
-			int gPos = this.getMarginX() + 4 * this.getStepWidth() -2 * this.getStepWidth();
+			int gPos = this.getMarginX() + 2 * this.getStepWidth();
 
 			taktCount = 1;
 			int curCislic = 0;
 			int curZnamen = 1;
 
 			drawPhantom(stave.getPhantom(), g, gPos, highestLineY);
-			gPos += 2* this.getStepWidth();
+			gPos += this.getStepWidth();
 
 			int i = 0;
 			for (List<Accord> row: stave.getAccordRowList()) {
-				// Переходим на новую октаву
-				g.drawImage(vseKartinki[1], this.getStepWidth(), 11 * this.getStepHeight() + highestLineY +2 + i * SISDISPLACE * getStepHeight(), this);
-				g.drawImage(vseKartinki[0], this.getStepWidth(), highestLineY + i * SISDISPLACE * getStepHeight() -3 * this.getStepHeight(), this);
+				int y = highestLineY + i * SISDISPLACE * getStepHeight(); // bottommest y nota may be drawn on
+				g.drawImage(vseKartinki[1], this.getStepWidth(), 11 * this.getStepHeight() + y, this);
+				g.drawImage(vseKartinki[0], this.getStepWidth(), y -3 * this.getStepHeight(), this);
+				g.setColor(Color.BLUE);
 				for (int j = 0; j < 11; ++j){
 					if (j == 5) continue;
-					g.drawLine(this.getMarginX(), highestLineY + i * SISDISPLACE * getStepHeight() + j* this.getStepHeight() *2, this.getWidth() - this.getMarginX()*2, highestLineY + i * SISDISPLACE * getStepHeight() + j* this.getStepHeight() *2);
+					g.drawLine(this.getMarginX(), y + j* this.getStepHeight() *2, this.getWidth() - this.getMarginX()*2, y + j* this.getStepHeight() *2);
 				}
 
 				int j = 0;
 				for (Accord accord: row) {
-					if (getFocusedStaff().getFocusedAccord() == accord) { g.drawImage(this.getPointerImage(), gPos + j * (2 * this.getStepWidth()) + getStepWidth(), highestLineY + i * SISDISPLACE * getStepHeight() - this.getStepHeight() *14, this ); }
+					int x = gPos + j * (2 * this.getStepWidth());
+					if (getFocusedStaff().getFocusedAccord() == accord) { 
+						g.drawImage(this.getPointerImage(), x + getStepWidth(), y - this.getStepHeight() *14, this ); 
+					}
 
 					if (accord.getNotaList().size() > 0) {
 
 						curCislic += accord.getShortest().getNumerator();
-						curCislic = drawTaktLineIfNeeded(curCislic, curZnamen, g, gPos + j * (2 * this.getStepWidth()), highestLineY + i * SISDISPLACE * getStepHeight());
-						g.drawImage(accord.getImage(), gPos + j * (2 * this.getStepWidth()), highestLineY + i * SISDISPLACE * getStepHeight() - 12 * getStepHeight(), this);
+						curCislic = drawTaktLineIfNeeded(curCislic, curZnamen, g, x, y);
+						g.drawImage(accord.getImage(), x, y - 12 * getStepHeight(), this);
 					}
 					++j;
 				}
@@ -121,10 +125,12 @@ final public class SheetMusic extends JPanel {
 	
 	public void changeScale(int n) {
 		Settings.inst().changeScale(n);
-		refresh();
+		refreshImageSizes();
+		this.requestNewSurfaceForEachChild();
 	}
 	
-	public void refresh() {
+	// TODO: store (and refresh) images in Settings maybe
+	public void refreshImageSizes() {
 	    for (int i = 0; i < vseKartinki.length; ++i ) { // >_<
 	        vseKartinki[i] = changeSize(i);
 	    }
@@ -184,8 +190,8 @@ final public class SheetMusic extends JPanel {
 	}
 	
 	private int drawTaktLineIfNeeded(int curCislic, int curZnamen, Graphics g, int xIndent, int yIndent) {
-		if (curCislic >= stan.cislic) {
-	    	curCislic %= stan.cislic;
+		if (curCislic >= stan.getPhantom().numerator * 8) { // потому что у нас шажок 1/8 когда меняем размер такта
+	    	curCislic %= stan.getPhantom().numerator * 8;
 	        g.setColor(Color.BLACK);
 	        if (curCislic > 0) {
 	            g.setColor(Color.BLUE);
@@ -203,6 +209,12 @@ final public class SheetMusic extends JPanel {
 		this.surfaceChanged = true;
 		this.parentWindow.keyHandler.requestNewSurface();
 		return this;
+	}
+
+	public void requestNewSurfaceForEachChild() {
+		for (Staff staff: this.getStaffList()) {
+			staff.requestNewSurfaceForEachChild();
+		}
 	}
 
 	// getters/setters

@@ -12,7 +12,7 @@ import Model.StaffHandler;
 import java.util.ArrayList;
 
 public class PlayMusThread extends Thread {
-    public static OneShotThread[] openNotes = new OneShotThread[192];
+    public static OneShotThread[] openNotas = new OneShotThread[192];
 
 	boolean stop = false;
     Receiver sintReceiver = DeviceEbun.sintReceiver;
@@ -45,34 +45,25 @@ public class PlayMusThread extends Thread {
     	eventHandler.getContext().mode = tmpMode;
     }
 
-	public static int playAccord(Accord accord)
+	public static void playAccord(Accord accord)
 	{
-		return playAccordDivided(accord, 1);
-	}
-
-    public static int playAccordDivided(Accord accord, int divi) {
-		int minute = 60 * 1000;
-    	int time = Short.MAX_VALUE;
     	for (Nota tmp: accord.getNotaList()) {
-			// убрать костыль нахуй! стан не должен появляться у этого объекта абы когда
-    		if ((stan == null) || stan.getChannelFlag(tmp.channel)) playNotu(tmp, divi);
-    		time = Math.min( time, (short)( minute*tmp.numerator/Staff.DEFAULT_ZNAM*4/Staff.tempo / divi ) );
-    		// 4 - будем брать четвертную как основную, 60 - потому что темпо измеряется в ударах в минуту, а у нас секунды (вообще, даже, миллисекунды)
-    	}
-    	return time;
-    	
+    		if (accord.parentStaff.getChannelFlag(tmp.channel)) {
+				playNotu(tmp);
+			}
+    	}    	
     }
     
-    public static int playNotu(Nota nota, int divi){
+    public static int playNotu(Nota nota){
         int tune = nota.tune;
-        if (openNotes[tune] != null) {
-            openNotes[tune].interrupt();
-            try {openNotes[tune].join();} catch (Exception e) {System.out.println("Не дождались");}
-            openNotes[tune] = null;
+        if (openNotas[tune] != null) {
+            openNotas[tune].interrupt();
+            try {openNotas[tune].join();} catch (Exception e) {System.out.println("Не дождались");}
+            openNotas[tune] = null;
         }
-    	OneShotThread thr = new OneShotThread(nota, divi);
-        openNotes[tune] = thr;
-        kri4alki.add(openNotes[tune]);
+    	OneShotThread thr = new OneShotThread(nota);
+        openNotas[tune] = thr;
+        kri4alki.add(openNotas[tune]);
     	thr.start();
     	return 0;
     }
