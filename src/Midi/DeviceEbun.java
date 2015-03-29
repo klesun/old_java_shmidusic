@@ -107,6 +107,20 @@ public class DeviceEbun {
 		ShortMessage instrMess = new ShortMessage();
 		instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, CHANNEL, instrument, 0);
 		sintReceiver.send(instrMess, -1);
+		
+		// debug
+		instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, 1, 48, 0);
+		sintReceiver.send(instrMess, -1);
+		instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, 2, 19, 0);
+		sintReceiver.send(instrMess, -1);
+		instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, 3, 55, 0);
+		sintReceiver.send(instrMess, -1);
+		instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, 4, 52, 0);
+		sintReceiver.send(instrMess, -1);
+		instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, 5, 91, 0);
+		sintReceiver.send(instrMess, -1);
+		instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, 6, 127, 0);
+		sintReceiver.send(instrMess, -1);
 	}
 
     private static void out(String strMessage) {

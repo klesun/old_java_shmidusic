@@ -12,6 +12,9 @@ import Gui.SheetMusic;
 import Model.Accord.Accord;
 import Model.Accord.Nota.Nota;
 import Musica.PlayMusThread;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import java.util.LinkedHashMap;
 
 
@@ -72,7 +75,7 @@ public class Staff implements IModel {
 			if (unclosed[tune] == null) return;
 			Nota closer = new Nota(null).setTune(tune).setKeydownTimestamp(timestamp);
 			--closerCount;
-			unclosed[tune].length = (int)(closer.keydownTimestamp - unclosed[tune].keydownTimestamp);
+			unclosed[tune].length = closer.keydownTimestamp - unclosed[tune].keydownTimestamp;
 		} else {
 			if (mode == aMode.passive || mode == aMode.playin) {
 				// Показать, какую ноту ты нажимаешь
@@ -125,6 +128,70 @@ public class Staff implements IModel {
 //			out("Воскресшей ноты на стане нет");
 //		}
 //	}
+
+	public void drawOn(Graphics g, int baseX, int baseY) {
+
+		int taktCount = 1;
+		int curCislic = 0;
+
+		drawPhantom(getPhantom(), g, baseX, baseY);
+		baseX += dx();
+
+		int i = 0;
+		for (List<Accord> row: getAccordRowList()) {
+			int y = baseY + i * SheetMusic.SISDISPLACE * dy(); // bottommest y nota may be drawn on
+			g.drawImage(getViolinKeyImage(), this.dx(), y -3 * dy(), parentSheetMusic);
+			g.drawImage(getBassKeyImage(), this.dx(), 11 * dy() + y, parentSheetMusic);
+			g.setColor(Color.BLUE);
+			for (int j = 0; j < 11; ++j){
+				if (j == 5) continue;
+				g.drawLine(parentSheetMusic.getMarginX(), y + j* this.dy() *2, getWidth() - parentSheetMusic.getMarginX()*2, y + j* dy() *2);
+			}
+
+			int j = 0;
+			for (Accord accord: row) {
+				int x = baseX + j * (2 * dx());
+				if (getFocusedAccord() == accord) { 
+					g.drawImage(getPointerImage(), x + dx(), y - this.dy() *14, parentSheetMusic); 
+				}
+
+				if (accord.getNotaList().size() > 0) {
+
+					curCislic += accord.getShortest().getNumerator();	
+					if (curCislic >= getPhantom().numerator * 8) { // потому что у нас шажок 1/8 когда меняем размер такта
+						curCislic %= getPhantom().numerator * 8;
+						g.setColor(curCislic > 0 ? Color.BLUE : Color.BLACK);
+						g.drawLine(x + dx() * 2, y - dy() * 5, x + dx() * 2, y + dy() * 20);
+						g.setColor(Color.decode("0x00A13E"));
+						g.drawString(taktCount + "", x + dx() * 2, y - dy() * 6);
+
+						++taktCount;
+					}
+
+					accord.drawOn(g, x, y - 12 * dy());
+				}
+				++j;
+			}
+			++i;
+		}
+	}
+	
+	// TODO: move into StaffConfig class... some day
+	private void drawPhantom(StaffConfig phantomka, Graphics g, int xIndent, int yIndent) {
+		int dX = parentSheetMusic.getNotaWidth()/5, dY = parentSheetMusic.getNotaHeight()*2;
+		g.drawImage(phantomka.getImage(), xIndent - dX, yIndent - dY, parentSheetMusic);
+		int deltaY = 0, deltaX = 0;
+		switch (phantomka.changeMe) {
+			case numerator:	deltaY += 9 * this.dy(); break;
+			case tempo: deltaY -= 1 * this.dy(); break;
+			case instrument: deltaY += 4 * this.dy(); deltaX += this.dx() / 4; break;
+			case volume: deltaY += 24 * this.dy(); break;
+			default: break;
+		}
+		if (phantomka.getParentStaff().getFocusedAccord() == null) {
+			g.drawImage(getPointerImage(), xIndent - 7*parentSheetMusic.getNotaWidth()/25 + deltaX, yIndent - this.dy() * 14 + deltaY, parentSheetMusic);	
+		}
+	}
 	
 	public int changeMode(){
 	    if (mode == aMode.insert) mode = aMode.passive;
@@ -217,19 +284,33 @@ public class Staff implements IModel {
 		if (resultList.isEmpty()) { resultList.add(new ArrayList<>()); }		
 		return resultList;
 	}
-	
-	public ArrayList<IModel> getChildList() {
-		ArrayList childList = this.getAccordList(); // Он передаёт ссылку ССЫЛКУ БЛЕАДЬ! Это не ебучий ПХП. Как страшно жить. ССЫЛКА. ЕБУЧАЯ ССЫЛКА
-		childList.add(0, this.getPhantom());
-		return childList;
-	}
 
 	public int getWidth() {
 		return parentSheetMusic.getWidth() - parentSheetMusic.MARGIN_H * 2;
 	}
 
 	public int getNotaInRowCount() {
-		return this.getWidth() / (Settings.inst().getNotaWidth() * 2) - 3; // - 3 because violin key and phantom
+		return this.getWidth() / (Settings.getNotaWidth() * 2) - 3; // - 3 because violin key and phantom
+	}
+
+	public int dx() {
+		return Settings.getStepWidth();
+	}
+
+	public int dy() {
+		return Settings.getStepHeight();
+	}
+
+	public BufferedImage getViolinKeyImage() {
+		return SheetMusic.vseKartinki[0];
+	}
+
+	public BufferedImage getBassKeyImage() {
+		return SheetMusic.vseKartinki[1];
+	}
+
+	public BufferedImage getPointerImage() {
+		return SheetMusic.vseKartinki[3];
 	}
 
 	// field getters/setters

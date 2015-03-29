@@ -1,7 +1,6 @@
 package Tools;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +14,7 @@ public class Fp {
 	}
 
 	public static List<Integer> vectorSum(List<Integer> vector1, List<Integer> vector2) {
-		ArrayList<Integer> resultVector = new ArrayList<Integer>();
+		ArrayList<Integer> resultVector = new ArrayList<>();
 		for (int i = 0; i < vector1.size(); ++i) {
 			resultVector.add(vector1.get(i) + vector2.get(i));
 		}

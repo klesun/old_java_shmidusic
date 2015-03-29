@@ -81,9 +81,7 @@ public class Nota extends AbstractModel {
 		if (getClass() != obj.getClass())
 			return false;
 		Nota other = (Nota) obj;
-		if (tune != other.tune)
-			return false;
-		return true;
+		return tune == other.tune;
 	}
 	
 	// TODO: broken and bad name and gay
@@ -119,7 +117,6 @@ public class Nota extends AbstractModel {
 		return this.getNumerator() * rival.getDenominator() > rival.getNumerator() * this.getDenominator(); 
 	}
 	
-	private static Boolean bufInited = false;
 	public static BufferedImage notaImg0[] = new BufferedImage[8];
 	public static BufferedImage notaImg[] = new BufferedImage[8];
 	public static BufferedImage[] notaImageFocused = new BufferedImage[8];
@@ -128,7 +125,7 @@ public class Nota extends AbstractModel {
 	public static void bufInit(SheetMusic sheet) {
 		File notRes[] = new File[8];
 	    for (int idx = -1; idx<7; ++idx){
-	    	String str = "imgs/" + pow(2, idx) + "_sized.png";
+	    	String str = "../imgs/" + pow(2, idx) + "_sized.png";
 	    	notRes[idx+1] = new File(str);
 	    }
 	    System.out.println("Working Directory = " +
@@ -170,7 +167,7 @@ public class Nota extends AbstractModel {
 	        for (int idx = 0; idx < 8; ++idx) {
 	        	coloredNotas[chan][idx] = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
 	            g = coloredNotas[chan][idx].createGraphics();
-	            g.setColor(calcColor(chan));
+	            g.setColor(getColorByChannel(chan));
 	            g.fillRect(0, 0, sheet.getNotaWidth(), sheet.getNotaHeight());
 	            g.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN, 1.0f));
 	            g.drawImage(notaImg[idx], 0, 0, w1, h1, null);
@@ -193,13 +190,14 @@ public class Nota extends AbstractModel {
 		surface.drawImage(tmpImg, x + getNotaImgRelX(), y, null);
 
 		if (this.tupletDenominator != 1) { for (int i = 0; i < 3; ++i) { surface.drawLine(x + getStickX(), y + i, x + getStickX() -6, y + i); } }
-		if (this.numerator % 3 == 0) surface.fillOval(x + Settings.inst().getStepWidth() + getWidth()*2/5, y + getHeight()*7/8, getHeight()/8, getHeight()/8);
+		if (this.numerator % 3 == 0) surface.fillOval(x + Settings.getStepWidth() + getWidth()*2/5, y + getHeight()*7/8, getHeight()/8, getHeight()/8);
 	}
 
 	// getters/setters
 	
+	@Override
 	public LinkedHashMap<String, Object> getJsonRepresentation() {
-		LinkedHashMap<String, Object> dict = new LinkedHashMap<String, Object>();
+		LinkedHashMap<String, Object> dict = new LinkedHashMap<>();
 		dict.put("tune", this.tune);
 		dict.put("numerator", this.numerator);
 		dict.put("channel", this.channel);
@@ -209,6 +207,7 @@ public class Nota extends AbstractModel {
 		return dict;
 	}
 
+	@Override
 	public Nota reconstructFromJson(JSONObject jsObject) throws JSONException {
 		this.tune = jsObject.getInt("tune");
 		this.numerator = jsObject.getInt("numerator");
@@ -261,7 +260,7 @@ public class Nota extends AbstractModel {
 	}
 
 	public List<Integer> getAncorPoint() {
-		return Arrays.asList(getWidth()*16/25, Settings.inst().getStepHeight() * 7);
+		return Arrays.asList(getWidth()*16/25, Settings.getStepHeight() * 7);
 	}
 
 	public List<Integer> getTraitCoordinates() {
@@ -353,7 +352,7 @@ public class Nota extends AbstractModel {
 		return n*pow(n, k-1);
 	}
 
-	private static Color calcColor(int n) {
+	public static Color getColorByChannel(int n) {
 		return	n == 0 ? new Color(0,0,0) : // black
 				n == 1 ? new Color(255,0,0) : // red
 				n == 2 ? new Color(0,192,0) : // green

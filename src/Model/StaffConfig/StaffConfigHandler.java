@@ -1,7 +1,6 @@
 
 package Model.StaffConfig;
 
-import Musica.PlayMusThread;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -23,28 +22,28 @@ public class StaffConfigHandler {
 		if (handleEvent == null) {
 			handleEvent = new LinkedHashMap<>();
 
-			this.handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_DOWN), (event) -> {
+			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_DOWN), (event) -> {
 				getContext().chooseNextParam();
 			});
-			this.handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_UP), (event) -> {
+			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_UP), (event) -> {
 				// this.sheet.getFocusedStaff().getPhantom().choosePrevParam();
 			});
 
-			this.handleEvent.put(Arrays.asList(0, KeyEvent.VK_ADD), (event) -> {
+			handleEvent.put(Arrays.asList(0, KeyEvent.VK_ADD), (event) -> {
 				getContext().changeValue(1);
 			});
-			this.handleEvent.put(Arrays.asList(0, KeyEvent.VK_SUBTRACT), (event) -> {
+			handleEvent.put(Arrays.asList(0, KeyEvent.VK_SUBTRACT), (event) -> {
 				getContext().changeValue(-1);
 			});
-			this.handleEvent.put(Arrays.asList(0, KeyEvent.VK_BACK_SPACE), (event) -> {
+			handleEvent.put(Arrays.asList(0, KeyEvent.VK_BACK_SPACE), (event) -> {
 				getContext().backspace();
 			});
 
 			Consumer<KeyEvent> writeNumber = (e) -> {
 				getContext().tryToWrite(e.getKeyChar());
 			};
-			for (int i = KeyEvent.VK_0; i <= KeyEvent.VK_9; ++i) { this.handleEvent.put(Arrays.asList(0, i), writeNumber); };
-			for (int i = KeyEvent.VK_NUMPAD0; i <= KeyEvent.VK_NUMPAD9; ++i) { this.handleEvent.put(Arrays.asList(0, i), writeNumber); };
+			for (int i = KeyEvent.VK_0; i <= KeyEvent.VK_9; ++i) { handleEvent.put(Arrays.asList(0, i), writeNumber); };
+			for (int i = KeyEvent.VK_NUMPAD0; i <= KeyEvent.VK_NUMPAD9; ++i) { handleEvent.put(Arrays.asList(0, i), writeNumber); };
 		}
 	}
 

@@ -33,12 +33,14 @@ public class PlayMusThread extends Thread {
 		eventHandler.getContext().moveFocus(0);
 		int accordsLeft = eventHandler.getContext().getAccordList().size() - eventHandler.getContext().getFocusedIndex() - 1;
     	for (int i = 0; i <= accordsLeft && DeviceEbun.stop == false; ++i) {
-			KeyEvent generatedEvent = new KeyEvent(eventHandler.getContext().parentSheetMusic, 0, 0, 0, KeyEvent.VK_RIGHT, 'h'); // держалки держать не будет
+			KeyEvent generatedEvent = new KeyEvent(eventHandler.getContext().parentSheetMusic, 0, 0, KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT, 'h'); // держалки держать не будет
 			eventHandler.handleKey(generatedEvent);
             if (eventHandler.getContext().getFocusedAccord() != null) {
 				time = eventHandler.getContext().getFocusedAccord().getShortest().getTimeMiliseconds();
 				try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна"+e); }
-			}	
+			}
+			eventHandler.getContext().parentSheetMusic.repaint(); // some hack, cause i wanna it to be precise with sound
+			eventHandler.getContext().parentSheetMusic.parentWindow.keyHandler.shouldRepaint = false;
         }
         DeviceEbun.stop = true;
     	eventHandler.getContext().parentSheetMusic.checkCam();

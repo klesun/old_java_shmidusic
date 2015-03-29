@@ -27,7 +27,7 @@ final public class SheetMusic extends JPanel {
 	public int MARGIN_V = 15; // Сколько отступов сделать сверху перед рисованием полосочек // TODO: move it into Constants class maybe? // eliminate it nahuj maybe?
 	public int MARGIN_H = 1; // TODO: move it into Constants class maybe?
 	int maxy = 0;
-	int SISDISPLACE = 40;
+	final public static int SISDISPLACE = 40;
 	
 	public static BufferedImage[] vseKartinki = new BufferedImage[7]; // TODO: поменять этот уродский массив на ключ-значение // Гузно у тебя уродское
 	public static BufferedImage[] vseKartinki0 = new BufferedImage[7];
@@ -44,13 +44,13 @@ final public class SheetMusic extends JPanel {
 		this.parentWindow = parent;
 
 	    System.out.println(getClass().getResource("../").getPath());
-	    try {	vseKartinki[0] = ImageIO.read(new File("imgs/vio_sized.png"));
-				vseKartinki[1] = ImageIO.read(new File("imgs/bass_sized.png"));
-				vseKartinki[2] = ImageIO.read(new File("imgs/flat_sized.png"));
-				vseKartinki[6] = ImageIO.read(new File("imgs/sharp_sized.png")); // -_-
-				vseKartinki[3] = ImageIO.read(new File("imgs/MyPointer.png"));
-				vseKartinki[4] = ImageIO.read(new File("imgs/volume.png"));
-				vseKartinki[5] = ImageIO.read(new File("imgs/instrument.png"));
+	    try {	vseKartinki[0] = ImageIO.read(new File("../imgs/vio_sized.png"));
+				vseKartinki[1] = ImageIO.read(new File("../imgs/bass_sized.png"));
+				vseKartinki[2] = ImageIO.read(new File("../imgs/flat_sized.png"));
+				vseKartinki[6] = ImageIO.read(new File("../imgs/sharp_sized.png")); // -_-
+				vseKartinki[3] = ImageIO.read(new File("../imgs/MyPointer.png"));
+				vseKartinki[4] = ImageIO.read(new File("../imgs/volume.png"));
+				vseKartinki[5] = ImageIO.read(new File("../imgs/instrument.png"));
 	    } catch (IOException e) { e.printStackTrace(); System.out.println("Темнишь что-то со своей картинкой..."); }
 	    for (int i = 0; i < vseKartinki.length; ++i ) {
 	        vseKartinki0[i] = vseKartinki[i];
@@ -74,56 +74,11 @@ final public class SheetMusic extends JPanel {
 		int gPos = this.getMarginX() + 3 * this.dx();
 		
 		for (Staff stave: this.getStaffList()) {
-			//stave.getImage();
-
-			int taktCount = 1;
-			int curCislic = 0;
-
-			drawPhantom(stave.getPhantom(), g, gPos - dx(), highestLineY);
-
-			int i = 0;
-			for (List<Accord> row: stave.getAccordRowList()) {
-				int y = highestLineY + i * SISDISPLACE * dy(); // bottommest y nota may be drawn on
-				g.drawImage(vseKartinki[1], this.dx(), 11 * dy() + y, this);
-				g.drawImage(vseKartinki[0], this.dx(), y -3 * dy(), this);
-				g.setColor(Color.BLUE);
-				for (int j = 0; j < 11; ++j){
-					if (j == 5) continue;
-					g.drawLine(this.getMarginX(), y + j* this.dy() *2, getWidth() - this.getMarginX()*2, y + j* dy() *2);
-				}
-
-				int j = 0;
-				for (Accord accord: row) {
-					int x = gPos + j * (2 * dx());
-					if (getFocusedStaff().getFocusedAccord() == accord) { 
-						g.drawImage(this.getPointerImage(), x + dx(), y - this.dy() *14, this ); 
-					}
-
-					if (accord.getNotaList().size() > 0) {
-
-						curCislic += accord.getShortest().getNumerator();	
-						if (curCislic >= getFocusedStaff().getPhantom().numerator * 8) { // потому что у нас шажок 1/8 когда меняем размер такта
-							curCislic %= getFocusedStaff().getPhantom().numerator * 8;
-							g.setColor(curCislic > 0 ? Color.BLUE : Color.BLACK);
-							g.drawLine(x + dx() * 2, y - dy() * 5, x + dx() * 2, y + dy() * 20);
-							g.setColor(Color.decode("0x00A13E"));
-							g.drawString(taktCount + "", x + dx(), y - dy() * 9);
-
-							++taktCount;
-						}
-						
-						accord.drawOn(g, x, y - 12 * dy());
-					}
-					++j;
-				}
-				++i;
-			}
-			
-			// TODO: maybe move it to checkCam() and call checkCam before repaint() ???
-			this.setPreferredSize(new Dimension(this.getWidth() - 20, this.getTotalRowCount() * SISDISPLACE * this.dy()));	//	Needed for the scroll bars to appear
-
+			stave.drawOn(g, gPos - dx(), highestLineY);
 		}
-		this.surfaceChanged = false;
+
+		// TODO: maybe move it to checkCam() and call checkCam before repaint() ???
+		this.setPreferredSize(new Dimension(this.getWidth() - 20, this.getTotalRowCount() * SISDISPLACE * this.dy()));	//	Needed for the scroll bars to appear
 		this.revalidate();	//	Needed to recalc the scroll bars
 	}
 	
@@ -156,22 +111,6 @@ final public class SheetMusic extends JPanel {
 	    g.drawImage(scaledImage, 0, 0, w1, h1, null);
 	    g.dispose();
 	    return tmp;
-	}
-	
-	private void drawPhantom(StaffConfig phantomka, Graphics g, int xIndent, int yIndent) {
-		int dX = this.getNotaWidth()/5, dY = this.getNotaHeight()*2;
-		g.drawImage(phantomka.getImage(), xIndent - dX, yIndent - dY, this);
-		int deltaY = 0, deltaX = 0;
-		switch (phantomka.changeMe) {
-			case numerator:	deltaY += 9 * this.dy(); break;
-			case tempo: deltaY -= 1 * this.dy(); break;
-			case instrument: deltaY += 4 * this.dy(); deltaX += this.dx() / 4; break;
-			case volume: deltaY += 24 * this.dy(); break;
-			default: break;
-		}
-		if (phantomka.getParentStaff().getFocusedAccord() == null) {
-			g.drawImage(this.getPointerImage(), xIndent - 7*this.getNotaWidth()/25 + deltaX, yIndent - this.dy() * 14 + deltaY, this);	
-		}
 	}
 
 	public int getFocusedSystemY() {
@@ -208,16 +147,12 @@ final public class SheetMusic extends JPanel {
 		return this;
 	}
 
-	public BufferedImage getPointerImage() {
-		return this.vseKartinki[3];
-	}
-
 	public BufferedImage getFlatImage() {
-		return this.vseKartinki[2];
+		return vseKartinki[2];
 	}
 
 	public BufferedImage getSharpImage() {
-		return this.vseKartinki[6];
+		return vseKartinki[6];
 	}
 
 	public int getStepInOneSystemCount() {
@@ -227,29 +162,29 @@ final public class SheetMusic extends JPanel {
 	// TODO: use from Settings
 
 	public int getNotaWidth() {
-		return Settings.inst().getNotaWidth();
+		return Settings.getNotaWidth();
 	}
 
 	public int getNotaHeight() {
-		return Settings.inst().getNotaHeight();
+		return Settings.getNotaHeight();
 	}
 
 	public int dx() {
-		return Settings.inst().getStepWidth();
+		return Settings.getStepWidth();
 	}
 
 	public int dy() {
-		return Settings.inst().getStepHeight();
+		return Settings.getStepHeight();
 	}
 
 	// Until here
 
 	public int getMarginX() {
-		return (int)Math.round(MARGIN_H * this.dx());
+		return Math.round(MARGIN_H * this.dx());
 	}
 
 	public int getMarginY() {
-		return (int)Math.round(MARGIN_V * this.dy());
+		return Math.round(MARGIN_V * this.dy());
 	}
 }
 

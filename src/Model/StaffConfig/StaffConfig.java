@@ -5,6 +5,7 @@ import Gui.SheetMusic;
 import Midi.DeviceEbun;
 import Model.Staff;
 import Model.IModel;
+import static Model.Staff.CHANNEL;
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
@@ -12,6 +13,8 @@ import java.awt.*;
 import java.util.LinkedHashMap;
 
 import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.ShortMessage;
+import org.json.JSONArray;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,12 +27,12 @@ public class StaffConfig implements IModel {
 	public int valueInstrument = 0;
 	public double valueVolume = 0.5;
 	public int numerator = 8;
-	public int znamen = Staff.DEFAULT_ZNAM;
+	public int znamen = 8;
+
+	private int[] instrumentArray = {0, 48, 55, 16, 19, 52, 6, 91, 9, 14};
 
 	public StaffConfig(Staff staff) {
 		this.parentStaff = staff;
-		znamen = 8;
-		numerator = 8;
 	}
 
 	public BufferedImage getImage() {
@@ -80,7 +83,8 @@ public class StaffConfig implements IModel {
 		dict.put("tempo", this.valueTempo);
 		dict.put("volume", this.valueVolume);
 		dict.put("instrument", this.valueInstrument);
-		dict.put("denominator", this.znamen);
+		dict.put("numerator", this.numerator);
+		dict.put("instrumentArray", this.instrumentArray);
 
 		return dict;
 	}
@@ -90,7 +94,13 @@ public class StaffConfig implements IModel {
 		this.valueTempo = jsObject.getInt("tempo");
 		this.valueVolume = jsObject.getDouble("volume");
 		this.valueInstrument = jsObject.getInt("instrument");
-		this.znamen = jsObject.getInt("denominator");
+		if (jsObject.has("numerator")) { // TODO: [deprecated], it should be always true
+			this.numerator = jsObject.getInt("numerator");
+		}
+		if (jsObject.has("instrumentArray")) { // TODO: [deprecated], it should be always true one day
+			JSONArray jsArray = jsObject.getJSONArray("instrumentArray");
+			for (int i = 0; i < 10; ++i) { this.instrumentArray[i] = jsArray.getInt(i); }
+		}
 
 		return this;
 	}
@@ -107,6 +117,22 @@ public class StaffConfig implements IModel {
 	public Staff getParentStaff() {
 		return this.parentStaff;
 	}
+
+	public int[] getInstrumentArray() {
+		return this.instrumentArray;
+	}
+
+	public void syncSyntChannels() {
+		ShortMessage instrMess = new ShortMessage();
+		try {
+			for (int i = 0; i < 10; ++i) {
+				instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, i, this.instrumentArray[i], 0);
+				DeviceEbun.sintReceiver.send(instrMess, -1);
+			}
+		} catch (InvalidMidiDataException exc) { System.out.println("Midi error, could not sync channle instruments!"); }
+	}
+
+	// staff
 
 	public enum WhatToChange {
 		numerator,

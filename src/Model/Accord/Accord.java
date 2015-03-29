@@ -62,11 +62,11 @@ public class Accord extends AbstractModel {
 	public void drawOn(Graphics surface, int x, int y) {
 		surface.setColor(Color.blue);
 
-		if (getHighest().isBotommedToFitSystem()) { surface.drawString("8va", x, y - 4 * getParentStaff().parentSheetMusic.dy()); }
+		if (getHighest().isBotommedToFitSystem()) { surface.drawString("8va", x, y + 4 * getParentStaff().parentSheetMusic.dy()); }
 		surface.setColor(Color.black);
 		
 		Boolean oneOctavaLower = this.getHighest().isBotommedToFitSystem();
-		for (Nota nota: getNotaList()) {
+		getNotaList().stream().forEach((nota) -> {
 			int notaY = y + getLowestPossibleNotaRelativeY() - Settings.getStepHeight() * nota.getAbsoluteAcademicIndex();
 			notaY += oneOctavaLower ? 7 * getParentStaff().parentSheetMusic.dy() : 0;
 			nota.drawOn(surface, x, notaY);
@@ -76,10 +76,10 @@ public class Accord extends AbstractModel {
 			}
 			if (nota == this.getFocusedNota()) {
 				List<Integer> p = nota.getAncorPoint();
-				int r = Settings.inst().getStepHeight();
+				int r = Settings.getStepHeight();
 				surface.fillOval(x + p.get(0) + r * 2, notaY + p.get(1) - r, r * 2, r * 2);
 			}
-		}
+		});
 		surface.drawString(this.getSlog(), x, y + Constants.FONT_HEIGHT);
 	}
 
@@ -89,9 +89,9 @@ public class Accord extends AbstractModel {
 		if (getFocusedNota() != null) {
 			getFocusedNota().setTupletDenominator(getFocusedNota().getTupletDenominator() == 1 ? denominator : 1);
 		} else {
-			for (Nota nota: this.getNotaList()) {
+			this.getNotaList().stream().forEach((nota) -> {
 				nota.setTupletDenominator(nota.getTupletDenominator() == 1 ? denominator : 1);
-			}
+			});
 		}
 	}
 

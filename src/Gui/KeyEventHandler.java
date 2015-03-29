@@ -25,7 +25,7 @@ public class KeyEventHandler implements KeyListener {
 	final Staff staff;
 	JFrame parent;
 
-	LinkedList<int[]> midiEventQueue = new LinkedList();
+	LinkedList<int[]> midiEventQueue = new LinkedList<>();
 
 	public KeyEventHandler(SheetMusic albert, JFrame parent) {
 		this.sheet = albert;
@@ -49,7 +49,7 @@ public class KeyEventHandler implements KeyListener {
 		this.midiEventQueue.add(new int[]{tune, forca, timestamp});
 	}
 
-	public void handleFrameTimer() {
+	synchronized public void handleFrameTimer() {
 		int[] midiRecord;
 		while ((midiRecord = this.midiEventQueue.poll()) != null) {
 			this.staff.addPressed(midiRecord[0], midiRecord[1], midiRecord[2]);

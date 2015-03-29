@@ -88,8 +88,8 @@ public class AccordHandler {
 				getContext().setFocusedIndex(cifra);
 			}
 		};
-		for (int i = KeyEvent.VK_0; i <= KeyEvent.VK_9; ++i) { this.handleEvent.put(Arrays.asList(0, i), handlePressNumber); };
-		for (int i = KeyEvent.VK_NUMPAD0; i <= KeyEvent.VK_NUMPAD9; ++i) { this.handleEvent.put(Arrays.asList(0, i), handlePressNumber); };
+		for (int i = KeyEvent.VK_0; i <= KeyEvent.VK_9; ++i) { this.handleEvent.put(Arrays.asList(0, i), handlePressNumber); }
+		for (int i = KeyEvent.VK_NUMPAD0; i <= KeyEvent.VK_NUMPAD9; ++i) { this.handleEvent.put(Arrays.asList(0, i), handlePressNumber); }
 
 		Consumer<KeyEvent> handlePressChar = (e) -> { getContext().setSlog(getContext().getSlog().concat("" + e.getKeyChar())); };
 		for (int i = KeyEvent.VK_COMMA; i <= KeyEvent.VK_DIVIDE; ++i) {

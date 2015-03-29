@@ -3,13 +3,17 @@ package Model;
 import Midi.DeviceEbun;
 import Midi.MidiCommon;
 import Model.Accord.AccordHandler;
+import Model.Accord.Nota.Nota;
 import Model.StaffConfig.StaffConfigHandler;
 import Musica.PlayMusThread;
+import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Consumer;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 
 public class StaffHandler {
 	
@@ -26,7 +30,7 @@ public class StaffHandler {
 			handleEvent = new LinkedHashMap<>();
 			
 			// It may not work when we have multiple staffs, i don't know how java lambdas work
-			this.handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_P), (event) -> {
+			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_P), (event) -> {
 				if (DeviceEbun.stop) {
 					DeviceEbun.stop = false;
 					(new PlayMusThread(this)).start();
@@ -34,20 +38,20 @@ public class StaffHandler {
 					DeviceEbun.stopMusic();
 				}
 			});
-			this.handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_D), (event) -> {
+			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_D), (event) -> {
 				MidiCommon.listDevicesAndExit(false, true, false);
 				DeviceEbun.changeOutDevice();
 			});
-			this.handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_0), (event) -> {
+			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_0), (event) -> {
 				getContext().changeMode(); // i broken java lol. I can call instance methods from static.
 			});
-			this.handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_Z), (event) -> {
+			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_Z), (event) -> {
 //				getContext().undo(); // TODO: do ctrl-Z for child - if success - break, else do ctrl-z for parent
 			});
-			this.handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_Y), (event) -> {
+			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_Y), (event) -> {
 //				getContext().redo();
 			});
-			this.handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT), (event) -> {
+			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT), (event) -> {
 				getContext().moveFocus(1);
 				// stan.drawPanel.checkCam();
 			});
@@ -58,52 +62,65 @@ public class StaffHandler {
 					getContext().changeChannelFlag(cod - '0');
 				}
 			};
-			for (int i = KeyEvent.VK_0; i <= KeyEvent.VK_9; ++i) { this.handleEvent.put(Arrays.asList(KeyEvent.ALT_MASK, i), handleMuteChannel); }
+			for (int i = KeyEvent.VK_0; i <= KeyEvent.VK_9; ++i) { handleEvent.put(Arrays.asList(KeyEvent.ALT_MASK, i), handleMuteChannel); }
 
-			this.handleEvent.put(Arrays.asList(0, KeyEvent.VK_RIGHT), (event) -> {
+			handleEvent.put(Arrays.asList(0, KeyEvent.VK_RIGHT), (event) -> {
 				PlayMusThread.shutTheFuckUp();
 				getContext().moveFocus(1);
 				// stan.drawPanel.checkCam();
 			});
-			this.handleEvent.put(Arrays.asList(0, KeyEvent.VK_LEFT), (event) -> {
+			handleEvent.put(Arrays.asList(0, KeyEvent.VK_LEFT), (event) -> {
 				PlayMusThread.shutTheFuckUp();
 				getContext().moveFocus(-1);
 				// stan.drawPanel.checkCam();
 			});
-			this.handleEvent.put(Arrays.asList(0, KeyEvent.VK_UP), (event) -> {
+			handleEvent.put(Arrays.asList(0, KeyEvent.VK_UP), (event) -> {
 				PlayMusThread.shutTheFuckUp();
 				getContext().moveFocus(-getContext().getNotaInRowCount());
 				getContext().parentSheetMusic.checkCam(); // O_o move it into requestNewSurface maybe?
 			});
-			this.handleEvent.put(Arrays.asList(0, KeyEvent.VK_DOWN), (event) -> {
+			handleEvent.put(Arrays.asList(0, KeyEvent.VK_DOWN), (event) -> {
 				PlayMusThread.shutTheFuckUp();
 				getContext().moveFocus(+getContext().getNotaInRowCount());
 				getContext().parentSheetMusic.checkCam(); // O_o move it into requestNewSurface maybe?
 			});
-			this.handleEvent.put(Arrays.asList(0, KeyEvent.VK_HOME), (event) -> {
+			handleEvent.put(Arrays.asList(0, KeyEvent.VK_HOME), (event) -> {
 				PlayMusThread.shutTheFuckUp();
 				getContext().setFocusedIndex(-1);
 				getContext().parentSheetMusic.checkCam();
 			});
-			this.handleEvent.put(Arrays.asList(0, KeyEvent.VK_END), (event) -> {
+			handleEvent.put(Arrays.asList(0, KeyEvent.VK_END), (event) -> {
 				PlayMusThread.shutTheFuckUp();
 				getContext().setFocusedIndex(getContext().getAccordList().size() - 1);
 				getContext().parentSheetMusic.checkCam();
 			});
-			this.handleEvent.put(Arrays.asList(0, KeyEvent.VK_ENTER), (event) -> { // TODO: maybe it would better fit into accord handler?
+			handleEvent.put(Arrays.asList(0, KeyEvent.VK_ENTER), (event) -> { // TODO: maybe it would better fit into accord handler?
 				PlayMusThread.shutTheFuckUp();
 				PlayMusThread.playAccord(getContext().getFocusedAccord());
 			});
-			this.handleEvent.put(Arrays.asList(0, KeyEvent.VK_DELETE), (event) -> {
+			handleEvent.put(Arrays.asList(0, KeyEvent.VK_DELETE), (event) -> {
 				if (getContext().getFocusedAccord() != null) {
 					getContext().getAccordList().remove(getContext().focusedIndex--);
 				} else {
 					getContext().moveFocus(1);
 				}
 			});
-			this.handleEvent.put(Arrays.asList(0, KeyEvent.VK_MINUS), (event) -> {
+			handleEvent.put(Arrays.asList(0, KeyEvent.VK_MINUS), (event) -> {
 				if (event.getKeyCode() == '-') {
 					getContext().moveFocus(1);
+				}
+			});
+			handleEvent.put(Arrays.asList(0, KeyEvent.VK_ESCAPE), (event) -> {
+				JTextField[] channelInstrumentInputList = new JTextField[10];
+				for (int i = 0; i < 10; ++i) { 
+					channelInstrumentInputList[i] = new JTextField();
+					channelInstrumentInputList[i].setText(getContext().getPhantom().getInstrumentArray()[i] + ""); 
+					channelInstrumentInputList[i].setForeground(Nota.getColorByChannel(i));
+				};
+				int option = JOptionPane.showConfirmDialog(getContext().parentSheetMusic, channelInstrumentInputList, "Enter instruments for channels", JOptionPane.OK_CANCEL_OPTION);
+				if (option == JOptionPane.OK_OPTION) {
+					for (int i = 0; i < 10; ++i) { getContext().getPhantom().getInstrumentArray()[i] = Integer.parseInt(channelInstrumentInputList[i].getText()); };
+					getContext().getPhantom().syncSyntChannels();
 				}
 			});
 		}
