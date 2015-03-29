@@ -18,6 +18,7 @@ import Model.Staff;
 import Tools.Fp;
 import Model.IModel;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class Accord extends AbstractModel {
@@ -34,6 +35,7 @@ public class Accord extends AbstractModel {
 
 	public Accord add(Nota nota) {
 		this.notaList.add(nota);
+		Collections.sort(this.notaList);
 		return this;
 	}
 

@@ -4,15 +4,21 @@ import Midi.DeviceEbun;
 import Midi.MidiCommon;
 import Model.Accord.AccordHandler;
 import Model.Accord.Nota.Nota;
+import Model.StaffConfig.StaffConfig;
 import Model.StaffConfig.StaffConfigHandler;
 import Musica.PlayMusThread;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Consumer;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 public class StaffHandler {
@@ -32,6 +38,7 @@ public class StaffHandler {
 			// It may not work when we have multiple staffs, i don't know how java lambdas work
 			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_P), (event) -> {
 				if (DeviceEbun.stop) {
+					PlayMusThread.shutTheFuckUp();
 					DeviceEbun.stop = false;
 					(new PlayMusThread(this)).start();
 				} else {
@@ -55,6 +62,16 @@ public class StaffHandler {
 				getContext().moveFocus(1);
 				// stan.drawPanel.checkCam();
 			});
+			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_UP), (event) -> {
+				PlayMusThread.shutTheFuckUp();
+				getContext().moveFocus(-getContext().getNotaInRowCount());
+				getContext().parentSheetMusic.checkCam(); // O_o move it into requestNewSurface maybe?
+			});
+			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_DOWN), (event) -> {
+				PlayMusThread.shutTheFuckUp();
+				getContext().moveFocus(+getContext().getNotaInRowCount());
+				getContext().parentSheetMusic.checkCam(); // O_o move it into requestNewSurface maybe?
+			});
 
 			Consumer<KeyEvent> handleMuteChannel = (e) -> { 
 				int cod = e.getKeyCode();
@@ -73,16 +90,6 @@ public class StaffHandler {
 				PlayMusThread.shutTheFuckUp();
 				getContext().moveFocus(-1);
 				// stan.drawPanel.checkCam();
-			});
-			handleEvent.put(Arrays.asList(0, KeyEvent.VK_UP), (event) -> {
-				PlayMusThread.shutTheFuckUp();
-				getContext().moveFocus(-getContext().getNotaInRowCount());
-				getContext().parentSheetMusic.checkCam(); // O_o move it into requestNewSurface maybe?
-			});
-			handleEvent.put(Arrays.asList(0, KeyEvent.VK_DOWN), (event) -> {
-				PlayMusThread.shutTheFuckUp();
-				getContext().moveFocus(+getContext().getNotaInRowCount());
-				getContext().parentSheetMusic.checkCam(); // O_o move it into requestNewSurface maybe?
 			});
 			handleEvent.put(Arrays.asList(0, KeyEvent.VK_HOME), (event) -> {
 				PlayMusThread.shutTheFuckUp();
@@ -111,18 +118,37 @@ public class StaffHandler {
 				}
 			});
 			handleEvent.put(Arrays.asList(0, KeyEvent.VK_ESCAPE), (event) -> {
-				JTextField[] channelInstrumentInputList = new JTextField[10];
-				for (int i = 0; i < 10; ++i) { 
-					channelInstrumentInputList[i] = new JTextField();
-					channelInstrumentInputList[i].setText(getContext().getPhantom().getInstrumentArray()[i] + ""); 
-					channelInstrumentInputList[i].setForeground(Nota.getColorByChannel(i));
-				};
-				int option = JOptionPane.showConfirmDialog(getContext().parentSheetMusic, channelInstrumentInputList, "Enter instruments for channels", JOptionPane.OK_CANCEL_OPTION);
-				if (option == JOptionPane.OK_OPTION) {
-					for (int i = 0; i < 10; ++i) { getContext().getPhantom().getInstrumentArray()[i] = Integer.parseInt(channelInstrumentInputList[i].getText()); };
-					getContext().getPhantom().syncSyntChannels();
-				}
+				this.showMenuDialog();
 			});
+		}
+	}
+
+	public void showMenuDialog() {
+		
+		JTextField[] channelInstrumentInputList = new JTextField[10];
+		JTextField[] channelVolumeInputList = new JTextField[10];
+		
+		JPanel huJPanel = new JPanel();
+		JPanel channelGridPanel = new JPanel(new GridLayout(10, 3, 20, 20));
+		channelGridPanel.setPreferredSize(new Dimension(150, 400));
+		huJPanel.add(channelGridPanel);
+
+		for (int i = 0; i < 10; ++i) {
+			channelGridPanel.add(new JLabel("      " + i));
+			channelInstrumentInputList[i] = new JTextField(getContext().getPhantom().getInstrumentArray()[i] + "");
+			channelGridPanel.add(channelInstrumentInputList[i]); channelInstrumentInputList[i].setForeground(Nota.getColorByChannel(i));
+
+			channelVolumeInputList[i] = new JTextField(getContext().getPhantom().getVolumeArray()[i] + "");
+			channelGridPanel.add(channelVolumeInputList[i]); channelVolumeInputList[i].setForeground(Nota.getColorByChannel(i));
+		}
+		
+		int option = JOptionPane.showConfirmDialog(null, huJPanel, "Enter instruments for channels", JOptionPane.OK_CANCEL_OPTION);
+		if (option == JOptionPane.OK_OPTION) {
+			for (int i = 0; i < 10; ++i) { 
+				getContext().getPhantom().getInstrumentArray()[i] = Integer.parseInt(channelInstrumentInputList[i].getText()); 
+				getContext().getPhantom().getVolumeArray()[i] = Integer.parseInt(channelVolumeInputList[i].getText()); 
+			};
+			getContext().getPhantom().syncSyntChannels();
 		}
 	}
 

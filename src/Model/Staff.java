@@ -324,6 +324,9 @@ public class Staff implements IModel {
 	}
 
 	public Staff setFocusedIndex(int value) {
+		if (this.getFocusedAccord() != null) {
+			this.getFocusedAccord().setFocusedIndex(-1);
+		}
 		value = value < -1 ? -1 : value;
 		value = value >= getAccordList().size() ? getAccordList().size() - 1 : value;
 		this.focusedIndex = value;

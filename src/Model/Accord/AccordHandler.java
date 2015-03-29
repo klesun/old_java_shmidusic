@@ -33,12 +33,6 @@ public class AccordHandler {
 		this.handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_T), (event) -> {
 			getContext().triggerTuplets(3); // TODO: do something, so if child event handled - parent no need
 		});
-		this.handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_DOWN), (event) -> {
-			getContext().moveFocus(+1);
-		});
-		this.handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_UP), (event) -> {
-			getContext().moveFocus(-1);
-		});
 
 		this.handleEvent.put(Arrays.asList(KeyEvent.SHIFT_MASK, KeyEvent.VK_3), (event) -> {
 			if (getContext().getFocusedNota() == null) {
@@ -72,6 +66,12 @@ public class AccordHandler {
 			} else {
 				getContext().setSlog(slog.substring(0, slog.length() - 1));
 			}
+		});
+		this.handleEvent.put(Arrays.asList(0, KeyEvent.VK_DOWN), (event) -> {
+			getContext().moveFocus(+1);
+		});
+		this.handleEvent.put(Arrays.asList(0, KeyEvent.VK_UP), (event) -> {
+			getContext().moveFocus(-1);
 		});
 
 		Consumer<KeyEvent> handlePressNumber = (e) -> {

@@ -30,6 +30,7 @@ public class StaffConfig implements IModel {
 	public int znamen = 8;
 
 	private int[] instrumentArray = {0, 48, 55, 16, 19, 52, 6, 91, 9, 14};
+	private int[] volumeArray = {50, 50, 50, 50, 50, 50, 50, 50, 50, 50};
 
 	public StaffConfig(Staff staff) {
 		this.parentStaff = staff;
@@ -85,6 +86,7 @@ public class StaffConfig implements IModel {
 		dict.put("instrument", this.valueInstrument);
 		dict.put("numerator", this.numerator);
 		dict.put("instrumentArray", this.instrumentArray);
+		dict.put("volumeArray", this.volumeArray);
 
 		return dict;
 	}
@@ -100,6 +102,10 @@ public class StaffConfig implements IModel {
 		if (jsObject.has("instrumentArray")) { // TODO: [deprecated], it should be always true one day
 			JSONArray jsArray = jsObject.getJSONArray("instrumentArray");
 			for (int i = 0; i < 10; ++i) { this.instrumentArray[i] = jsArray.getInt(i); }
+		}
+		if (jsObject.has("volumeArray")) { // TODO: [deprecated], it should be always true one day
+			JSONArray jsArray = jsObject.getJSONArray("volumeArray");
+			for (int i = 0; i < 10; ++i) { this.volumeArray[i] = jsArray.getInt(i); }
 		}
 
 		return this;
@@ -120,6 +126,10 @@ public class StaffConfig implements IModel {
 
 	public int[] getInstrumentArray() {
 		return this.instrumentArray;
+	}
+
+	public int[] getVolumeArray() {
+		return this.volumeArray;
 	}
 
 	public void syncSyntChannels() {

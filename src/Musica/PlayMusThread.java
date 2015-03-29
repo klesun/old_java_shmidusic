@@ -13,12 +13,12 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
 public class PlayMusThread extends Thread {
-    public static OneShotThread[] openNotas = new OneShotThread[192];
+    public static OneShotThread[][] opentNotas = new OneShotThread[192][10];
 
 	boolean stop = false;
     Receiver sintReceiver = DeviceEbun.sintReceiver;
 	private StaffHandler eventHandler = null;
-	
+		
 	public PlayMusThread(StaffHandler eventHandler){ 
 		this.eventHandler = eventHandler;
 	}
@@ -57,15 +57,16 @@ public class PlayMusThread extends Thread {
     }
     
     public static int playNotu(Nota nota){
+		int channel = nota.channel;
         int tune = nota.tune;
-        if (openNotas[tune] != null) {
-            openNotas[tune].interrupt();
-            try {openNotas[tune].join();} catch (Exception e) {System.out.println("Не дождались");}
-            openNotas[tune] = null;
+        if (opentNotas[tune][channel] != null) {
+            opentNotas[tune][channel].interrupt();
+            try {opentNotas[tune][channel].join();} catch (Exception e) {System.out.println("Не дождались");}
+            opentNotas[tune][channel] = null;
         }
     	OneShotThread thr = new OneShotThread(nota);
-        openNotas[tune] = thr;
-        kri4alki.add(openNotas[tune]);
+        opentNotas[tune][channel] = thr;
+        kri4alki.add(opentNotas[tune][channel]);
     	thr.start();
     	return 0;
     }

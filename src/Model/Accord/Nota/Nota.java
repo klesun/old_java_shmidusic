@@ -27,7 +27,7 @@ import java.awt.Image;
 import java.awt.Graphics;
 import java.util.List;
 
-public class Nota extends AbstractModel {
+public class Nota extends AbstractModel implements Comparable<Nota> {
 	
 // TODO: store time Nota was pressed and released into file maybe? Just becuse we can!
 	public static int time = 0;
@@ -255,6 +255,7 @@ public class Nota extends AbstractModel {
 	public int getAbsoluteAcademicIndex() {
 		return getAcademicIndex() + getOctava() * 7;
 	}
+
 	public Boolean isStriked() {
 		return getAbsoluteAcademicIndex() % 2 == 1;
 	}
@@ -289,8 +290,8 @@ public class Nota extends AbstractModel {
 		if (this.tune == 36) {
 			return 0; // пауза лол какбэ
 		} else {
-			// TODO: maybe could make basses louder?
-			return (byte)(127 * getParentAccord().getParentStaff().getPhantom().valueVolume);
+			StaffConfig config = getParentAccord().getParentStaff().getPhantom();
+			return (byte)(127 * config.getVolumeArray()[channel] / 100 * config.valueVolume);
 		}
 	}
 
@@ -435,5 +436,10 @@ public class Nota extends AbstractModel {
 	@Override
 	protected Boolean redoFinal() {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public int compareTo(Nota n) {
+		return n.tune - this.tune;
 	}
 }
