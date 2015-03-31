@@ -4,11 +4,8 @@ import Midi.DeviceEbun;
 import Midi.MidiCommon;
 import Model.Accord.AccordHandler;
 import Model.Accord.Nota.Nota;
-import Model.StaffConfig.StaffConfig;
 import Model.StaffConfig.StaffConfigHandler;
 import Musica.PlayMusThread;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.KeyEvent;
@@ -24,103 +21,122 @@ import javax.swing.JTextField;
 public class StaffHandler {
 	
 	private Staff context = null;
-	private static LinkedHashMap<List<Integer>, Consumer<KeyEvent>> handleEvent = null; // although it is static, it is not suppoused to be called outside the instance
+	private LinkedHashMap<List<Integer>, Consumer<KeyEvent>> handleEvent = null;
 	
 	public StaffHandler(Staff context) {
 		this.context = context;
 		this.init();
 	}
 
-	private void init() {
-		if (handleEvent == null) {
-			handleEvent = new LinkedHashMap<>();
-			
-			// It may not work when we have multiple staffs, i don't know how java lambdas work
-			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_P), (event) -> {
-				if (DeviceEbun.stop) {
-					PlayMusThread.shutTheFuckUp();
-					DeviceEbun.stop = false;
-					(new PlayMusThread(this)).start();
-				} else {
-					DeviceEbun.stopMusic();
-				}
-			});
-			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_D), (event) -> {
-				MidiCommon.listDevicesAndExit(false, true, false);
-				DeviceEbun.changeOutDevice();
-			});
-			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_0), (event) -> {
-				getContext().changeMode(); // i broken java lol. I can call instance methods from static.
-			});
-			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_Z), (event) -> {
-//				getContext().undo(); // TODO: do ctrl-Z for child - if success - break, else do ctrl-z for parent
-			});
-			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_Y), (event) -> {
-//				getContext().redo();
-			});
-			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT), (event) -> {
-				getContext().moveFocus(1);
-				// stan.drawPanel.checkCam();
-			});
-			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_UP), (event) -> {
-				PlayMusThread.shutTheFuckUp();
-				getContext().moveFocus(-getContext().getNotaInRowCount());
-				getContext().parentSheetMusic.checkCam(); // O_o move it into requestNewSurface maybe?
-			});
-			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_DOWN), (event) -> {
-				PlayMusThread.shutTheFuckUp();
-				getContext().moveFocus(+getContext().getNotaInRowCount());
-				getContext().parentSheetMusic.checkCam(); // O_o move it into requestNewSurface maybe?
-			});
+	public void handleKey(KeyEvent e) {
 
-			Consumer<KeyEvent> handleMuteChannel = (e) -> { 
-				int cod = e.getKeyCode();
-				if (cod >= '0' && cod <= '9') {
-					getContext().changeChannelFlag(cod - '0');
-				}
-			};
-			for (int i = KeyEvent.VK_0; i <= KeyEvent.VK_9; ++i) { handleEvent.put(Arrays.asList(KeyEvent.ALT_MASK, i), handleMuteChannel); }
-
-			handleEvent.put(Arrays.asList(0, KeyEvent.VK_RIGHT), (event) -> {
-				PlayMusThread.shutTheFuckUp();
-				getContext().moveFocus(1);
-				// stan.drawPanel.checkCam();
-			});
-			handleEvent.put(Arrays.asList(0, KeyEvent.VK_LEFT), (event) -> {
-				PlayMusThread.shutTheFuckUp();
-				getContext().moveFocus(-1);
-				// stan.drawPanel.checkCam();
-			});
-			handleEvent.put(Arrays.asList(0, KeyEvent.VK_HOME), (event) -> {
-				PlayMusThread.shutTheFuckUp();
-				getContext().setFocusedIndex(-1);
-				getContext().parentSheetMusic.checkCam();
-			});
-			handleEvent.put(Arrays.asList(0, KeyEvent.VK_END), (event) -> {
-				PlayMusThread.shutTheFuckUp();
-				getContext().setFocusedIndex(getContext().getAccordList().size() - 1);
-				getContext().parentSheetMusic.checkCam();
-			});
-			handleEvent.put(Arrays.asList(0, KeyEvent.VK_ENTER), (event) -> { // TODO: maybe it would better fit into accord handler?
-				PlayMusThread.shutTheFuckUp();
-				PlayMusThread.playAccord(getContext().getFocusedAccord());
-			});
-			handleEvent.put(Arrays.asList(0, KeyEvent.VK_DELETE), (event) -> {
-				if (getContext().getFocusedAccord() != null) {
-					getContext().getAccordList().remove(getContext().focusedIndex--);
-				} else {
-					getContext().moveFocus(1);
-				}
-			});
-			handleEvent.put(Arrays.asList(0, KeyEvent.VK_MINUS), (event) -> {
-				if (event.getKeyCode() == '-') {
-					getContext().moveFocus(1);
-				}
-			});
-			handleEvent.put(Arrays.asList(0, KeyEvent.VK_ESCAPE), (event) -> {
-				this.showMenuDialog();
-			});
+		// i hope, it clones only links to lambdas, not lambdas as well
+		LinkedHashMap<List<Integer>, Consumer<KeyEvent>> combinedHandle = (LinkedHashMap)handleEvent.clone();
+		if (getContext().getFocusedAccord() != null) {
+			LinkedHashMap<List<Integer>, Consumer<KeyEvent>> handleKey = new AccordHandler(getContext().getFocusedAccord()).getKeyHandler();
+			combinedHandle.putAll(handleKey); // not 100% sure that it updates keys
+		} else {
+			LinkedHashMap<List<Integer>, Consumer<KeyEvent>> handleKey = new StaffConfigHandler(getContext().getPhantom()).getKeyHandler();
+			combinedHandle.putAll(handleKey); // not 100% sure that it updates keys
 		}
+
+		List<Integer> key = Arrays.asList(e.getModifiers(), e.getKeyCode());
+
+		if (combinedHandle.containsKey(key)) {
+			Consumer<KeyEvent> handle = combinedHandle.get(key);
+			handle.accept(e);
+			getContext().getParentSheet().parentWindow.keyHandler.requestNewSurface();
+		}
+	}
+
+	private void init() {
+		handleEvent = new LinkedHashMap<>();
+
+		// It may not work when we have multiple staffs, i don't know how java lambdas work
+		handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_P), (event) -> {
+			if (DeviceEbun.stop) {
+				PlayMusThread.shutTheFuckUp();
+				DeviceEbun.stop = false;
+				(new PlayMusThread(this)).start();
+			} else {
+				DeviceEbun.stopMusic();
+			}
+		});
+		handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_D), (event) -> {
+			MidiCommon.listDevicesAndExit(false, true, false);
+			DeviceEbun.changeOutDevice();
+		});
+		handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_0), (event) -> {
+			getContext().changeMode(); // i broken java lol. I can call instance methods from static.
+		});
+		handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_Z), (event) -> {
+//				getContext().undo(); // TODO: do ctrl-Z for child - if success - break, else do ctrl-z for parent
+		});
+		handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_Y), (event) -> {
+//				getContext().redo();
+		});
+		handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT), (event) -> {
+			getContext().moveFocus(1);
+			// stan.drawPanel.checkCam();
+		});
+		handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_UP), (event) -> {
+			PlayMusThread.shutTheFuckUp();
+			getContext().moveFocus(-getContext().getNotaInRowCount());
+			getContext().getParentSheet().checkCam(); // O_o move it into requestNewSurface maybe?
+		});
+		handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_DOWN), (event) -> {
+			PlayMusThread.shutTheFuckUp();
+			getContext().moveFocus(+getContext().getNotaInRowCount());
+			getContext().getParentSheet().checkCam(); // O_o move it into requestNewSurface maybe?
+		});
+
+		Consumer<KeyEvent> handleMuteChannel = (e) -> {
+			int cod = e.getKeyCode();
+			if (cod >= '0' && cod <= '9') {
+				getContext().changeChannelFlag(cod - '0');
+			}
+		};
+		for (int i = KeyEvent.VK_0; i <= KeyEvent.VK_9; ++i) { handleEvent.put(Arrays.asList(KeyEvent.ALT_MASK, i), handleMuteChannel); }
+
+		handleEvent.put(Arrays.asList(0, KeyEvent.VK_RIGHT), (event) -> {
+			PlayMusThread.shutTheFuckUp();
+			getContext().moveFocus(1);
+			// stan.drawPanel.checkCam();
+		});
+		handleEvent.put(Arrays.asList(0, KeyEvent.VK_LEFT), (event) -> {
+			PlayMusThread.shutTheFuckUp();
+			getContext().moveFocus(-1);
+			// stan.drawPanel.checkCam();
+		});
+		handleEvent.put(Arrays.asList(0, KeyEvent.VK_HOME), (event) -> {
+			PlayMusThread.shutTheFuckUp();
+			getContext().setFocusedIndex(-1);
+			getContext().getParentSheet().checkCam();
+		});
+		handleEvent.put(Arrays.asList(0, KeyEvent.VK_END), (event) -> {
+			PlayMusThread.shutTheFuckUp();
+			getContext().setFocusedIndex(getContext().getAccordList().size() - 1);
+			getContext().getParentSheet().checkCam();
+		});
+		handleEvent.put(Arrays.asList(0, KeyEvent.VK_ENTER), (event) -> { // TODO: maybe it would better fit into accord handler?
+			PlayMusThread.shutTheFuckUp();
+			PlayMusThread.playAccord(getContext().getFocusedAccord());
+		});
+		handleEvent.put(Arrays.asList(0, KeyEvent.VK_DELETE), (event) -> {
+			if (getContext().getFocusedAccord() != null) {
+				getContext().getAccordList().remove(getContext().focusedIndex--);
+			} else {
+				getContext().moveFocus(1);
+			}
+		});
+		handleEvent.put(Arrays.asList(0, KeyEvent.VK_MINUS), (event) -> {
+			if (event.getKeyCode() == '-') {
+				getContext().moveFocus(1);
+			}
+		});
+		handleEvent.put(Arrays.asList(0, KeyEvent.VK_ESCAPE), (event) -> {
+			this.showMenuDialog();
+		});
 	}
 
 	public void showMenuDialog() {
@@ -150,24 +166,6 @@ public class StaffHandler {
 			};
 			getContext().getPhantom().syncSyntChannels();
 		}
-	}
-
-	public Boolean handleKey(KeyEvent e) {
-
-		if (getContext().getFocusedAccord() != null) {
-			new AccordHandler(getContext().getFocusedAccord()).handleKey(e);
-		} else {
-			new StaffConfigHandler(getContext().getPhantom()).handleKey(e);
-		}
-
-		List<Integer> key = Arrays.asList(e.getModifiers(), e.getKeyCode());
-		if (handleEvent.containsKey(key)) {
-			Consumer<KeyEvent> handle = handleEvent.get(key);
-			handle.accept(e);
-			getContext().parentSheetMusic.parentWindow.keyHandler.requestNewSurface();
-			return true;
-		}
-		return false;
 	}
 
 	public Staff getContext() {

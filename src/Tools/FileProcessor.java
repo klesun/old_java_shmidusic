@@ -19,7 +19,7 @@ import java.nio.file.Files;
 public class FileProcessor {
 	
 	public static void savePNG ( File f, Staff staff ) {
-	    SheetMusic albert = staff.parentSheetMusic;
+	    SheetMusic albert = staff.getParentSheet();
 	    if (albert == null) out("Что ты пытаешься сохранить, мудак?!");
 	    BufferedImage img = new BufferedImage(albert.getWidth(),albert.getHeight(), BufferedImage.TYPE_INT_ARGB);
 	    Graphics g = img.createGraphics();

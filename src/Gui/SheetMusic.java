@@ -1,9 +1,13 @@
 package Gui;
 
+import Model.IModel;
 import Model.Staff;
 import Model.Accord.Accord;
 import Model.Accord.Nota.Nota;
 import Model.StaffConfig.StaffConfig;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -18,7 +22,7 @@ import java.io.IOException;
 import java.util.*;
 
 
-final public class SheetMusic extends JPanel {
+final public class SheetMusic extends JPanel implements IModel {
 	JScrollPane scroll;
 	
 	final public static int NORMAL_HEIGHT = 40;
@@ -185,6 +189,16 @@ final public class SheetMusic extends JPanel {
 
 	public int getMarginY() {
 		return Math.round(MARGIN_V * this.dy());
+	}
+
+	@Override
+	public JSONObject getJsonRepresentation() {
+		return null;
+	}
+
+	@Override
+	public IModel reconstructFromJson(JSONObject jsObject) throws JSONException {
+		return null;
 	}
 }
 

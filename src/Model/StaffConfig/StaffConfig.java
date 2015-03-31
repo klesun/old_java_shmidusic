@@ -1,16 +1,16 @@
 package Model.StaffConfig;
 
+import Model.AbstractModel;
 import Model.Accord.Nota.Nota;
 import Gui.SheetMusic;
 import Midi.DeviceEbun;
 import Model.Staff;
-import Model.IModel;
-import static Model.Staff.CHANNEL;
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.*;
-import java.util.LinkedHashMap;
+import java.util.*;
+import java.util.List;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.ShortMessage;
@@ -19,32 +19,34 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class StaffConfig implements IModel {	
-
-	public Staff parentStaff;
+public class StaffConfig extends AbstractModel {
 
 	public int valueTempo = 120;
 	public int valueInstrument = 0;
-	public double valueVolume = 0.5;
+	public double valueVolume = 0.75;
 	public int numerator = 8;
-	public int znamen = 8;
 
-	private int[] instrumentArray = {0, 48, 55, 16, 19, 52, 6, 91, 9, 14};
-	private int[] volumeArray = {50, 50, 50, 50, 50, 50, 50, 50, 50, 50};
+	private int[] instrumentArray = {64, 65, 66, 43, 19, 52, 6, 91, 9, 14};
+	private int[] volumeArray = {60, 60, 60, 60, 60, 60, 60, 60, 60, 60};
 
 	public StaffConfig(Staff staff) {
-		this.parentStaff = staff;
+		super(staff);
+	}
+
+	@Override
+	public void drawOn(Graphics surface, int x, int y) {
+		// TODO:
 	}
 
 	public BufferedImage getImage() {
-		SheetMusic sheet = this.getParentStaff().parentSheetMusic;
+		SheetMusic sheet = this.getParentStaff().getParentSheet();
 		int w = sheet.getNotaWidth() * 5;
 		int h = sheet.getNotaHeight() * 6;
 		BufferedImage rez = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 		Graphics g = rez.getGraphics();
 		g.setColor(Color.black);
 
-		int tz=znamen, tc = numerator;
+		int tz=8, tc = numerator;
 		while (tz>4 && tc%2==0) {
 			tz /= 2;
 			tc /= 2;
@@ -79,14 +81,14 @@ public class StaffConfig implements IModel {
 	}
 
 	@Override
-	public LinkedHashMap<String, Object> getJsonRepresentation() {
-		LinkedHashMap<String, Object> dict = new LinkedHashMap<String, Object>();
+	public JSONObject getJsonRepresentation() {
+		JSONObject dict = new JSONObject();
 		dict.put("tempo", this.valueTempo);
 		dict.put("volume", this.valueVolume);
 		dict.put("instrument", this.valueInstrument);
 		dict.put("numerator", this.numerator);
-		dict.put("instrumentArray", this.instrumentArray);
-		dict.put("volumeArray", this.volumeArray);
+		dict.put("instrumentArray", new JSONArray(this.instrumentArray));
+		dict.put("volumeArray", new JSONArray(this.volumeArray));
 
 		return dict;
 	}
@@ -111,6 +113,26 @@ public class StaffConfig implements IModel {
 		return this;
 	}
 
+	@Override
+	public List<? extends AbstractModel> getChildList() {
+		return new ArrayList<>();
+	}
+
+	@Override
+	public AbstractModel getFocusedChild() {
+		return null;
+	}
+
+	@Override
+	protected Boolean undoFinal() {
+		return null;
+	}
+
+	@Override
+	protected Boolean redoFinal() {
+		return null;
+	}
+
 	public StaffConfig update(StaffConfig rival) throws JSONException {
 		JSONObject js = new JSONObject("{}"); 
 		js = new JSONObject(js.put("lol", rival.getJsonRepresentation()).get("lol").toString());
@@ -121,7 +143,7 @@ public class StaffConfig implements IModel {
 	// field getters
 	
 	public Staff getParentStaff() {
-		return this.parentStaff;
+		return (Staff)this.getParent();
 	}
 
 	public int[] getInstrumentArray() {

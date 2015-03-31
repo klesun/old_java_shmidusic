@@ -1,6 +1,5 @@
 package Musica;
 
-import Model.Staff;
 import javax.sound.midi.*;
 
 import Model.Staff.aMode;
@@ -33,41 +32,43 @@ public class PlayMusThread extends Thread {
 		eventHandler.getContext().moveFocus(0);
 		int accordsLeft = eventHandler.getContext().getAccordList().size() - eventHandler.getContext().getFocusedIndex() - 1;
     	for (int i = 0; i <= accordsLeft && DeviceEbun.stop == false; ++i) {
-			KeyEvent generatedEvent = new KeyEvent(eventHandler.getContext().parentSheetMusic, 0, 0, KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT, 'h'); // держалки держать не будет
-			eventHandler.handleKey(generatedEvent);
             if (eventHandler.getContext().getFocusedAccord() != null) {
 				time = eventHandler.getContext().getFocusedAccord().getShortest().getTimeMiliseconds();
 				try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна"+e); }
 			}
-			eventHandler.getContext().parentSheetMusic.repaint(); // some hack, cause i wanna it to be precise with sound
-			eventHandler.getContext().parentSheetMusic.parentWindow.keyHandler.shouldRepaint = false;
+			KeyEvent generatedEvent = new KeyEvent(eventHandler.getContext().getParentSheet(), 0, 0, KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT, 'h');
+			eventHandler.handleKey(generatedEvent);
+			eventHandler.getContext().getParentSheet().repaint(); // some hack, cause i wanna it to be precise with sound
+			eventHandler.getContext().getParentSheet().parentWindow.keyHandler.shouldRepaint = false;
         }
         DeviceEbun.stop = true;
-    	eventHandler.getContext().parentSheetMusic.checkCam();
+    	eventHandler.getContext().getParentSheet().checkCam();
     	eventHandler.getContext().mode = tmpMode;
     }
 
 	public static void playAccord(Accord accord)
 	{
-    	for (Nota tmp: accord.getNotaList()) {
-    		if (accord.getParentStaff().getChannelFlag(tmp.channel)) {
+		for (Nota tmp: accord.getNotaList()) {
+			if (accord.getParentStaff().getChannelFlag(tmp.channel)) {
 				playNotu(tmp);
 			}
-    	}    	
+		}
     }
     
     public static int playNotu(Nota nota){
-		int channel = nota.channel;
-        int tune = nota.tune;
-        if (opentNotas[tune][channel] != null) {
-            opentNotas[tune][channel].interrupt();
-            try {opentNotas[tune][channel].join();} catch (Exception e) {System.out.println("Не дождались");}
-            opentNotas[tune][channel] = null;
-        }
-    	OneShotThread thr = new OneShotThread(nota);
-        opentNotas[tune][channel] = thr;
-        kri4alki.add(opentNotas[tune][channel]);
-    	thr.start();
+		if (!nota.getIsMuted()) {
+			int channel = nota.channel;
+			int tune = nota.tune;
+			if (opentNotas[tune][channel] != null) {
+				opentNotas[tune][channel].interrupt();
+				try {opentNotas[tune][channel].join();} catch (Exception e) {System.out.println("Не дождались");}
+				opentNotas[tune][channel] = null;
+			}
+			OneShotThread thr = new OneShotThread(nota);
+			opentNotas[tune][channel] = thr;
+			kri4alki.add(opentNotas[tune][channel]);
+			thr.start();
+		}
     	return 0;
     }
 

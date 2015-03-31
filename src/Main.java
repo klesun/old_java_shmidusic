@@ -6,7 +6,7 @@ public class Main {
 		String OS_NAME = System.getProperty("os.name");
 		try {
 			System.out.println(OS_NAME);
-			if (OS_NAME.equals("Windows XP") || OS_NAME.equals("Windows 7")) {
+			if (OS_NAME.equals("Windows XP") || OS_NAME.equals("Windows 7")) { // looks like windows 7 has different encoding
 				PrintStream out = new PrintStream(System.out, true, "Cp866");
 				System.setOut(out);
 			}

@@ -1,4 +1,5 @@
 bin
+out
 /nbproject/
 /build/
 build.xml

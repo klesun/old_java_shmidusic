@@ -17,15 +17,14 @@ public class StaffConfigHandler {
 		this.init();
 	}
 
-
 	private void init() {
 		if (handleEvent == null) {
 			handleEvent = new LinkedHashMap<>();
 
-			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_DOWN), (event) -> {
+			handleEvent.put(Arrays.asList(0, KeyEvent.VK_DOWN), (event) -> {
 				getContext().chooseNextParam();
 			});
-			handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_UP), (event) -> {
+			handleEvent.put(Arrays.asList(0, KeyEvent.VK_UP), (event) -> {
 				// this.sheet.getFocusedStaff().getPhantom().choosePrevParam();
 			});
 
@@ -47,15 +46,8 @@ public class StaffConfigHandler {
 		}
 	}
 
-	public Boolean handleKey(KeyEvent e) {
-		List<Integer> key = Arrays.asList(e.getModifiers(), e.getKeyCode());
-		if (handleEvent.containsKey(key)) {
-			Consumer<KeyEvent> handle = handleEvent.get(key);
-			handle.accept(e);
-			getContext().getParentStaff().parentSheetMusic.parentWindow.keyHandler.requestNewSurface();
-			return true;
-		}
-		return false;
+	public LinkedHashMap<List<Integer>, Consumer<KeyEvent>> getKeyHandler() {
+		return handleEvent;
 	}
 
 	public StaffConfig getContext() {

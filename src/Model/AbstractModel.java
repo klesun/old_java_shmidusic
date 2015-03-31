@@ -18,7 +18,7 @@ public abstract class AbstractModel implements IModel {
 		this.parent = parent;
 	}
 
-	abstract public LinkedHashMap<String, Object> getJsonRepresentation();
+	abstract public JSONObject getJsonRepresentation();
 	abstract public IModel reconstructFromJson(JSONObject jsObject) throws JSONException;
 
 	abstract public List<? extends AbstractModel> getChildList();

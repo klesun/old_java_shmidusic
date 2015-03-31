@@ -15,20 +15,18 @@ import Musica.PlayMusThread;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
-import java.util.LinkedHashMap;
 
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Staff implements IModel {
+public class Staff extends AbstractModel {
 	public byte channelFlags = -1;
 	int sessionId = (int)(Math.random() * Integer.MAX_VALUE);
 	
 	public static final int CHANNEL = 0;
 	public static final int DEFAULT_ZNAM = 64; // TODO: move it into some constants maybe
-	public int cislic = 64;
 	Nota unclosed[] = new Nota[256];
 	final public static int ACCORD_EPSILON = 50; // in milliseconds
 	
@@ -45,9 +43,7 @@ public class Staff implements IModel {
 	    // идея вообще такая: тиктакает метроном, а ты нажимаешь аккорды
 	} 
 	public aMode mode;
-	
-	public SheetMusic parentSheetMusic;
-	
+
 	public StaffConfig phantomka = null;
 	public Accord firstDeleted = new Accord(this);
 	public Accord lastDeleted = firstDeleted;
@@ -58,10 +54,8 @@ public class Staff implements IModel {
 	int closerCount = 0;
 	
 	public Staff(SheetMusic sheet){
-		this.parentSheetMusic = sheet;
-		
+		super(sheet);
 		this.phantomka = new StaffConfig(this);
-				
 		mode = aMode.insert;
 	}
 
@@ -73,9 +67,9 @@ public class Staff implements IModel {
 	public void addPressed(int tune, int forca, int timestamp) {
 		if (forca == 0) { // key up
 			if (unclosed[tune] == null) return;
-			Nota closer = new Nota(null).setTune(tune).setKeydownTimestamp(timestamp);
 			--closerCount;
-			unclosed[tune].length = closer.keydownTimestamp - unclosed[tune].keydownTimestamp;
+			unclosed[tune].setKeyupTimestamp(timestamp);
+			unclosed[tune] = null;
 		} else {
 			if (mode == aMode.passive || mode == aMode.playin) {
 				// Показать, какую ноту ты нажимаешь
@@ -85,19 +79,18 @@ public class Staff implements IModel {
 			Nota nota;
 
 			if (getFocusedAccord() != null && (timestamp - getFocusedAccord().getEarliest().keydownTimestamp < ACCORD_EPSILON)) {
-				getFocusedAccord().add(nota = new Nota(getFocusedAccord()).setTune(tune).setKeydownTimestamp(timestamp));
+				nota = new Nota(getFocusedAccord()).setTune(tune).setKeydownTimestamp(timestamp);
 			} else {
 				Accord newAccord = new Accord(this);
-				this.add(newAccord.add(nota = new Nota(newAccord).setTune(tune).setKeydownTimestamp(timestamp)));
+				nota = new Nota(newAccord).setTune(tune).setKeydownTimestamp(timestamp);
+				this.add(newAccord);
 			}
 			
 			unclosed[tune] = nota;
 			++closerCount;
 		}
 	}
-	
-	int deleted = 0;
-	
+
 	// TODO: maybe repair the ctrl+z one day (rewrite it completely pls)
 //	public void retrieveLast(){
 //		if (deleted == 0) return;
@@ -140,24 +133,24 @@ public class Staff implements IModel {
 		int i = 0;
 		for (List<Accord> row: getAccordRowList()) {
 			int y = baseY + i * SheetMusic.SISDISPLACE * dy(); // bottommest y nota may be drawn on
-			g.drawImage(getViolinKeyImage(), this.dx(), y -3 * dy(), parentSheetMusic);
-			g.drawImage(getBassKeyImage(), this.dx(), 11 * dy() + y, parentSheetMusic);
+			g.drawImage(getViolinKeyImage(), this.dx(), y -3 * dy(), getParentSheet());
+			g.drawImage(getBassKeyImage(), this.dx(), 11 * dy() + y, getParentSheet());
 			g.setColor(Color.BLUE);
 			for (int j = 0; j < 11; ++j){
 				if (j == 5) continue;
-				g.drawLine(parentSheetMusic.getMarginX(), y + j* this.dy() *2, getWidth() - parentSheetMusic.getMarginX()*2, y + j* dy() *2);
+				g.drawLine(getParentSheet().getMarginX(), y + j* this.dy() *2, getWidth() - getParentSheet().getMarginX()*2, y + j* dy() *2);
 			}
 
 			int j = 0;
 			for (Accord accord: row) {
 				int x = baseX + j * (2 * dx());
 				if (getFocusedAccord() == accord) { 
-					g.drawImage(getPointerImage(), x + dx(), y - this.dy() *14, parentSheetMusic); 
+					g.drawImage(getPointerImage(), x + dx(), y - this.dy() *14, getParentSheet());
 				}
 
 				if (accord.getNotaList().size() > 0) {
 
-					curCislic += accord.getShortest().getNumerator();	
+					curCislic += accord.getShortest().getNumerator(); // TODO: triols are counted as each was complete nota, bad
 					if (curCislic >= getPhantom().numerator * 8) { // потому что у нас шажок 1/8 когда меняем размер такта
 						curCislic %= getPhantom().numerator * 8;
 						g.setColor(curCislic > 0 ? Color.BLUE : Color.BLACK);
@@ -178,8 +171,8 @@ public class Staff implements IModel {
 	
 	// TODO: move into StaffConfig class... some day
 	private void drawPhantom(StaffConfig phantomka, Graphics g, int xIndent, int yIndent) {
-		int dX = parentSheetMusic.getNotaWidth()/5, dY = parentSheetMusic.getNotaHeight()*2;
-		g.drawImage(phantomka.getImage(), xIndent - dX, yIndent - dY, parentSheetMusic);
+		int dX = getParentSheet().getNotaWidth()/5, dY = getParentSheet().getNotaHeight()*2;
+		g.drawImage(phantomka.getImage(), xIndent - dX, yIndent - dY, getParentSheet());
 		int deltaY = 0, deltaX = 0;
 		switch (phantomka.changeMe) {
 			case numerator:	deltaY += 9 * this.dy(); break;
@@ -188,8 +181,8 @@ public class Staff implements IModel {
 			case volume: deltaY += 24 * this.dy(); break;
 			default: break;
 		}
-		if (phantomka.getParentStaff().getFocusedAccord() == null) {
-			g.drawImage(getPointerImage(), xIndent - 7*parentSheetMusic.getNotaWidth()/25 + deltaX, yIndent - this.dy() * 14 + deltaY, parentSheetMusic);	
+		if (getFocusedAccord() == null) {
+			g.drawImage(getPointerImage(), xIndent - 7* getParentSheet().getNotaWidth()/25 + deltaX, yIndent - this.dy() * 14 + deltaY, getParentSheet());
 		}
 	}
 	
@@ -203,7 +196,7 @@ public class Staff implements IModel {
 	
 	public void clearStan() {
 		this.getAccordList().clear();
-		this.setFocusedIndex(-1);
+		this.focusedIndex = -1;
 	}
 	
 	private void out(String str) {
@@ -222,10 +215,10 @@ public class Staff implements IModel {
 	}
 
 	@Override
-	public LinkedHashMap<String, Object> getJsonRepresentation() {
-		LinkedHashMap<String, Object> dict = new LinkedHashMap<>();
+	public JSONObject getJsonRepresentation() {
+		JSONObject dict = new JSONObject();
 		dict.put("staffConfig", this.getPhantom().getJsonRepresentation());
-		dict.put("accordList", this.getAccordList().stream().map(p -> p.getJsonRepresentation()).toArray());
+		dict.put("accordList", new JSONArray(this.getAccordList().stream().map(p -> p.getJsonRepresentation()).toArray()));
 		
 		return dict;
 	}
@@ -249,6 +242,28 @@ public class Staff implements IModel {
 		}
 		
 		return this;
+	}
+
+	@Override
+	public List<? extends AbstractModel> getChildList() {
+		List childList = (List<Accord>)getAccordList().clone();
+		childList.add(0, getPhantom());
+		return childList;
+	}
+
+	@Override
+	public AbstractModel getFocusedChild() {
+		return getFocusedAccord() != null ? getFocusedAccord() : getPhantom();
+	}
+
+	@Override
+	protected Boolean undoFinal() {
+		return null;
+	}
+
+	@Override
+	protected Boolean redoFinal() {
+		return null;
 	}
 
 	public Boolean moveFocus(int n) {
@@ -286,7 +301,7 @@ public class Staff implements IModel {
 	}
 
 	public int getWidth() {
-		return parentSheetMusic.getWidth() - parentSheetMusic.MARGIN_H * 2;
+		return getParentSheet().getWidth() - getParentSheet().MARGIN_H * 2;
 	}
 
 	public int getNotaInRowCount() {
@@ -317,6 +332,10 @@ public class Staff implements IModel {
 
 	public StaffConfig getPhantom() {
 		return this.phantomka;
+	}
+
+	public SheetMusic getParentSheet() {
+		return (SheetMusic)getParent();
 	}
 
 	public int getFocusedIndex() {

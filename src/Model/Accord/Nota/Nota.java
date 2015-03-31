@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 
 import javax.imageio.ImageIO;
 
@@ -31,20 +30,21 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	
 // TODO: store time Nota was pressed and released into file maybe? Just becuse we can!
 	public static int time = 0;
-	
-	public int length = 1;	
-	
+
 	public int tune;
 	public int channel = 0;
 	public Boolean isSharp = false;
 
 	public int numerator = 16;
 	public int tupletDenominator = 1;
+	Boolean isMuted = false;
 
 	public int keydownTimestamp;
+	private int keyupTimestamp;
 
 	public Nota(Accord parent) {
 		super(parent);
+		parent.add(this);
 	}
 
 	private static String normalizeString(String str, int desiredLength) {
@@ -136,7 +136,8 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	    	} catch (IOException e) { if (idx!=7) System.out.println(e+" Ноты не читаются!!! "+idx+" "+notRes[idx].getAbsolutePath()); }
 	    }
 	    
-	    for (int i = 0; i < 10; ++i) coloredNotas[i] = new BufferedImage[8];        
+		// not needed aint i right?
+	    //for (int i = 0; i < 10; ++i) coloredNotas[i] = new BufferedImage[8];        
 	    
 	    refreshSizes(sheet);
 	
@@ -185,7 +186,14 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		}
 
 		int idx = (int)(Math.ceil(7 - Math.log(numerator) / Math.log(2) ));
-		BufferedImage tmpImg = channel > -1 ? coloredNotas[channel][idx] : notaImg[idx];
+		BufferedImage tmpImg;
+		if (getIsMuted()) {
+			tmpImg = coloredNotas[9][idx];
+		} else if (channel > -1) {
+			tmpImg = coloredNotas[channel][idx];
+		} else {
+			tmpImg = notaImg[idx];
+		}
 
 		surface.drawImage(tmpImg, x + getNotaImgRelX(), y, null);
 
@@ -196,13 +204,14 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	// getters/setters
 	
 	@Override
-	public LinkedHashMap<String, Object> getJsonRepresentation() {
-		LinkedHashMap<String, Object> dict = new LinkedHashMap<>();
+	public JSONObject getJsonRepresentation() {
+		JSONObject dict = new JSONObject();
 		dict.put("tune", this.tune);
 		dict.put("numerator", this.numerator);
 		dict.put("channel", this.channel);
 		dict.put("isSharp", this.isSharp);
 		dict.put("tupletDenominator", this.tupletDenominator);
+		dict.put("isMuted", this.isMuted);
 	
 		return dict;
 	}
@@ -214,6 +223,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		this.channel = jsObject.getInt("channel");
 		if (jsObject.has("isSharp")) { this.isSharp = jsObject.getBoolean("isSharp"); }
 		if (jsObject.has("tupletDenominator")) { this.tupletDenominator = jsObject.getInt("tupletDenominator"); }
+		if (jsObject.has("isMuted")) { this.isMuted = jsObject.getBoolean("isMuted"); }
 	
 		return this;
 	}
@@ -223,11 +233,11 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		// TODO: use it in Accord.getWidth()
 //		int width = (int)Math.ceil( slog.length() * Constants.FONT_WIDTH / (Constants.STEP_H * 2) );
 //		if (width < 1) width = 1;
-		return this.getParentAccord().getParentStaff().parentSheetMusic.getNotaWidth() * 2;
+		return this.getParentAccord().getParentStaff().getParentSheet().getNotaWidth() * 2;
 	}
 
 	public int getHeight() {
-		return this.getParentAccord().getParentStaff().parentSheetMusic.getNotaHeight();
+		return this.getParentAccord().getParentStaff().getParentSheet().getNotaHeight();
 	}
 
 	public int getOctava() {
@@ -302,7 +312,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	}
 
 	public int getNumerator() {
-		return this.numerator;
+		return this.getIsMuted() ? 0 : this.numerator;
 	}
 
 	public int getDenominator() {
@@ -315,6 +325,15 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 
 	public Nota setTupletDenominator(int value) {
 		this.tupletDenominator = value;
+		return this;
+	}
+
+	public Boolean getIsMuted() {
+		return this.isMuted;
+	}
+	
+	public Nota setIsMuted(Boolean value) {
+		this.isMuted = value;
 		return this;
 	}
 
@@ -333,6 +352,11 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		return this;
 	}
 
+	public Nota setKeyupTimestamp(int value) {
+		this.keyupTimestamp = value;
+		return this;
+	}
+
 	public Nota triggerIsSharp() {
 		this.isSharp = !this.isSharp;
 		return this;
@@ -341,7 +365,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	// private methods
 
 	private SheetMusic getSheet() {
-		return this.getParentAccord().getParentStaff().parentSheetMusic;
+		return this.getParentAccord().getParentStaff().getParentSheet();
 	}
 			
 	// private static methods

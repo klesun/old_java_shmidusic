@@ -2,9 +2,7 @@ package Model.Accord;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -16,7 +14,7 @@ import Model.AbstractModel;
 import Model.Accord.Nota.Nota;
 import Model.Staff;
 import Tools.Fp;
-import Model.IModel;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -40,23 +38,21 @@ public class Accord extends AbstractModel {
 	}
 
 	@Override
-	// TODO: maybe instead of LinkedHashMap use JSONArray from the very begining?
-	public LinkedHashMap<String, Object> getJsonRepresentation() {
-		LinkedHashMap<String, Object> dict = new LinkedHashMap<>();
-		dict.put("notaList", this.notaList.stream().map(n -> n.getJsonRepresentation()).toArray());
+	public JSONObject getJsonRepresentation() {
+		JSONObject dict = new JSONObject();
+		dict.put("notaList", new JSONArray(this.notaList.stream().map(n -> n.getJsonRepresentation()).toArray()));
 		dict.put("slog", this.slog);
 		return dict;
 	}
 
 	@Override
 	public Accord reconstructFromJson(JSONObject jsObject) throws JSONException {
-		this.slog = jsObject.getString("slog");
 		JSONArray notaJsonList = jsObject.getJSONArray("notaList");
 		for (int idx = 0; idx < notaJsonList.length(); ++idx) {
 			JSONObject childJs = notaJsonList.getJSONObject(idx);
-			this.add((new Nota(this)).reconstructFromJson(childJs));
+			new Nota(this).reconstructFromJson(childJs); // -_-
 		}
-
+		this.slog = jsObject.getString("slog");
 		return this;
 	}
  
@@ -64,15 +60,20 @@ public class Accord extends AbstractModel {
 	public void drawOn(Graphics surface, int x, int y) {
 		surface.setColor(Color.blue);
 
-		if (getHighest().isBotommedToFitSystem()) { surface.drawString("8va", x, y + 4 * getParentStaff().parentSheetMusic.dy()); }
+		if (getHighest().isBotommedToFitSystem()) { surface.drawString("8va", x, y + 4 * getParentStaff().getParentSheet().dy()); }
 		surface.setColor(Color.black);
 		
-		Boolean oneOctavaLower = this.getHighest().isBotommedToFitSystem();
-		getNotaList().stream().forEach((nota) -> {
+		Boolean oneOctaveLower = this.getHighest().isBotommedToFitSystem();
+		for (int i = 0; i < getNotaList().size(); ++i) {
+			Nota nota = getNotaList().get(i);
 			int notaY = y + getLowestPossibleNotaRelativeY() - Settings.getStepHeight() * nota.getAbsoluteAcademicIndex();
-			notaY += oneOctavaLower ? 7 * getParentStaff().parentSheetMusic.dy() : 0;
-			nota.drawOn(surface, x, notaY);
-			if (nota.isStriked() != oneOctavaLower) {
+			notaY += oneOctaveLower ? 7 * getParentStaff().getParentSheet().dy() : 0;
+			int notaX = i > 0 && getNotaList().get(i - 1).getAbsoluteAcademicIndex() == nota.getAbsoluteAcademicIndex() 
+					? x + Settings.getStepWidth() / 3 // TODO: draw them flipped
+					: x;
+			
+			nota.drawOn(surface, notaX, notaY);
+			if (nota.isStriked() != oneOctaveLower) {
 				List<Integer> p = Fp.vectorSum(nota.getTraitCoordinates(), Arrays.asList(x, notaY, x, notaY));
 				surface.drawLine(p.get(0), p.get(1), p.get(2), p.get(3)); 
 			}
@@ -81,27 +82,23 @@ public class Accord extends AbstractModel {
 				int r = Settings.getStepHeight();
 				surface.fillOval(x + p.get(0) + r * 2, notaY + p.get(1) - r, r * 2, r * 2);
 			}
-		});
+		}
 		surface.drawString(this.getSlog(), x, y + Constants.FONT_HEIGHT);
 	}
 
 	// responsees to events (actions)
-	
-	public void triggerTuplets(int denominator) {
-		if (getFocusedNota() != null) {
-			getFocusedNota().setTupletDenominator(getFocusedNota().getTupletDenominator() == 1 ? denominator : 1);
-		} else {
-			this.getNotaList().stream().forEach((nota) -> {
-				nota.setTupletDenominator(nota.getTupletDenominator() == 1 ? denominator : 1);
-			});
-		}
-	}
 
 	public void moveFocus(int n) {
 		if (this.getFocusedIndex() + n > this.getNotaList().size() - 1) {
 			this.setFocusedIndex(-1);
 		} else {
 			this.setFocusedIndex(this.getFocusedIndex() + n);
+		}
+	}
+
+	public void deleteFocused() {
+		if (getFocusedNota() != null) {
+			getNotaList().remove(focusedIndex--);
 		}
 	}
 
@@ -143,7 +140,7 @@ public class Accord extends AbstractModel {
 	}
 
 	public int getLowestPossibleNotaRelativeY () {
-		return 50 * getParentStaff().parentSheetMusic.dy();
+		return 50 * getParentStaff().getParentSheet().dy();
 	}
 
 	// field getters/setters

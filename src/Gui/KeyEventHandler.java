@@ -1,6 +1,5 @@
 package Gui;
 
-import Model.Accord.Accord;
 import javax.swing.*;
 
 import java.awt.*;
@@ -139,11 +138,11 @@ public class KeyEventHandler implements KeyListener {
 		switch (e.getKeyCode()) {
 			case KeyEvent.VK_PAGE_DOWN:
 				System.out.println("Вы нажали pageDown!");
-				staff.parentSheetMusic.page(1);
+				staff.getParentSheet().page(1);
 				break;
 			case KeyEvent.VK_PAGE_UP:
 				System.out.println("Вы нажали pageUp!");
-				staff.parentSheetMusic.page(-1);
+				staff.getParentSheet().page(-1);
 				break;
 			default: break;
 		}
