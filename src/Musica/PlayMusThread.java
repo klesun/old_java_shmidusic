@@ -2,11 +2,12 @@ package Musica;
 
 import javax.sound.midi.*;
 
-import Model.Staff.aMode;
-import Model.Accord.Nota.Nota;
+import Model.Combo;
+import Model.Staff.Staff.aMode;
+import Model.Staff.Accord.Nota.Nota;
 import Midi.DeviceEbun;
-import Model.Accord.Accord;
-import Model.StaffHandler;
+import Model.Staff.Accord.Accord;
+import Model.Staff.StaffHandler;
 import java.awt.event.KeyEvent;
 
 import java.util.ArrayList;
@@ -36,8 +37,7 @@ public class PlayMusThread extends Thread {
 				time = eventHandler.getContext().getFocusedAccord().getShortest().getTimeMiliseconds();
 				try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна"+e); }
 			}
-			KeyEvent generatedEvent = new KeyEvent(eventHandler.getContext().getParentSheet(), 0, 0, KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT, 'h');
-			eventHandler.handleKey(generatedEvent);
+			eventHandler.handleKey(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT));
 			eventHandler.getContext().getParentSheet().repaint(); // some hack, cause i wanna it to be precise with sound
 			eventHandler.getContext().getParentSheet().parentWindow.keyHandler.shouldRepaint = false;
         }

@@ -1,7 +1,7 @@
 package Tools;
 
-import Gui.SheetMusic;
-import Model.Staff;
+import Gui.SheetPanel;
+import Model.Staff.Staff;
 
 import javax.imageio.ImageIO;
 
@@ -18,8 +18,7 @@ import java.nio.file.Files;
 
 public class FileProcessor {
 	
-	public static void savePNG ( File f, Staff staff ) {
-	    SheetMusic albert = staff.getParentSheet();
+	public static void savePNG ( File f, SheetPanel albert ) {
 	    if (albert == null) out("Что ты пытаешься сохранить, мудак?!");
 	    BufferedImage img = new BufferedImage(albert.getWidth(),albert.getHeight(), BufferedImage.TYPE_INT_ARGB);
 	    Graphics g = img.createGraphics();

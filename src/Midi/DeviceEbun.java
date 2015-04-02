@@ -10,11 +10,8 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.Transmitter;
 
-import Midi.DumpReceiver;
-import Midi.MidiCommon;
-import Model.Staff;
-import static Model.Staff.CHANNEL;
-import Musica.PlayMusThread;
+import static Model.Staff.Staff.CHANNEL;
+
 import Gui.KeyEventHandler;
 
 import javax.sound.midi.InvalidMidiDataException;

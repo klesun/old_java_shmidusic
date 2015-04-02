@@ -11,11 +11,11 @@ import org.json.JSONObject;
 public abstract class AbstractModel implements IModel {
 
 	private IModel parent = null;
-	private Boolean surfaceChanged = true;
-	protected BufferedImage image = null;
+	private AbstractHandler eventHandler = null;
 
 	public AbstractModel(IModel parent) { // TODO: parent should be AbstractModel
 		this.parent = parent;
+		this.eventHandler = this.makeHandler();
 	}
 
 	abstract public JSONObject getJsonRepresentation();
@@ -23,7 +23,11 @@ public abstract class AbstractModel implements IModel {
 
 	abstract public List<? extends AbstractModel> getChildList();
 	abstract public AbstractModel getFocusedChild();
-	
+
+	abstract protected AbstractHandler makeHandler();
+	final public AbstractHandler gettHandler() { return this.eventHandler; }
+
+	// seems, it won't be needed her, better to use it in AbstractHandler
 	public Boolean undo() {
 		Boolean completedInChild = false;
 		if (this.getFocusedChild() != null) {

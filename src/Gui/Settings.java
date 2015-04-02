@@ -20,11 +20,11 @@ public class Settings {
 	}
 
 	public static int getNotaWidth() {
-		return SheetMusic.NORMAL_WIDTH + 5 * inst().scaleKoefficient;
+		return SheetPanel.NORMAL_WIDTH + 5 * inst().scaleKoefficient;
 	}
 
 	public static int getNotaHeight() {
-		return SheetMusic.NORMAL_HEIGHT + 8 * inst().scaleKoefficient;
+		return SheetPanel.NORMAL_HEIGHT + 8 * inst().scaleKoefficient;
 	}
 
 	public static int getStepWidth() {

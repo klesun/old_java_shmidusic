@@ -1,6 +1,5 @@
 package Midi;
 
-import Model.Staff;
 import Gui.KeyEventHandler;
 
 import	javax.sound.midi.MidiMessage;

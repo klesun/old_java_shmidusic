@@ -2,7 +2,7 @@ package Musica;
 
 import javax.sound.midi.*;
 
-import Model.Accord.Nota.Nota;
+import Model.Staff.Accord.Nota.Nota;
 import Midi.DeviceEbun;
 
 public class OneShotThread extends Thread{

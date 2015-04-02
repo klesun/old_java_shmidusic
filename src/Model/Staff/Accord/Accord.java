@@ -1,9 +1,11 @@
-package Model.Accord;
+package Model.Staff.Accord;
 
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.ArrayList;
 
+import Model.AbstractHandler;
+import Model.Combo;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -11,8 +13,8 @@ import org.json.JSONObject;
 import Gui.Constants;
 import Gui.Settings;
 import Model.AbstractModel;
-import Model.Accord.Nota.Nota;
-import Model.Staff;
+import Model.Staff.Accord.Nota.Nota;
+import Model.Staff.Staff;
 import Tools.Fp;
 
 import java.util.Arrays;
@@ -34,13 +36,14 @@ public class Accord extends AbstractModel {
 	public Accord add(Nota nota) {
 		this.notaList.add(nota);
 		Collections.sort(this.notaList);
+		setFocusedIndex(getNotaList().indexOf(nota));
 		return this;
 	}
 
 	@Override
 	public JSONObject getJsonRepresentation() {
 		JSONObject dict = new JSONObject();
-		dict.put("notaList", new JSONArray(this.notaList.stream().map(n -> n.getJsonRepresentation()).toArray()));
+		dict.put("notaList", new JSONArray(getNotaList().stream().map(n -> n.getJsonRepresentation()).toArray()));
 		dict.put("slog", this.slog);
 		return dict;
 	}
@@ -50,7 +53,7 @@ public class Accord extends AbstractModel {
 		JSONArray notaJsonList = jsObject.getJSONArray("notaList");
 		for (int idx = 0; idx < notaJsonList.length(); ++idx) {
 			JSONObject childJs = notaJsonList.getJSONObject(idx);
-			new Nota(this).reconstructFromJson(childJs); // -_-
+			new Nota(this, 0).reconstructFromJson(childJs); // -_-
 		}
 		this.slog = jsObject.getString("slog");
 		return this;
@@ -88,12 +91,17 @@ public class Accord extends AbstractModel {
 
 	// responsees to events (actions)
 
-	public void moveFocus(int n) {
+	public Boolean moveFocus(Combo combo) {
+		int n = combo.getSign();
+		int wasIndex = getFocusedIndex();
 		if (this.getFocusedIndex() + n > this.getNotaList().size() - 1) {
 			this.setFocusedIndex(-1);
+		} else if (this.getFocusedIndex() + n < -1) {
+			this.setFocusedIndex(this.getNotaList().size() - 1);
 		} else {
 			this.setFocusedIndex(this.getFocusedIndex() + n);
 		}
+		return wasIndex != getFocusedIndex();
 	}
 
 	public void deleteFocused() {
@@ -177,6 +185,11 @@ public class Accord extends AbstractModel {
 	@Override
 	public AbstractModel getFocusedChild() {
 		return this.getFocusedNota();
+	}
+
+	@Override
+	protected AccordHandler makeHandler() {
+		return new AccordHandler(this);
 	}
 
 	@Override

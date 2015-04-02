@@ -1,7 +1,9 @@
-package Model.Accord.Nota;
+package Model.Staff.Accord.Nota;
 
 
-import Model.Accord.Accord;
+import Model.AbstractHandler;
+import Model.Combo;
+import Model.Staff.Accord.Accord;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -14,10 +16,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import Gui.Settings;
-import Gui.SheetMusic;
+import Gui.SheetPanel;
 import Model.AbstractModel;
-import Model.StaffConfig.StaffConfig;
-import Model.Staff;
+import Model.Staff.StaffConfig.StaffConfig;
+import Model.Staff.Staff;
 import Tools.Fp;
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -42,8 +44,9 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	public int keydownTimestamp;
 	private int keyupTimestamp;
 
-	public Nota(Accord parent) {
+	public Nota(Accord parent, int tune) {
 		super(parent);
+		setTune(tune);
 		parent.add(this);
 	}
 
@@ -84,8 +87,9 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		return tune == other.tune;
 	}
 	
-	// TODO: broken and bad name and gay
-	public void changeDur(int n) {
+	// TODO: bad name and gay
+	public void changeDur(Combo combo) {
+		int n = combo.getSign();
 
 		if (numerator == Staff.DEFAULT_ZNAM*2) {
 			numerator = Staff.DEFAULT_ZNAM;
@@ -122,7 +126,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	public static BufferedImage[] notaImageFocused = new BufferedImage[8];
 	public static BufferedImage[][] coloredNotas = new BufferedImage[10][8];
 
-	public static void bufInit(SheetMusic sheet) {
+	public static void bufInit(SheetPanel sheet) {
 		File notRes[] = new File[8];
 	    for (int idx = -1; idx<7; ++idx){
 	    	String str = "../imgs/" + pow(2, idx) + "_sized.png";
@@ -142,7 +146,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	    refreshSizes(sheet);
 	
 	}
-	public static void refreshSizes(SheetMusic sheet) {
+	public static void refreshSizes(SheetPanel sheet) {
 	    int w1, h1; Graphics2D g;
 	    w1 = sheet.getNotaWidth(); h1 = sheet.getNotaHeight();
 	    for (int idx = 0; idx < 8; ++idx ) {
@@ -364,7 +368,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 
 	// private methods
 
-	private SheetMusic getSheet() {
+	private SheetPanel getSheet() {
 		return this.getParentAccord().getParentStaff().getParentSheet();
 	}
 			
@@ -450,6 +454,11 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	@Override
 	public AbstractModel getFocusedChild() {
 		return null;
+	}
+
+	@Override
+	protected NotaHandler makeHandler() {
+		return new NotaHandler(this);
 	}
 
 	@Override

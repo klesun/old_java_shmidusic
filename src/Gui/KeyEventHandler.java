@@ -10,8 +10,9 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import Midi.DeviceEbun;
-import Model.Staff;
-import Model.StaffHandler;
+import Model.Combo;
+import Model.Staff.Staff;
+import Model.Staff.StaffHandler;
 import Tools.FileProcessor;
 import java.util.LinkedList;
 
@@ -20,13 +21,13 @@ public class KeyEventHandler implements KeyListener {
 	JFileChooser chooserSave = new JFileChooser("/var/www/desktop/Yuzefa");
 	JFileChooser chooserExport = new JFileChooser("/var/www/desktop/Yuzefa");
 
-	public SheetMusic sheet;
+	public SheetPanel sheet;
 	final Staff staff;
 	JFrame parent;
 
 	LinkedList<int[]> midiEventQueue = new LinkedList<>();
 
-	public KeyEventHandler(SheetMusic albert, JFrame parent) {
+	public KeyEventHandler(SheetPanel albert, JFrame parent) {
 		this.sheet = albert;
 		this.staff = albert.getFocusedStaff();
 		this.parent = parent;
@@ -67,7 +68,9 @@ public class KeyEventHandler implements KeyListener {
 		int rVal;
 
 		// new SheetHandler(this.sheet).handleKey(e);
-		new StaffHandler(this.sheet.getFocusedStaff()).handleKey(e);
+		if (sheet.getFocusedStaff() != null) {
+			this.sheet.getFocusedStaff().gettHandler().handleKey(new Combo(e));
+		}
 		
 		if (((e.getModifiers() & KeyEvent.CTRL_MASK) != 0) && ((e.getModifiers() & KeyEvent.ALT_MASK) == 0)) {
 			switch (e.getKeyCode()) {
@@ -106,11 +109,11 @@ public class KeyEventHandler implements KeyListener {
 								&& (!fn.getAbsolutePath().endsWith(".pdf"))
 								&& (!fn.getAbsolutePath().endsWith(".mid"))) {
 							fn = new File(fn + ".png");
-							FileProcessor.savePNG(fn, this.sheet.getFocusedStaff());
+							FileProcessor.savePNG(fn, sheet);
 						} else if (fn.getAbsolutePath().endsWith(".png")) {
 							System.out.println("Ща сохраню png");
 							fn = new File(fn + "");
-							FileProcessor.savePNG(fn, this.sheet.getFocusedStaff());
+							FileProcessor.savePNG(fn, sheet);
 						}
 					}
 					if (rVal == JFileChooser.CANCEL_OPTION) {
@@ -138,11 +141,11 @@ public class KeyEventHandler implements KeyListener {
 		switch (e.getKeyCode()) {
 			case KeyEvent.VK_PAGE_DOWN:
 				System.out.println("Вы нажали pageDown!");
-				staff.getParentSheet().page(1);
+				sheet.page(1);
 				break;
 			case KeyEvent.VK_PAGE_UP:
 				System.out.println("Вы нажали pageUp!");
-				staff.getParentSheet().page(-1);
+				sheet.page(-1);
 				break;
 			default: break;
 		}

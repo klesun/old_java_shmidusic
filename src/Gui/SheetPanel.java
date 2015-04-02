@@ -1,12 +1,8 @@
 package Gui;
 
 import Model.IModel;
-import Model.Staff;
-import Model.Accord.Accord;
-import Model.Accord.Nota.Nota;
-import Model.StaffConfig.StaffConfig;
-import org.json.JSONException;
-import org.json.JSONObject;
+import Model.Staff.Staff;
+import Model.Staff.Accord.Nota.Nota;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -22,7 +18,7 @@ import java.io.IOException;
 import java.util.*;
 
 
-final public class SheetMusic extends JPanel implements IModel {
+final public class SheetPanel extends JPanel implements IModel {
 	JScrollPane scroll;
 	
 	final public static int NORMAL_HEIGHT = 40;
@@ -44,7 +40,7 @@ final public class SheetMusic extends JPanel implements IModel {
 	ArrayList<Staff> staffList = new ArrayList();
 	public Window parentWindow = null;
 		
-	public SheetMusic(Window parent) {
+	public SheetPanel(Window parent) {
 		this.parentWindow = parent;
 
 	    System.out.println(getClass().getResource("../").getPath());
@@ -146,7 +142,7 @@ final public class SheetMusic extends JPanel implements IModel {
 		return this.getStaffList().get(0);
 	}
 
-	public SheetMusic addNewStaff() {
+	public SheetPanel addNewStaff() {
 		this.staffList.add(new Staff(this));
 		return this;
 	}
@@ -189,16 +185,6 @@ final public class SheetMusic extends JPanel implements IModel {
 
 	public int getMarginY() {
 		return Math.round(MARGIN_V * this.dy());
-	}
-
-	@Override
-	public JSONObject getJsonRepresentation() {
-		return null;
-	}
-
-	@Override
-	public IModel reconstructFromJson(JSONObject jsObject) throws JSONException {
-		return null;
 	}
 }
 

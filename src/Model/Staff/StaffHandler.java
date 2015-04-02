@@ -1,142 +1,121 @@
 
-package Model;
+package Model.Staff;
 import Midi.DeviceEbun;
 import Midi.MidiCommon;
-import Model.Accord.AccordHandler;
-import Model.Accord.Nota.Nota;
-import Model.StaffConfig.StaffConfigHandler;
+import Model.AbstractHandler;
+import Model.Action;
+import Model.Combo;
+import Model.Staff.Accord.Nota.Nota;
 import Musica.PlayMusThread;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.KeyEvent;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-public class StaffHandler {
-	
-	private Staff context = null;
-	private LinkedHashMap<List<Integer>, Consumer<KeyEvent>> handleEvent = null;
+public class StaffHandler extends AbstractHandler {
 	
 	public StaffHandler(Staff context) {
-		this.context = context;
-		this.init();
+		super(context);
 	}
 
-	public void handleKey(KeyEvent e) {
-
-		// i hope, it clones only links to lambdas, not lambdas as well
-		LinkedHashMap<List<Integer>, Consumer<KeyEvent>> combinedHandle = (LinkedHashMap)handleEvent.clone();
-		if (getContext().getFocusedAccord() != null) {
-			LinkedHashMap<List<Integer>, Consumer<KeyEvent>> handleKey = new AccordHandler(getContext().getFocusedAccord()).getKeyHandler();
-			combinedHandle.putAll(handleKey); // not 100% sure that it updates keys
-		} else {
-			LinkedHashMap<List<Integer>, Consumer<KeyEvent>> handleKey = new StaffConfigHandler(getContext().getPhantom()).getKeyHandler();
-			combinedHandle.putAll(handleKey); // not 100% sure that it updates keys
-		}
-
-		List<Integer> key = Arrays.asList(e.getModifiers(), e.getKeyCode());
-
-		if (combinedHandle.containsKey(key)) {
-			Consumer<KeyEvent> handle = combinedHandle.get(key);
-			handle.accept(e);
-			getContext().getParentSheet().parentWindow.keyHandler.requestNewSurface();
-		}
+	public Staff getContext() {
+		return (Staff)super.getContext();
 	}
 
-	private void init() {
-		handleEvent = new LinkedHashMap<>();
+	@Override
+	protected void init() {
+		actionMap = new LinkedHashMap<>();
 
 		// It may not work when we have multiple staffs, i don't know how java lambdas work
-		handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_P), (event) -> {
-			if (DeviceEbun.stop) {
+		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_P), new Action().setDo((event) -> {
+			if (DeviceEbun.stop) { // no need to handle ctr-z for this, cause it just generates another actions, that can be handled. Ah smart, aint i?
 				PlayMusThread.shutTheFuckUp();
 				DeviceEbun.stop = false;
 				(new PlayMusThread(this)).start();
 			} else {
 				DeviceEbun.stopMusic();
 			}
-		});
-		handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_D), (event) -> {
+		}));
+		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_D), new Action().setDo((event) -> {
 			MidiCommon.listDevicesAndExit(false, true, false);
 			DeviceEbun.changeOutDevice();
-		});
-		handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_0), (event) -> {
-			getContext().changeMode(); // i broken java lol. I can call instance methods from static.
-		});
-		handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_Z), (event) -> {
+		}));
+		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_0), new Action().setDo((event) -> {
+			getContext().changeMode();
+		}));
+		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Z), new Action().setDo((event) -> {
 //				getContext().undo(); // TODO: do ctrl-Z for child - if success - break, else do ctrl-z for parent
-		});
-		handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_Y), (event) -> {
+		}));
+		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Y), new Action().setDo((event) -> {
 //				getContext().redo();
-		});
-		handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT), (event) -> {
+		}));
+		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT), new Action().setDo((event) -> {
 			getContext().moveFocus(1);
 			// stan.drawPanel.checkCam();
-		});
-		handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_UP), (event) -> {
+		}));
+		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_UP), new Action().setDo((event) -> {
 			PlayMusThread.shutTheFuckUp();
 			getContext().moveFocus(-getContext().getNotaInRowCount());
 			getContext().getParentSheet().checkCam(); // O_o move it into requestNewSurface maybe?
-		});
-		handleEvent.put(Arrays.asList(KeyEvent.CTRL_MASK, KeyEvent.VK_DOWN), (event) -> {
+		}));
+		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_DOWN), new Action().setDo((event) -> {
 			PlayMusThread.shutTheFuckUp();
 			getContext().moveFocus(+getContext().getNotaInRowCount());
 			getContext().getParentSheet().checkCam(); // O_o move it into requestNewSurface maybe?
-		});
+		}));
 
-		Consumer<KeyEvent> handleMuteChannel = (e) -> {
+		Consumer<Combo> handleMuteChannel = (e) -> {
 			int cod = e.getKeyCode();
 			if (cod >= '0' && cod <= '9') {
 				getContext().changeChannelFlag(cod - '0');
 			}
 		};
-		for (int i = KeyEvent.VK_0; i <= KeyEvent.VK_9; ++i) { handleEvent.put(Arrays.asList(KeyEvent.ALT_MASK, i), handleMuteChannel); }
+		for (int i = KeyEvent.VK_0; i <= KeyEvent.VK_9; ++i) { actionMap.put(new Combo(KeyEvent.ALT_MASK, i), new Action().setDo(handleMuteChannel).setUndo(handleMuteChannel)); }
 
-		handleEvent.put(Arrays.asList(0, KeyEvent.VK_RIGHT), (event) -> {
+		actionMap.put(new Combo(0, KeyEvent.VK_RIGHT), new Action().setDo((event) -> {
 			PlayMusThread.shutTheFuckUp();
 			getContext().moveFocus(1);
 			// stan.drawPanel.checkCam();
-		});
-		handleEvent.put(Arrays.asList(0, KeyEvent.VK_LEFT), (event) -> {
+		}));
+		actionMap.put(new Combo(0, KeyEvent.VK_LEFT), new Action().setDo((event) -> {
 			PlayMusThread.shutTheFuckUp();
 			getContext().moveFocus(-1);
 			// stan.drawPanel.checkCam();
-		});
-		handleEvent.put(Arrays.asList(0, KeyEvent.VK_HOME), (event) -> {
+		}));
+		actionMap.put(new Combo(0, KeyEvent.VK_HOME), new Action().setDo((event) -> {
 			PlayMusThread.shutTheFuckUp();
 			getContext().setFocusedIndex(-1);
 			getContext().getParentSheet().checkCam();
-		});
-		handleEvent.put(Arrays.asList(0, KeyEvent.VK_END), (event) -> {
+		}));
+		actionMap.put(new Combo(0, KeyEvent.VK_END), new Action().setDo((event) -> {
 			PlayMusThread.shutTheFuckUp();
 			getContext().setFocusedIndex(getContext().getAccordList().size() - 1);
 			getContext().getParentSheet().checkCam();
-		});
-		handleEvent.put(Arrays.asList(0, KeyEvent.VK_ENTER), (event) -> { // TODO: maybe it would better fit into accord handler?
+		}));
+		actionMap.put(new Combo(0, KeyEvent.VK_ENTER), new Action().setDo((event) -> {
 			PlayMusThread.shutTheFuckUp();
 			PlayMusThread.playAccord(getContext().getFocusedAccord());
-		});
-		handleEvent.put(Arrays.asList(0, KeyEvent.VK_DELETE), (event) -> {
+		}));
+		actionMap.put(new Combo(0, KeyEvent.VK_DELETE), new Action().setDo((event) -> {
 			if (getContext().getFocusedAccord() != null) {
 				getContext().getAccordList().remove(getContext().focusedIndex--);
 			} else {
 				getContext().moveFocus(1);
 			}
-		});
-		handleEvent.put(Arrays.asList(0, KeyEvent.VK_MINUS), (event) -> {
+		}));
+		actionMap.put(new Combo(0, KeyEvent.VK_MINUS), new Action().setDo((event) -> {
 			if (event.getKeyCode() == '-') {
 				getContext().moveFocus(1);
 			}
-		});
-		handleEvent.put(Arrays.asList(0, KeyEvent.VK_ESCAPE), (event) -> {
+		}));
+		actionMap.put(new Combo(0, KeyEvent.VK_ESCAPE), new Action().setDo((event) -> {
 			this.showMenuDialog();
-		});
+		}));
 	}
 
 	public void showMenuDialog() {
@@ -166,9 +145,5 @@ public class StaffHandler {
 			};
 			getContext().getPhantom().syncSyntChannels();
 		}
-	}
-
-	public Staff getContext() {
-		return this.context;
 	}
 }

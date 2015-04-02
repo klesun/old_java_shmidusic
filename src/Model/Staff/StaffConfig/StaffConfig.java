@@ -1,10 +1,11 @@
-package Model.StaffConfig;
+package Model.Staff.StaffConfig;
 
+import Model.AbstractHandler;
 import Model.AbstractModel;
-import Model.Accord.Nota.Nota;
-import Gui.SheetMusic;
+import Model.Staff.Accord.Nota.Nota;
+import Gui.SheetPanel;
 import Midi.DeviceEbun;
-import Model.Staff;
+import Model.Staff.Staff;
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
@@ -39,7 +40,7 @@ public class StaffConfig extends AbstractModel {
 	}
 
 	public BufferedImage getImage() {
-		SheetMusic sheet = this.getParentStaff().getParentSheet();
+		SheetPanel sheet = this.getParentStaff().getParentSheet();
 		int w = sheet.getNotaWidth() * 5;
 		int h = sheet.getNotaHeight() * 6;
 		BufferedImage rez = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
@@ -65,14 +66,14 @@ public class StaffConfig extends AbstractModel {
 
 		// instrument
 		tpy = sheet.getNotaHeight();
-		g.drawImage(SheetMusic.vseKartinki[5], 0, tpy, null);
+		g.drawImage(SheetPanel.vseKartinki[5], 0, tpy, null);
 		g.setFont(new Font(Font.SERIF, Font.BOLD, inches)); // 12 - 7px width
 		g.setColor(Color.decode("0xaa00ff"));
 		g.drawString(" "+valueInstrument, 0 + sheet.getNotaWidth()*3/5, tpy + inches*4/5 + sheet.getNotaHeight()*11/20);
 
 		// Volume
 		tpx = 0; tpy = sheet.getNotaHeight()*37/10;
-		g.drawImage(SheetMusic.vseKartinki[4], tpx+sheet.getNotaWidth()*2/25, tpy, null);
+		g.drawImage(SheetPanel.vseKartinki[4], tpx+sheet.getNotaWidth()*2/25, tpy, null);
 		inches = sheet.getNotaHeight()*3/10;
 		g.setColor(Color.decode("0x00A13E"));
 		g.drawString((int)(valueVolume*100)+"%", tpx, tpy + inches*4/5 + sheet.getNotaHeight()*2/5);
@@ -121,6 +122,11 @@ public class StaffConfig extends AbstractModel {
 	@Override
 	public AbstractModel getFocusedChild() {
 		return null;
+	}
+
+	@Override
+	protected StaffConfigHandler makeHandler() {
+		return new StaffConfigHandler(this);
 	}
 
 	@Override

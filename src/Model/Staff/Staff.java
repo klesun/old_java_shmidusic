@@ -1,16 +1,18 @@
 // TODO: мэрджить ноты, типа целая+(половинная+четвёртая=половинная с точкой) = целая с двумя точками
 // потому что делать точки плюсиком - это убого!
 
-package Model;
+package Model.Staff;
 
-import Model.StaffConfig.StaffConfig;
+import Gui.SheetPanel;
+import Model.AbstractHandler;
+import Model.AbstractModel;
+import Model.Staff.StaffConfig.StaffConfig;
 import Gui.Settings;
 import java.util.ArrayList;
 import java.util.List;
 
-import Gui.SheetMusic;
-import Model.Accord.Accord;
-import Model.Accord.Nota.Nota;
+import Model.Staff.Accord.Accord;
+import Model.Staff.Accord.Nota.Nota;
 import Musica.PlayMusThread;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -45,15 +47,13 @@ public class Staff extends AbstractModel {
 	public aMode mode;
 
 	public StaffConfig phantomka = null;
-	public Accord firstDeleted = new Accord(this);
-	public Accord lastDeleted = firstDeleted;
 
 	private ArrayList<Accord> accordList = new ArrayList<>();
 	public int focusedIndex = -1;
 
 	int closerCount = 0;
 	
-	public Staff(SheetMusic sheet){
+	public Staff(SheetPanel sheet){
 		super(sheet);
 		this.phantomka = new StaffConfig(this);
 		mode = aMode.insert;
@@ -79,10 +79,10 @@ public class Staff extends AbstractModel {
 			Nota nota;
 
 			if (getFocusedAccord() != null && (timestamp - getFocusedAccord().getEarliest().keydownTimestamp < ACCORD_EPSILON)) {
-				nota = new Nota(getFocusedAccord()).setTune(tune).setKeydownTimestamp(timestamp);
+				nota = new Nota(getFocusedAccord(), tune).setKeydownTimestamp(timestamp);
 			} else {
 				Accord newAccord = new Accord(this);
-				nota = new Nota(newAccord).setTune(tune).setKeydownTimestamp(timestamp);
+				nota = new Nota(newAccord, tune).setKeydownTimestamp(timestamp);
 				this.add(newAccord);
 			}
 			
@@ -90,37 +90,6 @@ public class Staff extends AbstractModel {
 			++closerCount;
 		}
 	}
-
-	// TODO: maybe repair the ctrl+z one day (rewrite it completely pls)
-//	public void retrieveLast(){
-//		if (deleted == 0) return;
-//		Accord cur = lastDeleted;
-//		lastDeleted = lastDeleted.next;
-//		cur.next = cur.prev.next;
-//		cur.prev.next = cur;
-//		if (cur.next != null) cur.next.prev = cur;
-//		cur.retrieve = lastRetrieved;
-//		lastRetrieved = cur;
-//		++noshuCount;
-//		--deleted;
-//		if ( Pointer.isAfter(cur) ) ++Pointer.pos;
-//	}
-//	Accord lastRetrieved = null;
-//	
-//	public void detrieveNotu(){ 
-//		int rez = -1;
-//		Accord accord = lastRetrieved;
-//		if (accord == null) return;
-//		lastRetrieved = accord.retrieve;    	
-//		if (Pointer.pointsAt == accord) {
-//			delNotu();
-//			return;
-//		} else rez = Pointer.moveTo(accord);
-//		if (rez == 0) delNotu();
-//		else {
-//			out("Воскресшей ноты на стане нет");
-//		}
-//	}
 
 	public void drawOn(Graphics g, int baseX, int baseY) {
 
@@ -132,7 +101,7 @@ public class Staff extends AbstractModel {
 
 		int i = 0;
 		for (List<Accord> row: getAccordRowList()) {
-			int y = baseY + i * SheetMusic.SISDISPLACE * dy(); // bottommest y nota may be drawn on
+			int y = baseY + i * SheetPanel.SISDISPLACE * dy(); // bottommest y nota may be drawn on
 			g.drawImage(getViolinKeyImage(), this.dx(), y -3 * dy(), getParentSheet());
 			g.drawImage(getBassKeyImage(), this.dx(), 11 * dy() + y, getParentSheet());
 			g.setColor(Color.BLUE);
@@ -257,6 +226,11 @@ public class Staff extends AbstractModel {
 	}
 
 	@Override
+	protected StaffHandler makeHandler() {
+		return new StaffHandler(this);
+	}
+
+	@Override
 	protected Boolean undoFinal() {
 		return null;
 	}
@@ -317,15 +291,15 @@ public class Staff extends AbstractModel {
 	}
 
 	public BufferedImage getViolinKeyImage() {
-		return SheetMusic.vseKartinki[0];
+		return SheetPanel.vseKartinki[0];
 	}
 
 	public BufferedImage getBassKeyImage() {
-		return SheetMusic.vseKartinki[1];
+		return SheetPanel.vseKartinki[1];
 	}
 
 	public BufferedImage getPointerImage() {
-		return SheetMusic.vseKartinki[3];
+		return SheetPanel.vseKartinki[3];
 	}
 
 	// field getters/setters
@@ -334,8 +308,8 @@ public class Staff extends AbstractModel {
 		return this.phantomka;
 	}
 
-	public SheetMusic getParentSheet() {
-		return (SheetMusic)getParent();
+	public SheetPanel getParentSheet() {
+		return (SheetPanel)getParent();
 	}
 
 	public int getFocusedIndex() {
