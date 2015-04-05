@@ -41,8 +41,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	public int tupletDenominator = 1;
 	Boolean isMuted = false;
 
-	public int keydownTimestamp;
-	private int keyupTimestamp;
+	public long keydownTimestamp;
 
 	public Nota(Accord parent, int tune) {
 		super(parent);
@@ -305,7 +304,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 			return 0; // пауза лол какбэ
 		} else {
 			StaffConfig config = getParentAccord().getParentStaff().getPhantom();
-			return (byte)(127 * config.getVolumeArray()[channel] / 100 * config.valueVolume);
+			return (byte)(127 * config.getVolumeArray()[channel] / 100);
 		}
 	}
 
@@ -351,13 +350,8 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		return this;
 	}
 	
-	public Nota setKeydownTimestamp(int value) {
+	public Nota setKeydownTimestamp(long value) {
 		this.keydownTimestamp = value;
-		return this;
-	}
-
-	public Nota setKeyupTimestamp(int value) {
-		this.keyupTimestamp = value;
 		return this;
 	}
 
@@ -459,16 +453,6 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	@Override
 	protected NotaHandler makeHandler() {
 		return new NotaHandler(this);
-	}
-
-	@Override
-	protected Boolean undoFinal() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	protected Boolean redoFinal() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override

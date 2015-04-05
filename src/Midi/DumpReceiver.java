@@ -20,21 +20,17 @@ public class DumpReceiver implements Receiver {
 	}
 	
 	public void close() {}
-	long sPrev = 0;
-	static boolean pitch=false;
 
 	public void send(MidiMessage message, long timestamp) {
 		timestamp /= 1000; // from microseconds to milliseconds as i can judge
-	    int elapsed = (int)(timestamp - sPrev);
-	    sPrev = timestamp;
-	
-	    int tune = ((ShortMessage) message).getData1();
+
+		Integer tune = ((ShortMessage) message).getData1();
 	    int forca = ((ShortMessage)message).getData2();
 	
 	    if (tune <= 32 || tune >= 100) {
 	    	// Handle instrument change/pitch-bend/tune/etc // Actually, useless
 	    	return;
 	    }
-	    this.eventHandler.handleMidiEvent( tune, forca, elapsed, (int)timestamp );
+	    this.eventHandler.handleMidiEvent( tune, forca, (int)timestamp );
 	}
 }

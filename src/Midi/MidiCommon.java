@@ -1,3 +1,10 @@
+// written by some dude, but i, em... accidentally erased what he wrote about himself, but you may like reading this instead:
+//
+//    ░░░░░░███████ ]▄▄▄▄▄▄▄▄ Боб строит армию.
+//    ▂▄▅████ИС-7█████▅▄▃▂ ☻/ Этот танк и Боб против Google+
+//    Il███████████████████]. /▌ Скопируйте и вставь везде
+//    ◥⊙▲⊙▲⊙▲⊙▲⊙▲⊙▲⊙◤.. / \ если вы с нами.
+
 package Midi;
 
 import javax.sound.midi.MidiDevice;

@@ -25,7 +25,7 @@ public class KeyEventHandler implements KeyListener {
 	final Staff staff;
 	JFrame parent;
 
-	LinkedList<int[]> midiEventQueue = new LinkedList<>();
+	public Boolean shouldRepaint = true;
 
 	public KeyEventHandler(SheetPanel albert, JFrame parent) {
 		this.sheet = albert;
@@ -43,29 +43,24 @@ public class KeyEventHandler implements KeyListener {
 		DeviceEbun.openOutDevice();
 	}
 
-	public Boolean shouldRepaint = false;
-
-	public void handleMidiEvent(int tune, int forca, int elapsed, int timestamp) {
-		this.midiEventQueue.add(new int[]{tune, forca, timestamp});
+	public void handleMidiEvent(Integer tune, int forca, int timestamp) {
+		if (forca > 0) {
+			KeyEvent dispatchEvent = new KeyEvent(sheet, 0, 0, 11, Combo.tuneToAscii(tune), '♥'); // (11 -ctrl+shift+alt)+someKey
+			this.keyPressed(dispatchEvent);
+		} else {
+			// keyup event
+		}
 	}
 
 	synchronized public void handleFrameTimer() {
-		int[] midiRecord;
-		while ((midiRecord = this.midiEventQueue.poll()) != null) {
-			this.staff.addPressed(midiRecord[0], midiRecord[1], midiRecord[2]);
-			this.shouldRepaint = true;
-		}
-		if (this.shouldRepaint) {
-			try {
-				this.sheet.repaint();
-			} catch (java.util.ConcurrentModificationException exc) { System.out.println("Пошли в жопу пидорасы"); }
-			this.shouldRepaint = false;
+		if (shouldRepaint) {
+			this.sheet.checkCam(); // and repaints
+			shouldRepaint = false;
 		}
 	}
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		int rVal;
 
 		// new SheetHandler(this.sheet).handleKey(e);
 		if (sheet.getFocusedStaff() != null) {
@@ -76,7 +71,7 @@ public class KeyEventHandler implements KeyListener {
 			switch (e.getKeyCode()) {
 				case 's':case 'S':case 'Ы':case 'ы':
 					JFileChooser c = chooserSave;
-					rVal = c.showSaveDialog(parent);
+					int rVal = c.showSaveDialog(parent);
 					if (rVal == JFileChooser.APPROVE_OPTION) {
 						File fn = c.getSelectedFile();
 						if (!fn.getAbsolutePath().endsWith(".json")) {
@@ -98,7 +93,7 @@ public class KeyEventHandler implements KeyListener {
 							}
 						}
 					}
-					this.sheet.repaint();
+					this.sheet.checkCam();
 					break;
 				case 'e':case 'E':case 'у':case 'У':
 					JFileChooser c2 = chooserExport;
@@ -149,10 +144,6 @@ public class KeyEventHandler implements KeyListener {
 				break;
 			default: break;
 		}
-	}
-
-	public void requestNewSurface() {
-		this.shouldRepaint = true;
 	}
 
 	public void keyReleased(KeyEvent e) {

@@ -1,6 +1,6 @@
 package Model.Staff.StaffConfig;
 
-import Model.AbstractHandler;
+import Gui.Settings;
 import Model.AbstractModel;
 import Model.Staff.Accord.Nota.Nota;
 import Gui.SheetPanel;
@@ -23,8 +23,6 @@ import org.json.JSONObject;
 public class StaffConfig extends AbstractModel {
 
 	public int valueTempo = 120;
-	public int valueInstrument = 0;
-	public double valueVolume = 0.75;
 	public int numerator = 8;
 
 	private int[] instrumentArray = {64, 65, 66, 43, 19, 52, 6, 91, 9, 14};
@@ -35,8 +33,18 @@ public class StaffConfig extends AbstractModel {
 	}
 
 	@Override
-	public void drawOn(Graphics surface, int x, int y) {
-		// TODO:
+	public void drawOn(Graphics g, int xIndent, int yIndent) {
+		int dX = Settings.getNotaWidth()/5, dY = Settings.getNotaHeight()*2;
+		g.drawImage(this.getImage(), xIndent - dX, yIndent - dY, getSheetPanel());
+		int deltaY = 0, deltaX = 0;
+		switch (changeMe) {
+			case numerator:	deltaY += 9 * dy(); break;
+			case tempo: deltaY -= 1 * dy(); break;
+			default: break;
+		}
+		if (getParentStaff().getFocusedChild() == this) {
+			g.drawImage(getParentStaff().getPointerImage(), xIndent - 7* Settings.getNotaWidth()/25 + deltaX, yIndent - dy() * 14 + deltaY, getSheetPanel());
+		}
 	}
 
 	public BufferedImage getImage() {
@@ -64,20 +72,6 @@ public class StaffConfig extends AbstractModel {
 		g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, inches)); // 12 - 7px width
 		g.drawString(" = "+valueTempo, tpx + sheet.getNotaWidth()*4/5, tpy + inches*4/5 + sheet.getNotaHeight()*13/20);
 
-		// instrument
-		tpy = sheet.getNotaHeight();
-		g.drawImage(SheetPanel.vseKartinki[5], 0, tpy, null);
-		g.setFont(new Font(Font.SERIF, Font.BOLD, inches)); // 12 - 7px width
-		g.setColor(Color.decode("0xaa00ff"));
-		g.drawString(" "+valueInstrument, 0 + sheet.getNotaWidth()*3/5, tpy + inches*4/5 + sheet.getNotaHeight()*11/20);
-
-		// Volume
-		tpx = 0; tpy = sheet.getNotaHeight()*37/10;
-		g.drawImage(SheetPanel.vseKartinki[4], tpx+sheet.getNotaWidth()*2/25, tpy, null);
-		inches = sheet.getNotaHeight()*3/10;
-		g.setColor(Color.decode("0x00A13E"));
-		g.drawString((int)(valueVolume*100)+"%", tpx, tpy + inches*4/5 + sheet.getNotaHeight()*2/5);
-
 		return rez;
 	}
 
@@ -85,8 +79,6 @@ public class StaffConfig extends AbstractModel {
 	public JSONObject getJsonRepresentation() {
 		JSONObject dict = new JSONObject();
 		dict.put("tempo", this.valueTempo);
-		dict.put("volume", this.valueVolume);
-		dict.put("instrument", this.valueInstrument);
 		dict.put("numerator", this.numerator);
 		dict.put("instrumentArray", new JSONArray(this.instrumentArray));
 		dict.put("volumeArray", new JSONArray(this.volumeArray));
@@ -97,8 +89,6 @@ public class StaffConfig extends AbstractModel {
 	@Override
 	public StaffConfig reconstructFromJson(JSONObject jsObject) throws JSONException {
 		this.valueTempo = jsObject.getInt("tempo");
-		this.valueVolume = jsObject.getDouble("volume");
-		this.valueInstrument = jsObject.getInt("instrument");
 		if (jsObject.has("numerator")) { // TODO: [deprecated], it should be always true
 			this.numerator = jsObject.getInt("numerator");
 		}
@@ -129,21 +119,19 @@ public class StaffConfig extends AbstractModel {
 		return new StaffConfigHandler(this);
 	}
 
-	@Override
-	protected Boolean undoFinal() {
-		return null;
+	// getters
+
+
+	public int dx() {
+		return Settings.getStepWidth();
 	}
 
-	@Override
-	protected Boolean redoFinal() {
-		return null;
+	public int dy() {
+		return Settings.getStepHeight();
 	}
 
-	public StaffConfig update(StaffConfig rival) throws JSONException {
-		JSONObject js = new JSONObject("{}"); 
-		js = new JSONObject(js.put("lol", rival.getJsonRepresentation()).get("lol").toString());
-		this.reconstructFromJson(js);
-		return this;
+	public SheetPanel getSheetPanel() {
+		return getParentStaff().getParentSheet();
 	}
 
 	// field getters
@@ -151,11 +139,9 @@ public class StaffConfig extends AbstractModel {
 	public Staff getParentStaff() {
 		return (Staff)this.getParent();
 	}
-
 	public int[] getInstrumentArray() {
 		return this.instrumentArray;
 	}
-
 	public int[] getVolumeArray() {
 		return this.volumeArray;
 	}
@@ -165,7 +151,7 @@ public class StaffConfig extends AbstractModel {
 		try {
 			for (int i = 0; i < 10; ++i) {
 				instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, i, this.instrumentArray[i], 0);
-				DeviceEbun.sintReceiver.send(instrMess, -1);
+				DeviceEbun.theirReceiver.send(instrMess, -1);
 			}
 		} catch (InvalidMidiDataException exc) { System.out.println("Midi error, could not sync channle instruments!"); }
 	}
@@ -175,8 +161,6 @@ public class StaffConfig extends AbstractModel {
 	public enum WhatToChange {
 		numerator,
 		tempo,
-		volume,
-		instrument;
 	}
 	public WhatToChange changeMe = WhatToChange.numerator;
 
@@ -186,12 +170,6 @@ public class StaffConfig extends AbstractModel {
 				changeMe = WhatToChange.tempo;
 				break;
 			case tempo:
-				changeMe = WhatToChange.volume;
-				break;
-			case volume:
-				changeMe = WhatToChange.instrument;
-				break;
-			case instrument:
 				changeMe = WhatToChange.numerator;
 				break;
 			default:
@@ -208,17 +186,6 @@ public class StaffConfig extends AbstractModel {
 				valueTempo *= 10;
 				valueTempo += c - '0';
 				valueTempo %= 12000;
-				break;
-			case instrument:
-				valueInstrument *= 10;
-				valueInstrument += c - '0';
-				valueInstrument %= 256;
-				break;
-			case volume:
-				valueVolume *= 10;
-				System.out.println("c="+c+" c-'0'="+(c-'0'));
-				valueVolume += ((double)(c-'0'))/100;
-				if (valueVolume > 2.54) valueVolume = 2.54;
 				break;
 			default:
 				System.out.println("Неизвестный енум");
@@ -237,18 +204,6 @@ public class StaffConfig extends AbstractModel {
 				valueTempo += n;
 				valueTempo = valueTempo < 1 ? 1 : valueTempo % 12000;
 				break;
-			case instrument:
-				this.valueInstrument += n;
-				this.valueInstrument = valueInstrument < 0 ? 0 : valueInstrument % 256;
-				try {
-					DeviceEbun.changeInstrument(this.valueInstrument);
-				} catch (InvalidMidiDataException e) { System.out.println("Сука инструмент менять нихуя не получается"); }
-				break;
-			case volume:
-				valueVolume += ((double)n)/100;
-				if (valueVolume < 0) valueVolume = 0;
-				if (valueVolume > 2.54) valueVolume = 2.54;
-				break;
 			default: break;
 		}
 	}
@@ -258,14 +213,6 @@ public class StaffConfig extends AbstractModel {
 			case tempo:
 				valueTempo /= 10;
 				if (valueTempo < 1) valueTempo = 1;
-				break;
-			case volume:
-				int tmp = (int)(valueVolume*100);
-				tmp /= 10;
-				valueVolume = ((double)tmp)/100;
-				break;
-			case instrument:
-				valueInstrument /= 10;
 				break;
 			default:
 				System.out.println("Неизвестный енум");

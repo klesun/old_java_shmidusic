@@ -4,15 +4,14 @@
 package Model.Staff;
 
 import Gui.SheetPanel;
-import Model.AbstractHandler;
 import Model.AbstractModel;
+import Model.Combo;
 import Model.Staff.StaffConfig.StaffConfig;
 import Gui.Settings;
 import java.util.ArrayList;
 import java.util.List;
 
 import Model.Staff.Accord.Accord;
-import Model.Staff.Accord.Nota.Nota;
 import Musica.PlayMusThread;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -25,11 +24,9 @@ import org.json.JSONObject;
 
 public class Staff extends AbstractModel {
 	public byte channelFlags = -1;
-	int sessionId = (int)(Math.random() * Integer.MAX_VALUE);
-	
+
 	public static final int CHANNEL = 0;
 	public static final int DEFAULT_ZNAM = 64; // TODO: move it into some constants maybe
-	Nota unclosed[] = new Nota[256];
 	final public static int ACCORD_EPSILON = 50; // in milliseconds
 	
 	public static double volume = 0.5;
@@ -51,52 +48,23 @@ public class Staff extends AbstractModel {
 	private ArrayList<Accord> accordList = new ArrayList<>();
 	public int focusedIndex = -1;
 
-	int closerCount = 0;
-	
 	public Staff(SheetPanel sheet){
 		super(sheet);
 		this.phantomka = new StaffConfig(this);
 		mode = aMode.insert;
 	}
 
-	public Staff add(Accord elem) {
-		this.accordList.add(++focusedIndex, elem);
+	public synchronized Staff add(Accord elem) {
+		this.accordList.add(getFocusedIndex() + 1, elem);
 		return this;
 	}
-	
-	public void addPressed(int tune, int forca, int timestamp) {
-		if (forca == 0) { // key up
-			if (unclosed[tune] == null) return;
-			--closerCount;
-			unclosed[tune].setKeyupTimestamp(timestamp);
-			unclosed[tune] = null;
-		} else {
-			if (mode == aMode.passive || mode == aMode.playin) {
-				// Показать, какую ноту ты нажимаешь
-				return;
-			}
-			
-			Nota nota;
 
-			if (getFocusedAccord() != null && (timestamp - getFocusedAccord().getEarliest().keydownTimestamp < ACCORD_EPSILON)) {
-				nota = new Nota(getFocusedAccord(), tune).setKeydownTimestamp(timestamp);
-			} else {
-				Accord newAccord = new Accord(this);
-				nota = new Nota(newAccord, tune).setKeydownTimestamp(timestamp);
-				this.add(newAccord);
-			}
-			
-			unclosed[tune] = nota;
-			++closerCount;
-		}
-	}
-
-	public void drawOn(Graphics g, int baseX, int baseY) {
+	public synchronized void drawOn(Graphics g, int baseX, int baseY) {
 
 		int taktCount = 1;
 		int curCislic = 0;
 
-		drawPhantom(getPhantom(), g, baseX, baseY);
+		getPhantom().drawOn(g, baseX, baseY);
 		baseX += dx();
 
 		int i = 0;
@@ -119,7 +87,7 @@ public class Staff extends AbstractModel {
 
 				if (accord.getNotaList().size() > 0) {
 
-					curCislic += accord.getShortest().getNumerator(); // TODO: triols are counted as each was complete nota, bad
+					curCislic += accord.getShortestNumerator(); // TODO: triols are counted as each was complete nota, bad
 					if (curCislic >= getPhantom().numerator * 8) { // потому что у нас шажок 1/8 когда меняем размер такта
 						curCislic %= getPhantom().numerator * 8;
 						g.setColor(curCislic > 0 ? Color.BLUE : Color.BLACK);
@@ -138,28 +106,11 @@ public class Staff extends AbstractModel {
 		}
 	}
 	
-	// TODO: move into StaffConfig class... some day
-	private void drawPhantom(StaffConfig phantomka, Graphics g, int xIndent, int yIndent) {
-		int dX = getParentSheet().getNotaWidth()/5, dY = getParentSheet().getNotaHeight()*2;
-		g.drawImage(phantomka.getImage(), xIndent - dX, yIndent - dY, getParentSheet());
-		int deltaY = 0, deltaX = 0;
-		switch (phantomka.changeMe) {
-			case numerator:	deltaY += 9 * this.dy(); break;
-			case tempo: deltaY -= 1 * this.dy(); break;
-			case instrument: deltaY += 4 * this.dy(); deltaX += this.dx() / 4; break;
-			case volume: deltaY += 24 * this.dy(); break;
-			default: break;
-		}
-		if (getFocusedAccord() == null) {
-			g.drawImage(getPointerImage(), xIndent - 7* getParentSheet().getNotaWidth()/25 + deltaX, yIndent - this.dy() * 14 + deltaY, getParentSheet());
-		}
-	}
-	
 	public int changeMode(){
 	    if (mode == aMode.insert) mode = aMode.passive;
 	    else mode = aMode.insert;
 	
-	    out(mode+"");
+	    out(mode + "");
 	    return 0;
 	}
 	
@@ -196,25 +147,25 @@ public class Staff extends AbstractModel {
 	public Staff reconstructFromJson(JSONObject jsObject) throws JSONException {
 		this.clearStan();
 		JSONArray accordJsonList;
-		if (jsObject.has("childList")) { // TODO: deprecated. Run some script on all files, i won't manually resave all of them
+		if (jsObject.has("childList")) { // TODO: deprecated. Run some script on all files, i won't manually resave all of them... again
 			accordJsonList = jsObject.getJSONArray("childList");
-			this.getPhantom().update(new StaffConfig(this).reconstructFromJson(accordJsonList.getJSONObject(0))); // TODO: it is so lame, but i spent hours to save all these files in this format
+			this.getPhantom().reconstructFromJson(accordJsonList.getJSONObject(0)); // TODO: it is so lame, but i spent hours to save all these files in this format
 			accordJsonList.remove(0);
 		} else {
 			accordJsonList = jsObject.getJSONArray("accordList");
 			JSONObject configJson = jsObject.getJSONObject("staffConfig");
-			this.getPhantom().update(new StaffConfig(this).reconstructFromJson(configJson));
+			this.getPhantom().reconstructFromJson(configJson);
 		}
 		for (int idx = 0; idx < accordJsonList.length(); ++idx) {
 			JSONObject childJs = accordJsonList.getJSONObject(idx);
-			this.add(new Accord(this).reconstructFromJson(childJs));
+			this.add(new Accord(this).reconstructFromJson(childJs)).moveFocus(1);
 		}
 		
 		return this;
 	}
 
 	@Override
-	public List<? extends AbstractModel> getChildList() {
+	public synchronized List<? extends AbstractModel> getChildList() {
 		List childList = (List<Accord>)getAccordList().clone();
 		childList.add(0, getPhantom());
 		return childList;
@@ -230,24 +181,25 @@ public class Staff extends AbstractModel {
 		return new StaffHandler(this);
 	}
 
-	@Override
-	protected Boolean undoFinal() {
-		return null;
-	}
-
-	@Override
-	protected Boolean redoFinal() {
-		return null;
-	}
-
 	public Boolean moveFocus(int n) {
 		Boolean stop = getFocusedIndex() + n < -1 || getFocusedIndex() + n > getAccordList().size() - 1;
 		setFocusedIndex(getFocusedIndex() + n);
 
-		if (getFocusedAccord() != null && !stop) {
+		return !stop;
+	}
+
+	public Boolean moveFocusUsingCombo(Combo combo) {
+		Boolean result = moveFocus(combo.getSign());
+		if (getFocusedAccord() != null && result) {
 			PlayMusThread.playAccord(getFocusedAccord());
 		}
-		return !stop;
+		return result;
+	}
+
+	public Boolean moveFocusRow(Combo combo) {
+		int n = combo.getSign() * getAccordInRowCount();
+		moveFocus(n);
+		return true;
 	}
 
 	// getters
@@ -266,8 +218,8 @@ public class Staff extends AbstractModel {
 
 	public List<List<Accord>> getAccordRowList() {
 		List<List<Accord>> resultList = new ArrayList<>();
-		for (int fromIdx = 0; fromIdx < this.getAccordList().size(); fromIdx += getNotaInRowCount()) {
-			resultList.add(this.getAccordList().subList(fromIdx, Math.min(fromIdx + getNotaInRowCount(), this.getAccordList().size())));
+		for (int fromIdx = 0; fromIdx < this.getAccordList().size(); fromIdx += getAccordInRowCount()) {
+			resultList.add(this.getAccordList().subList(fromIdx, Math.min(fromIdx + getAccordInRowCount(), this.getAccordList().size())));
 		}
 
 		if (resultList.isEmpty()) { resultList.add(new ArrayList<>()); }		
@@ -278,7 +230,7 @@ public class Staff extends AbstractModel {
 		return getParentSheet().getWidth() - getParentSheet().MARGIN_H * 2;
 	}
 
-	public int getNotaInRowCount() {
+	public int getAccordInRowCount() {
 		return this.getWidth() / (Settings.getNotaWidth() * 2) - 3; // - 3 because violin key and phantom
 	}
 

@@ -3,14 +3,17 @@ package Model.Staff;
 import Midi.DeviceEbun;
 import Midi.MidiCommon;
 import Model.AbstractHandler;
-import Model.Action;
+import Model.ActionFactory;
 import Model.Combo;
+import Model.Staff.Accord.Accord;
 import Model.Staff.Accord.Nota.Nota;
 import Musica.PlayMusThread;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.KeyEvent;
-import java.util.LinkedHashMap;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -18,7 +21,9 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 public class StaffHandler extends AbstractHandler {
-	
+	// TODO: may be no need for this queue, cause we whatever can pass needed Nota to undo with paramsForUndo
+	private LinkedList<Accord> deletedAccordQueue = new LinkedList<>();
+
 	public StaffHandler(Staff context) {
 		super(context);
 	}
@@ -29,45 +34,26 @@ public class StaffHandler extends AbstractHandler {
 
 	@Override
 	protected void init() {
-		actionMap = new LinkedHashMap<>();
 
-		// It may not work when we have multiple staffs, i don't know how java lambdas work
-		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_P), new Action().setDo((event) -> {
-			if (DeviceEbun.stop) { // no need to handle ctr-z for this, cause it just generates another actions, that can be handled. Ah smart, aint i?
+		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_P)).addTo(actionMap).setDo((event) -> {
+			if (PlayMusThread.stop) { // no need to handle ctr-z for this, cause it just generates another actions, that can be handled. Ah smart, aint i?
 				PlayMusThread.shutTheFuckUp();
-				DeviceEbun.stop = false;
+				PlayMusThread.stop = false;
 				(new PlayMusThread(this)).start();
 			} else {
-				DeviceEbun.stopMusic();
+				PlayMusThread.stopMusic();
 			}
-		}));
-		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_D), new Action().setDo((event) -> {
+		});
+		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_D)).addTo(actionMap).setDo((event) -> {
 			MidiCommon.listDevicesAndExit(false, true, false);
 			DeviceEbun.changeOutDevice();
-		}));
-		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_0), new Action().setDo((event) -> {
+		});
+		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_0)).addTo(actionMap).setDo((event) -> {
 			getContext().changeMode();
-		}));
-		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Z), new Action().setDo((event) -> {
-//				getContext().undo(); // TODO: do ctrl-Z for child - if success - break, else do ctrl-z for parent
-		}));
-		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Y), new Action().setDo((event) -> {
-//				getContext().redo();
-		}));
-		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT), new Action().setDo((event) -> {
-			getContext().moveFocus(1);
-			// stan.drawPanel.checkCam();
-		}));
-		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_UP), new Action().setDo((event) -> {
-			PlayMusThread.shutTheFuckUp();
-			getContext().moveFocus(-getContext().getNotaInRowCount());
-			getContext().getParentSheet().checkCam(); // O_o move it into requestNewSurface maybe?
-		}));
-		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_DOWN), new Action().setDo((event) -> {
-			PlayMusThread.shutTheFuckUp();
-			getContext().moveFocus(+getContext().getNotaInRowCount());
-			getContext().getParentSheet().checkCam(); // O_o move it into requestNewSurface maybe?
-		}));
+		});
+		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT)).addTo(actionMap).setDo(getContext()::moveFocusUsingCombo).setUndoChangeSign();
+		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_UP)).addTo(actionMap).setDo(getContext()::moveFocusRow).setUndoChangeSign();
+		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_DOWN)).addTo(actionMap).setDo(getContext()::moveFocusRow).setUndoChangeSign();
 
 		Consumer<Combo> handleMuteChannel = (e) -> {
 			int cod = e.getKeyCode();
@@ -75,50 +61,77 @@ public class StaffHandler extends AbstractHandler {
 				getContext().changeChannelFlag(cod - '0');
 			}
 		};
-		for (int i = KeyEvent.VK_0; i <= KeyEvent.VK_9; ++i) { actionMap.put(new Combo(KeyEvent.ALT_MASK, i), new Action().setDo(handleMuteChannel).setUndo(handleMuteChannel)); }
+		for (int i = KeyEvent.VK_0; i <= KeyEvent.VK_9; ++i) {
+			new ActionFactory(new Combo(KeyEvent.ALT_MASK, i)).addTo(actionMap).setDo(handleMuteChannel).biDirectional(); }
 
-		actionMap.put(new Combo(0, KeyEvent.VK_RIGHT), new Action().setDo((event) -> {
+		for (Integer i: Arrays.asList(KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT)) {
+			new ActionFactory(new Combo(0, i)).addTo(actionMap).setDo((event) -> {
+				PlayMusThread.shutTheFuckUp();
+				getContext().moveFocusUsingCombo(event);
+			}).setUndoChangeSign();
+		}
+
+		new ActionFactory(new Combo(0, KeyEvent.VK_HOME)).addTo(actionMap).setDo2((event) -> {
 			PlayMusThread.shutTheFuckUp();
-			getContext().moveFocus(1);
-			// stan.drawPanel.checkCam();
-		}));
-		actionMap.put(new Combo(0, KeyEvent.VK_LEFT), new Action().setDo((event) -> {
-			PlayMusThread.shutTheFuckUp();
-			getContext().moveFocus(-1);
-			// stan.drawPanel.checkCam();
-		}));
-		actionMap.put(new Combo(0, KeyEvent.VK_HOME), new Action().setDo((event) -> {
-			PlayMusThread.shutTheFuckUp();
+			Integer lastIndex = getContext().getFocusedIndex();
 			getContext().setFocusedIndex(-1);
-			getContext().getParentSheet().checkCam();
-		}));
-		actionMap.put(new Combo(0, KeyEvent.VK_END), new Action().setDo((event) -> {
+			return new HashMap<String, Object>(){{ put("lastIndex", lastIndex); }};
+		}).setUndo((combo, paramsForUndo) -> {
+			getContext().setFocusedIndex((Integer)paramsForUndo.get("lastIndex"));
+		});
+
+		new ActionFactory(new Combo(0, KeyEvent.VK_END)).addTo(actionMap).setDo2((event) -> {
 			PlayMusThread.shutTheFuckUp();
+			Integer lastIndex = getContext().getFocusedIndex();
 			getContext().setFocusedIndex(getContext().getAccordList().size() - 1);
-			getContext().getParentSheet().checkCam();
-		}));
-		actionMap.put(new Combo(0, KeyEvent.VK_ENTER), new Action().setDo((event) -> {
-			PlayMusThread.shutTheFuckUp();
-			PlayMusThread.playAccord(getContext().getFocusedAccord());
-		}));
-		actionMap.put(new Combo(0, KeyEvent.VK_DELETE), new Action().setDo((event) -> {
-			if (getContext().getFocusedAccord() != null) {
+			return new HashMap<String, Object>() {{
+				put("lastIndex", lastIndex);
+			}};
+		}).setUndo((combo, paramsForUndo) -> {
+			getContext().setFocusedIndex((Integer) paramsForUndo.get("lastIndex"));
+		});
+		new ActionFactory(new Combo(0, KeyEvent.VK_DELETE)).addTo(actionMap).setDo((event) -> {
+			Accord accord = getContext().getFocusedAccord();
+			if (accord != null) {
+				deletedAccordQueue.add(accord);
 				getContext().getAccordList().remove(getContext().focusedIndex--);
+				return true;
 			} else {
-				getContext().moveFocus(1);
+				return false;
 			}
-		}));
-		actionMap.put(new Combo(0, KeyEvent.VK_MINUS), new Action().setDo((event) -> {
-			if (event.getKeyCode() == '-') {
-				getContext().moveFocus(1);
-			}
-		}));
-		actionMap.put(new Combo(0, KeyEvent.VK_ESCAPE), new Action().setDo((event) -> {
+		}).setUndo((combo) -> {
+			getContext().add(deletedAccordQueue.pollLast());
+			getContext().moveFocus(1);
+		});
+
+		new ActionFactory(new Combo(0, KeyEvent.VK_ESCAPE)).addTo(actionMap).setDo((event) -> {
 			this.showMenuDialog();
-		}));
+		});
+
+		for (Integer i: Combo.getAsciTuneMap().keySet()) {
+			new ActionFactory(new Combo(11, i)).addTo(actionMap).setDo((combo) -> { // 11 - alt+shif+ctrl
+
+				// TODO: move stuff like constants and mode into the handler
+
+				long timestamp = System.currentTimeMillis();
+
+				if (getContext().mode == Staff.aMode.passive || getContext().mode == Staff.aMode.playin) {
+					// Показать, какую ноту ты нажимаешь
+					return false;
+				} else {
+					Accord newAccord = new Accord(getContext());
+					new Nota(newAccord, combo.asciiToTune()).setKeydownTimestamp(timestamp);
+					getContext().add(newAccord);
+					handleKey(new Combo(0, KeyEvent.VK_RIGHT));
+					return true;
+				}
+			});
+		}
 	}
 
 	public void showMenuDialog() {
+
+		// TODO: prevent typing more than 100%
 		
 		JTextField[] channelInstrumentInputList = new JTextField[10];
 		JTextField[] channelVolumeInputList = new JTextField[10];
@@ -139,7 +152,7 @@ public class StaffHandler extends AbstractHandler {
 		
 		int option = JOptionPane.showConfirmDialog(null, huJPanel, "Enter instruments for channels", JOptionPane.OK_CANCEL_OPTION);
 		if (option == JOptionPane.OK_OPTION) {
-			for (int i = 0; i < 10; ++i) { 
+			for (int i = 0; i < 10; ++i) {
 				getContext().getPhantom().getInstrumentArray()[i] = Integer.parseInt(channelInstrumentInputList[i].getText()); 
 				getContext().getPhantom().getVolumeArray()[i] = Integer.parseInt(channelVolumeInputList[i].getText()); 
 			};

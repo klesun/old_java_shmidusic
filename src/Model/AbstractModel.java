@@ -27,26 +27,6 @@ public abstract class AbstractModel implements IModel {
 	abstract protected AbstractHandler makeHandler();
 	final public AbstractHandler gettHandler() { return this.eventHandler; }
 
-	// seems, it won't be needed her, better to use it in AbstractHandler
-	public Boolean undo() {
-		Boolean completedInChild = false;
-		if (this.getFocusedChild() != null) {
-			completedInChild = this.getFocusedChild().undo();
-		}
-		
-		return completedInChild ? true : this.undoFinal();
-	}
-	public Boolean redo() {
-		Boolean completedInChild = false;
-		if (this.getFocusedChild() != null) {
-			completedInChild = this.getFocusedChild().redo();
-		}
-		
-		return completedInChild ? true : this.redoFinal();
-	}
-	abstract protected Boolean undoFinal();
-	abstract protected Boolean redoFinal();
-
 	public abstract void drawOn(Graphics surface, int x, int y);
 
 	// field getters

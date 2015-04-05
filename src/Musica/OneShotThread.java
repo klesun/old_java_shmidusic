@@ -18,7 +18,7 @@ public class OneShotThread extends Thread{
 			ShortMessage onMessage = new ShortMessage();
 			ShortMessage offMessage = new ShortMessage();
 			onMessage.setMessage( ShortMessage.NOTE_ON, nota.channel, (byte)nota.tune, nota.getVolume());
-			DeviceEbun.sintReceiver.send(onMessage, -1);
+			DeviceEbun.theirReceiver.send(onMessage, -1);
 			
 			offMessage.setMessage(ShortMessage.NOTE_OFF, nota.channel, (byte)nota.tune, 0);
 			try {
@@ -27,7 +27,7 @@ public class OneShotThread extends Thread{
 			    //System.out.println("Ошибка сна"+e);
 			}
 			
-			DeviceEbun.sintReceiver.send(offMessage, -1);
+			DeviceEbun.theirReceiver.send(offMessage, -1);
 		} catch (InvalidMidiDataException e) {
 			System.out.println("InvalidMidiDataException");
 		}

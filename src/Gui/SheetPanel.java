@@ -19,7 +19,7 @@ import java.util.*;
 
 
 final public class SheetPanel extends JPanel implements IModel {
-	JScrollPane scroll;
+	JScrollPane scrollBar;
 	
 	final public static int NORMAL_HEIGHT = 40;
 	final public static int NORMAL_WIDTH = 25;
@@ -32,11 +32,6 @@ final public class SheetPanel extends JPanel implements IModel {
 	public static BufferedImage[] vseKartinki = new BufferedImage[7]; // TODO: поменять этот уродский массив на ключ-значение // Гузно у тебя уродское
 	public static BufferedImage[] vseKartinki0 = new BufferedImage[7];
 
-	int curAccord = -2;
-
-	private Boolean surfaceChanged = true;
-	private BufferedImage surface = null;
-	
 	ArrayList<Staff> staffList = new ArrayList();
 	public Window parentWindow = null;
 		
@@ -67,19 +62,14 @@ final public class SheetPanel extends JPanel implements IModel {
 	
 	@Override
 	public void paintComponent(Graphics g) {
-
 		int highestLineY = this.getMarginY();
 		g.setColor(Color.WHITE);
-		g.fillRect(0,0,this.getWidth(),this.getHeight());
+		g.fillRect(0, 0, this.getWidth(), this.getHeight());
 		int gPos = this.getMarginX() + 3 * this.dx();
 		
 		for (Staff stave: this.getStaffList()) {
 			stave.drawOn(g, gPos - dx(), highestLineY);
 		}
-
-		// TODO: maybe move it to checkCam() and call checkCam before repaint() ???
-		this.setPreferredSize(new Dimension(this.getWidth() - 20, this.getTotalRowCount() * SISDISPLACE * this.dy()));	//	Needed for the scroll bars to appear
-		this.revalidate();	//	Needed to recalc the scroll bars
 	}
 	
 	public void changeScale(int n) {
@@ -114,16 +104,23 @@ final public class SheetPanel extends JPanel implements IModel {
 	}
 
 	public int getFocusedSystemY() {
-		return SISDISPLACE * this.dy() * (getFocusedStaff().getFocusedIndex() / (getStepInOneSystemCount() / 2 - 2) -1);
+		return SISDISPLACE * dy() * (getFocusedStaff().getFocusedIndex() / getFocusedStaff().getAccordInRowCount());
 	}
 	
 	public void checkCam() {
-		JScrollBar vertical = scroll.getVerticalScrollBar();
-		vertical.setValue(getFocusedSystemY());
+		JScrollBar vertical = scrollBar.getVerticalScrollBar();
+		if (vertical.getValue() + parentWindow.getHeight() < getFocusedSystemY() + SISDISPLACE * dy() ||
+			vertical.getValue() > getFocusedSystemY()) {
+			vertical.setValue(getFocusedSystemY());
+		}
+		this.setPreferredSize(new Dimension(this.getWidth() - 20, this.getTotalRowCount() * SISDISPLACE * this.dy()));	//	Needed for the scrollBar bars to appear
+		this.revalidate();	//	Needed to recalc the scrollBar bars
+
+		this.repaint();
 	}
 	
 	public void page(int pageCount) {
-		JScrollBar vertical = scroll.getVerticalScrollBar();
+		JScrollBar vertical = scrollBar.getVerticalScrollBar();
 		int pos = vertical.getValue()+pageCount*SISDISPLACE* this.dy();
 		if (pos<0) pos = 0;
 		if (pos>vertical.getMaximum()) pos = vertical.getMaximum();
@@ -153,10 +150,6 @@ final public class SheetPanel extends JPanel implements IModel {
 
 	public BufferedImage getSharpImage() {
 		return vseKartinki[6];
-	}
-
-	public int getStepInOneSystemCount() {
-		return (int)Math.floor(this.getWidth() / this.dx() - 2 * this.MARGIN_H);
 	}
 
 	// TODO: use from Settings

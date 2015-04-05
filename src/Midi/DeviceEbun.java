@@ -1,14 +1,12 @@
 package Midi;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
-import javax.sound.midi.Transmitter;
 
 import static Model.Staff.Staff.CHANNEL;
 
@@ -19,122 +17,62 @@ import javax.sound.midi.ShortMessage;
 
 
 public class DeviceEbun {
-	public static MidiDevice MidiInputDevice; 
-	public static MidiDevice MidiOutputDevice;
-	
-	public static boolean openInDevice(KeyEventHandler eventHandler) {
-		int count = MidiCommon.listDevicesAndExit(true, false);
-        MidiCommon.listDevicesAndExit(false,true,false);
-    	MidiDevice.Info	info;
-    	if ( count > 1 ) {
-    		info = MidiCommon.getMidiDeviceInfo(1, false);
-    	} else {
-	    	out("Nash ekstrasens ne ugadal vase MIDI-ustrojstvo. Poazlujsta, vvedite ego nomer iz spiska vise");
-	    	out(MORAL_SUPPORT_MESSAGE);
-	    	
-	    	String str = "1";
-	    	try {
-	            str = br.readLine();
-	            // Сделать здесь что-нибудь
-	        } catch (IOException ex) {System.out.println("Ошибка ввода!");}
-	    	info = MidiCommon.getMidiDeviceInfo(Integer.parseInt(str), false);
-    	}
-		System.out.println(info.getName()+" "+info.getDescription()+" "+info.toString());
-        MidiDevice device = null;
-        try { 	device = MidiSystem.getMidiDevice(info);
-            	device.open(); }
-        catch (MidiUnavailableException e) { 
-        	out("Osibka, vi dolzni bili vvesti nomer MIDI IN ustrojstva, a vveli kakuju-to byaku");
-        }
+	public static MidiDevice midiInputDevice = null;
+	public static MidiDevice midiOutputDevice = null;
 
-        Receiver r = null;
-        r = new DumpReceiver(eventHandler);
-        try { Transmitter t = device.getTransmitter();
-            t.setReceiver(r); }
-        catch (MidiUnavailableException e) { out("В жопу трансмиттер устройства к ресиверу не подключается:");
-            out(e);
-            device.close();
-            System.exit(1); }
-        
-        MidiInputDevice = device;
-        
-        return true;
-    }
-	
-    public static boolean stop = true;
-	public static Receiver sintReceiver = null;
-    public static void stopMusic(){
-        stop = true;
-    }
-	
+	public static Receiver theirReceiver = null;
     private static Receiver secondaryReceiver = null;
-    
-	public static int openOutDevice(){
-		MidiDevice.Info	info = MidiCommon.getMidiDeviceInfo(MidiInputDevice.getDeviceInfo().getName(), true);
-    	try {
-    		MidiOutputDevice = MidiSystem.getMidiDevice(info);
-    		MidiOutputDevice.open();
-            sintReceiver = MidiOutputDevice.getReceiver();
-        } catch (MidiUnavailableException e) {
-            out("Не открывается аут ваш"); }
-        if (sintReceiver == null) {  out("Не отдался нам ресивер");
-                                    System.exit(1); }
-        secondaryReceiver = sintReceiver;
-        
-        info = MidiCommon.getMidiDeviceInfo("Gervill", true);
-        try {
-        	MidiOutputDevice = MidiSystem.getMidiDevice(info);
-            MidiOutputDevice.open();
-            sintReceiver = MidiOutputDevice.getReceiver();
-        } catch (MidiUnavailableException e) {
-			out("Не отдался нам Gervill " + e);
-        }
 
-        return 0;
-    }
-	
-    public static void changeOutDevice() {
-        Receiver tmp = sintReceiver;
-        sintReceiver = secondaryReceiver;
-        secondaryReceiver = tmp;
-    }
+	public static void openInDevice(KeyEventHandler eventHandler) {
+		System.out.println("Opening input device...");
+		int count = MidiCommon.listDevicesAndExit(true, false);
+		MidiCommon.listDevicesAndExit(false,true,false);
+		MidiDevice.Info	info;
+		if ( count > 1 ) {
+			info = MidiCommon.getMidiDeviceInfo(1, false); // 99% cases it is the midi-port we need
+			System.out.println("Selected port: " + info.getName() + " " + info.getDescription()+" "+info.toString());
+			MidiDevice device = null;
+			try {
+				device = MidiSystem.getMidiDevice(info);
+				device.open();
+				device.getTransmitter().setReceiver(new DumpReceiver(eventHandler));
 
-	public static void changeInstrument(int instrument) throws InvalidMidiDataException
-	{
-		ShortMessage instrMess = new ShortMessage();
-		instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, CHANNEL, instrument, 0);
-		sintReceiver.send(instrMess, -1);
-		
-		// debug
-		instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, 1, 48, 0);
-		sintReceiver.send(instrMess, -1);
-		instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, 2, 19, 0);
-		sintReceiver.send(instrMess, -1);
-		instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, 3, 55, 0);
-		sintReceiver.send(instrMess, -1);
-		instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, 4, 52, 0);
-		sintReceiver.send(instrMess, -1);
-		instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, 5, 91, 0);
-		sintReceiver.send(instrMess, -1);
-		instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, 6, 127, 0);
-		sintReceiver.send(instrMess, -1);
+				midiInputDevice = device;
+			} catch (MidiUnavailableException e) { out("Port is already being used by other program or something like that"); }
+		} else {
+			out(MORAL_SUPPORT_MESSAGE);
+		}
 	}
 
-    private static void out(String strMessage) {
-        System.out.println(strMessage);
-    }
+	public static void openOutDevice() {
+		MidiDevice.Info info;
 
-    private static void out(Throwable t) {
-        t.printStackTrace();
-    }
-    
-    private static String MORAL_SUPPORT_MESSAGE = 
-			"(Если там только " +
-			"Real Time Sequencer, ну что сказать, мне вас жаль. Убедитесь, что у вас в компе есть Миди-порт (" +
-			"можете побаловаться с Bios, мне один раз помогло (В биосе стояло MPU-301, я поменял на MPU-401 и " +
-			"всё заработало) ) или " +
-			"аудио-карта с миди портом (на неё нужны драйвера, как правило, они точно есть на Windows XP). Ну," +
-			"и конечно же, да прибудет с вами Гугл";
-    
-    private static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        // opening emulated MIDI OUT
+        info = MidiCommon.getMidiDeviceInfo("Gervill", true);
+        try {
+            midiOutputDevice = MidiSystem.getMidiDevice(info);
+            midiOutputDevice.open();
+            secondaryReceiver = theirReceiver = midiOutputDevice.getReceiver();
+        } catch (MidiUnavailableException e) { out("Не отдался нам Gervill " + e); System.exit(1); }
+
+        // opening real MIDI OUT device
+		if (midiInputDevice != null) {
+			info = MidiCommon.getMidiDeviceInfo(midiInputDevice.getDeviceInfo().getName(), true);
+			try {
+				midiOutputDevice = MidiSystem.getMidiDevice(info);
+				midiOutputDevice.open();
+				theirReceiver = midiOutputDevice.getReceiver();
+			} catch (MidiUnavailableException e) { out("Failed to use MIDI device as OUT"); }
+		}
+	}
+
+	public static void changeOutDevice() {
+		Receiver tmp = theirReceiver;
+		theirReceiver = secondaryReceiver;
+		secondaryReceiver = tmp;
+	}
+
+	private static void out(String strMessage) { System.out.println(strMessage); }
+	private static String MORAL_SUPPORT_MESSAGE = "You kinda don't have MIDI IN device, so you can only type notas from qwerty-keyboard. Pity you.";
+	private static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 }

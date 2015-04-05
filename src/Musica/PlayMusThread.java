@@ -3,6 +3,7 @@ package Musica;
 import javax.sound.midi.*;
 
 import Model.Combo;
+import Model.Staff.Staff;
 import Model.Staff.Staff.aMode;
 import Model.Staff.Accord.Nota.Nota;
 import Midi.DeviceEbun;
@@ -11,13 +12,17 @@ import Model.Staff.StaffHandler;
 import java.awt.event.KeyEvent;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 public class PlayMusThread extends Thread {
     public static OneShotThread[][] opentNotas = new OneShotThread[192][10];
 
-	boolean stop = false;
-    Receiver sintReceiver = DeviceEbun.sintReceiver;
 	private StaffHandler eventHandler = null;
+
+	public static boolean stop = true;
+	public static void stopMusic(){
+		stop = true;
+	}
 		
 	public PlayMusThread(StaffHandler eventHandler){ 
 		this.eventHandler = eventHandler;
@@ -25,24 +30,40 @@ public class PlayMusThread extends Thread {
 
     @Override
     public void run() {
-        int time;
-        
-    	DeviceEbun.stop = false;
+    	stop = false;
     	aMode tmpMode = eventHandler.getContext().mode;
-    	eventHandler.getContext().mode = aMode.playin; 
-		eventHandler.getContext().moveFocus(0);
+    	eventHandler.getContext().mode = aMode.playin;
+
+		// for some reason has huge delay between sound and canvas repainting
+		if (eventHandler.getContext().getFocusedAccord() != null) { this.playAccord(eventHandler.getContext().getFocusedAccord()); }
 		int accordsLeft = eventHandler.getContext().getAccordList().size() - eventHandler.getContext().getFocusedIndex() - 1;
-    	for (int i = 0; i <= accordsLeft && DeviceEbun.stop == false; ++i) {
-            if (eventHandler.getContext().getFocusedAccord() != null) {
-				time = eventHandler.getContext().getFocusedAccord().getShortest().getTimeMiliseconds();
-				try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна"+e); }
+		Combo nextAccord = new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT);
+    	for (int i = 0; stop == false && i <= accordsLeft; ++i) {
+			if (eventHandler.getContext().getFocusedAccord() != null) {
+				int time = eventHandler.getContext().getFocusedAccord().getShortestTime();
+				try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна" + e); }
+				if (stop) { break; } // fuck you i'm unicorn
 			}
-			eventHandler.handleKey(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT));
-			eventHandler.getContext().getParentSheet().repaint(); // some hack, cause i wanna it to be precise with sound
-			eventHandler.getContext().getParentSheet().parentWindow.keyHandler.shouldRepaint = false;
-        }
-        DeviceEbun.stop = true;
-    	eventHandler.getContext().getParentSheet().checkCam();
+			eventHandler.handleKey(nextAccord);
+			eventHandler.getContext().getParentSheet().repaint(); // it' ugly as fuck, but it takes to much time to do it natural way
+		}
+		stop = true;
+
+		// same here
+//		Staff staff = eventHandler.getContext();
+//		int accordsLeft = eventHandler.getContext().getAccordList().size() - eventHandler.getContext().getFocusedIndex() - 1;
+//		for (int i = 0; i <= accordsLeft && !stop; ++i) {
+//			if (eventHandler.getContext().getFocusedAccord() != null) {
+//				//time = eventHandler.getContext().getFocusedAccord().getShortestTime();
+//				time = 350;
+//				staff.getParentSheet().repaint();
+//				try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна" + e); }
+//			}
+//			eventHandler.getContext().setFocusedIndex(eventHandler.getContext().getFocusedIndex() + 1);
+//			//playAccord(eventHandler.getContext().getFocusedAccord());
+//		}
+//		stop = true;
+
     	eventHandler.getContext().mode = tmpMode;
     }
 

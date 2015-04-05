@@ -1,5 +1,6 @@
 package Model;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -9,31 +10,38 @@ import java.util.function.Function;
 
 public class ActionFactory {
 
-	private Function<Combo, Boolean> doLambda = (event) -> { return false; };
-	private BiFunction<Combo, Map<String, Object>, Boolean> undoLambda = (event, action) -> { return false; };
-	private Consumer<Combo> doAfterDo = (nothing) -> {};
+	public Function<Combo, Map<String, Object>> doLambda = (combo) -> { return null; };
+	public BiFunction<Combo, Map<String, Object>, Boolean> undoLambda = (combo, paramsForUndo) -> { return false; };
+	public Consumer<Combo> doAfterDo = (nothing) -> {};
 
-	private LinkedList<Map<String, Object>> paramsForUndoQueue = new LinkedList<>();
+	public Combo combo = null;
 
-	public int done = 0;
-
-	public ActionFactory setDo(Function<Combo, Boolean> lambda) {
-		doLambda = lambda;
+	public ActionFactory(Combo combo) {
+		this.combo = combo;
+	}
+	public ActionFactory addTo(Map<Combo, ActionFactory> map) {
+		map.put(this.combo, this);
 		return this;
 	}
 
-	public ActionFactory setDo2(Function<Combo, Map<String, Object>> lambda) {
-		doLambda = (e) -> {
-			Map<String, Object> map = lambda.apply(e);
-			this.paramsForUndoQueue.add(map);
-
-			return map != null ? true : false;
+	public ActionFactory setDo(Function<Combo, Boolean> lambda) {
+		doLambda = (combo) -> {
+			if (lambda.apply(combo)) {
+				return new HashMap<>();
+			} else {
+				return null;
+			}
 		};
 		return this;
 	}
 
+	public ActionFactory setDo2(Function<Combo, Map<String, Object>> lambda) {
+		doLambda = lambda;
+		return this;
+	}
+
 	public ActionFactory setDo(Consumer<Combo> lambda) {
-		doLambda = (e) -> { lambda.accept(e); return true; };
+		doLambda = (e) -> { lambda.accept(e); return new HashMap<>(); };
 		return this;
 	}
 
@@ -63,34 +71,16 @@ public class ActionFactory {
 	}
 
 	public ActionFactory biDirectional() {
-		this.undoLambda = (combo, action) -> this.doLambda.apply(combo);
+		this.undoLambda = (combo, action) -> this.doLambda.apply(combo) != null ? true : false;
 		return this;
 	}
 
 	public ActionFactory setUndoChangeSign() {
-		this.undoLambda = (combo, action) -> {
-			return this.doLambda.apply(combo.changeSign());
-		};
+		this.undoLambda = (combo, action) -> this.doLambda.apply(combo.changeSign()) != null ? true : false;
 		return this;
 	}
 
-	public Boolean doDo(Combo combo) {
-		Boolean result = doLambda.apply(combo);
-		if (result) {
-			this.doAfterDo.accept(null);
-		}
-		++done;
-		return result;
-	}
-
-	public Boolean unDo(Combo combo, Map<String, Object> paramsForUndo) {
-		--done;
-		return undoLambda.apply(combo, paramsForUndo);
-	}
-
-	// getters
-
-	public Map<String, Object> getParamsForUndo() {
-		return this.paramsForUndoQueue.pollLast();
+	public Action createAction() {
+		return new Action(this);
 	}
 }

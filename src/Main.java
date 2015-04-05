@@ -10,18 +10,16 @@ public class Main {
 				PrintStream out = new PrintStream(System.out, true, "Cp866");
 				System.setOut(out);
 			}
-			System.out.println("Убейся головой об стену");
+			System.out.println("Отведай же ещё этих сочных французских булок");
 		} catch (Exception e) {
 			System.out.println("blablablabalall");
 		}
 		Window app = new Window();
 		app.setVisible(true);
-
 		while (true) {
-			try {
-				Thread.sleep(20);
-				app.keyHandler.handleFrameTimer();
-			} catch (InterruptedException exc) { System.out.println("Кто разбудил мой трэд?!"); }
+			try { Thread.sleep(40); } catch (Exception e) { System.out.println("Zhopa"); }
+			// maybe it's weird a bit, but i spent much time to find the way, how to make canvas be up to time
+			app.keyHandler.handleFrameTimer();
 		}
 	}
 }

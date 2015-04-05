@@ -1,13 +1,16 @@
 package Model.Staff.Accord.Nota;
 
 import Model.AbstractHandler;
-import Model.Action;
+import Model.ActionFactory;
 import Model.Combo;
 import Model.Staff.Accord.Accord;
+import Model.Staff.Staff;
+import Musica.PlayMusThread;
 
 import java.awt.event.KeyEvent;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.function.Consumer;
 
 public class NotaHandler extends AbstractHandler {
 
@@ -20,37 +23,56 @@ public class NotaHandler extends AbstractHandler {
 		return (Nota)super.getContext();
 	}
 
-	// TODO: на каждое действие должно быть своё противодействие. А ещё лямбда, которая проверяет, может ли действие быть выполнено - иначе передать инициативу родителю
-
 	@Override
 	protected void init() {
-		actionMap = new LinkedHashMap<>();
-
-		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_3), new Action().setDo((event) -> {
+		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_3)).addTo(actionMap).setDo((event) -> {
 			getContext().setTupletDenominator(getContext().getTupletDenominator() == 3 ? 1 : 3);
-		}));
-		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_H), new Action().setDo((event) -> {
+		}).biDirectional();
+		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_H)).addTo(actionMap).setDo((event) -> {
 			getContext().setIsMuted(!getContext().getIsMuted());
-		}));
-		actionMap.put(new Combo(KeyEvent.SHIFT_MASK, KeyEvent.VK_3), new Action().setDo((event) -> {
+		}).biDirectional();
+		new ActionFactory(new Combo(KeyEvent.SHIFT_MASK, KeyEvent.VK_3)).addTo(actionMap).setDo((event) -> {
 			getContext().triggerIsSharp();
-		}));
-		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_2), new Action().setDo((event) -> {
+		}).biDirectional();
+		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_2)).addTo(actionMap).setDo2((event) -> {
 			Accord accord = getContext().getParentAccord();
-			new Nota(accord, getContext().tune).reconstructFromJson(getContext().getJsonRepresentation());
-		}));
-		actionMap.put(new Combo(0, KeyEvent.VK_ADD), new Action().setDo(getContext()::changeDur).setUndoChangeSign());
-		actionMap.put(new Combo(0, KeyEvent.VK_SUBTRACT), new Action().setDo(getContext()::changeDur).setUndoChangeSign());
+			Nota clonedNota = new Nota(accord, getContext().tune).reconstructFromJson(getContext().getJsonRepresentation());
+			return new HashMap<String, Object>(){{ put("clonedNota", clonedNota); }};
+		}).setUndo((combo, paramsForUndo) -> {
+			Accord accord = getContext().getParentAccord();
+			accord.setFocusedIndex(accord.getNotaList().indexOf(paramsForUndo.get("clonedNota"))).deleteFocused();
+			accord.setFocusedIndex(accord.getNotaList().indexOf(getContext()));
+		});
 
-		Consumer<Combo> handlePressNumber = (e) -> {
-			int cifra = (e.getKeyCode() >= '0' && e.getKeyCode() <= '9') ? e.getKeyCode() - '0' : e.getKeyCode() - KeyEvent.VK_NUMPAD0;
-			if (getContext().channel != cifra) {
-				getContext().setChannel(cifra);
-			} else {
-				getContext().getParentAccord().setFocusedIndex(-1);
-			}
-		};
-		for (int i = KeyEvent.VK_0; i <= KeyEvent.VK_9; ++i) { actionMap.put(new Combo(0, i), new Action().setDo((handlePressNumber))); }
-		for (int i = KeyEvent.VK_NUMPAD0; i <= KeyEvent.VK_NUMPAD9; ++i) { actionMap.put(new Combo(0, i), new Action().setDo((handlePressNumber))); }
+		for (Integer i: Arrays.asList(KeyEvent.VK_OPEN_BRACKET, KeyEvent.VK_CLOSE_BRACKET)) {
+			new ActionFactory(new Combo(KeyEvent.CTRL_MASK, i)).addTo(actionMap).setDo(getContext()::changeDur).setUndoChangeSign(); }
+
+		new ActionFactory(new Combo(0, KeyEvent.VK_ENTER)).addTo(actionMap).setDo((event) -> { PlayMusThread.playNotu(getContext()); });
+
+		for (Integer i: Combo.getNumberKeyList()) {	new ActionFactory(new Combo(0, i)).addTo(actionMap).setDo2((combo) -> {
+			int lastChan = getContext().channel;
+			getContext().setChannel(combo.getPressedNumber());
+			return new HashMap<String, Object>() {{
+				put("lastChan", lastChan);
+			}};
+		}).setUndo((combo, paramsForUndo) -> {
+			getContext().setChannel((Integer) paramsForUndo.get("lastChan"));
+		});}
+
+		for (Integer i: Combo.getAsciTuneMap().keySet()) {
+			new ActionFactory(new Combo(11, i)).addTo(actionMap).setDo((combo) -> { // 11 - alt+shif+ctrl
+
+				// TODO: move stuff like constants and mode into the handler
+
+				if (getContext().getParentAccord().getParentStaff().mode == Staff.aMode.passive ||
+					getContext().getParentAccord().getParentStaff().mode == Staff.aMode.playin) {
+					// Показать, какую ноту ты нажимаешь
+					return false;
+				} else {
+					new Nota(getContext().getParentAccord(), combo.asciiToTune()).setKeydownTimestamp(System.currentTimeMillis());
+					return true;
+				}
+			});
+		}
 	}
 }

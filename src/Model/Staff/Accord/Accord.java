@@ -36,7 +36,6 @@ public class Accord extends AbstractModel {
 	public Accord add(Nota nota) {
 		this.notaList.add(nota);
 		Collections.sort(this.notaList);
-		setFocusedIndex(getNotaList().indexOf(nota));
 		return this;
 	}
 
@@ -61,12 +60,17 @@ public class Accord extends AbstractModel {
  
 	@Override
 	public void drawOn(Graphics surface, int x, int y) {
-		surface.setColor(Color.blue);
+		Boolean oneOctaveLower = false;
+		// i don't like this
+		if (getNotaList().size() > 0) {
+			surface.setColor(Color.blue);
+			oneOctaveLower = this.isHighestBotommedToFitSystem();
+			if (oneOctaveLower) {
+				surface.drawString("8va", x, y + 4 * getParentStaff().getParentSheet().dy());
+			}
+		}
 
-		if (getHighest().isBotommedToFitSystem()) { surface.drawString("8va", x, y + 4 * getParentStaff().getParentSheet().dy()); }
 		surface.setColor(Color.black);
-		
-		Boolean oneOctaveLower = this.getHighest().isBotommedToFitSystem();
 		for (int i = 0; i < getNotaList().size(); ++i) {
 			Nota nota = getNotaList().get(i);
 			int notaY = y + getLowestPossibleNotaRelativeY() - Settings.getStepHeight() * nota.getAbsoluteAcademicIndex();
@@ -112,17 +116,6 @@ public class Accord extends AbstractModel {
 
 	// getters/setters
 
-	public int getWidth() {
-		return Math.max(this.getSlog().length() * Constants.FONT_WIDTH, this.getEarliest().getWidth());
-	}
-
-	// implements(Pointerable)
-	public int getTakenStepCount() {
-//		int width = (int)Math.ceil( this.slog.length() * Constants.FONT_WIDTH / (Constants.STEP_H * 2) );
-//		return width > 0 ? width : 1;
-		return 2;
-	}
-
 	public int getHeight() {
 		return this.getLowestPossibleNotaRelativeY();
 	}
@@ -131,16 +124,24 @@ public class Accord extends AbstractModel {
 		return this.notaList;
 	}
 
-	public Nota getEarliest() {
-		return this.getNotaList().stream().reduce(null, (a, b) -> a != null && a.keydownTimestamp < b.keydownTimestamp ? a : b);
+	public long getEarliestKeydown() {
+		Nota nota = this.getNotaList().stream().reduce(null, (a, b) -> a != null && a.keydownTimestamp < b.keydownTimestamp ? a : b);
+		return nota != null ? nota.keydownTimestamp : 0;
 	}
 
-	public Nota getHighest() {
-		return this.getNotaList().stream().reduce(null, (a, b) -> a != null && a.tune > b.tune ? a : b);
+	public Boolean isHighestBotommedToFitSystem() {
+		Nota nota = this.getNotaList().stream().reduce(null, (a, b) -> a != null && a.tune > b.tune ? a : b);
+		return nota != null ? nota.isBotommedToFitSystem() : false;
 	}
 
-	public Nota getShortest() {
-		return this.getNotaList().stream().reduce(null, (a, b) -> a != null && !a.isLongerThan(b) ? a : b);
+	public int getShortestTime() {
+		Nota nota = this.getNotaList().stream().reduce(null, (a, b) -> a != null && !a.isLongerThan(b) && !a.getIsMuted() ? a : b);
+		return nota != null ? nota.getTimeMiliseconds() : 0;
+	}
+
+	public int getShortestNumerator() {
+		Nota nota = this.getNotaList().stream().reduce(null, (a, b) -> a != null && !a.isLongerThan(b) ? a : b);
+		return nota != null ? nota.getNumerator() : 0;
 	}
 
 	public Nota getFocusedNota() {
@@ -192,13 +193,4 @@ public class Accord extends AbstractModel {
 		return new AccordHandler(this);
 	}
 
-	@Override
-	protected Boolean undoFinal() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	protected Boolean redoFinal() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-	}
 }

@@ -2,20 +2,22 @@
 package Model.Staff.Accord;
 
 import Model.AbstractHandler;
-import Model.Action;
+import Model.ActionFactory;
 import Model.Combo;
 import Model.Staff.Accord.Nota.Nota;
+import Model.Staff.Staff;
+import Musica.PlayMusThread;
 
 import java.awt.event.KeyEvent;
 import java.util.*;
 import java.util.function.*;
 
 public class AccordHandler extends AbstractHandler {
+	private LinkedList<Nota> deletedNotaQueue = new LinkedList<>();
 
 	public AccordHandler(Accord context) {
 		super(context);
 	}
-	private LinkedList<Nota> deletedNotaQueue = new LinkedList<>();
 
 	@Override
 	public Accord getContext() {
@@ -27,29 +29,26 @@ public class AccordHandler extends AbstractHandler {
 
 		// TODO: nota appending should be AccordHandler event!!! (now it is done with code in Staff::addPressed())
 
-		// TODO: Handle event should not be accessed by successors, use some method instead... eventually
+		// TODO: actionMap should not be accessed by successors, use some method instead... eventually
 
-		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_3), new Action().setDo((event) -> {
+		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_3)).addTo(actionMap).setDo((event) -> {
 			for (Nota n: getContext().getNotaList()) { n.setTupletDenominator(n.getTupletDenominator() == 3 ? 1 : 3); }
-		}).biDirectional());
+		}).biDirectional();
 
-		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_H), new Action().setDo((event) -> {
+		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_H)).addTo(actionMap).setDo((event) -> {
 			for (Nota n: getContext().getNotaList()) { n.setIsMuted(!n.getIsMuted()); }
-		}).biDirectional());
+		}).biDirectional();
 
-		actionMap.put(new Combo(KeyEvent.SHIFT_MASK, KeyEvent.VK_3), new Action().setDo((event) -> {
+		new ActionFactory(new Combo(KeyEvent.SHIFT_MASK, KeyEvent.VK_3)).addTo(actionMap).setDo((event) -> {
 			for (Nota nota: getContext().getNotaList()) { nota.triggerIsSharp(); }
-		}).biDirectional());
+		}).biDirectional();
 
-		actionMap.put(new Combo(0, KeyEvent.VK_ADD), new Action().setDo((event) -> {
-			for (Nota nota : getContext().getNotaList()) { nota.changeDur(event); }
-		}).setUndoChangeSign());
-
-		actionMap.put(new Combo(0, KeyEvent.VK_SUBTRACT), new Action().setDo((event) -> {
-			for (Nota nota : getContext().getNotaList()) { nota.changeDur(event); }
-		}).setUndoChangeSign());
-
-		actionMap.put(new Combo(0, KeyEvent.VK_DELETE), new Action().setDo((event) -> {
+		for (Integer i: Arrays.asList(KeyEvent.VK_OPEN_BRACKET, KeyEvent.VK_CLOSE_BRACKET)) {
+			new ActionFactory(new Combo(KeyEvent.CTRL_MASK, i)).addTo(actionMap).setDo((event) -> {
+				for (Nota nota : getContext().getNotaList()) { nota.changeDur(event); }
+			}).setUndoChangeSign();
+		}
+		new ActionFactory(new Combo(0, KeyEvent.VK_DELETE)).addTo(actionMap).setDo((event) -> {
 			Nota nota = getContext().getFocusedNota();
 			if (nota != null) {
 				deletedNotaQueue.add(nota);
@@ -59,23 +58,23 @@ public class AccordHandler extends AbstractHandler {
 				return false;
 			}
 		}).setUndo((event) -> {
-			Nota deletedNota = deletedNotaQueue.pollLast();
-			getContext().add(deletedNota);
-		}));
+			getContext().add(deletedNotaQueue.pollLast());
+			getContext().setFocusedIndex(getContext().getFocusedIndex() + 1);
+		});
 
 		for (Integer i: Arrays.asList(KeyEvent.VK_DOWN, KeyEvent.VK_UP)) {
-			actionMap.put(new Combo(0, i), new Action().setDo(getContext()::moveFocus).setUndoChangeSign());
+			new ActionFactory(new Combo(0, i)).addTo(actionMap).setDo(getContext()::moveFocus).setUndoChangeSign();
 		}
 
 		for (Integer i: Combo.getNumberKeyList()) {
-			this.actionMap.put(new Combo(0, i), new Action().setDo((e) -> {
+			new ActionFactory(new Combo(0, i)).addTo(actionMap).setDo((e) -> {
 				getContext().setFocusedIndex(e.getPressedNumber());
 			}).setUndo((event) -> {
 				getContext().setFocusedIndex(-1);
-			}));
+			});
 		}
 
-		this.actionMap.put(new Combo(0, KeyEvent.VK_BACK_SPACE), new Action().setDo2((event) -> {
+		new ActionFactory(new Combo(0, KeyEvent.VK_BACK_SPACE)).addTo(actionMap).setDo2((event) -> {
 			String slog = getContext().getSlog();
 			if (slog.length() < 1) {
 				return null;
@@ -86,14 +85,37 @@ public class AccordHandler extends AbstractHandler {
 			}
 		}).setUndo((combo, paramsForUndo) -> {
 			getContext().setSlog(getContext().getSlog() + paramsForUndo.get("erasedChar"));
-		}));
+		});
+
+		new ActionFactory(new Combo(0, KeyEvent.VK_ENTER)).addTo(actionMap).setDo((event) -> {
+			PlayMusThread.shutTheFuckUp();
+			PlayMusThread.playAccord(getContext());
+		});
 
 		Consumer<Combo> handlePressChar = (e) -> getContext().setSlog(getContext().getSlog().concat("" + e.getKeyChar()));
 		Consumer<Combo> dehandlePressChar = (e) -> getContext().setSlog(getContext().getSlog().substring(0, getContext().getSlog().length() - 1));
 		for (int i: Combo.getCharacterKeycodeList()) {
-			this.actionMap.put(new Combo(0, i), new Action().setDo(handlePressChar).setUndo(dehandlePressChar)); }
+			new ActionFactory(new Combo(0, i)).addTo(actionMap).setDo(handlePressChar).setUndo(dehandlePressChar); }
 		for (int i: Combo.getCharacterKeycodeList()) {
-			this.actionMap.put(new Combo(KeyEvent.SHIFT_MASK, i), new Action().setDo(handlePressChar).setUndo(dehandlePressChar)); }
+			new ActionFactory(new Combo(KeyEvent.SHIFT_MASK, i)).addTo(actionMap).setDo(handlePressChar).setUndo(dehandlePressChar); }
+		for (Integer i: Combo.getAsciTuneMap().keySet()) {
+			new ActionFactory(new Combo(11, i)).addTo(actionMap).setDo((combo) -> { // 11 - alt+shif+ctrl
 
+				// TODO: move stuff like constants and mode into the handler
+				long timestamp = System.currentTimeMillis();
+
+				if (getContext().getParentStaff().mode == Staff.aMode.passive || getContext().getParentStaff().mode == Staff.aMode.playin) {
+					// Показать, какую ноту ты нажимаешь
+					return false;
+				}
+
+				if (timestamp - getContext().getEarliestKeydown() < Staff.ACCORD_EPSILON) {
+					new Nota(getContext(), combo.asciiToTune()).setKeydownTimestamp(timestamp);
+					return true;
+				} else {
+					return false;
+				}
+			});
+		}
 	}
 }

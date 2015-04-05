@@ -10,68 +10,60 @@ import java.util.Map;
 abstract public class AbstractHandler {
 
 	private AbstractModel context = null;
-	protected LinkedHashMap<Combo, Action> actionMap = new LinkedHashMap<>();
-	protected LinkedList<Combo> handledEventQueue = new LinkedList<>(); // for ctrl-z
-	protected LinkedList<Combo> dehandledEventQueue = new LinkedList<>(); // for ctrl-y
+	protected LinkedHashMap<Combo, ActionFactory> actionMap = new LinkedHashMap<>();
+	protected static LinkedList<Action> handledEventQueue = new LinkedList<>(); // for ctrl-z
+	protected static LinkedList<Action> dehandledEventQueue = new LinkedList<>(); // for ctrl-y
 
 	public AbstractHandler(AbstractModel context) {
 		this.context = context;
 		this.init();
-		appendEventToQueueOnCall();
 
-		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Z), new Action().setDo((event) -> {
-			Combo lastEvent;
-			while ((lastEvent = handledEventQueue.pollLast()) != null) {
-				Action action = actionMap.get(lastEvent);
-				if (action.unDo(lastEvent, action.getParamsForUndo())) {
-					dehandledEventQueue.add(lastEvent);
+		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Z)).addTo(actionMap).setDo((event) -> {
+			Action lastAction;
+			while ((lastAction = handledEventQueue.pollLast()) != null) {
+				if (lastAction.unDo()) {
+					dehandledEventQueue.add(lastAction);
 					return true;
 				}
 			}
 			return false;
-		}));
-		actionMap.put(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Y), new Action().setDo((event) -> {
-			Combo lastEvent;
-			while ((lastEvent = dehandledEventQueue.pollLast()) != null) {
-				if (actionMap.get(lastEvent).doDo(lastEvent)) {
+		});
+		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Y)).addTo(actionMap).setDo((event) -> {
+			Action lastAction;
+			while ((lastAction = dehandledEventQueue.pollLast()) != null) {
+				if (lastAction.doDo()) {
 					// it adds to handledEventQueue automatically
 					return true;
 				}
 			}
 			return false;
-		}));
-	}
-
-	private void appendEventToQueueOnCall() {
-		for (Map.Entry<Combo, Action> e: actionMap.entrySet()) {
-			e.getValue().doAfterDo((v) -> {
-				this.handledEventQueue.add(e.getKey());
-			});
-		}
+		});
 	}
 
 	abstract protected void init();
 
 	final public Boolean handleKey(Combo combo) {
-		Boolean result;
+		Boolean result = false;
 		if (getContext().getFocusedChild() != null &&
 			getContext().getFocusedChild().gettHandler().handleKey(combo)) {
 			result = true;
 		} else {
-			result = getActionMap().containsKey(combo) &&
-					getActionMap().get(combo).doDo(combo);
+			if (getActionMap().containsKey(combo)) {
+				Action action = getActionMap().get(combo).createAction();
+				if (action.doDo()) {
+					this.handledEventQueue.add(action);
+					result = true;
+				}
+			}
 		}
 		if (result) {
-			getSheetPanel().parentWindow.keyHandler.requestNewSurface();
-			if (!combo.isUndoOrRedo()) {
-				destroyRedoHistory();
-			}
+			getSheetPanel().parentWindow.keyHandler.shouldRepaint = true;
 		}
 		return result;
 	}
 
-	private void destroyRedoHistory() {
-		while (this.dehandledEventQueue.poll() != null);
+	public static void destroyRedoHistory() {
+		while (dehandledEventQueue.poll() != null);
 	}
 
 	private SheetPanel getSheetPanel() {
@@ -82,14 +74,7 @@ abstract public class AbstractHandler {
 		return (SheetPanel)context;
 	}
 
-	final public Map<Combo, Action> getActionMap() {
-		// i hope, it clones only links to lambdas, not lambdas as well
-//		Map<Combo, Action> combinedHandle = (LinkedHashMap)actionMap.clone();
-//		if (getContext().getFocusedChild() != null) {
-//			Map<Combo, Action> handleKey = getContext().getFocusedChild().gettHandler().getActionMap();
-//			combinedHandle.putAll(handleKey);
-//		}
-//		return combinedHandle;
+	final public Map<Combo, ActionFactory> getActionMap() {
 		return actionMap;
 	}
 
