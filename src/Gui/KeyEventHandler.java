@@ -52,13 +52,6 @@ public class KeyEventHandler implements KeyListener {
 		}
 	}
 
-	synchronized public void handleFrameTimer() {
-		if (shouldRepaint) {
-			this.sheet.checkCam(); // and repaints
-			shouldRepaint = false;
-		}
-	}
-
 	@Override
 	public void keyPressed(KeyEvent e) {
 

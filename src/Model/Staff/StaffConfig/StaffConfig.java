@@ -101,6 +101,7 @@ public class StaffConfig extends AbstractModel {
 			for (int i = 0; i < 10; ++i) { this.volumeArray[i] = jsArray.getInt(i); }
 		}
 
+		syncSyntChannels();
 		return this;
 	}
 

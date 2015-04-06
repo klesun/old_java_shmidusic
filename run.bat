@@ -1,3 +1,3 @@
 cd bin
-java Main
+java Main.Main
 cd ..

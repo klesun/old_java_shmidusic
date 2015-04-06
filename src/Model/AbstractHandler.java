@@ -56,9 +56,7 @@ abstract public class AbstractHandler {
 				}
 			}
 		}
-		if (result) {
-			getSheetPanel().parentWindow.keyHandler.shouldRepaint = true;
-		}
+		getSheetPanel().checkCam();
 		return result;
 	}
 

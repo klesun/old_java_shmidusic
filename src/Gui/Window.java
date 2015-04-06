@@ -7,7 +7,7 @@ import java.awt.event.*;
 
 public class Window extends JFrame implements ActionListener {
 
-	SheetPanel sheetPanel;
+	public SheetPanel sheetPanel;
 	public KeyEventHandler keyHandler = null;
 	int XP_MINWIDTH = 1024;
 	int XP_MINHEIGHT = 540; // my beloved netbook

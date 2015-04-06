@@ -1,7 +1,12 @@
+package Main;
+
 import Gui.Window;
 
 import java.io.*;
 public class Main {
+
+	public static Window window = null;
+
 	public static void main(String[] args){
 		String OS_NAME = System.getProperty("os.name");
 		try {
@@ -14,12 +19,7 @@ public class Main {
 		} catch (Exception e) {
 			System.out.println("blablablabalall");
 		}
-		Window app = new Window();
-		app.setVisible(true);
-		while (true) {
-			try { Thread.sleep(40); } catch (Exception e) { System.out.println("Zhopa"); }
-			// maybe it's weird a bit, but i spent much time to find the way, how to make canvas be up to time
-			app.keyHandler.handleFrameTimer();
-		}
+		window = new Window();
+		window.setVisible(true);
 	}
 }

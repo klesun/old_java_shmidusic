@@ -12,7 +12,6 @@ public class ActionFactory {
 
 	public Function<Combo, Map<String, Object>> doLambda = (combo) -> { return null; };
 	public BiFunction<Combo, Map<String, Object>, Boolean> undoLambda = (combo, paramsForUndo) -> { return false; };
-	public Consumer<Combo> doAfterDo = (nothing) -> {};
 
 	public Combo combo = null;
 
@@ -45,16 +44,6 @@ public class ActionFactory {
 		return this;
 	}
 
-	public ActionFactory setUndo(Function<Combo, Boolean> lambda) {
-		undoLambda = (combo, action) -> { return lambda.apply(combo); };
-		return this;
-	}
-
-	public ActionFactory setUndo(BiFunction<Combo, Map<String, Object>, Boolean> lambda) {
-		undoLambda = lambda;
-		return this;
-	}
-
 	public ActionFactory setUndo(Consumer<Combo> lambda) {
 		undoLambda = (e, action) -> { lambda.accept(e); return true; };
 		return this;
@@ -62,11 +51,6 @@ public class ActionFactory {
 
 	public ActionFactory setUndo(BiConsumer<Combo, Map<String, Object>> lambda) {
 		undoLambda = (combo, paramsForUndo) -> { lambda.accept(combo, paramsForUndo); return true; };
-		return this;
-	}
-
-	public ActionFactory doAfterDo(Consumer appendLambda) {
-		this.doAfterDo = appendLambda;
 		return this;
 	}
 

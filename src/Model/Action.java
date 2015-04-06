@@ -17,16 +17,16 @@ public class Action {
 	}
 
 	public Boolean doDo() {
-		Boolean result = factory.doLambda.apply(factory.combo) != null ? true : false;
-		if (result) {
+		Map<String, Object> result = factory.doLambda.apply(factory.combo);
+		if (result != null) {
+			paramsForUndo = result;
 			if (!undone) { // TODO: ctrl-y
 				AbstractHandler.destroyRedoHistory();
 			}
 			done = true;
 			undone = false;
-			factory.doAfterDo.accept(null);
 		}
-		return result;
+		return result != null;
 	}
 
 	public Boolean unDo() {

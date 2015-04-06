@@ -1,6 +1,6 @@
 ![Alt text](/midiana_for_git.png?raw=true "Optional Title")
 
-You wanna "java Main.class" to run the program.<br />
+You wanna "java Main.Main.class" to run the program.<br />
 <br />
 Program will most probably say something like "midi input device not detected blabla, type a number" you should type 1 and press enter.<br />
 <br />

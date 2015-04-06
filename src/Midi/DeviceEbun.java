@@ -8,12 +8,8 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 
-import static Model.Staff.Staff.CHANNEL;
-
 import Gui.KeyEventHandler;
-
-import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.ShortMessage;
+import Main.Main;
 
 
 public class DeviceEbun {
@@ -70,6 +66,7 @@ public class DeviceEbun {
 		Receiver tmp = theirReceiver;
 		theirReceiver = secondaryReceiver;
 		secondaryReceiver = tmp;
+		Main.window.sheetPanel.getFocusedStaff().getPhantom().syncSyntChannels();
 	}
 
 	private static void out(String strMessage) { System.out.println(strMessage); }

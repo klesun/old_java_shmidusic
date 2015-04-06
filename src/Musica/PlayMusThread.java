@@ -30,6 +30,12 @@ public class PlayMusThread extends Thread {
 
     @Override
     public void run() {
+
+		// TODO: i may be a paranoic, but i definitely feel, that timing (sound) is wrong for about 20-30 milliseconds
+		// like if it would count not by current time, but waiting for some time between operations
+		// so i suggest do it without creating new threads. just a loop, store in array sounding notas
+		// and datetimes, when they should be off and check every epsilon time... but maybe not >_<
+
     	stop = false;
     	aMode tmpMode = eventHandler.getContext().mode;
     	eventHandler.getContext().mode = aMode.playin;
@@ -45,25 +51,8 @@ public class PlayMusThread extends Thread {
 				if (stop) { break; } // fuck you i'm unicorn
 			}
 			eventHandler.handleKey(nextAccord);
-			eventHandler.getContext().getParentSheet().repaint(); // it' ugly as fuck, but it takes to much time to do it natural way
 		}
 		stop = true;
-
-		// same here
-//		Staff staff = eventHandler.getContext();
-//		int accordsLeft = eventHandler.getContext().getAccordList().size() - eventHandler.getContext().getFocusedIndex() - 1;
-//		for (int i = 0; i <= accordsLeft && !stop; ++i) {
-//			if (eventHandler.getContext().getFocusedAccord() != null) {
-//				//time = eventHandler.getContext().getFocusedAccord().getShortestTime();
-//				time = 350;
-//				staff.getParentSheet().repaint();
-//				try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна" + e); }
-//			}
-//			eventHandler.getContext().setFocusedIndex(eventHandler.getContext().getFocusedIndex() + 1);
-//			//playAccord(eventHandler.getContext().getFocusedAccord());
-//		}
-//		stop = true;
-
     	eventHandler.getContext().mode = tmpMode;
     }
 
