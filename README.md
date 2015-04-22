@@ -2,9 +2,9 @@
 
 To build and run you can do: <br />
 ```sh
-/usr/java/jdk1.8.0_40/bin/javac -sourcepath "./src" -d "./bin" "./src/Main.Main.java"
+/usr/java/jdk1.8*/bin/javac -sourcepath "./src" -d "./bin" "./src/Main.Main.java"
 cd bin
-/usr/java/jdk1.8.0_40/bin/java Main.Main
+/usr/java/jdk1.8.*/bin/java Main.Main
 ```
 (or just ./run)<br />
 <br />
