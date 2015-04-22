@@ -1,9 +1,9 @@
 ![Alt text](/midiana_for_git.png?raw=true "Optional Title")
 
 To build and run you can do: <br />
- /usr/java/jdk1.8.0_40/bin/javac -sourcepath "./src" -d "./bin" "./src/Main.Main.java"<br />
- cd bin<br />
- /usr/java/jdk1.8.0_40/bin/java Main.Main<br />
+    /usr/java/jdk1.8.0_40/bin/javac -sourcepath "./src" -d "./bin" "./src/Main.Main.java"<br />
+    cd bin<br />
+    /usr/java/jdk1.8.0_40/bin/java Main.Main<br />
 (or just ./run)<br />
 <br />
 List of available midi devices will be printed into console.<br />
