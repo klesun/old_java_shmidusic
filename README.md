@@ -1,15 +1,19 @@
 ![Alt text](/midiana_for_git.png?raw=true "Optional Title")
 
-You wanna "java Main.Main.class" to run the program.<br />
+To build and run you can do: <br />
+/usr/java/jdk1.8.0_40/bin/javac -sourcepath "./src" -d "./bin" "./src/Main.Main.java"<br />
+cd bin<br />
+/usr/java/jdk1.8.0_40/bin/java Main.Main<br />
+(or just ./run)<br />
 <br />
-Program will most probably say something like "midi input device not detected blabla, type a number" you should type 1 and press enter.<br />
+List of available midi devices will be printed into console.<br />
 <br />
-To create music you'll have to have some midi-piano plugged into your midi-port (if you have one). It may not work, i didn't tested with other device than my piano, but i don't really care.<br />
+To create music you'll have to have some midi-piano plugged into your midi-port (if you have one). You can contact me, i'll be glad to help you.<br />
 <br />
 
 | shortcut | action |
  -------- | ------ |
-| // MAIN OPERATIONS | . |
+| // GLOBAL OPERATIONS | . |
 | ctrl-o | Open a .klsn-extension file. Some of them you can find at https://drive.google.com/folderview?id=0B_PiTxsew2JrZlg1eWlzdVlPTUE&usp=sharing |
 | ctrl-s | Save to .klsn file |
 | ctrl-p | Play/Stop music |
@@ -20,7 +24,7 @@ To create music you'll have to have some midi-piano plugged into your midi-port 
 | ctrl-z | revieve last deleted accord |
 | ctrl-y | delete back last revieved accord |
 | . | . |
-| // SELECTED NOTE OPERATIONS | . |
+| // FOCUSED NOTE OPERATIONS | . |
 | shift (if pointing a note) | Select next note in current accord (for following operations) |
 | NUM_PLUS | increase length of selected note (if not selected - of whole accord) |
 | NUM_MINUS | decrease length of selected note (-||-) |
@@ -37,4 +41,4 @@ To create music you'll have to have some midi-piano plugged into your midi-port 
 | press-the-very-left-Do-bekar | will insert muted note (like pause). It's very helpful, when you need to play next accord, before current ends |
 | . | . |
 | . | . |
-*If you (for some reason) want to use my program, please contact me at arturklesun@gmail.com, i'll give you love and support. I will be very glad if you contact me, 'cause "Баги сами себя не выпилят"<br />
+*If you (for some reason) want to use my program, please contact me at arturklesun@gmail.com, i'll give you love and support. I feel lonely being the only person using this program =( <br />
