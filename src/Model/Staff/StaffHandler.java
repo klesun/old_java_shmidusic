@@ -143,20 +143,20 @@ public class StaffHandler extends AbstractHandler {
 
 		for (int i = 0; i < 10; ++i) {
 			channelGridPanel.add(new JLabel("      " + i));
-			channelInstrumentInputList[i] = new JTextField(getContext().getPhantom().getInstrumentArray()[i] + "");
+			channelInstrumentInputList[i] = new JTextField(getContext().getConfig().getInstrumentArray()[i] + "");
 			channelGridPanel.add(channelInstrumentInputList[i]); channelInstrumentInputList[i].setForeground(Nota.getColorByChannel(i));
 
-			channelVolumeInputList[i] = new JTextField(getContext().getPhantom().getVolumeArray()[i] + "");
+			channelVolumeInputList[i] = new JTextField(getContext().getConfig().getVolumeArray()[i] + "");
 			channelGridPanel.add(channelVolumeInputList[i]); channelVolumeInputList[i].setForeground(Nota.getColorByChannel(i));
 		}
 		
 		int option = JOptionPane.showConfirmDialog(null, huJPanel, "Enter instruments for channels", JOptionPane.OK_CANCEL_OPTION);
 		if (option == JOptionPane.OK_OPTION) {
 			for (int i = 0; i < 10; ++i) {
-				getContext().getPhantom().getInstrumentArray()[i] = Integer.parseInt(channelInstrumentInputList[i].getText()); 
-				getContext().getPhantom().getVolumeArray()[i] = Integer.parseInt(channelVolumeInputList[i].getText()); 
+				getContext().getConfig().getInstrumentArray()[i] = Integer.parseInt(channelInstrumentInputList[i].getText());
+				getContext().getConfig().getVolumeArray()[i] = Integer.parseInt(channelVolumeInputList[i].getText());
 			};
-			getContext().getPhantom().syncSyntChannels();
+			getContext().getConfig().syncSyntChannels();
 		}
 	}
 }

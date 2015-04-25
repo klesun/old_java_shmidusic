@@ -1,7 +1,6 @@
 package Model.Staff.Accord.Nota;
 
 
-import Model.AbstractHandler;
 import Model.Combo;
 import Model.Staff.Accord.Accord;
 import java.awt.image.BufferedImage;
@@ -294,7 +293,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 
 	public int getTimeMiliseconds() {
 		int minute = 60 * 1000;
-		StaffConfig config = getParentAccord().getParentStaff().getPhantom();
+		StaffConfig config = getParentAccord().getParentStaff().getConfig();
 		return minute * 4 / Staff.DEFAULT_ZNAM / config.valueTempo * getNumerator() / getDenominator();
 		// 4 - будем брать четвертную как основную
 	}
@@ -303,7 +302,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		if (this.tune == 36) {
 			return 0; // пауза лол какбэ
 		} else {
-			StaffConfig config = getParentAccord().getParentStaff().getPhantom();
+			StaffConfig config = getParentAccord().getParentStaff().getConfig();
 			return (byte)(127 * config.getVolumeArray()[channel] / 100);
 		}
 	}
@@ -315,7 +314,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	}
 
 	public int getNumerator() {
-		return this.getIsMuted() ? 0 : this.numerator;
+		return this.numerator;
 	}
 
 	public int getDenominator() {

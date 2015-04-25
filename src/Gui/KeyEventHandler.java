@@ -77,7 +77,7 @@ public class KeyEventHandler implements KeyListener {
 					FileProcessor.saveJsonFile(null, staff);
 					break;
 				case 'o':case 'O':case 'щ':case 'Щ':
-					int i = okcancel("Are your sure? Unsaved data will be lost."); // 2 - cancel, 0 - ok
+					int i = okcancel("Are your sure? Unsaved data will be lost."); // 2 - cancel, 0 - ok очевидно же
 					if (i == 0) {
 						int sVal = chooserSave.showOpenDialog(parent);
 						if (sVal == JFileChooser.APPROVE_OPTION) {

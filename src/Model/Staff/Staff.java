@@ -64,7 +64,7 @@ public class Staff extends AbstractModel {
 		int taktCount = 1;
 		int curCislic = 0;
 
-		getPhantom().drawOn(g, baseX, baseY);
+		getConfig().drawOn(g, baseX, baseY);
 		baseX += dx();
 
 		int i = 0;
@@ -88,8 +88,8 @@ public class Staff extends AbstractModel {
 				if (accord.getNotaList().size() > 0) {
 
 					curCislic += accord.getShortestNumerator(); // TODO: triols are counted as each was complete nota, bad
-					if (curCislic >= getPhantom().numerator * 8) { // потому что у нас шажок 1/8 когда меняем размер такта
-						curCislic %= getPhantom().numerator * 8;
+					if (curCislic >= getConfig().numerator * 8) { // потому что у нас шажок 1/8 когда меняем размер такта
+						curCislic %= getConfig().numerator * 8;
 						g.setColor(curCislic > 0 ? Color.BLUE : Color.BLACK);
 						g.drawLine(x + dx() * 2, y - dy() * 5, x + dx() * 2, y + dy() * 20);
 						g.setColor(Color.decode("0x00A13E"));
@@ -137,7 +137,7 @@ public class Staff extends AbstractModel {
 	@Override
 	public JSONObject getJsonRepresentation() {
 		JSONObject dict = new JSONObject();
-		dict.put("staffConfig", this.getPhantom().getJsonRepresentation());
+		dict.put("staffConfig", this.getConfig().getJsonRepresentation());
 		dict.put("accordList", new JSONArray(this.getAccordList().stream().map(p -> p.getJsonRepresentation()).toArray()));
 		
 		return dict;
@@ -149,12 +149,12 @@ public class Staff extends AbstractModel {
 		JSONArray accordJsonList;
 		if (jsObject.has("childList")) { // TODO: deprecated. Run some script on all files, i won't manually resave all of them... again
 			accordJsonList = jsObject.getJSONArray("childList");
-			this.getPhantom().reconstructFromJson(accordJsonList.getJSONObject(0)); // TODO: it is so lame, but i spent hours to save all these files in this format
+			this.getConfig().reconstructFromJson(accordJsonList.getJSONObject(0)); // TODO: it is so lame, but i spent hours to save all these files in this format
 			accordJsonList.remove(0);
 		} else {
 			accordJsonList = jsObject.getJSONArray("accordList");
 			JSONObject configJson = jsObject.getJSONObject("staffConfig");
-			this.getPhantom().reconstructFromJson(configJson);
+			this.getConfig().reconstructFromJson(configJson);
 		}
 		for (int idx = 0; idx < accordJsonList.length(); ++idx) {
 			JSONObject childJs = accordJsonList.getJSONObject(idx);
@@ -167,13 +167,13 @@ public class Staff extends AbstractModel {
 	@Override
 	public synchronized List<? extends AbstractModel> getChildList() {
 		List childList = (List<Accord>)getAccordList().clone();
-		childList.add(0, getPhantom());
+		childList.add(0, getConfig());
 		return childList;
 	}
 
 	@Override
 	public AbstractModel getFocusedChild() {
-		return getFocusedAccord() != null ? getFocusedAccord() : getPhantom();
+		return getFocusedAccord() != null ? getFocusedAccord() : getConfig();
 	}
 
 	@Override
@@ -256,7 +256,7 @@ public class Staff extends AbstractModel {
 
 	// field getters/setters
 
-	public StaffConfig getPhantom() {
+	public StaffConfig getConfig() {
 		return this.phantomka;
 	}
 

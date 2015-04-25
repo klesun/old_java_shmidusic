@@ -1,5 +1,7 @@
 package Model;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import javafx.scene.input.KeyCode;
 
 import java.awt.event.KeyEvent;
@@ -29,7 +31,7 @@ public class Combo {
 	public int getSign() {
 		if (getAntiKeyMap().containsKey(getKeyCode())) {
 			return -1;
-		} else if (reverse(getAntiKeyMap()).containsKey(getKeyCode())) {
+		} else if (getAntiKeyMap().inverse().containsKey(getKeyCode())) {
 			return +1;
 		} else {
 			return 0;
@@ -68,24 +70,16 @@ public class Combo {
 	}
 
 	public static Integer tuneToAscii(Integer tune) {
-		return reverse(getAsciTuneMap()).get(tune);
+		return getAsciTuneMap().inverse().get(tune);
 	}
 
 	// static - private
 
-	private static Map<Integer, Integer> reverse(Map<Integer, Integer> keyValue) {
-		Map<Integer, Integer> valueKey = new HashMap<>();
-		for (Map.Entry<Integer, Integer> e: keyValue.entrySet()) {
-			valueKey.put(e.getValue(), e.getKey());
-		}
-		return valueKey;
-	}
-
 	private static int anti(int keyCode) {
 		if (getAntiKeyMap().containsKey(keyCode)) {
 			return getAntiKeyMap().get(keyCode);
-		} else if (reverse(getAntiKeyMap()).containsKey(keyCode)) {
-			return reverse(getAntiKeyMap()).get(keyCode);
+		} else if (getAntiKeyMap().inverse().containsKey(keyCode)) {
+			return getAntiKeyMap().inverse().get(keyCode);
 		} else {
 			System.out.println("Жопа!!! Этот метод не должен вызываться с параметром " + keyCode);
 			System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
@@ -124,8 +118,8 @@ public class Combo {
 
 	// 100500-line properties
 
-	private static Map<Integer, Integer> getAntiKeyMap() {
-		Map<Integer, Integer> antiKeyMap = new HashMap<>();
+	private static BiMap<Integer, Integer> getAntiKeyMap() {
+		BiMap<Integer, Integer> antiKeyMap = HashBiMap.create();
 		antiKeyMap.put(KeyEvent.VK_UP, KeyEvent.VK_DOWN);
 		antiKeyMap.put(KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT);
 		antiKeyMap.put(KeyEvent.VK_MINUS, KeyEvent.VK_PLUS);
@@ -133,8 +127,7 @@ public class Combo {
 		return antiKeyMap;
 	}
 
-	public static Map<Integer, Integer> getAsciTuneMap() {
-		// TODO: some do, si and si-bemol are ignored for some reason
+	public static BiMap<Integer, Integer> getAsciTuneMap() {
 		int[][] keyboardArrangement = {
 			// bottommest row
 			{ KeyEvent.VK_Z, KeyEvent.VK_X, KeyEvent.VK_C, KeyEvent.VK_V, KeyEvent.VK_B, KeyEvent.VK_N, KeyEvent.VK_M,
@@ -149,7 +142,7 @@ public class Combo {
 			{ KeyEvent.VK_BACK_QUOTE, KeyEvent.VK_1, KeyEvent.VK_2, KeyEvent.VK_3, KeyEvent.VK_4, KeyEvent.VK_5,
 				KeyEvent.VK_6, KeyEvent.VK_7, KeyEvent.VK_8, KeyEvent.VK_9, KeyEvent.VK_0, KeyEvent.VK_MINUS, },
 		};
-		Map<Integer, Integer> map = new HashMap<>();
+		BiMap<Integer, Integer> map = HashBiMap.create();
 		int doOfSmallOctava = 48; // -до- малой октавы
 		for (int i = 0; i < keyboardArrangement.length; ++i) {
 			for (int j = 0; j < 12; ++j) {

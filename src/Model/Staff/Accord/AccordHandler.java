@@ -92,14 +92,19 @@ public class AccordHandler extends AbstractHandler {
 			PlayMusThread.playAccord(getContext());
 		});
 
+		// character-key press
 		Consumer<Combo> handlePressChar = (e) -> getContext().setSlog(getContext().getSlog().concat("" + e.getKeyChar()));
 		Consumer<Combo> dehandlePressChar = (e) -> getContext().setSlog(getContext().getSlog().substring(0, getContext().getSlog().length() - 1));
 		for (int i: Combo.getCharacterKeycodeList()) {
-			new ActionFactory(new Combo(0, i)).addTo(actionMap).setDo(handlePressChar).setUndo(dehandlePressChar); }
-		for (int i: Combo.getCharacterKeycodeList()) {
-			new ActionFactory(new Combo(KeyEvent.SHIFT_MASK, i)).addTo(actionMap).setDo(handlePressChar).setUndo(dehandlePressChar); }
+			new ActionFactory(new Combo(0, i)).addTo(actionMap).setDo(handlePressChar).setUndo(dehandlePressChar);
+			new ActionFactory(new Combo(KeyEvent.SHIFT_MASK, i)).addTo(actionMap).setDo(handlePressChar).setUndo(dehandlePressChar);
+		}
+
+		// MIDI-key press
 		for (Integer i: Combo.getAsciTuneMap().keySet()) {
 			new ActionFactory(new Combo(11, i)).addTo(actionMap).setDo((combo) -> { // 11 - alt+shif+ctrl
+
+				// important TODO: UX WANNA ctrl-z, bleaaatj!
 
 				// TODO: move stuff like constants and mode into the handler
 				long timestamp = System.currentTimeMillis();

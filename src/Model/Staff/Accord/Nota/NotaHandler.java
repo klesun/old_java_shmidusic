@@ -45,7 +45,7 @@ public class NotaHandler extends AbstractHandler {
 		});
 
 		for (Integer i: Arrays.asList(KeyEvent.VK_OPEN_BRACKET, KeyEvent.VK_CLOSE_BRACKET)) {
-			new ActionFactory(new Combo(KeyEvent.CTRL_MASK, i)).addTo(actionMap).setDo(getContext()::changeDur).setUndoChangeSign(); }
+			new ActionFactory(new Combo(0, i)).addTo(actionMap).setDo(getContext()::changeDur).setUndoChangeSign(); }
 
 		new ActionFactory(new Combo(0, KeyEvent.VK_ENTER)).addTo(actionMap).setDo((event) -> { PlayMusThread.playNotu(getContext()); });
 

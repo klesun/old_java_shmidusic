@@ -27,7 +27,7 @@ public class StaffConfigHandler extends AbstractHandler {
 				getContext().chooseNextParam();
 			});
 			new ActionFactory(new Combo(0, KeyEvent.VK_UP)).addTo(actionMap).setDo((event) -> {
-				// this.sheet.getFocusedStaff().getPhantom().choosePrevParam();
+				// this.sheet.getFocusedStaff().getConfig().choosePrevParam();
 			});
 
 			new ActionFactory(new Combo(0, KeyEvent.VK_ADD)).addTo(actionMap).setDo((event) -> {

@@ -66,7 +66,7 @@ public class DeviceEbun {
 		Receiver tmp = theirReceiver;
 		theirReceiver = secondaryReceiver;
 		secondaryReceiver = tmp;
-		Main.window.sheetPanel.getFocusedStaff().getPhantom().syncSyntChannels();
+		Main.window.sheetPanel.getFocusedStaff().getConfig().syncSyntChannels();
 	}
 
 	private static void out(String strMessage) { System.out.println(strMessage); }
