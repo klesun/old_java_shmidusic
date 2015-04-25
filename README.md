@@ -12,7 +12,7 @@ cd bin
 <br />
 List of available midi devices will be printed into console.<br />
 <br />
-To create music you'll have to have some midi-piano plugged into your midi-port (if you have one). You can contact me, i'll be glad to help you.<br />
+To create music you'll have to have some midi-piano plugged into your midi-port (if you have one).<br />
 <br />
 
 | shortcut | action |
