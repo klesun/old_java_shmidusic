@@ -1,5 +1,6 @@
-![Alt text](/midiana_for_git.png?raw=true "Optional Title")
 This repository has submodules - so please clone with "--recursive" argument!<br />
+<br />
+![Alt text](/midiana_for_git.png?raw=true "Optional Title")
 <br />
 To build and run you can do: <br />
 ```sh
