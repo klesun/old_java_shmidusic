@@ -1,5 +1,6 @@
 ![Alt text](/midiana_for_git.png?raw=true "Optional Title")
-
+This repository has submodules - so please clone with "--recursive" argument!<br />
+<br />
 To build and run you can do: <br />
 ```sh
 /usr/java/jdk1.8*/bin/javac -sourcepath "./src" -d "./bin" "./src/Main.Main.java"
