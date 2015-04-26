@@ -4,11 +4,11 @@ This repository has submodules - so please clone with "--recursive" argument!<br
 <br />
 To build and run you can do: <br />
 ```sh
-/usr/java/jdk1.8*/bin/javac -sourcepath "./src" -d "./bin" "./src/Main.Main.java"
+/usr/java/jdk1.8.*/bin/javac -sourcepath "./src" -d "./bin" "./src/Main.Main.java -cp libs/*.jar"
 cd bin
-/usr/java/jdk1.8.*/bin/java Main.Main
+/usr/java/jdk1.8.*/bin/java -cp ../libs/guava-18.0.jar:. Main.Main
 ```
-(or just ./run)<br />
+(or just ./run.sh)<br />
 <br />
 List of available midi devices will be printed into console.<br />
 <br />
@@ -35,7 +35,6 @@ To create music you'll have to have some midi-piano plugged into your midi-port 
 | // FOCUSED NOTE OPERATIONS | . |
 | "["/"]" | increase/decrease length of selected note (with ctrl - for whole accord) |
 | [0..9] | mark note with the digit (color will change and you will be able to mute it) |
-| alt-[0..9] | mute notes with the digit |
 | delete | delete selected Nota |
 | . | . |
 | // PIANO | . |
