@@ -67,7 +67,7 @@ public class StaffConfig extends AbstractModel {
 		g.drawString(tz+"", delta + taktX, 2*inches*4/5 + taktY);
 
 		int tpx = 0, tpy = 0;
-		g.drawImage(Nota.notaImg[3], tpx, tpy, null);
+		g.drawImage(Nota.coloredNotas[0][3], tpx, tpy, null);
 		inches = sheet.getNotaHeight()*9/20;
 		g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, inches)); // 12 - 7px width
 		g.drawString(" = "+valueTempo, tpx + sheet.getNotaWidth()*4/5, tpy + inches*4/5 + sheet.getNotaHeight()*13/20);

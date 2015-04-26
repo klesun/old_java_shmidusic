@@ -45,7 +45,7 @@ public class AccordHandler extends AbstractHandler {
 
 		for (Integer i: Arrays.asList(KeyEvent.VK_OPEN_BRACKET, KeyEvent.VK_CLOSE_BRACKET)) {
 			new ActionFactory(new Combo(KeyEvent.CTRL_MASK, i)).addTo(actionMap).setDo((event) -> {
-				for (Nota nota : getContext().getNotaList()) { nota.changeDur(event); }
+				for (Nota nota : getContext().getNotaList()) { nota.changeLength(event); }
 			}).setUndoChangeSign();
 		}
 		new ActionFactory(new Combo(0, KeyEvent.VK_DELETE)).addTo(actionMap).setDo((event) -> {

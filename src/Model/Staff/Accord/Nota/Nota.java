@@ -84,9 +84,8 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		Nota other = (Nota) obj;
 		return tune == other.tune;
 	}
-	
-	// TODO: bad name and gay
-	public void changeDur(Combo combo) {
+
+	public void changeLength(Combo combo) {
 		int n = combo.getSign();
 
 		if (numerator == Staff.DEFAULT_ZNAM*2) {
@@ -119,65 +118,8 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		return this.getNumerator() * rival.getDenominator() > rival.getNumerator() * this.getDenominator(); 
 	}
 	
-	public static BufferedImage notaImg0[] = new BufferedImage[8];
-	public static BufferedImage notaImg[] = new BufferedImage[8];
-	public static BufferedImage[] notaImageFocused = new BufferedImage[8];
+	public static BufferedImage notaImgOriginal[] = new BufferedImage[8];
 	public static BufferedImage[][] coloredNotas = new BufferedImage[10][8];
-
-	public static void bufInit(SheetPanel sheet) {
-		File notRes[] = new File[8];
-	    for (int idx = -1; idx<7; ++idx){
-	    	String str = "../imgs/" + pow(2, idx) + "_sized.png";
-	    	notRes[idx+1] = new File(str);
-	    }
-	    System.out.println("Working Directory = " +
-	    System.getProperty("user.dir"));
-	    for (int idx = 0; idx < 8; ++idx){
-	    	try {
-	            notaImg0[idx] = ImageIO.read(notRes[idx]);
-	    	} catch (IOException e) { if (idx!=7) System.out.println(e+" Ноты не читаются!!! "+idx+" "+notRes[idx].getAbsolutePath()); }
-	    }
-	    
-		// not needed aint i right?
-	    //for (int i = 0; i < 10; ++i) coloredNotas[i] = new BufferedImage[8];        
-	    
-	    refreshSizes(sheet);
-	
-	}
-	public static void refreshSizes(SheetPanel sheet) {
-	    int w1, h1; Graphics2D g;
-	    w1 = sheet.getNotaWidth(); h1 = sheet.getNotaHeight();
-	    for (int idx = 0; idx < 8; ++idx ) {
-	        notaImg[idx] = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
-	        g = notaImg[idx].createGraphics();
-	        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OUT, 1.0f));
-	        Image scaledImage = null;
-	        if (notaImg0[idx]!=null)
-	            scaledImage = notaImg0[idx].getScaledInstance(w1, h1, Image.SCALE_SMOOTH);
-	        g.drawImage(scaledImage, 0, 0, w1, h1, null);
-	        g.dispose();
-	
-	        notaImageFocused[idx] = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
-	        g = notaImageFocused[idx].createGraphics();
-	        g.setColor(new Color(127,255,0));
-	        g.fillRect(0, 0, sheet.getNotaWidth(), sheet.getNotaHeight());
-	        g.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN, 1.0f));
-	        g.drawImage(notaImg[idx], 0, 0, w1, h1, null);
-	        g.dispose();                       
-	    }
-	    
-	    for (int chan = 0; chan < 10; ++chan) {        	
-	        for (int idx = 0; idx < 8; ++idx) {
-	        	coloredNotas[chan][idx] = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
-	            g = coloredNotas[chan][idx].createGraphics();
-	            g.setColor(getColorByChannel(chan));
-	            g.fillRect(0, 0, sheet.getNotaWidth(), sheet.getNotaHeight());
-	            g.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN, 1.0f));
-	            g.drawImage(notaImg[idx], 0, 0, w1, h1, null);
-	            g.dispose();
-	        }
-	    }
-	}
 
 	@Override
 	public void drawOn(Graphics surface, int x, int y) {
@@ -188,14 +130,9 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		}
 
 		int idx = (int)(Math.ceil(7 - Math.log(numerator) / Math.log(2) ));
-		BufferedImage tmpImg;
-		if (getIsMuted()) {
-			tmpImg = coloredNotas[9][idx];
-		} else if (channel > -1) {
-			tmpImg = coloredNotas[channel][idx];
-		} else {
-			tmpImg = notaImg[idx];
-		}
+		BufferedImage tmpImg = getIsMuted()
+			? coloredNotas[9][idx]
+			: coloredNotas[channel][idx];
 
 		surface.drawImage(tmpImg, x + getNotaImgRelX(), y, null);
 
@@ -256,8 +193,8 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 
 	public Boolean isEbony() {
 		// 0 - до, 2 - ре, 4 - ми, 5 - фа, 7 - соль, 9 - ля, 10 - си
-		int[] bemolTuneList = new int[]{ 1,3,6,8,10 };
-		return inArray(bemolTuneList, this.tune % 12);
+		List<Integer> flatTuneList = Arrays.asList(1,3,6,8,10);
+		return flatTuneList.contains(this.tune % 12);
 	}
 
 	public Boolean isBotommedToFitSystem() { // 8va
@@ -369,7 +306,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 
 	private static int pow(int n, int k){
 		if (k == 5) return 16;
-		if (k < 0) return 0;
+		if (k < 0) return 0; // GENIUSSSS!!!!!
 		if (k==0) return 1;
 		return n*pow(n, k-1);
 	}
@@ -431,31 +368,60 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	    }
 	}
 
-	// retarded language
-	private static Boolean inArray(int[] arr, int n) {
-		for (int i = 0; i < arr.length; ++i) {
-			if (arr[i] == n) return true;
-		}
-		return false;
-	}
-
 	@Override
 	public List<? extends AbstractModel> getChildList() {
 		return new ArrayList<>();
 	}
-
 	@Override
 	public AbstractModel getFocusedChild() {
 		return null;
 	}
-
 	@Override
-	protected NotaHandler makeHandler() {
-		return new NotaHandler(this);
+	protected NotaHandler makeHandler() { return new NotaHandler(this); }
+	@Override
+	public int compareTo(Nota n) { return n.tune - this.tune; }
+
+	// -----------------------------------------------------------
+	// TODO: maybe better move it outta of here
+	// -------------------------------
+
+	public static void reloadImagesFromDisk() {
+		for (int idx = 0; idx < 8; ++idx) {
+			try { notaImgOriginal[idx] = ImageIO.read(new File("../imgs/" + pow(2, idx - 1) + "_sized.png")); } // "pow(2, -1) = 0" i feel so disgusting for myself
+			catch (IOException e) { System.out.println(e + " Ноты не читаются!!! " + idx); }
+		}
 	}
 
-	@Override
-	public int compareTo(Nota n) {
-		return n.tune - this.tune;
+	public static void refreshSizes() {
+		int w1, h1; Graphics2D g;
+		w1 = Settings.getNotaWidth(); h1 = Settings.getNotaHeight();
+
+		// resizing first base color nota
+		for (int idx = 0; idx < 8; ++idx ) {
+			coloredNotas[0][idx] = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
+			g = coloredNotas[0][idx].createGraphics();
+
+			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OUT, 1.0f));
+			Image scaledImage = null;
+			if (notaImgOriginal[idx] != null) {
+				scaledImage = notaImgOriginal[idx].getScaledInstance(w1, h1, Image.SCALE_SMOOTH);
+			}
+			g.drawImage(scaledImage, 0, 0, w1, h1, null);
+			g.dispose();
+		}
+
+		// renewing other colored notas
+		for (int chan = 1; chan < 10; ++chan) {
+			for (int idx = 0; idx < 8; ++idx) {
+				coloredNotas[chan][idx] = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
+				g = coloredNotas[chan][idx].createGraphics();
+
+				g.setColor(getColorByChannel(chan));
+				g.fillRect(0, 0, Settings.getNotaWidth(), Settings.getNotaHeight());
+				g.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN, 1.0f));
+				g.drawImage(coloredNotas[0][idx], 0, 0, w1, h1, null);
+				g.dispose();
+			}
+		}
 	}
 }

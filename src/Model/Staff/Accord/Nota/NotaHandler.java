@@ -10,7 +10,6 @@ import Musica.PlayMusThread;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 
 public class NotaHandler extends AbstractHandler {
 
@@ -45,7 +44,7 @@ public class NotaHandler extends AbstractHandler {
 		});
 
 		for (Integer i: Arrays.asList(KeyEvent.VK_OPEN_BRACKET, KeyEvent.VK_CLOSE_BRACKET)) {
-			new ActionFactory(new Combo(0, i)).addTo(actionMap).setDo(getContext()::changeDur).setUndoChangeSign(); }
+			new ActionFactory(new Combo(0, i)).addTo(actionMap).setDo(getContext()::changeLength).setUndoChangeSign(); }
 
 		new ActionFactory(new Combo(0, KeyEvent.VK_ENTER)).addTo(actionMap).setDo((event) -> { PlayMusThread.playNotu(getContext()); });
 

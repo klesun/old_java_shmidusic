@@ -131,7 +131,7 @@ public class StaffHandler extends AbstractHandler {
 
 	public void showMenuDialog() {
 
-		// TODO: prevent typing more than 100%
+		// TODO: use float instead of %
 		
 		JTextField[] channelInstrumentInputList = new JTextField[10];
 		JTextField[] channelVolumeInputList = new JTextField[10];
@@ -153,8 +153,13 @@ public class StaffHandler extends AbstractHandler {
 		int option = JOptionPane.showConfirmDialog(null, huJPanel, "Enter instruments for channels", JOptionPane.OK_CANCEL_OPTION);
 		if (option == JOptionPane.OK_OPTION) {
 			for (int i = 0; i < 10; ++i) {
-				getContext().getConfig().getInstrumentArray()[i] = Integer.parseInt(channelInstrumentInputList[i].getText());
-				getContext().getConfig().getVolumeArray()[i] = Integer.parseInt(channelVolumeInputList[i].getText());
+				int instrument = Integer.parseInt(channelInstrumentInputList[i].getText());
+				instrument = instrument > 127 ? 127 : instrument < 0 ? 0 : instrument;
+				int volume = Integer.parseInt(channelVolumeInputList[i].getText());
+				volume = volume > 100 ? 100 : volume < 0 ? 0 : volume;
+
+				getContext().getConfig().getInstrumentArray()[i] = instrument;
+				getContext().getConfig().getVolumeArray()[i] = volume;
 			};
 			getContext().getConfig().syncSyntChannels();
 		}

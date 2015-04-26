@@ -1,5 +1,6 @@
 package Main;
 
+import Gui.SheetPanel;
 import Gui.Window;
 
 import java.io.*;
@@ -19,6 +20,11 @@ public class Main {
 		} catch (Exception e) {
 			System.out.println("blablablabalall");
 		}
+
+		// TODO: encapsulate somewhere
+		SheetPanel.loadImagesFromDisk();
+		SheetPanel.refreshImageSizes();
+
 		window = new Window();
 		window.setVisible(true);
 	}

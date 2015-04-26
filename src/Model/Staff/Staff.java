@@ -243,15 +243,15 @@ public class Staff extends AbstractModel {
 	}
 
 	public BufferedImage getViolinKeyImage() {
-		return SheetPanel.vseKartinki[0];
+		return SheetPanel.vseKartinkiSized[0];
 	}
 
 	public BufferedImage getBassKeyImage() {
-		return SheetPanel.vseKartinki[1];
+		return SheetPanel.vseKartinkiSized[1];
 	}
 
 	public BufferedImage getPointerImage() {
-		return SheetPanel.vseKartinki[3];
+		return SheetPanel.vseKartinkiSized[3];
 	}
 
 	// field getters/setters
