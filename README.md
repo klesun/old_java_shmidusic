@@ -9,7 +9,7 @@ To build and run you can do: <br />
 cd bin
 /usr/java/jdk1.8.*/bin/java -cp ../libs/guava-18.0.jar:. Main.Main
 ```
-(or just ./run.sh if you have same OS and Java as me)<br />
+(or just ./run.sh)<br />
 <br />
 List of available midi devices will be printed into console.<br />
 <br />
