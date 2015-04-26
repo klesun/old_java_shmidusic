@@ -1,45 +1,45 @@
+This repository has submodules - so please clone with "--recursive" argument!<br />
+<br />
 ![Alt text](/midiana_for_git.png?raw=true "Optional Title")
-
+<br />
 To build and run you can do: <br />
 ```sh
-/usr/java/jdk1.8*/bin/javac -sourcepath "./src" -d "./bin" "./src/Main.Main.java"
+/usr/java/jdk1.8.*/bin/javac -sourcepath "./src" -d "./bin" "./src/Main.Main.java -cp libs/*.jar"
 cd bin
-/usr/java/jdk1.8.*/bin/java Main.Main
+/usr/java/jdk1.8.*/bin/java -cp ../libs/guava-18.0.jar:. Main.Main
 ```
-(or just ./run)<br />
+(or just ./run.sh)<br />
 <br />
 List of available midi devices will be printed into console.<br />
 <br />
-To create music you'll have to have some midi-piano plugged into your midi-port (if you have one). You can contact me, i'll be glad to help you.<br />
+To create music you'll have to have some midi-piano plugged into your midi-port (if you have one).<br />
 <br />
 
 | shortcut | action |
  -------- | ------ |
 | // GLOBAL OPERATIONS | . |
-| ctrl-o | Open a .klsn-extension file. Some of them you can find at https://drive.google.com/folderview?id=0B_PiTxsew2JrZlg1eWlzdVlPTUE&usp=sharing |
-| ctrl-s | Save to .klsn file |
+| ctrl-o | Open a .json-extension file. Some of them you can find at https://drive.google.com/folderview?id=0B_PiTxsew2JrV3prNFR6QUdZQ2M&usp=sharing |
+| ctrl-s | Save to .json file |
 | ctrl-p | Play/Stop music |
 | ctrl-0 | Disable/Enable midi-input |
 | ctrl-(+ or =) | scale + |
 | ctrl-(- or _) | scale - |
-| delete | delete WHOLE accord |
-| ctrl-z | revieve last deleted accord |
-| ctrl-y | delete back last revieved accord |
+| ctrl-z | ctrl-z |
+| ctrl-y | ctrl-y |
+| Esc | configurations dialog (instruments and volumes for channels) |
+| . | . |
+| // FOCUSED ACCORD OPERATIONS | . |
+| delete | delete WHOLE accord if Nota not selected |
+| ctlr-UP/DOWN | Select next note in current accord (for following operations) |
 | . | . |
 | // FOCUSED NOTE OPERATIONS | . |
-| shift (if pointing a note) | Select next note in current accord (for following operations) |
-| NUM_PLUS | increase length of selected note (if not selected - of whole accord) |
-| NUM_MINUS | decrease length of selected note (-||-) |
-| [0..9] (when note selected) | mark note with the digit (color will change and you will be able to mute it) |
-| alt-[0..9] | mute notes with the digit |
-| . | . |
-| // PARAMETERS (instument, volume, tact-size, tempo) | . |
-| shift (if pointing the numbers near Violin Key) | select next parameter to change |
-| NUM_PLUS/NUM_MINUS | increase decrease selected parameter value |
+| "["/"]" | increase/decrease length of selected note (with ctrl - for whole accord) |
+| [0..9] | mark note with the digit (color will change and you will be able to mute it) |
+| delete | delete selected Nota |
 | . | . |
 | // PIANO | . |
-| press-any-key | will insert it after pointed note |
-| press-multiple-keys | will insert an accord agter pointed note |
+| press-any-key | will insert it after focused accord (or into pointed accord if some his note is selected at the moment) |
+| press-multiple-keys | will insert an accord after focused accord |
 | press-the-very-left-Do-bekar | will insert muted note (like pause). It's very helpful, when you need to play next accord, before current ends |
 | . | . |
 | . | . |
