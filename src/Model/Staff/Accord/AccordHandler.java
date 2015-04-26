@@ -109,10 +109,7 @@ public class AccordHandler extends AbstractHandler {
 				// TODO: move stuff like constants and mode into the handler
 				long timestamp = System.currentTimeMillis();
 
-				if (getContext().getParentStaff().mode == Staff.aMode.passive || getContext().getParentStaff().mode == Staff.aMode.playin) {
-					// Показать, какую ноту ты нажимаешь
-					return false;
-				}
+				if (getContext().getParentStaff().mode == Staff.aMode.passive) { return false; }
 
 				if (timestamp - getContext().getEarliestKeydown() < Staff.ACCORD_EPSILON) {
 					new Nota(getContext(), combo.asciiToTune()).setKeydownTimestamp(timestamp);

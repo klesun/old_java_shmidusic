@@ -26,22 +26,12 @@ import org.json.JSONObject;
 public class Staff extends AbstractModel {
 	public byte channelFlags = -1;
 
-	public static final int CHANNEL = 0;
 	public static final int DEFAULT_ZNAM = 64; // TODO: move it into some constants maybe
 	final public static int ACCORD_EPSILON = 50; // in milliseconds
 	
 	public static double volume = 0.5;
 	
-	public enum aMode {
-	    append,
-	    rewrite,
-	    insert,
-	    playin,
-	    passive,
-	    
-	    tictacin; // Написать
-	    // идея вообще такая: тиктакает метроном, а ты нажимаешь аккорды
-	} 
+	public enum aMode { insert, passive }
 	public aMode mode;
 
 	public StaffConfig phantomka = null;
@@ -105,14 +95,6 @@ public class Staff extends AbstractModel {
 			}
 			++i;
 		}
-	}
-	
-	public int changeMode(){
-	    if (mode == aMode.insert) mode = aMode.passive;
-	    else mode = aMode.insert;
-	
-	    out(mode + "");
-	    return 0;
 	}
 	
 	public void clearStan() {
@@ -258,6 +240,13 @@ public class Staff extends AbstractModel {
 		value = value >= getAccordList().size() ? getAccordList().size() - 1 : value;
 		this.focusedIndex = value;
 		return this;
+	}
+
+	// action handles
+
+	public void changeMode(Combo combo) {
+		System.out.println("huj " + combo.getPressedNumber());
+		this.mode = combo.getPressedNumber() > 0 ? aMode.insert : aMode.passive;
 	}
 }
 

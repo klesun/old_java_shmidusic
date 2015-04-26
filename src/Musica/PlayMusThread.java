@@ -37,8 +37,6 @@ public class PlayMusThread extends Thread {
 		// and datetimes, when they should be off and check every epsilon time... but maybe not >_<
 
     	stop = false;
-    	aMode tmpMode = eventHandler.getContext().mode;
-    	eventHandler.getContext().mode = aMode.playin;
 
 		// for some reason has huge delay between sound and canvas repainting
 		if (eventHandler.getContext().getFocusedAccord() != null) { this.playAccord(eventHandler.getContext().getFocusedAccord()); }
@@ -52,8 +50,8 @@ public class PlayMusThread extends Thread {
 			}
 			eventHandler.handleKey(nextAccord);
 		}
+
 		stop = true;
-    	eventHandler.getContext().mode = tmpMode;
     }
 
 	public static void playAccord(Accord accord)

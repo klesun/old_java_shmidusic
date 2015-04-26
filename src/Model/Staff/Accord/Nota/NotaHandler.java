@@ -63,11 +63,8 @@ public class NotaHandler extends AbstractHandler {
 
 				// TODO: move stuff like constants and mode into the handler
 
-				if (getContext().getParentAccord().getParentStaff().mode == Staff.aMode.passive ||
-					getContext().getParentAccord().getParentStaff().mode == Staff.aMode.playin) {
-					// Показать, какую ноту ты нажимаешь
-					return false;
-				} else {
+				if (getContext().getParentAccord().getParentStaff().mode == Staff.aMode.passive) { return false; }
+				else {
 					new Nota(getContext().getParentAccord(), combo.asciiToTune()).setKeydownTimestamp(System.currentTimeMillis());
 					return true;
 				}

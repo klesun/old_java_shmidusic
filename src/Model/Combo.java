@@ -92,7 +92,6 @@ public class Combo {
 	public char getKeyChar() {
 		return this.keychar;
 	}
-
 	public int getKeyCode() {
 		return this.keyCode;
 	}
@@ -124,6 +123,7 @@ public class Combo {
 		antiKeyMap.put(KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT);
 		antiKeyMap.put(KeyEvent.VK_MINUS, KeyEvent.VK_PLUS);
 		antiKeyMap.put(KeyEvent.VK_OPEN_BRACKET, KeyEvent.VK_CLOSE_BRACKET);
+		antiKeyMap.put(KeyEvent.VK_COMMA, KeyEvent.VK_PERIOD);
 		return antiKeyMap;
 	}
 
