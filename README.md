@@ -1,4 +1,5 @@
 This repository has submodules - so please clone with "--recursive" argument!<br />
+I love lambdas, therefore you have to have Java 8 or higher!<br />
 <br />
 ![Alt text](/midiana_for_git.png?raw=true "Optional Title")
 <br />
