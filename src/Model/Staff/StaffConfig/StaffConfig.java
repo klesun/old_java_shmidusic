@@ -1,5 +1,6 @@
 package Model.Staff.StaffConfig;
 
+import Gui.ImageStorage;
 import Gui.Settings;
 import Model.AbstractModel;
 import Model.Staff.Accord.Nota.Nota;
@@ -43,7 +44,7 @@ public class StaffConfig extends AbstractModel {
 			default: break;
 		}
 		if (getParentStaff().getFocusedChild() == this) {
-			g.drawImage(getParentStaff().getPointerImage(), xIndent - 7* Settings.getNotaWidth()/25 + deltaX, yIndent - dy() * 14 + deltaY, getSheetPanel());
+			g.drawImage(ImageStorage.inst().getPointerImage(), xIndent - 7* Settings.getNotaWidth()/25 + deltaX, yIndent - dy() * 14 + deltaY, getSheetPanel());
 		}
 	}
 
@@ -67,7 +68,7 @@ public class StaffConfig extends AbstractModel {
 		g.drawString(tz+"", delta + taktX, 2*inches*4/5 + taktY);
 
 		int tpx = 0, tpy = 0;
-		g.drawImage(Nota.coloredNotas[0][3], tpx, tpy, null);
+		g.drawImage(ImageStorage.inst().getQuarterImage(), tpx, tpy, null);
 		inches = sheet.getNotaHeight()*9/20;
 		g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, inches)); // 12 - 7px width
 		g.drawString(" = "+valueTempo, tpx + sheet.getNotaWidth()*4/5, tpy + inches*4/5 + sheet.getNotaHeight()*13/20);

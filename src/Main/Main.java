@@ -1,5 +1,6 @@
 package Main;
 
+import Gui.ImageStorage;
 import Gui.SheetPanel;
 import Gui.Window;
 
@@ -22,8 +23,8 @@ public class Main {
 		}
 
 		// TODO: encapsulate somewhere
-		SheetPanel.loadImagesFromDisk();
-		SheetPanel.refreshImageSizes();
+		ImageStorage.inst().loadImagesFromDisk();
+		ImageStorage.inst().refreshImageSizes();
 
 		window = new Window();
 		window.setVisible(true);

@@ -1,15 +1,12 @@
 package Model.Staff.Accord.Nota;
 
 
+import Gui.ImageStorage;
 import Model.Combo;
 import Model.Staff.Accord.Accord;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-
-import javax.imageio.ImageIO;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,19 +17,14 @@ import Model.AbstractModel;
 import Model.Staff.StaffConfig.StaffConfig;
 import Model.Staff.Staff;
 import Tools.Fp;
-import java.awt.AlphaComposite;
+
 import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Graphics;
 import java.util.List;
 
 public class Nota extends AbstractModel implements Comparable<Nota> {
-	
-// TODO: store time Nota was pressed and released into file maybe? Just becuse we can!
-	public static int time = 0;
 
-	public int tune;
+	public int tune = 34; // no exceptions
 	public int channel = 0;
 	public Boolean isSharp = false;
 
@@ -48,24 +40,6 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		parent.add(this);
 	}
 
-	private static String normalizeString(String str, int desiredLength) {
-		return String.format("%1$-" + desiredLength + "s", str);
-	}
-	
-	public String getInfoString() {
-		return	normalizeString(strTune(this.getAcademicIndex()) + (isEbony() ? "-бемоль" : ""),12) +
-				normalizeString(getOctava() + " " + oktIdxToString(getOctava()), 19) +
-				normalizeString(channel+"", 2);
-	}
-	
-	@Override
-	public String toString() {
-		String result = "аккорд:\n";
-		result += "\t" + this.getInfoString() + "\n";
-	    String s = "nota: "+tune+"; pos: "+getAcademicIndex()+"; okt: "+getOctava()+"; "+strTune(this.getAcademicIndex());
-	    return result;
-	}
-	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -74,65 +48,48 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		return result;
 	}
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Nota other = (Nota) obj;
-		return tune == other.tune;
-	}
+	public String toString() { return this.getJsonRepresentation().toString(); }
+	@Override
+	public boolean equals(Object obj) { return obj != null && getClass() == obj.getClass() && tune == ((Nota)obj).tune; }
 
+	// something definitely wrong with this method, but my eyes hurt each time i look at it
 	public void changeLength(Combo combo) {
-		int n = combo.getSign();
+		int sign = combo.getSign();
 
-		if (numerator == Staff.DEFAULT_ZNAM*2) {
-			numerator = Staff.DEFAULT_ZNAM;
-			n = 0;
-		}
-		if (numerator < 4) {
-			numerator = 8;
-			n = 0;
-		}
-		while (n > 0){ 
+		// TODO: points should be whole separate thing
+		while (sign > 0){
 			if (numerator % 3 == 0) {				
 				numerator += numerator/3;
 			} else {
 				numerator += numerator/2;
 			}
-			--n;
+			--sign;
 		}
-		while (n < 0){
+		while (sign < 0){
 			if (numerator % 3 == 0) {				
 				numerator -= numerator/3;
 			} else {
 				numerator -= numerator/4;
 			}
-			++n;
+			++sign;
 		}
+
+		if (numerator > Staff.DEFAULT_ZNAM * 2) { numerator = Staff.DEFAULT_ZNAM * 2; }
+		if (numerator < 4) { numerator = 4; }
 	}
 
 	public Boolean isLongerThan(Nota rival) {
 		return this.getNumerator() * rival.getDenominator() > rival.getNumerator() * this.getDenominator(); 
 	}
-	
-	public static BufferedImage notaImgOriginal[] = new BufferedImage[8];
-	public static BufferedImage[][] coloredNotas = new BufferedImage[10][8];
 
 	@Override
 	public void drawOn(Graphics surface, int x, int y) {
 		surface.setColor(Color.BLACK);
+		surface.drawImage(getEbonySignImage(), x + dx() / 2, y + 3 * dy() + 2, getPanel());
 
-		if (this.isEbony()) {
-			surface.drawImage(isSharp ? getSheet().getSharpImage() : getSheet().getFlatImage(), x + getSheet().dx() / 2, y + 3 * getSheet().dy() +2, null);
-		}
-
-		int idx = (int)(Math.ceil(7 - Math.log(numerator) / Math.log(2) ));
 		BufferedImage tmpImg = getIsMuted()
-			? coloredNotas[9][idx]
-			: coloredNotas[channel][idx];
+			? ImageStorage.inst().getNotaImg(numerator, 9)
+			: ImageStorage.inst().getNotaImg(numerator, channel);
 
 		surface.drawImage(tmpImg, x + getNotaImgRelX(), y, null);
 
@@ -167,22 +124,6 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		return this;
 	}
 
-	// implements(Pointerable)
-	public int getWidth() {
-		// TODO: use it in Accord.getWidth()
-//		int width = (int)Math.ceil( slog.length() * Constants.FONT_WIDTH / (Constants.STEP_H * 2) );
-//		if (width < 1) width = 1;
-		return this.getParentAccord().getParentStaff().getParentSheet().getNotaWidth() * 2;
-	}
-
-	public int getHeight() {
-		return this.getParentAccord().getParentStaff().getParentSheet().getNotaHeight();
-	}
-
-	public int getOctava() {
-		return this.tune/12;
-	}
-
 	public int getAcademicIndex() {
 		int idx = Nota.tuneToAcademicIndex(this.tune);
 		if (isEbony() && isSharp) {
@@ -191,41 +132,11 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		return idx;
 	}
 
-	public Boolean isEbony() {
-		// 0 - до, 2 - ре, 4 - ми, 5 - фа, 7 - соль, 9 - ля, 10 - си
-		List<Integer> flatTuneList = Arrays.asList(1,3,6,8,10);
-		return flatTuneList.contains(this.tune % 12);
-	}
-
-	public Boolean isBotommedToFitSystem() { // 8va
-		return this.getOctava() > 6;
-	}
-	
-	public int getAbsoluteAcademicIndex() {
-		return getAcademicIndex() + getOctava() * 7;
-	}
-
-	public Boolean isStriked() {
-		return getAbsoluteAcademicIndex() % 2 == 1;
-	}
-
-	public List<Integer> getAncorPoint() {
-		return Arrays.asList(getWidth()*16/25, Settings.getStepHeight() * 7);
-	}
-
 	public List<Integer> getTraitCoordinates() {
 		ArrayList result = new ArrayList();
-		result.addAll(Fp.vectorSum(getAncorPoint(), Arrays.asList(-getWidth()*6/25, 0)));
-		result.addAll(Fp.vectorSum(getAncorPoint(), Arrays.asList(+getWidth()*6/25, 0)));
+		result.addAll(Fp.vectorSum(getAncorPoint(), Arrays.asList(-getWidth() * 6 / 25, 0)));
+		result.addAll(Fp.vectorSum(getAncorPoint(), Arrays.asList(+getWidth() * 6 / 25, 0)));
 		return result;
-	}
-
-	public int getNotaImgRelX() {
-		return this.getWidth() / 2;
-	}
-
-	public int getStickX() {
-		return this.getNotaImgRelX() + getSheet().dx() / 2;
 	}
 
 	public int getTimeMiliseconds() {
@@ -244,129 +155,65 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		}
 	}
 
+	private BufferedImage getEbonySignImage() {
+		return !this.isEbony()
+			? null // not sure that it will do the trick...
+			: isSharp ? ImageStorage.inst().getSharpImage()
+			: ImageStorage.inst().getFlatImage();
+	}
+
+	// one-line getters
+
+	// 0 - do, 2 - re, 4 - mi, 5 - fa, 7 - so, 9 - la, 10 - ti
+	public Boolean isEbony() { return Arrays.asList(1,3,6,8,10).contains(this.tune % 12); }
+	public Boolean isBotommedToFitSystem() { return this.getOctave() > 6; } // 8va
+	public Boolean isStriked() { return getAbsoluteAcademicIndex() % 2 == 1; }
+
+	public int getAbsoluteAcademicIndex() { return getAcademicIndex() + getOctave() * 7; }
+	public int getOctave() { return this.tune/12; }
+	public List<Integer> getAncorPoint() { return Arrays.asList(getWidth()*16/25, Settings.getStepHeight() * 7); }
+	public int getNotaImgRelX() { return this.getWidth() / 2; } // bad name
+	public int getStickX() { return this.getNotaImgRelX() + getPanel().dx() / 2; }
+
+	public int dx() {
+		return Settings.getStepWidth();
+	}
+	public int dy() {
+		return Settings.getStepHeight();
+	}
+	public int getHeight() { return this.getParentAccord().getParentStaff().getParentSheet().getNotaHeight(); }
+	// TODO: use it in Accord.getWidth()
+	public int getWidth() { return this.getParentAccord().getParentStaff().getParentSheet().getNotaWidth() * 2; }
+
 	// field getters/setters
 
-	public Accord getParentAccord() {
-		return (Accord)this.getParent();
-	}
+	public Accord getParentAccord() { return (Accord)this.getParent(); }
 
-	public int getNumerator() {
-		return this.numerator;
-	}
+	public int getNumerator() { return this.numerator; }
+	public int getDenominator() { return 1 * this.getTupletDenominator(); }
 
-	public int getDenominator() {
-		return 1 * this.getTupletDenominator();
-	}
+	public int getTupletDenominator() { return this.tupletDenominator; }
+	public Nota setTupletDenominator(int value) { this.tupletDenominator = value; return this; }
 
-	public int getTupletDenominator() {
-		return this.tupletDenominator;
-	}
-
-	public Nota setTupletDenominator(int value) {
-		this.tupletDenominator = value;
-		return this;
-	}
-
-	public Boolean getIsMuted() {
-		return this.isMuted;
-	}
+	public Boolean getIsMuted() { return this.isMuted; }
 	
-	public Nota setIsMuted(Boolean value) {
-		this.isMuted = value;
-		return this;
-	}
-
-	public Nota setChannel(int channel) {
-		this.channel = channel;
-		return this;
-	}
-
-	public Nota setTune(int value){		
-		this.tune = value;
-		return this;
-	}
-	
-	public Nota setKeydownTimestamp(long value) {
-		this.keydownTimestamp = value;
-		return this;
-	}
-
-	public Nota triggerIsSharp() {
-		this.isSharp = !this.isSharp;
-		return this;
-	}
+	public Nota setIsMuted(Boolean value) { this.isMuted = value; return this; }
+	public Nota setChannel(int channel) { this.channel = channel; return this; }
+	public Nota setTune(int value){ this.tune = value; return this; }
+	public Nota setKeydownTimestamp(long value) { this.keydownTimestamp = value; return this; }
+	public Nota triggerIsSharp() { this.isSharp = !this.isSharp; return this; }
 
 	// private methods
 
-	private SheetPanel getSheet() {
+	private SheetPanel getPanel() {
 		return this.getParentAccord().getParentStaff().getParentSheet();
 	}
 			
 	// private static methods
 
-	private static int pow(int n, int k){
-		if (k == 5) return 16;
-		if (k < 0) return 0; // GENIUSSSS!!!!!
-		if (k==0) return 1;
-		return n*pow(n, k-1);
-	}
-
-	public static Color getColorByChannel(int n) {
-		return	n == 0 ? new Color(0,0,0) : // black
-				n == 1 ? new Color(255,0,0) : // red
-				n == 2 ? new Color(0,192,0) : // green
-				n == 3 ? new Color(0,0,255) : // blue
-				n == 4 ? new Color(255,128,0) : // orange
-				n == 5 ? new Color(192,0,192) : // magenta
-				n == 6 ? new Color(0,192,192) : // cyan
-				Color.GRAY;
-	}
-
-	private static int tuneToAcademicIndex(int tune){
-		tune %= 12;
-	    switch(tune){
-
-			case 11:case 10:  return 6;  // си, си-бемоль
-			case 9:case 8: return 5; // ля, ля-бемоль
-			case 7:case 6: return 4; // соль, соль-бемоль
-			case 5: return 3; // фа
-			case 4:case 3: return 2; // ми
-			case 2:case 1: return 1; // ре
-			case 0: return 0; // до
-			
-			default: return -1;
-	    }
-	}
-
-	private static String oktIdxToString(int idx) {
-		return  idx == 1 ?	"субконтроктава" :
-				idx == 2 ?	"контроктава" :
-				idx == 3 ?	"большая октава" :
-				idx == 4 ?	"малая октава" :
-				idx == 5 ?	"первая октава" :
-				idx == 6 ?	"вторая октава" :
-				idx == 7 ?	"третья октава" :
-				idx == 8 ?	"четвёртая октава" :
-				idx == 9 ?	"пятая октава" :
-							"не знаю          ";
-	}
-
-	private static String strTune(int n){
-	    if (n < 0) {
-	        n += Integer.MAX_VALUE - Integer.MAX_VALUE%12;
-	    }
-	    n %= 12;
-	    switch(n){
-	        case 0: return "до";
-	        case 1: return "ре";
-	        case 2: return "ми";
-	        case 3: return "фа";
-	        case 4: return "соль";
-	        case 5: return "ля";
-	        case 6: return "си";
-	        default: return "ша-бемоль";
-	    }
-	}
+	// TODO: what if i said we could store these instead of numbers in json?
+	private static String strIdx(int n){ return Arrays.asList("do","re","mi","fa","so","la","ti").get(n % 12); }
+	private static int tuneToAcademicIndex(int tune) { return Arrays.asList(0,1,1,2,2,3,4,4,5,5,6,6).get(tune % 12); }
 
 	@Override
 	public List<? extends AbstractModel> getChildList() {
@@ -381,47 +228,4 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	@Override
 	public int compareTo(Nota n) { return n.tune - this.tune; }
 
-	// -----------------------------------------------------------
-	// TODO: maybe better move it outta of here
-	// -------------------------------
-
-	public static void reloadImagesFromDisk() {
-		for (int idx = 0; idx < 8; ++idx) {
-			try { notaImgOriginal[idx] = ImageIO.read(new File("../imgs/" + pow(2, idx - 1) + "_sized.png")); } // "pow(2, -1) = 0" i feel so disgusting for myself
-			catch (IOException e) { System.out.println(e + " Ноты не читаются!!! " + idx); }
-		}
-	}
-
-	public static void refreshSizes() {
-		int w1, h1; Graphics2D g;
-		w1 = Settings.getNotaWidth(); h1 = Settings.getNotaHeight();
-
-		// resizing first base color nota
-		for (int idx = 0; idx < 8; ++idx ) {
-			coloredNotas[0][idx] = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
-			g = coloredNotas[0][idx].createGraphics();
-
-			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OUT, 1.0f));
-			Image scaledImage = null;
-			if (notaImgOriginal[idx] != null) {
-				scaledImage = notaImgOriginal[idx].getScaledInstance(w1, h1, Image.SCALE_SMOOTH);
-			}
-			g.drawImage(scaledImage, 0, 0, w1, h1, null);
-			g.dispose();
-		}
-
-		// renewing other colored notas
-		for (int chan = 1; chan < 10; ++chan) {
-			for (int idx = 0; idx < 8; ++idx) {
-				coloredNotas[chan][idx] = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
-				g = coloredNotas[chan][idx].createGraphics();
-
-				g.setColor(getColorByChannel(chan));
-				g.fillRect(0, 0, Settings.getNotaWidth(), Settings.getNotaHeight());
-				g.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN, 1.0f));
-				g.drawImage(coloredNotas[0][idx], 0, 0, w1, h1, null);
-				g.dispose();
-			}
-		}
-	}
 }

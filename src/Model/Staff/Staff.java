@@ -3,6 +3,7 @@
 
 package Model.Staff;
 
+import Gui.ImageStorage;
 import Gui.SheetPanel;
 import Model.AbstractModel;
 import Model.Combo;
@@ -70,8 +71,8 @@ public class Staff extends AbstractModel {
 		int i = 0;
 		for (List<Accord> row: getAccordRowList()) {
 			int y = baseY + i * SheetPanel.SISDISPLACE * dy(); // bottommest y nota may be drawn on
-			g.drawImage(getViolinKeyImage(), this.dx(), y -3 * dy(), getParentSheet());
-			g.drawImage(getBassKeyImage(), this.dx(), 11 * dy() + y, getParentSheet());
+			g.drawImage(ImageStorage.inst().getViolinKeyImage(), this.dx(), y -3 * dy(), getParentSheet());
+			g.drawImage(ImageStorage.inst().getBassKeyImage(), this.dx(), 11 * dy() + y, getParentSheet());
 			g.setColor(Color.BLUE);
 			for (int j = 0; j < 11; ++j){
 				if (j == 5) continue;
@@ -82,7 +83,7 @@ public class Staff extends AbstractModel {
 			for (Accord accord: row) {
 				int x = baseX + j * (2 * dx());
 				if (getFocusedAccord() == accord) { 
-					g.drawImage(getPointerImage(), x + dx(), y - this.dy() *14, getParentSheet());
+					g.drawImage(ImageStorage.inst().getPointerImage(), x + dx(), y - this.dy() *14, getParentSheet());
 				}
 
 				if (accord.getNotaList().size() > 0) {
@@ -234,36 +235,17 @@ public class Staff extends AbstractModel {
 		return this.getWidth() / (Settings.getNotaWidth() * 2) - 3; // - 3 because violin key and phantom
 	}
 
-	public int dx() {
-		return Settings.getStepWidth();
-	}
-
-	public int dy() {
-		return Settings.getStepHeight();
-	}
-
-	public BufferedImage getViolinKeyImage() {
-		return SheetPanel.vseKartinkiSized[0];
-	}
-
-	public BufferedImage getBassKeyImage() {
-		return SheetPanel.vseKartinkiSized[1];
-	}
-
-	public BufferedImage getPointerImage() {
-		return SheetPanel.vseKartinkiSized[3];
-	}
+	public int dx() { return Settings.getStepWidth(); }
+	public int dy() { return Settings.getStepHeight(); }
 
 	// field getters/setters
 
 	public StaffConfig getConfig() {
 		return this.phantomka;
 	}
-
 	public SheetPanel getParentSheet() {
 		return (SheetPanel)getParent();
 	}
-
 	public int getFocusedIndex() {
 		return this.focusedIndex;
 	}

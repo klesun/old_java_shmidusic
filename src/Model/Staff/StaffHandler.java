@@ -1,5 +1,6 @@
 
 package Model.Staff;
+import Gui.ImageStorage;
 import Midi.DeviceEbun;
 import Midi.MidiCommon;
 import Model.AbstractHandler;
@@ -129,6 +130,7 @@ public class StaffHandler extends AbstractHandler {
 		}
 	}
 
+	// TODO: move this method's implementation into StaffConfig class maybe?
 	public void showMenuDialog() {
 
 		// TODO: use float instead of %
@@ -144,10 +146,10 @@ public class StaffHandler extends AbstractHandler {
 		for (int i = 0; i < 10; ++i) {
 			channelGridPanel.add(new JLabel("      " + i));
 			channelInstrumentInputList[i] = new JTextField(getContext().getConfig().getInstrumentArray()[i] + "");
-			channelGridPanel.add(channelInstrumentInputList[i]); channelInstrumentInputList[i].setForeground(Nota.getColorByChannel(i));
+			channelGridPanel.add(channelInstrumentInputList[i]); channelInstrumentInputList[i].setForeground(ImageStorage.getColorByChannel(i));
 
 			channelVolumeInputList[i] = new JTextField(getContext().getConfig().getVolumeArray()[i] + "");
-			channelGridPanel.add(channelVolumeInputList[i]); channelVolumeInputList[i].setForeground(Nota.getColorByChannel(i));
+			channelGridPanel.add(channelVolumeInputList[i]); channelVolumeInputList[i].setForeground(ImageStorage.getColorByChannel(i));
 		}
 		
 		int option = JOptionPane.showConfirmDialog(null, huJPanel, "Enter instruments for channels", JOptionPane.OK_CANCEL_OPTION);

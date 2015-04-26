@@ -114,11 +114,11 @@ public class KeyEventHandler implements KeyListener {
 					break;
 				case '+':case '=':
 					System.out.println("ctrl+=");
-					this.sheet.changeScale(1);
+					ImageStorage.inst().changeScale(1);
 					break;
 				case '-':case '_':
 					System.out.println("ctrl+-");
-					this.sheet.changeScale(-1);
+					ImageStorage.inst().changeScale(-1);
 					break;
 				default:
 					break;

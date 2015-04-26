@@ -74,6 +74,14 @@ public class Accord extends AbstractModel {
 		for (int i = 0; i < getNotaList().size(); ++i) {
 			Nota nota = getNotaList().get(i);
 			int notaY = y + getLowestPossibleNotaRelativeY() - Settings.getStepHeight() * nota.getAbsoluteAcademicIndex();
+
+			if (nota == this.getFocusedNota()) {
+				List<Integer> p = nota.getAncorPoint();
+				int r = Settings.getStepHeight();
+				surface.setColor(Color.red);
+				surface.fillOval(x + p.get(0) + r * 2, notaY + p.get(1) - r, r * 2, r * 2);
+			}
+
 			notaY += oneOctaveLower ? 7 * getParentStaff().getParentSheet().dy() : 0;
 			int notaX = i > 0 && getNotaList().get(i - 1).getAbsoluteAcademicIndex() == nota.getAbsoluteAcademicIndex() 
 					? x + Settings.getStepWidth() / 3 // TODO: draw them flipped
@@ -84,12 +92,9 @@ public class Accord extends AbstractModel {
 				List<Integer> p = Fp.vectorSum(nota.getTraitCoordinates(), Arrays.asList(x, notaY, x, notaY));
 				surface.drawLine(p.get(0), p.get(1), p.get(2), p.get(3)); 
 			}
-			if (nota == this.getFocusedNota()) {
-				List<Integer> p = nota.getAncorPoint();
-				int r = Settings.getStepHeight();
-				surface.fillOval(x + p.get(0) + r * 2, notaY + p.get(1) - r, r * 2, r * 2);
-			}
 		}
+
+		surface.setColor(Color.BLACK);
 		surface.drawString(this.getSlog(), x, y + Constants.FONT_HEIGHT);
 	}
 
@@ -157,16 +162,10 @@ public class Accord extends AbstractModel {
 	public Staff getParentStaff() {
 		return (Staff)this.getParent();
 	}
-	
 	public String getSlog() {
 		return this.slog;
 	}
-
-	public Accord setSlog(String value) {
-		this.slog = value;
-		return this;
-	}
-
+	public Accord setSlog(String value) { this.slog = value; return this; }
 	public int getFocusedIndex() {
 		return this.focusedIndex;
 	}
@@ -182,12 +181,10 @@ public class Accord extends AbstractModel {
 	public List<? extends AbstractModel> getChildList() {
 		return this.getNotaList();
 	}
-
 	@Override
 	public AbstractModel getFocusedChild() {
 		return this.getFocusedNota();
 	}
-
 	@Override
 	protected AccordHandler makeHandler() {
 		return new AccordHandler(this);

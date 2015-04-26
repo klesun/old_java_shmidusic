@@ -20,16 +20,10 @@ import java.util.*;
 
 final public class SheetPanel extends JPanel implements IModel {
 	JScrollPane scrollBar;
-	
-	final public static int NORMAL_HEIGHT = 40;
-	final public static int NORMAL_WIDTH = 25;
 
 	public int MARGIN_V = 15; // Сколько отступов сделать сверху перед рисованием полосочек // TODO: move it into Constants class maybe? // eliminate it nahuj maybe?
 	public int MARGIN_H = 1; // TODO: move it into Constants class maybe?
 	final public static int SISDISPLACE = 40;
-	
-	public static BufferedImage[] vseKartinkiSized = new BufferedImage[7]; // TODO: поменять этот уродский массив на ключ-значение // Гузно у тебя уродское
-	public static BufferedImage[] vseKartinkiOriginal = new BufferedImage[7];
 
 	ArrayList<Staff> staffList = new ArrayList();
 	public Window parentWindow = null;
@@ -84,10 +78,7 @@ final public class SheetPanel extends JPanel implements IModel {
 
 	// getters/setters
 
-	public ArrayList<Staff> getStaffList() {
-		return this.staffList;
-	}
-
+	public ArrayList<Staff> getStaffList() { return this.staffList; }
 	public Staff getFocusedStaff() {
 		// TODO: do something
 		return this.getStaffList().get(0);
@@ -96,13 +87,6 @@ final public class SheetPanel extends JPanel implements IModel {
 	public SheetPanel addNewStaff() {
 		this.staffList.add(new Staff(this));
 		return this;
-	}
-
-	public BufferedImage getFlatImage() {
-		return vseKartinkiSized[2];
-	}
-	public BufferedImage getSharpImage() {
-		return vseKartinkiSized[6];
 	}
 
 	// TODO: use from Settings
@@ -129,46 +113,5 @@ final public class SheetPanel extends JPanel implements IModel {
 		return Math.round(MARGIN_V * this.dy());
 	}
 
-	// ------------------------------------------------
-	// TODO: store (and refresh) images in Settings maybe
-	// ------------------------------------------------
-
-	public static void changeScale(int n) {
-		Settings.inst().changeScale(n);
-		SheetPanel.refreshImageSizes();
-	}
-
-	public static void loadImagesFromDisk() {
-		try {	vseKartinkiOriginal[0] = ImageIO.read(new File("../imgs/vio_sized.png"));
-			vseKartinkiOriginal[1] = ImageIO.read(new File("../imgs/bass_sized.png"));
-			vseKartinkiOriginal[2] = ImageIO.read(new File("../imgs/flat_sized.png"));
-			vseKartinkiOriginal[6] = ImageIO.read(new File("../imgs/sharp_sized.png")); // -_-
-			vseKartinkiOriginal[3] = ImageIO.read(new File("../imgs/MyPointer.png"));
-			vseKartinkiOriginal[4] = ImageIO.read(new File("../imgs/volume.png"));
-			vseKartinkiOriginal[5] = ImageIO.read(new File("../imgs/instrument.png"));
-		} catch (IOException e) { e.printStackTrace(); System.out.println("Темнишь что-то со своей картинкой..."); }
-		Nota.reloadImagesFromDisk();
-	}
-
-	public static void refreshImageSizes() {
-		for (int i = 0; i < vseKartinkiSized.length; ++i ) { // >_<
-			vseKartinkiSized[i] = changeSize(i);
-		}
-		Nota.refreshSizes();
-	}
-
-	private static BufferedImage changeSize(int idx) {
-		int w0 = vseKartinkiOriginal[idx].getWidth();
-		int h0 = vseKartinkiOriginal[idx].getHeight();
-		int w1 = w0 * Settings.getNotaWidth()/NORMAL_WIDTH;
-		int h1 = h0 * Settings.getNotaHeight()/NORMAL_HEIGHT;
-
-		BufferedImage tmp = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);
-		Graphics g = tmp.createGraphics();
-		Image scaledImage = vseKartinkiOriginal[idx].getScaledInstance(w1, h1, Image.SCALE_SMOOTH);
-		g.drawImage(scaledImage, 0, 0, w1, h1, null);
-		g.dispose();
-		return tmp;
-	}
 }
 
