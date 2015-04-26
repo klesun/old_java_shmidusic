@@ -1,4 +1,5 @@
 This repository has submodules - so please clone with "--recursive" argument!<br />
+I love lambdas, therefore you have to have Java 8 or higher!<br />
 <br />
 ![Alt text](/midiana_for_git.png?raw=true "Optional Title")
 <br />
@@ -8,7 +9,7 @@ To build and run you can do: <br />
 cd bin
 /usr/java/jdk1.8.*/bin/java -cp ../libs/guava-18.0.jar:. Main.Main
 ```
-(or just ./run.sh)<br />
+(or just ./run.sh if you have same OS and Java as me)<br />
 <br />
 List of available midi devices will be printed into console.<br />
 <br />
