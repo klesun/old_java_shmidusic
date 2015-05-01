@@ -1,6 +1,7 @@
 package Model;
 
 import Gui.SheetPanel;
+import Model.Staff.Staff;
 
 import java.awt.event.KeyEvent;
 import java.util.LinkedHashMap;
@@ -66,10 +67,10 @@ abstract public class AbstractHandler {
 
 	private SheetPanel getSheetPanel() {
 		IModel context = getContext();
-		while (!(context instanceof SheetPanel)) { // why don't i like this?
+		while (!(context instanceof Staff)) { // circular import? yes...
 			context = ((AbstractModel)context).getParent();
 		}
-		return (SheetPanel)context;
+		return ((Staff)context).getParentSheet();
 	}
 
 	final public Map<Combo, ActionFactory> getActionMap() {

@@ -15,7 +15,7 @@ public class Settings {
 
 	public void changeScale(int n) {
 		this.scaleKoefficient += n;
-		if (this.scaleKoefficient > 0) { this.scaleKoefficient = 0; };
+		if (this.scaleKoefficient > -1) { this.scaleKoefficient = -1; };
 		if (this.scaleKoefficient < -3) { this.scaleKoefficient = -3; };
 	}
 

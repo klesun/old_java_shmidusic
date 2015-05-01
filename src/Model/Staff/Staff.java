@@ -5,6 +5,7 @@ package Model.Staff;
 
 import Gui.ImageStorage;
 import Gui.SheetPanel;
+import Gui.Window;
 import Model.AbstractModel;
 import Model.Combo;
 import Model.Staff.StaffConfig.StaffConfig;
@@ -39,8 +40,13 @@ public class Staff extends AbstractModel {
 	private ArrayList<Accord> accordList = new ArrayList<>();
 	public int focusedIndex = -1;
 
-	public Staff(SheetPanel sheet){
-		super(sheet);
+	private Window parentWindow = null;
+	public SheetPanel blockPanel = null;
+
+	public Staff(Window window) {
+		super(null);
+		this.parentWindow = window;
+		this.blockPanel = new SheetPanel(window);
 		this.phantomka = new StaffConfig(this);
 		mode = aMode.insert;
 	}
@@ -61,12 +67,12 @@ public class Staff extends AbstractModel {
 		int i = 0;
 		for (List<Accord> row: getAccordRowList()) {
 			int y = baseY + i * SheetPanel.SISDISPLACE * dy(); // bottommest y nota may be drawn on
-			g.drawImage(ImageStorage.inst().getViolinKeyImage(), this.dx(), y -3 * dy(), getParentSheet());
-			g.drawImage(ImageStorage.inst().getBassKeyImage(), this.dx(), 11 * dy() + y, getParentSheet());
+			g.drawImage(ImageStorage.inst().getViolinKeyImage(), this.dx(), y -3 * dy(), null);
+			g.drawImage(ImageStorage.inst().getBassKeyImage(), this.dx(), 11 * dy() + y, null);
 			g.setColor(Color.BLUE);
 			for (int j = 0; j < 11; ++j){
 				if (j == 5) continue;
-				g.drawLine(getParentSheet().getMarginX(), y + j* this.dy() *2, getWidth() - getParentSheet().getMarginX()*2, y + j* dy() *2);
+				g.drawLine(SheetPanel.getMarginX(), y + j * dy() *2, getWidth() - SheetPanel.getMarginX()*2, y + j* dy() *2);
 			}
 
 			int j = 0;
@@ -226,7 +232,9 @@ public class Staff extends AbstractModel {
 		return this.phantomka;
 	}
 	public SheetPanel getParentSheet() {
-		return (SheetPanel)getParent();
+		return parentWindow.isFullscreen
+				? parentWindow.sheetPanel
+				: this.blockPanel;
 	}
 	public int getFocusedIndex() {
 		return this.focusedIndex;

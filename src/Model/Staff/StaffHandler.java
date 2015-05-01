@@ -34,7 +34,7 @@ public class StaffHandler extends AbstractHandler {
 	@Override
 	protected void init() {
 
-		KeyEvent k = new KeyEvent(getContext().getParentSheet(),0,0,0,0,'h'); // just for constants
+		KeyEvent k = new KeyEvent(new JPanel(),0,0,0,0,'h'); // just for constants
 		int ctrl = k.CTRL_MASK;
 		Staff s = this.getContext();
 

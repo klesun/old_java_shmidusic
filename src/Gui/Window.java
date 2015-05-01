@@ -1,9 +1,13 @@
 package Gui;
 
+import Model.Staff.Staff;
+import test.ResizableScrollPane;
+
 import javax.swing.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 
 public class Window extends JFrame implements ActionListener {
 
@@ -14,46 +18,75 @@ public class Window extends JFrame implements ActionListener {
 	public JScrollPane storyspacePanelContainer;
 	int XP_MINWIDTH = 1024;
 	int XP_MINHEIGHT = 540; // my beloved netbook
+
+	public Boolean isFullscreen = true;
+	public ArrayList<Staff> staffList = new ArrayList<>();
+
+	JPanel cards = new JPanel();
 	
 	public Window() {
 		super("Да будет такая музыка!"); //Заголовок окна
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setLayout(new BorderLayout());
+//		this.setLayout(new BorderLayout());
 		this.setSize(XP_MINWIDTH, XP_MINHEIGHT);
 		//this.setLocationRelativeTo(null);
+
+		cards.setLayout(new CardLayout());
+		this.add(cards);
 
 		this.makeSheetPanel();
 		this.makeStoryspacePanel();
 
-		this.add(storyspacePanelContainer, BorderLayout.CENTER);
-		// it actually not adds, but replaces if with BorderLayout.CENTER as i can judge
-		// at least for i in range(0, 10000) did not kill my ram
-		this.add(sheetPanelContainer, BorderLayout.CENTER);
-//		this.add(storyspacePanelContainer, BorderLayout.CENTER);
+		cards.add(sheetPanelContainer, "pizda");
+		cards.add(storyspacePanelContainer, "suka");
+
+		this.addMusicBlock(); // for user-friendship
 	}
 
-	public void switchFullscreen() {
+	public void addMusicBlock() {
+		Staff staff = new Staff(this);
+		this.staffList.add(staff);
+		SheetPanel staffBlock = staff.blockPanel;
+		staffBlock.setFocusedIndex(staffList.indexOf(staff));
+		sheetPanel.setFocusedIndex(staffList.indexOf(staff));
 
+		this.storyspacePanel.add(staffBlock.scrollBar);
+		staffBlock.scrollBar.setLocation(200, 150);
+		staffBlock.scrollBar.setSize(300, 300);
+	}
+
+	// it is windowed fullscreen!
+	public void switchFullscreen() {
+		this.isFullscreen = !this.isFullscreen;
+		if (this.isFullscreen) {
+			((CardLayout)cards.getLayout()).show(cards, "pizda");
+			ImageStorage.inst().changeScale(999); // hahahahahahahahha
+		} else {
+			((CardLayout)cards.getLayout()).show(cards, "suka");
+			ImageStorage.inst().changeScale(-999); // hahahahahahahahha
+		}
+		this.validate();
+		this.repaint();
+	}
+
+	public SheetPanel getFocusedPanel() {
+		return this.isFullscreen
+			? sheetPanel
+			: sheetPanel.getFocusedStaff().blockPanel; // человек очень... сложно мыслит
 	}
 
 	private void makeSheetPanel() {
 		this.sheetPanel = new SheetPanel(this);
-		this.sheetPanelContainer = new JScrollPane(sheetPanel);
-		this.sheetPanelContainer.getVerticalScrollBar().setUnitIncrement(16); // 16 не в хуй ебу, вероятно как-то связано с размером картинки ноты
-		this.sheetPanel.scrollBar = this.sheetPanelContainer;
+		this.sheetPanelContainer = sheetPanel.scrollBar;
 
-		this.keyHandler = new KeyEventHandler(sheetPanel, this);
+		this.keyHandler = new KeyEventHandler(this);
 		this.addKeyListener(this.keyHandler);
 	}
 
 	private void makeStoryspacePanel() {
-		sheetPanelContainer.setSize(200, 200);
-		sheetPanelContainer.setLocation(50, 40);
 
 		this.storyspacePanel = new JPanel();
 		storyspacePanel.setLayout(null);
-		storyspacePanel.add(sheetPanelContainer);
-
 		storyspacePanelContainer = new JScrollPane(storyspacePanel);
 	}
 
