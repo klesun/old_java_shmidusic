@@ -1,23 +1,16 @@
 package Midi;
 
-import Gui.KeyEventHandler;
+import Gui.BlockHandler;
 
 import	javax.sound.midi.MidiMessage;
 import	javax.sound.midi.ShortMessage;
 import	javax.sound.midi.Receiver;
 
 public class DumpReceiver implements Receiver {
-
-	public static long seByteCount = 0;
-	public static long smByteCount = 0;
-	public static long seCount = 0;
-	public static long smCount = 0;
 	
-	private KeyEventHandler eventHandler;
+	public static BlockHandler eventHandler;
 	
-	public DumpReceiver(KeyEventHandler eventHandler) {
-	    this.eventHandler = eventHandler;
-	}
+	public DumpReceiver() {}
 	
 	public void close() {}
 
@@ -27,10 +20,12 @@ public class DumpReceiver implements Receiver {
 		Integer tune = ((ShortMessage) message).getData1();
 	    int forca = ((ShortMessage)message).getData2();
 	
-	    if (tune <= 32 || tune >= 100) {
-	    	// Handle instrument change/pitch-bend/tune/etc // Actually, useless
-	    	return;
-	    }
-	    this.eventHandler.handleMidiEvent( tune, forca, (int)timestamp );
+	    if (tune > 32 && tune < 100) { // maybe 128 ?
+			if (this.eventHandler != null) {
+				this.eventHandler.handleMidiEvent( tune, forca, (int)timestamp );
+			}
+	    } else {
+			// Handle instrument change/pitch-bend/tune/etc // Actually, useless
+		}
 	}
 }

@@ -1,5 +1,7 @@
 package Gui;
 
+import Model.Combo;
+
 public class Settings {
 
 	private static Settings instance = null;
@@ -17,6 +19,15 @@ public class Settings {
 		this.scaleKoefficient += n;
 		if (this.scaleKoefficient > -1) { this.scaleKoefficient = -1; };
 		if (this.scaleKoefficient < -3) { this.scaleKoefficient = -3; };
+	}
+
+	public void scaleUp(Combo combo) {
+		this.scaleKoefficient = -1;
+		ImageStorage.inst().refreshImageSizes();
+	}
+	public void scaleDown(Combo combo) {
+		this.scaleKoefficient = -3;
+		ImageStorage.inst().refreshImageSizes();
 	}
 
 	public static int getNotaWidth() {

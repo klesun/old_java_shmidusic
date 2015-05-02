@@ -38,21 +38,14 @@ public class StaffHandler extends AbstractHandler {
 		int ctrl = k.CTRL_MASK;
 		Staff s = this.getContext();
 
-		addCombo(ctrl, k.VK_P).setDo((event) -> {
-			if (PlayMusThread.stop) { // no need to handle ctr-z for this, cause it just generates another actions, that can be handled. Ah smart, amn't i?
-				PlayMusThread.shutTheFuckUp();
-				PlayMusThread.stop = false;
-				(new PlayMusThread(this)).start();
-			} else {
-				PlayMusThread.stopMusic();
-			}
-		});
+		addCombo(ctrl, k.VK_P).setDo(PlayMusThread::triggerPlayer);
 		addCombo(ctrl, k.VK_D).setDo((event) -> {
 			MidiCommon.listDevicesAndExit(false, true, false);
 			DeviceEbun.changeOutDevice();
 		});
 		addCombos(ctrl, Arrays.asList(k.VK_0, k.VK_9)).stream().forEach(factory -> { factory.setDo(s::changeMode); });
 		addCombo(ctrl, k.VK_RIGHT).setDo(s::moveFocusUsingCombo).setUndoChangeSign();
+
 		addCombo(ctrl, k.VK_UP).setDo(s::moveFocusRow).setUndoChangeSign();
 		addCombo(ctrl, k.VK_DOWN).setDo(s::moveFocusRow).setUndoChangeSign();
 

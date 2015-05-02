@@ -2,9 +2,7 @@ package test;
 import Gui.SheetPanel;
 
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
+import java.awt.event.*;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
@@ -18,13 +16,13 @@ public class ResizableScrollPane extends JScrollPane {
 
 	public ResizableScrollPane(SheetPanel content) {
 		super(content);
-		Border border = BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3);
-		setBorder(border);
+		setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3));
 		setPreferredSize(new Dimension(200, 200));
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				content.parentWindow.sheetPanel.setFocusedIndex(content.focusedIndex); // человек очень-очень сложно мыслит
+				content.requestFocus();
 				// TODO: window.setFocusedIndex(indexOf(this))
 				drag = true;
 				dragLocation = e.getPoint();
@@ -35,18 +33,20 @@ public class ResizableScrollPane extends JScrollPane {
 				drag = false;
 			}
 		});
-		JScrollPane huj = this;
+
 		addMouseMotionListener(new MouseMotionAdapter() {
 			@Override
 			public void mouseDragged(MouseEvent e) {
 				if (drag) {
-					int dx = (int)(e.getPoint().getX() - dragLocation.getX());
-					int dy = (int)(e.getPoint().getY() - dragLocation.getY());
+					int dx = (int) (e.getPoint().getX() - dragLocation.getX());
+					int dy = (int) (e.getPoint().getY() - dragLocation.getY());
 					if (dragLocation.getX() > getWidth() - 10 && dragLocation.getY() > getHeight() - 10) {
 						setSize(getWidth() + dx, getHeight() + dy);
 						validate();
 						dragLocation = e.getPoint();
-					} else { setLocation(getX() + dx, getY() + dy);	}
+					} else {
+						setLocation(getX() + dx, getY() + dy);
+					}
 				}
 			}
 

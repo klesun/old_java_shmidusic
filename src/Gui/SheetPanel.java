@@ -1,24 +1,18 @@
 package Gui;
 
-import Model.IModel;
+import Midi.DumpReceiver;
+import Model.Combo;
 import Model.Staff.Staff;
-import Model.Staff.Accord.Nota.Nota;
 import test.ResizableScrollPane;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Image;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 
 
 final public class SheetPanel extends JPanel {
@@ -29,6 +23,7 @@ final public class SheetPanel extends JPanel {
 	final public static int SISDISPLACE = 40;
 
 	public Window parentWindow = null;
+	public BlockHandler handler = null;
 
 	public int focusedIndex = -1;
 		
@@ -36,6 +31,24 @@ final public class SheetPanel extends JPanel {
 		this.parentWindow = parent;
 		this.scrollBar = new ResizableScrollPane(this);
 		this.scrollBar.getVerticalScrollBar().setUnitIncrement(16); // 16 вероятно как-то связано с размером картинки ноты
+
+		handler = new BlockHandler(this);
+		this.addKeyListener(handler);
+
+		addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusGained(FocusEvent e) {
+				DumpReceiver.eventHandler = handler;
+				scrollBar.setBorder(BorderFactory.createLineBorder(Color.GRAY, 3));
+			}
+			@Override
+			public void focusLost(FocusEvent e) {
+				DumpReceiver.eventHandler = null;
+				scrollBar.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3));
+			}
+		});
+
+		this.setFocusable(true);
 
 		repaint();
 	}
@@ -73,9 +86,9 @@ final public class SheetPanel extends JPanel {
 		this.repaint();
 	}
 	
-	public void page(int pageCount) {
+	public void page(Combo combo) {
 		JScrollBar vertical = scrollBar.getVerticalScrollBar();
-		int pos = vertical.getValue()+pageCount*SISDISPLACE* this.dy();
+		int pos = vertical.getValue() + combo.getSign() * SISDISPLACE * this.dy();
 		if (pos<0) pos = 0;
 		if (pos>vertical.getMaximum()) pos = vertical.getMaximum();
 		vertical.setValue(pos);

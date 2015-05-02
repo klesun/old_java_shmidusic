@@ -8,7 +8,7 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 
-import Gui.KeyEventHandler;
+import Gui.BlockHandler;
 import Main.Main;
 
 
@@ -19,7 +19,7 @@ public class DeviceEbun {
 	public static Receiver theirReceiver = null;
     private static Receiver secondaryReceiver = null;
 
-	public static void openInDevice(KeyEventHandler eventHandler) {
+	public static void openInDevice() {
 		System.out.println("Opening input device...");
 		int count = MidiCommon.listDevicesAndExit(true, false);
 		MidiCommon.listDevicesAndExit(false,true,false);
@@ -31,7 +31,7 @@ public class DeviceEbun {
 			try {
 				device = MidiSystem.getMidiDevice(info);
 				device.open();
-				device.getTransmitter().setReceiver(new DumpReceiver(eventHandler));
+				device.getTransmitter().setReceiver(new DumpReceiver());
 
 				midiInputDevice = device;
 			} catch (MidiUnavailableException e) { out("Port is already being used by other program or something like that"); }

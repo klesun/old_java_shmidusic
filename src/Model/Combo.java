@@ -24,6 +24,10 @@ public class Combo {
 		this.keyCode = keyCode;
 	}
 
+	public static Combo makeFake() {
+		return new Combo(0,0);
+	}
+
 	public Combo changeSign() {
 		return new Combo(this.mod, anti(this.keyCode));
 	}
@@ -40,12 +44,6 @@ public class Combo {
 
 	public int getPressedNumber() {
 		return (getKeyCode() >= '0' && getKeyCode() <= '9') ? getKeyCode() - '0' : getKeyCode() - KeyEvent.VK_NUMPAD0;
-	}
-
-	public Boolean isUndoOrRedo() {
-		Combo undo = new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Z);
-		Combo redo = new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Y);
-		return this.equals(undo) || this.equals(redo);
 	}
 
 	public int asciiToTune() {
@@ -124,6 +122,7 @@ public class Combo {
 		antiKeyMap.put(KeyEvent.VK_MINUS, KeyEvent.VK_PLUS);
 		antiKeyMap.put(KeyEvent.VK_OPEN_BRACKET, KeyEvent.VK_CLOSE_BRACKET);
 		antiKeyMap.put(KeyEvent.VK_COMMA, KeyEvent.VK_PERIOD);
+		antiKeyMap.put(KeyEvent.VK_PAGE_UP, KeyEvent.VK_PAGE_DOWN);
 		return antiKeyMap;
 	}
 

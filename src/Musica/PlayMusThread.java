@@ -2,6 +2,8 @@ package Musica;
 
 import javax.sound.midi.*;
 
+import Gui.BlockHandler;
+import Main.Main;
 import Model.Combo;
 import Model.Staff.Staff;
 import Model.Staff.Staff.aMode;
@@ -17,15 +19,15 @@ import java.util.Set;
 public class PlayMusThread extends Thread {
     public static OneShotThread[][] opentNotas = new OneShotThread[192][10];
 
-	private StaffHandler eventHandler = null;
+	private Staff staff = null;
 
 	public static boolean stop = true;
 	public static void stopMusic(){
 		stop = true;
 	}
 		
-	public PlayMusThread(StaffHandler eventHandler){ 
-		this.eventHandler = eventHandler;
+	public PlayMusThread(Staff staff) {
+		this.staff = staff;
 	}
 
     @Override
@@ -39,16 +41,16 @@ public class PlayMusThread extends Thread {
     	stop = false;
 
 		// for some reason has huge delay between sound and canvas repainting
-		if (eventHandler.getContext().getFocusedAccord() != null) { this.playAccord(eventHandler.getContext().getFocusedAccord()); }
-		int accordsLeft = eventHandler.getContext().getAccordList().size() - eventHandler.getContext().getFocusedIndex() - 1;
+		if (staff.getFocusedAccord() != null) { this.playAccord(staff.getFocusedAccord()); }
+		int accordsLeft = staff.getAccordList().size() - staff.getFocusedIndex() - 1;
 		Combo nextAccord = new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT);
     	for (int i = 0; stop == false && i <= accordsLeft; ++i) {
-			if (eventHandler.getContext().getFocusedAccord() != null) {
-				int time = eventHandler.getContext().getFocusedAccord().getShortestTime();
+			if (staff.getFocusedAccord() != null) {
+				int time = staff.getFocusedAccord().getShortestTime();
 				try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна" + e); }
-				if (stop) { break; } // fuck you i'm unicorn
+				if (stop) { break; }
 			}
-			eventHandler.handleKey(nextAccord);
+			staff.gettHandler().handleKey(nextAccord);
 		}
 
 		stop = true;
@@ -87,4 +89,17 @@ public class PlayMusThread extends Thread {
         }
         kri4alki.removeAll(kri4alki);
     }
+
+	// event handles
+
+	public static void triggerPlayer(Combo combo) {
+		if (PlayMusThread.stop) {
+			PlayMusThread.shutTheFuckUp();
+			PlayMusThread.stop = false;
+			Staff staff = Main.window.getFocusedPanel().getFocusedStaff();
+			(new PlayMusThread(staff)).start();
+		} else {
+			PlayMusThread.stopMusic();
+		}
+	}
 }

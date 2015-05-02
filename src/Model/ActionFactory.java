@@ -3,10 +3,7 @@ package Model;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.*;
 
 public class ActionFactory {
 

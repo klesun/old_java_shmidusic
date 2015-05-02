@@ -159,12 +159,10 @@ public class Staff extends AbstractModel {
 		childList.add(0, getConfig());
 		return childList;
 	}
-
 	@Override
 	public AbstractModel getFocusedChild() {
 		return getFocusedAccord() != null ? getFocusedAccord() : getConfig();
 	}
-
 	@Override
 	protected StaffHandler makeHandler() {
 		return new StaffHandler(this);

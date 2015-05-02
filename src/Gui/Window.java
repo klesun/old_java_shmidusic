@@ -1,7 +1,7 @@
 package Gui;
 
+import Model.Combo;
 import Model.Staff.Staff;
-import test.ResizableScrollPane;
 
 import javax.swing.*;
 
@@ -12,38 +12,34 @@ import java.util.ArrayList;
 public class Window extends JFrame implements ActionListener {
 
 	public SheetPanel sheetPanel;
-	public JScrollPane sheetPanelContainer;
-	public KeyEventHandler keyHandler = null;
 	public JPanel storyspacePanel;
-	public JScrollPane storyspacePanelContainer;
+
 	int XP_MINWIDTH = 1024;
 	int XP_MINHEIGHT = 540; // my beloved netbook
 
 	public Boolean isFullscreen = true;
-	public ArrayList<Staff> staffList = new ArrayList<>();
+	public ArrayList<Staff> staffList = new ArrayList<>(); // i think we could store each staff in separate panel
 
 	JPanel cards = new JPanel();
-	
+
+	final private static String CARDS_FULLSCREEN = "fullscreen";
+	final private static String CARDS_STORYSPACE = "storyspace";
+
 	public Window() {
 		super("Да будет такая музыка!"); //Заголовок окна
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//		this.setLayout(new BorderLayout());
 		this.setSize(XP_MINWIDTH, XP_MINHEIGHT);
-		//this.setLocationRelativeTo(null);
 
 		cards.setLayout(new CardLayout());
 		this.add(cards);
 
-		this.makeSheetPanel();
-		this.makeStoryspacePanel();
+		this.addSheetPanel();
+		this.addStoryspacePanel();
 
-		cards.add(sheetPanelContainer, "pizda");
-		cards.add(storyspacePanelContainer, "suka");
-
-		this.addMusicBlock(); // for user-friendship
+		this.addMusicBlock(Combo.makeFake()); // for user-friendship there will be one initial staff
 	}
 
-	public void addMusicBlock() {
+	public void addMusicBlock(Combo combo) {
 		Staff staff = new Staff(this);
 		this.staffList.add(staff);
 		SheetPanel staffBlock = staff.blockPanel;
@@ -53,41 +49,40 @@ public class Window extends JFrame implements ActionListener {
 		this.storyspacePanel.add(staffBlock.scrollBar);
 		staffBlock.scrollBar.setLocation(200, 150);
 		staffBlock.scrollBar.setSize(300, 300);
+
+		staffBlock.requestFocus();
 	}
 
 	// it is windowed fullscreen!
-	public void switchFullscreen() {
+	public void switchFullscreen(Combo combo) {
 		this.isFullscreen = !this.isFullscreen;
 		if (this.isFullscreen) {
-			((CardLayout)cards.getLayout()).show(cards, "pizda");
-			ImageStorage.inst().changeScale(999); // hahahahahahahahha
+			((CardLayout)cards.getLayout()).show(cards, CARDS_FULLSCREEN);
+			sheetPanel.requestFocus();
+			Settings.inst().scaleUp(combo);
 		} else {
-			((CardLayout)cards.getLayout()).show(cards, "suka");
-			ImageStorage.inst().changeScale(-999); // hahahahahahahahha
+			((CardLayout)cards.getLayout()).show(cards, CARDS_STORYSPACE);
+			Settings.inst().scaleDown(combo);
 		}
 		this.validate();
 		this.repaint();
 	}
 
 	public SheetPanel getFocusedPanel() {
-		return this.isFullscreen
-			? sheetPanel
-			: sheetPanel.getFocusedStaff().blockPanel; // человек очень... сложно мыслит
+		return (SheetPanel)getFocusOwner(); // deeds gonna be sad when you inovate textfields... but for such cases we can just return null. and we should not need to use this method anyway
 	}
 
-	private void makeSheetPanel() {
+	private void addSheetPanel() {
 		this.sheetPanel = new SheetPanel(this);
-		this.sheetPanelContainer = sheetPanel.scrollBar;
-
-		this.keyHandler = new KeyEventHandler(this);
-		this.addKeyListener(this.keyHandler);
+		cards.add(sheetPanel.scrollBar, CARDS_FULLSCREEN);
 	}
 
-	private void makeStoryspacePanel() {
+	private void addStoryspacePanel() {
 
 		this.storyspacePanel = new JPanel();
 		storyspacePanel.setLayout(null);
-		storyspacePanelContainer = new JScrollPane(storyspacePanel);
+
+		cards.add(new JScrollPane(storyspacePanel), CARDS_STORYSPACE);
 	}
 
 	@Override

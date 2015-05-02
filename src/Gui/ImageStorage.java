@@ -31,11 +31,6 @@ public class ImageStorage {
 		return ImageStorage.instance;
 	}
 
-	public void changeScale(int n) {
-		Settings.inst().changeScale(n);
-		refreshImageSizes();
-	}
-
 	public void loadImagesFromDisk() {
 		try {	inst().vseKartinkiOriginal[0] = ImageIO.read(new File("../imgs/vio_sized.png"));
 				inst().vseKartinkiOriginal[1] = ImageIO.read(new File("../imgs/bass_sized.png"));

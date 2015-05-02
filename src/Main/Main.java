@@ -1,8 +1,10 @@
 package Main;
 
+import Gui.BlockHandler;
 import Gui.ImageStorage;
 import Gui.SheetPanel;
 import Gui.Window;
+import Midi.DeviceEbun;
 
 import java.io.*;
 public class Main {
@@ -28,5 +30,8 @@ public class Main {
 
 		window = new Window();
 		window.setVisible(true);
+
+		DeviceEbun.openInDevice();
+		DeviceEbun.openOutDevice();
 	}
 }

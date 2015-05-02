@@ -37,7 +37,8 @@ public class FileProcessor {
 	    System.out.println(str);
 	}
 
-	public static int saveJsonFile( File f, Staff stan ) {
+	public static int saveJsonFile(File f, SheetPanel sheetPanel) {
+		Staff stan = sheetPanel.getFocusedStaff();
 		try {
 			JSONObject js = new JSONObject("{}");
 			js.put("stanExternalRepresentation", stan.getJsonRepresentation());
