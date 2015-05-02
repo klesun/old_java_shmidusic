@@ -1,15 +1,12 @@
 package Midi;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 
-import Gui.BlockHandler;
 import Main.Main;
+import Model.Combo;
 
 
 public class DeviceEbun {
@@ -19,12 +16,17 @@ public class DeviceEbun {
 	public static Receiver theirReceiver = null;
     private static Receiver secondaryReceiver = null;
 
-	public static void openInDevice() {
+	public static void openMidiDevices() {
+		DeviceEbun.openInDevice();
+		DeviceEbun.openOutDevice();
+	}
+
+	private static void openInDevice() {
 		System.out.println("Opening input device...");
 		int count = MidiCommon.listDevicesAndExit(true, false);
 		MidiCommon.listDevicesAndExit(false,true,false);
 		MidiDevice.Info	info;
-		if ( count > 1 ) {
+		if ( count > 1 ) { // if 1 - software real-time-sequencer; if 2 - + real midi device
 			info = MidiCommon.getMidiDeviceInfo(1, false); // 99% cases it is the midi-port we need
 			System.out.println("Selected port: " + info.getName() + " " + info.getDescription()+" "+info.toString());
 			MidiDevice device = null;
@@ -40,7 +42,8 @@ public class DeviceEbun {
 		}
 	}
 
-	public static void openOutDevice() {
+	// opens real midi device ONLY if was called AFTER openInDevice()!
+	private static void openOutDevice() {
 		MidiDevice.Info info;
 
         // opening emulated MIDI OUT
@@ -62,14 +65,17 @@ public class DeviceEbun {
 		}
 	}
 
-	public static void changeOutDevice() {
+	private static void out(String strMessage) { System.out.println(strMessage); }
+	private static String MORAL_SUPPORT_MESSAGE = "You kinda don't have MIDI IN device, so you can only type notas from qwerty-keyboard. Pity you.";
+
+	// event handles
+
+	public static void changeOutDevice(Combo combo) {
+		MidiCommon.listDevicesAndExit(false, true, false);
+
 		Receiver tmp = theirReceiver;
 		theirReceiver = secondaryReceiver;
 		secondaryReceiver = tmp;
-		Main.window.sheetPanel.getFocusedStaff().getConfig().syncSyntChannels();
+		Main.window.sheetPanel.getStaff().getConfig().syncSyntChannels();
 	}
-
-	private static void out(String strMessage) { System.out.println(strMessage); }
-	private static String MORAL_SUPPORT_MESSAGE = "You kinda don't have MIDI IN device, so you can only type notas from qwerty-keyboard. Pity you.";
-	private static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 }

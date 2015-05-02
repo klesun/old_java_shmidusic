@@ -39,10 +39,7 @@ public class StaffHandler extends AbstractHandler {
 		Staff s = this.getContext();
 
 		addCombo(ctrl, k.VK_P).setDo(PlayMusThread::triggerPlayer);
-		addCombo(ctrl, k.VK_D).setDo((event) -> {
-			MidiCommon.listDevicesAndExit(false, true, false);
-			DeviceEbun.changeOutDevice();
-		});
+		addCombo(ctrl, k.VK_D).setDo(DeviceEbun::changeOutDevice);
 		addCombos(ctrl, Arrays.asList(k.VK_0, k.VK_9)).stream().forEach(factory -> { factory.setDo(s::changeMode); });
 		addCombo(ctrl, k.VK_RIGHT).setDo(s::moveFocusUsingCombo).setUndoChangeSign();
 
@@ -119,10 +116,6 @@ public class StaffHandler extends AbstractHandler {
 				}
 			});
 		}
-	}
-
-	private ActionFactory addCombo(int keyMods, int keyCode) {
-		return new ActionFactory(new Combo(keyMods, keyCode)).addTo(this.actionMap);
 	}
 
 	private List<ActionFactory> addCombos(int keyMods, List<Integer> keyCodes) {

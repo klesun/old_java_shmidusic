@@ -4,8 +4,9 @@
 package Model.Staff;
 
 import Gui.ImageStorage;
-import Gui.SheetPanel;
-import Gui.Window;
+import Main.Main;
+import Model.Panels.SheetPanel;
+import Model.Panels.Window;
 import Model.AbstractModel;
 import Model.Combo;
 import Model.Staff.StaffConfig.StaffConfig;
@@ -17,7 +18,6 @@ import Model.Staff.Accord.Accord;
 import Musica.PlayMusThread;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.image.BufferedImage;
 
 
 import org.json.JSONArray;
@@ -30,12 +30,10 @@ public class Staff extends AbstractModel {
 	public static final int DEFAULT_ZNAM = 64; // TODO: move it into some constants maybe
 	final public static int ACCORD_EPSILON = 50; // in milliseconds
 	
-	public static double volume = 0.5;
-	
 	public enum aMode { insert, passive }
 	public aMode mode;
 
-	public StaffConfig phantomka = null;
+	public StaffConfig staffConfig = null;
 
 	private ArrayList<Accord> accordList = new ArrayList<>();
 	public int focusedIndex = -1;
@@ -43,11 +41,11 @@ public class Staff extends AbstractModel {
 	private Window parentWindow = null;
 	public SheetPanel blockPanel = null;
 
-	public Staff(Window window) {
+	public Staff(SheetPanel blockPanel) {
 		super(null);
-		this.parentWindow = window;
-		this.blockPanel = new SheetPanel(window);
-		this.phantomka = new StaffConfig(this);
+		this.parentWindow = blockPanel.parentWindow;
+		this.blockPanel = blockPanel;
+		this.staffConfig = new StaffConfig(this);
 		mode = aMode.insert;
 	}
 
@@ -218,7 +216,8 @@ public class Staff extends AbstractModel {
 	}
 
 	public int getAccordInRowCount() {
-		return this.getWidth() / (Settings.getNotaWidth() * 2) - 3; // - 3 because violin key and phantom
+		int result = this.getWidth() / (Settings.getNotaWidth() * 2) - 3; // - 3 because violin key and phantom
+		return Math.max(result, 1);
 	}
 
 	public int dx() { return Settings.getStepWidth(); }
@@ -227,13 +226,15 @@ public class Staff extends AbstractModel {
 	// field getters/setters
 
 	public StaffConfig getConfig() {
-		return this.phantomka;
+		return this.staffConfig;
 	}
 	public SheetPanel getParentSheet() {
 		return parentWindow.isFullscreen
 				? parentWindow.sheetPanel
 				: this.blockPanel;
 	}
+	@Override
+	public SheetPanel getModelParent() { return getParentSheet(); }
 	public int getFocusedIndex() {
 		return this.focusedIndex;
 	}

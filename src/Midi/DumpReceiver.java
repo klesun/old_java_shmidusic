@@ -1,6 +1,6 @@
 package Midi;
 
-import Gui.BlockHandler;
+import Model.Panels.BlockHandler;
 
 import	javax.sound.midi.MidiMessage;
 import	javax.sound.midi.ShortMessage;

@@ -12,7 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import Gui.Settings;
-import Gui.SheetPanel;
+import Model.Panels.SheetPanel;
 import Model.AbstractModel;
 import Model.Staff.StaffConfig.StaffConfig;
 import Model.Staff.Staff;
@@ -187,7 +187,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 
 	// field getters/setters
 
-	public Accord getParentAccord() { return (Accord)this.getParent(); }
+	public Accord getParentAccord() { return (Accord)this.getModelParent(); }
 
 	public int getNumerator() { return this.numerator; }
 	public int getDenominator() { return 1 * this.getTupletDenominator(); }

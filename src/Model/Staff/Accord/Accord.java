@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.util.ArrayList;
 
-import Model.AbstractHandler;
 import Model.Combo;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -160,7 +159,7 @@ public class Accord extends AbstractModel {
 	// field getters/setters
 
 	public Staff getParentStaff() {
-		return (Staff)this.getParent();
+		return (Staff)this.getModelParent();
 	}
 	public String getSlog() {
 		return this.slog;

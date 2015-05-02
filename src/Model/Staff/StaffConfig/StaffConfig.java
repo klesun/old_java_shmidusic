@@ -3,8 +3,7 @@ package Model.Staff.StaffConfig;
 import Gui.ImageStorage;
 import Gui.Settings;
 import Model.AbstractModel;
-import Model.Staff.Accord.Nota.Nota;
-import Gui.SheetPanel;
+import Model.Panels.SheetPanel;
 import Midi.DeviceEbun;
 import Model.Staff.Staff;
 
@@ -139,7 +138,7 @@ public class StaffConfig extends AbstractModel {
 	// field getters
 	
 	public Staff getParentStaff() {
-		return (Staff)this.getParent();
+		return (Staff)this.getModelParent();
 	}
 	public int[] getInstrumentArray() {
 		return this.instrumentArray;

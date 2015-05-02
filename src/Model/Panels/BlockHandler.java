@@ -1,44 +1,41 @@
-package Gui;
+package Model.Panels;
 
 import javax.swing.*;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import Midi.DeviceEbun;
+import Gui.Settings;
 import Model.*;
-import Model.Action;
 import Tools.FileProcessor;
 
 public class BlockHandler implements KeyListener {
 
-	JFileChooser chooserSave = new JFileChooser("/var/www/desktop/Yuzefa");
-	JFileChooser chooserExport = new JFileChooser("/var/www/desktop/Yuzefa");
+	JFileChooser chooserSave = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/new");
+	JFileChooser chooserExport = new JFileChooser();
+
+	ArrayList<JFileChooser> fileChooserList = new ArrayList<>();
 
 	Window window;
 	SheetPanel context = null;
 
 	protected Map<Combo, ActionFactory> actionMap = new LinkedHashMap<>();
-	protected static LinkedList<Action> handledEventQueue = new LinkedList<>(); // for ctrl-z
-	protected static LinkedList<Action> dehandledEventQueue = new LinkedList<>(); // for ctrl-y
 
 	public BlockHandler(SheetPanel context) {
 		this.context = context;
 		this.window = context.parentWindow;
 
-		chooserSave.setFileFilter(new FileNameExtensionFilter("Klesun Midi-data","klsn"));
 		chooserSave.setFileFilter(new FileNameExtensionFilter("Json Midi-music data","json"));
-		chooserExport.setFileFilter(new FileNameExtensionFilter("PNG image","png"));
+		chooserExport.setFileFilter(new FileNameExtensionFilter("PNG image", "png"));
+		fileChooserList.add(chooserSave);
+		fileChooserList.add(chooserExport);
 
 		this.initActionMap();
 	}
@@ -48,8 +45,8 @@ public class BlockHandler implements KeyListener {
 		KeyEvent k = new KeyEvent(new JPanel(),0,0,0,0,'h'); // just for constants
 		int ctrl = KeyEvent.CTRL_MASK;
 
-		addCombo(ctrl, k.VK_E).setDo(makeOnFileChosen(FileProcessor::savePNG, "png"));
-		addCombo(ctrl, k.VK_S).setDo(makeOnFileChosen(FileProcessor::saveJsonFile, "json"));
+		addCombo(ctrl, k.VK_E).setDo(makeSaveFileDialog(FileProcessor::savePNG, "png"));
+		addCombo(ctrl, k.VK_S).setDo(makeSaveFileDialog(FileProcessor::saveJsonFile, "json"));
 
 		addCombo(ctrl, k.VK_O).setDo(combo -> {
 			int i = okcancel("Are your sure? Unsaved data will be lost."); // 2 - cancel, 0 - ok очевидно же
@@ -57,7 +54,7 @@ public class BlockHandler implements KeyListener {
 				int sVal = chooserSave.showOpenDialog(window);
 				if (sVal == JFileChooser.APPROVE_OPTION) {
 					if (chooserSave.getSelectedFile().getAbsolutePath().endsWith(".json")) {
-						FileProcessor.openJsonFile(chooserSave.getSelectedFile(), this.context.getFocusedStaff());
+						FileProcessor.openJsonFile(chooserSave.getSelectedFile(), this.context.getStaff());
 					}
 				}
 			}
@@ -66,26 +63,23 @@ public class BlockHandler implements KeyListener {
 		addCombo(ctrl, k.VK_EQUALS).setDo(Settings.inst()::scaleUp);
 		addCombo(ctrl, k.VK_MINUS).setDo(Settings.inst()::scaleDown);
 		addCombo(ctrl, k.VK_F).setDo(window::switchFullscreen);
-		addCombo(ctrl, k.VK_M).setDo(window::addMusicBlock);
 
 		addCombo(ctrl, k.VK_PAGE_DOWN).setDo(context::page);
 		addCombo(ctrl, k.VK_PAGE_UP).setDo(context::page);
 	}
 
 	public void handleMidiEvent(Integer tune, int forca, int timestamp) {
-		// TODO: NO java's stupid KeyEvent - Combo mazafaka!
 		if (forca > 0) {
 			this.handleKey(new Combo(11, Combo.tuneToAscii(tune))); // (11 -ctrl+shift+alt)+someKey
-//			KeyEvent dispatchEvent = new KeyEvent(this.context, 0, 0, 11, Combo.tuneToAscii(tune), '♥');
-//			this.keyPressed(dispatchEvent);
 		} else {
 			// keyup event
 		}
 	}
 
-	final private Consumer<Combo> makeOnFileChosen(BiConsumer<File, SheetPanel> lambda, String ext) {
+	final private Consumer<Combo> makeSaveFileDialog(BiConsumer<File, SheetPanel> lambda, String ext) {
+		JFileChooser c2 = fileChooserList.stream().reduce(null, (a, b)
+			-> a != null && a.getFileFilter().accept(new File("huj." + ext)) ? a : b);
 		return combo -> {
-			JFileChooser c2 = chooserExport;
 			int rVal = c2.showSaveDialog(window);
 			if (rVal == JFileChooser.APPROVE_OPTION) {
 				File fn = c2.getSelectedFile();
@@ -101,16 +95,13 @@ public class BlockHandler implements KeyListener {
 
 	final public Boolean handleKey(Combo combo) {
 		Boolean result = false;
-		if (context.getFocusedStaff() != null &&
-			context.getFocusedStaff().gettHandler().handleKey(combo)) {
+		if (context.getStaff() != null &&
+			context.getStaff().gettHandler().handleKey(combo)) {
 			result = true;
 		} else {
 			if (actionMap.containsKey(combo)) {
 				Model.Action action = actionMap.get(combo).createAction();
-				if (action.doDo()) {
-					this.handledEventQueue.add(action);
-					result = true;
-				}
+				result = action.doDo();
 			}
 		}
 		context.checkCam();

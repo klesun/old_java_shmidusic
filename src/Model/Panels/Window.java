@@ -1,7 +1,9 @@
-package Gui;
+package Model.Panels;
 
+import Gui.Settings;
 import Model.Combo;
 import Model.Staff.Staff;
+import OverridingDefaultClasses.Scroll;
 
 import javax.swing.*;
 
@@ -12,7 +14,7 @@ import java.util.ArrayList;
 public class Window extends JFrame implements ActionListener {
 
 	public SheetPanel sheetPanel;
-	public JPanel storyspacePanel;
+	public Storyspace storyspace;
 
 	int XP_MINWIDTH = 1024;
 	int XP_MINHEIGHT = 540; // my beloved netbook
@@ -33,30 +35,18 @@ public class Window extends JFrame implements ActionListener {
 		cards.setLayout(new CardLayout());
 		this.add(cards);
 
-		this.addSheetPanel();
-		this.addStoryspacePanel();
+		cards.add(new Scroll(sheetPanel = new SheetPanel(this)), CARDS_FULLSCREEN);
+		cards.add(storyspace = new Storyspace(this), CARDS_STORYSPACE);
 
-		this.addMusicBlock(Combo.makeFake()); // for user-friendship there will be one initial staff
-	}
-
-	public void addMusicBlock(Combo combo) {
-		Staff staff = new Staff(this);
-		this.staffList.add(staff);
-		SheetPanel staffBlock = staff.blockPanel;
-		staffBlock.setFocusedIndex(staffList.indexOf(staff));
-		sheetPanel.setFocusedIndex(staffList.indexOf(staff));
-
-		this.storyspacePanel.add(staffBlock.scrollBar);
-		staffBlock.scrollBar.setLocation(200, 150);
-		staffBlock.scrollBar.setSize(300, 300);
-
-		staffBlock.requestFocus();
+		storyspace.addMusicBlock(Combo.makeFake()); // for user-friendship there will be one initial staff
+		switchFullscreen(Combo.makeFake());
 	}
 
 	// it is windowed fullscreen!
 	public void switchFullscreen(Combo combo) {
 		this.isFullscreen = !this.isFullscreen;
 		if (this.isFullscreen) {
+			sheetPanel.setStaff(getFocusedPanel().getStaff());
 			((CardLayout)cards.getLayout()).show(cards, CARDS_FULLSCREEN);
 			sheetPanel.requestFocus();
 			Settings.inst().scaleUp(combo);
@@ -70,19 +60,6 @@ public class Window extends JFrame implements ActionListener {
 
 	public SheetPanel getFocusedPanel() {
 		return (SheetPanel)getFocusOwner(); // deeds gonna be sad when you inovate textfields... but for such cases we can just return null. and we should not need to use this method anyway
-	}
-
-	private void addSheetPanel() {
-		this.sheetPanel = new SheetPanel(this);
-		cards.add(sheetPanel.scrollBar, CARDS_FULLSCREEN);
-	}
-
-	private void addStoryspacePanel() {
-
-		this.storyspacePanel = new JPanel();
-		storyspacePanel.setLayout(null);
-
-		cards.add(new JScrollPane(storyspacePanel), CARDS_STORYSPACE);
 	}
 
 	@Override

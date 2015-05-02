@@ -1,20 +1,14 @@
 package Musica;
 
-import javax.sound.midi.*;
-
-import Gui.BlockHandler;
 import Main.Main;
 import Model.Combo;
 import Model.Staff.Staff;
-import Model.Staff.Staff.aMode;
 import Model.Staff.Accord.Nota.Nota;
-import Midi.DeviceEbun;
 import Model.Staff.Accord.Accord;
-import Model.Staff.StaffHandler;
+
 import java.awt.event.KeyEvent;
 
 import java.util.ArrayList;
-import java.util.Set;
 
 public class PlayMusThread extends Thread {
     public static OneShotThread[][] opentNotas = new OneShotThread[192][10];
@@ -96,7 +90,7 @@ public class PlayMusThread extends Thread {
 		if (PlayMusThread.stop) {
 			PlayMusThread.shutTheFuckUp();
 			PlayMusThread.stop = false;
-			Staff staff = Main.window.getFocusedPanel().getFocusedStaff();
+			Staff staff = Main.window.getFocusedPanel().getStaff();
 			(new PlayMusThread(staff)).start();
 		} else {
 			PlayMusThread.stopMusic();

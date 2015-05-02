@@ -1,9 +1,7 @@
 package Main;
 
-import Gui.BlockHandler;
 import Gui.ImageStorage;
-import Gui.SheetPanel;
-import Gui.Window;
+import Model.Panels.Window;
 import Midi.DeviceEbun;
 
 import java.io.*;
@@ -27,11 +25,9 @@ public class Main {
 		// TODO: encapsulate somewhere
 		ImageStorage.inst().loadImagesFromDisk();
 		ImageStorage.inst().refreshImageSizes();
+		DeviceEbun.openMidiDevices();
 
 		window = new Window();
 		window.setVisible(true);
-
-		DeviceEbun.openInDevice();
-		DeviceEbun.openOutDevice();
 	}
 }

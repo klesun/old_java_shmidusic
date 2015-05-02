@@ -1,29 +1,30 @@
 package test;
-import Gui.SheetPanel;
+import Model.Panels.SheetPanel;
+import Model.Panels.Storyspace;
+import OverridingDefaultClasses.Scroll;
 
 import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
-import javax.swing.border.BevelBorder;
-import javax.swing.border.Border;
 
 @SuppressWarnings("serial")
-public class ResizableScrollPane extends JScrollPane {
+public class ResizableScroll extends Scroll {
 
 	private boolean drag = false;
 	private Point dragLocation  = new Point();
 
-	public ResizableScrollPane(SheetPanel content) {
+	public ResizableScroll(Component content) {
 		super(content);
+
 		setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3));
 		setPreferredSize(new Dimension(200, 200));
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
-				content.parentWindow.sheetPanel.setFocusedIndex(content.focusedIndex); // человек очень-очень сложно мыслит
 				content.requestFocus();
 				// TODO: window.setFocusedIndex(indexOf(this))
+
 				drag = true;
 				dragLocation = e.getPoint();
 			}
@@ -40,12 +41,17 @@ public class ResizableScrollPane extends JScrollPane {
 				if (drag) {
 					int dx = (int) (e.getPoint().getX() - dragLocation.getX());
 					int dy = (int) (e.getPoint().getY() - dragLocation.getY());
-					if (dragLocation.getX() > getWidth() - 10 && dragLocation.getY() > getHeight() - 10) {
-						setSize(getWidth() + dx, getHeight() + dy);
-						validate();
-						dragLocation = e.getPoint();
-					} else {
-						setLocation(getX() + dx, getY() + dy);
+
+					if (SwingUtilities.isLeftMouseButton(e)) {
+						if (dragLocation.getX() > getWidth() - 10 && dragLocation.getY() > getHeight() - 10) {
+							setSize(getWidth() + dx, getHeight() + dy);
+							validate();
+							dragLocation = e.getPoint();
+						} else {
+							setLocation(getX() + dx, getY() + dy);
+						}
+					} else if (getParent() instanceof Storyspace) {
+						((Storyspace) getParent()).moveCam(dx, dy);
 					}
 				}
 			}
@@ -59,6 +65,9 @@ public class ResizableScrollPane extends JScrollPane {
 				}
 			}
 		});
+
+		this.setLocation(200, 150);
+		this.setSize(300, 300);
 	}
 
 //	public void paintComponent(Graphics g) {

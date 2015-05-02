@@ -1,6 +1,7 @@
 package Tools;
 
-import Gui.SheetPanel;
+import Model.Panels.SheetPanel;
+import Main.Main;
 import Model.Staff.Staff;
 
 import javax.imageio.ImageIO;
@@ -38,7 +39,7 @@ public class FileProcessor {
 	}
 
 	public static int saveJsonFile(File f, SheetPanel sheetPanel) {
-		Staff stan = sheetPanel.getFocusedStaff();
+		Staff stan = sheetPanel.getStaff();
 		try {
 			JSONObject js = new JSONObject("{}");
 			js.put("stanExternalRepresentation", stan.getJsonRepresentation());
@@ -58,6 +59,7 @@ public class FileProcessor {
 			try {
 				JSONObject jsObject = new JSONObject(js);
 				stan.reconstructFromJson(jsObject.getJSONObject("stanExternalRepresentation"));
+				Main.window.setTitle(f.getAbsolutePath());
 			} catch (Exception exc) { System.out.println("У нас тут жорпа с открытием жсона " ); exc.printStackTrace(); }
 		} catch (IOException exc) { System.out.println("Жопа при открытии жс файла"); exc.printStackTrace(); }
 		return 0;

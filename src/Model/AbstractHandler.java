@@ -1,21 +1,22 @@
 package Model;
 
-import Gui.SheetPanel;
-import Model.Staff.Staff;
+import Model.Panels.SheetPanel;
 
+import javax.swing.*;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-abstract public class AbstractHandler {
+abstract public class AbstractHandler implements KeyListener {
 
-	private AbstractModel context = null;
+	private IHandlerContext context = null;
 	protected LinkedHashMap<Combo, ActionFactory> actionMap = new LinkedHashMap<>();
 	protected static LinkedList<Action> handledEventQueue = new LinkedList<>(); // for ctrl-z
 	protected static LinkedList<Action> dehandledEventQueue = new LinkedList<>(); // for ctrl-y
 
-	public AbstractHandler(AbstractModel context) {
+	public AbstractHandler(IHandlerContext context) {
 		this.context = context;
 		this.init();
 
@@ -57,27 +58,42 @@ abstract public class AbstractHandler {
 				}
 			}
 		}
-		getSheetPanel().checkCam();
+		if (getSheetPanel() != null) { getSheetPanel().checkCam(); } // говно!!!
 		return result;
 	}
 
-	public static void destroyRedoHistory() {
-		while (dehandledEventQueue.poll() != null);
-	}
-
-	private SheetPanel getSheetPanel() {
-		IModel context = getContext();
-		while (!(context instanceof Staff)) { // circular import? yes...
-			context = ((AbstractModel)context).getParent();
-		}
-		return ((Staff)context).getParentSheet();
+	final protected ActionFactory addCombo(int keyMods, int keyCode) {
+		return new ActionFactory(new Combo(keyMods, keyCode)).addTo(this.actionMap);
 	}
 
 	final public Map<Combo, ActionFactory> getActionMap() {
 		return actionMap;
 	}
 
-	public AbstractModel getContext() {
+	public static void destroyRedoHistory() {
+		while (dehandledEventQueue.poll() != null);
+	}
+
+	// TODO: it's so ugly...
+	// ни в коем блядь случае не вызывай для не AbstractModel!!!
+	private SheetPanel getSheetPanel() {
+		IHandlerContext context = getContext();
+		while (!(context instanceof SheetPanel) && context != null) { // circular import? yes...
+			context = context.getModelParent();
+		}
+		return (SheetPanel)context;
+	}
+
+	public IHandlerContext getContext() {
 		return this.context;
 	}
+
+	public void keyTyped(KeyEvent e) {}
+	final public void keyPressed(KeyEvent e) { this.handleKey(new Combo(e)); }
+	public void keyReleased(KeyEvent e) {}
+
+	// constants
+
+	final public static int ctrl = KeyEvent.CTRL_MASK;
+	final public static KeyEvent k = new KeyEvent(new JPanel(),0,0,0,0,'h'); // just for constants
 }
