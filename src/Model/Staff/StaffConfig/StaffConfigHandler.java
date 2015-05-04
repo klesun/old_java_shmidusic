@@ -21,7 +21,7 @@ public class StaffConfigHandler extends AbstractHandler {
 	}
 
 	@Override
-	final protected void init() {
+	final protected void initActionMap() {
 		if (actionMap == null) { // TODO: does not work... and should be in config dialog. And gay
 
 			new ActionFactory(new Combo(0, KeyEvent.VK_DOWN)).addTo(actionMap).setDo((event) -> {

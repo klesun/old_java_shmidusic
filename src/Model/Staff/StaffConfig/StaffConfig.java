@@ -3,7 +3,7 @@ package Model.Staff.StaffConfig;
 import Gui.ImageStorage;
 import Gui.Settings;
 import Model.AbstractModel;
-import Model.Panels.SheetPanel;
+import Model.Containers.Panels.MusicPanel;
 import Midi.DeviceEbun;
 import Model.Staff.Staff;
 
@@ -48,9 +48,9 @@ public class StaffConfig extends AbstractModel {
 	}
 
 	public BufferedImage getImage() {
-		SheetPanel sheet = this.getParentStaff().getParentSheet();
-		int w = sheet.getNotaWidth() * 5;
-		int h = sheet.getNotaHeight() * 6;
+		MusicPanel sheet = this.getParentStaff().getParentSheet();
+		int w = Settings.getNotaWidth() * 5;
+		int h = Settings.getNotaHeight() * 6;
 		BufferedImage rez = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 		Graphics g = rez.getGraphics();
 		g.setColor(Color.black);
@@ -60,7 +60,7 @@ public class StaffConfig extends AbstractModel {
 			tz /= 2;
 			tc /= 2;
 		}
-		int inches = sheet.getNotaHeight()*5/8, taktX= 0, taktY=sheet.getNotaHeight()*2; // 25, 80
+		int inches = Settings.getNotaHeight()*5/8, taktX= 0, taktY=Settings.getNotaHeight()*2; // 25, 80
 		g.setFont(new Font(Font.MONOSPACED, Font.BOLD, inches)); // 12 - 7px width
 		g.drawString(tc+"", 0 + taktX, inches*4/5 + taktY);
 		int delta = 0 + (tc>9 && tz<10? inches*7/12/2: 0) + ( tc>99 && tz<100?inches*7/12/2:0 );
@@ -68,9 +68,9 @@ public class StaffConfig extends AbstractModel {
 
 		int tpx = 0, tpy = 0;
 		g.drawImage(ImageStorage.inst().getQuarterImage(), tpx, tpy, null);
-		inches = sheet.getNotaHeight()*9/20;
+		inches = Settings.getNotaHeight()*9/20;
 		g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, inches)); // 12 - 7px width
-		g.drawString(" = "+valueTempo, tpx + sheet.getNotaWidth()*4/5, tpy + inches*4/5 + sheet.getNotaHeight()*13/20);
+		g.drawString(" = "+valueTempo, tpx + Settings.getNotaWidth()*4/5, tpy + inches*4/5 + Settings.getNotaHeight()*13/20);
 
 		return rez;
 	}
@@ -122,16 +122,7 @@ public class StaffConfig extends AbstractModel {
 
 	// getters
 
-
-	public int dx() {
-		return Settings.getStepWidth();
-	}
-
-	public int dy() {
-		return Settings.getStepHeight();
-	}
-
-	public SheetPanel getSheetPanel() {
+	public MusicPanel getSheetPanel() {
 		return getParentStaff().getParentSheet();
 	}
 

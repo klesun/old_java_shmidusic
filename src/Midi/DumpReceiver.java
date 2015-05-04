@@ -1,6 +1,6 @@
 package Midi;
 
-import Model.Panels.BlockHandler;
+import Model.Containers.Panels.MusicPanelHandler;
 
 import	javax.sound.midi.MidiMessage;
 import	javax.sound.midi.ShortMessage;
@@ -8,7 +8,7 @@ import	javax.sound.midi.Receiver;
 
 public class DumpReceiver implements Receiver {
 	
-	public static BlockHandler eventHandler;
+	public static MusicPanelHandler eventHandler;
 	
 	public DumpReceiver() {}
 	

@@ -4,9 +4,8 @@
 package Model.Staff;
 
 import Gui.ImageStorage;
-import Main.Main;
-import Model.Panels.SheetPanel;
-import Model.Panels.Window;
+import Model.Containers.Panels.MusicPanel;
+import Model.Containers.MajesticWindow;
 import Model.AbstractModel;
 import Model.Combo;
 import Model.Staff.StaffConfig.StaffConfig;
@@ -38,10 +37,10 @@ public class Staff extends AbstractModel {
 	private ArrayList<Accord> accordList = new ArrayList<>();
 	public int focusedIndex = -1;
 
-	private Window parentWindow = null;
-	public SheetPanel blockPanel = null;
+	private MajesticWindow parentWindow = null;
+	public MusicPanel blockPanel = null;
 
-	public Staff(SheetPanel blockPanel) {
+	public Staff(MusicPanel blockPanel) {
 		super(null);
 		this.parentWindow = blockPanel.parentWindow;
 		this.blockPanel = blockPanel;
@@ -54,7 +53,9 @@ public class Staff extends AbstractModel {
 		return this;
 	}
 
-	public synchronized void drawOn(Graphics g, int baseX, int baseY) {
+	public synchronized void drawOn(Graphics g, int baseX, int baseY) { // baseY - highest line y
+
+		baseX += 2 * dx(); // невхуйебу
 
 		int taktCount = 1;
 		int curCislic = 0;
@@ -64,13 +65,13 @@ public class Staff extends AbstractModel {
 
 		int i = 0;
 		for (List<Accord> row: getAccordRowList()) {
-			int y = baseY + i * SheetPanel.SISDISPLACE * dy(); // bottommest y nota may be drawn on
+			int y = baseY + i * MusicPanel.SISDISPLACE * dy(); // bottommest y nota may be drawn on
 			g.drawImage(ImageStorage.inst().getViolinKeyImage(), this.dx(), y -3 * dy(), null);
 			g.drawImage(ImageStorage.inst().getBassKeyImage(), this.dx(), 11 * dy() + y, null);
 			g.setColor(Color.BLUE);
 			for (int j = 0; j < 11; ++j){
 				if (j == 5) continue;
-				g.drawLine(SheetPanel.getMarginX(), y + j * dy() *2, getWidth() - SheetPanel.getMarginX()*2, y + j* dy() *2);
+				g.drawLine(MusicPanel.getMarginX(), y + j * dy() *2, getWidth() - MusicPanel.getMarginX()*2, y + j* dy() *2);
 			}
 
 			int j = 0;
@@ -173,20 +174,6 @@ public class Staff extends AbstractModel {
 		return !stop;
 	}
 
-	public Boolean moveFocusUsingCombo(Combo combo) {
-		Boolean result = moveFocus(combo.getSign());
-		if (getFocusedAccord() != null && result) {
-			PlayMusThread.playAccord(getFocusedAccord());
-		}
-		return result;
-	}
-
-	public Boolean moveFocusRow(Combo combo) {
-		int n = combo.getSign() * getAccordInRowCount();
-		moveFocus(n);
-		return true;
-	}
-
 	// getters
 
 	public Accord getFocusedAccord() {
@@ -220,21 +207,18 @@ public class Staff extends AbstractModel {
 		return Math.max(result, 1);
 	}
 
-	public int dx() { return Settings.getStepWidth(); }
-	public int dy() { return Settings.getStepHeight(); }
-
 	// field getters/setters
 
 	public StaffConfig getConfig() {
 		return this.staffConfig;
 	}
-	public SheetPanel getParentSheet() {
+	public MusicPanel getParentSheet() {
 		return parentWindow.isFullscreen
-				? parentWindow.sheetPanel
+				? parentWindow.musicPanel
 				: this.blockPanel;
 	}
 	@Override
-	public SheetPanel getModelParent() { return getParentSheet(); }
+	public MusicPanel getModelParent() { return getParentSheet(); }
 	public int getFocusedIndex() {
 		return this.focusedIndex;
 	}
@@ -252,8 +236,31 @@ public class Staff extends AbstractModel {
 	// action handles
 
 	public void changeMode(Combo combo) {
-		System.out.println("huj " + combo.getPressedNumber());
 		this.mode = combo.getPressedNumber() > 0 ? aMode.insert : aMode.passive;
+	}
+
+	public Boolean moveFocusUsingCombo(Combo combo) {
+		Boolean result = moveFocus(combo.getSign());
+		if (getFocusedAccord() != null && result) {
+			PlayMusThread.playAccord(getFocusedAccord());
+		}
+		return result;
+	}
+
+	public Boolean moveFocusRow(Combo combo) {
+		int n = combo.getSign() * getAccordInRowCount();
+		moveFocus(n);
+		return true;
+	}
+
+	public void triggerPlayer(Combo combo) {
+		if (PlayMusThread.stop) {
+			PlayMusThread.shutTheFuckUp();
+			PlayMusThread.stop = false;
+			(new PlayMusThread(this)).start();
+		} else {
+			PlayMusThread.stopMusic();
+		}
 	}
 }
 

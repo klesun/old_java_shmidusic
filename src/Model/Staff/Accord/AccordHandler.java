@@ -25,7 +25,7 @@ public class AccordHandler extends AbstractHandler {
 	}
 
 	@Override
-	protected void init() {
+	protected void initActionMap() {
 
 		// TODO: nota appending should be AccordHandler event!!! (now it is done with code in Staff::addPressed())
 

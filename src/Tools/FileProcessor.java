@@ -1,6 +1,6 @@
 package Tools;
 
-import Model.Panels.SheetPanel;
+import Model.Containers.Panels.MusicPanel;
 import Main.Main;
 import Model.Staff.Staff;
 
@@ -19,7 +19,7 @@ import java.nio.file.Files;
 
 public class FileProcessor {
 	
-	public static void savePNG ( File f, SheetPanel albert ) {
+	public static void savePNG ( File f, MusicPanel albert ) {
 	    if (albert == null) out("Что ты пытаешься сохранить, мудак?!");
 	    BufferedImage img = new BufferedImage(albert.getWidth(),albert.getHeight(), BufferedImage.TYPE_INT_ARGB);
 	    Graphics g = img.createGraphics();
@@ -38,8 +38,8 @@ public class FileProcessor {
 	    System.out.println(str);
 	}
 
-	public static int saveJsonFile(File f, SheetPanel sheetPanel) {
-		Staff stan = sheetPanel.getStaff();
+	public static int saveJsonFile(File f, MusicPanel musicPanel) {
+		Staff stan = musicPanel.getStaff();
 		try {
 			JSONObject js = new JSONObject("{}");
 			js.put("stanExternalRepresentation", stan.getJsonRepresentation());

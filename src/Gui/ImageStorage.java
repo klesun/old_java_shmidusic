@@ -5,6 +5,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ImageStorage {
 	private static ImageStorage instance = null;
@@ -15,14 +17,9 @@ public class ImageStorage {
 	private BufferedImage notaImgOriginal[] = new BufferedImage[6];
 	private BufferedImage[][] coloredNotas = new BufferedImage[10][6];
 
-	private ImageStorage() {}
+	private Map<File, BufferedImage> randomImageMap = new HashMap<>();
 
-	public BufferedImage getFlatImage() { return vseKartinkiSized[2]; }
-	public BufferedImage getSharpImage() { return vseKartinkiSized[6]; }
-	public BufferedImage getViolinKeyImage() { return vseKartinkiSized[0]; }
-	public BufferedImage getBassKeyImage() { return vseKartinkiSized[1]; }
-	public BufferedImage getPointerImage() { return vseKartinkiSized[3]; }
-	public BufferedImage getQuarterImage() { return coloredNotas[0][3]; }
+	private ImageStorage() {}
 
 	public static ImageStorage inst() {
 		if (ImageStorage.instance == null) {
@@ -31,16 +28,17 @@ public class ImageStorage {
 		return ImageStorage.instance;
 	}
 
-	public void loadImagesFromDisk() {
-		try {	inst().vseKartinkiOriginal[0] = ImageIO.read(new File("../imgs/vio_sized.png"));
-				inst().vseKartinkiOriginal[1] = ImageIO.read(new File("../imgs/bass_sized.png"));
-				inst().vseKartinkiOriginal[2] = ImageIO.read(new File("../imgs/flat_sized.png"));
-				inst().vseKartinkiOriginal[6] = ImageIO.read(new File("../imgs/sharp_sized.png")); // -_-
-				inst().vseKartinkiOriginal[3] = ImageIO.read(new File("../imgs/MyPointer.png"));
-				inst().vseKartinkiOriginal[4] = ImageIO.read(new File("../imgs/volume.png"));
-				inst().vseKartinkiOriginal[5] = ImageIO.read(new File("../imgs/instrument.png"));
-		} catch (IOException e) { e.printStackTrace(); System.out.println("Темнишь что-то со своей картинкой..."); }
-		reloadNotaImagesFromDisk();
+	public BufferedImage openImage(File file) {
+		BufferedImage image = null;
+		if (randomImageMap.containsKey(file)) {
+			image = randomImageMap.get(file);
+		} else try {
+			image = ImageIO.read(file);
+			randomImageMap.put(file, image);
+		} catch (IOException e) {
+			System.out.println("Failed to load image file! " + file.getAbsolutePath());
+		}
+		return image;
 	}
 
 	public void refreshImageSizes() {
@@ -108,6 +106,27 @@ public class ImageStorage {
 		int idx = (int)(Math.ceil(7 - Math.log(numerator) / Math.log(2) ));
 		return coloredNotas[channel][idx];
 	}
+
+	// default images
+
+	public void loadImagesFromDisk() {
+		try {	inst().vseKartinkiOriginal[0] = ImageIO.read(new File("../imgs/vio_sized.png"));
+			inst().vseKartinkiOriginal[1] = ImageIO.read(new File("../imgs/bass_sized.png"));
+			inst().vseKartinkiOriginal[2] = ImageIO.read(new File("../imgs/flat_sized.png"));
+			inst().vseKartinkiOriginal[6] = ImageIO.read(new File("../imgs/sharp_sized.png")); // -_-
+			inst().vseKartinkiOriginal[3] = ImageIO.read(new File("../imgs/MyPointer.png"));
+			inst().vseKartinkiOriginal[4] = ImageIO.read(new File("../imgs/volume.png"));
+			inst().vseKartinkiOriginal[5] = ImageIO.read(new File("../imgs/instrument.png"));
+		} catch (IOException e) { e.printStackTrace(); System.out.println("Темнишь что-то со своей картинкой..."); }
+		reloadNotaImagesFromDisk();
+	}
+
+	public BufferedImage getFlatImage() { return vseKartinkiSized[2]; }
+	public BufferedImage getSharpImage() { return vseKartinkiSized[6]; }
+	public BufferedImage getViolinKeyImage() { return vseKartinkiSized[0]; }
+	public BufferedImage getBassKeyImage() { return vseKartinkiSized[1]; }
+	public BufferedImage getPointerImage() { return vseKartinkiSized[3]; }
+	public BufferedImage getQuarterImage() { return coloredNotas[0][3]; }
 
 	// static methods
 

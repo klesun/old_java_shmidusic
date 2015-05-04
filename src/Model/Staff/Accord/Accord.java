@@ -65,7 +65,7 @@ public class Accord extends AbstractModel {
 			surface.setColor(Color.blue);
 			oneOctaveLower = this.isHighestBotommedToFitSystem();
 			if (oneOctaveLower) {
-				surface.drawString("8va", x, y + 4 * getParentStaff().getParentSheet().dy());
+				surface.drawString("8va", x, y + 4 * dy());
 			}
 		}
 
@@ -81,7 +81,7 @@ public class Accord extends AbstractModel {
 				surface.fillOval(x + p.get(0) + r * 2, notaY + p.get(1) - r, r * 2, r * 2);
 			}
 
-			notaY += oneOctaveLower ? 7 * getParentStaff().getParentSheet().dy() : 0;
+			notaY += oneOctaveLower ? 7 * dy() : 0;
 			int notaX = i > 0 && getNotaList().get(i - 1).getAbsoluteAcademicIndex() == nota.getAbsoluteAcademicIndex() 
 					? x + Settings.getStepWidth() / 3 // TODO: draw them flipped
 					: x;
@@ -153,7 +153,7 @@ public class Accord extends AbstractModel {
 	}
 
 	public int getLowestPossibleNotaRelativeY () {
-		return 50 * getParentStaff().getParentSheet().dy();
+		return 50 * dy();
 	}
 
 	// field getters/setters

@@ -119,7 +119,7 @@ public class Combo {
 		BiMap<Integer, Integer> antiKeyMap = HashBiMap.create();
 		antiKeyMap.put(KeyEvent.VK_UP, KeyEvent.VK_DOWN);
 		antiKeyMap.put(KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT);
-		antiKeyMap.put(KeyEvent.VK_MINUS, KeyEvent.VK_PLUS);
+		antiKeyMap.put(KeyEvent.VK_MINUS, KeyEvent.VK_EQUALS);
 		antiKeyMap.put(KeyEvent.VK_OPEN_BRACKET, KeyEvent.VK_CLOSE_BRACKET);
 		antiKeyMap.put(KeyEvent.VK_COMMA, KeyEvent.VK_PERIOD);
 		antiKeyMap.put(KeyEvent.VK_PAGE_UP, KeyEvent.VK_PAGE_DOWN);

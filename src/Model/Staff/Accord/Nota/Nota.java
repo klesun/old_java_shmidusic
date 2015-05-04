@@ -3,6 +3,7 @@ package Model.Staff.Accord.Nota;
 
 import Gui.ImageStorage;
 import Model.Combo;
+import Model.Containers.Panels.MusicPanel;
 import Model.Staff.Accord.Accord;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -12,7 +13,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import Gui.Settings;
-import Model.Panels.SheetPanel;
 import Model.AbstractModel;
 import Model.Staff.StaffConfig.StaffConfig;
 import Model.Staff.Staff;
@@ -162,7 +162,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 			: ImageStorage.inst().getFlatImage();
 	}
 
-	// one-line getters
+	// one-line-obvious-purpose methods
 
 	// 0 - do, 2 - re, 4 - mi, 5 - fa, 7 - so, 9 - la, 10 - ti
 	public Boolean isEbony() { return Arrays.asList(1,3,6,8,10).contains(this.tune % 12); }
@@ -173,17 +173,11 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	public int getOctave() { return this.tune/12; }
 	public List<Integer> getAncorPoint() { return Arrays.asList(getWidth()*16/25, Settings.getStepHeight() * 7); }
 	public int getNotaImgRelX() { return this.getWidth() / 2; } // bad name
-	public int getStickX() { return this.getNotaImgRelX() + getPanel().dx() / 2; }
+	public int getStickX() { return this.getNotaImgRelX() + dx() / 2; }
 
-	public int dx() {
-		return Settings.getStepWidth();
-	}
-	public int dy() {
-		return Settings.getStepHeight();
-	}
-	public int getHeight() { return this.getParentAccord().getParentStaff().getParentSheet().getNotaHeight(); }
+	public int getHeight() { return Settings.getNotaHeight(); }
 	// TODO: use it in Accord.getWidth()
-	public int getWidth() { return this.getParentAccord().getParentStaff().getParentSheet().getNotaWidth() * 2; }
+	public int getWidth() { return Settings.getNotaWidth() * 2; }
 
 	// field getters/setters
 
@@ -205,7 +199,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 
 	// private methods
 
-	private SheetPanel getPanel() {
+	private MusicPanel getPanel() {
 		return this.getParentAccord().getParentStaff().getParentSheet();
 	}
 			

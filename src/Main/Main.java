@@ -1,13 +1,13 @@
 package Main;
 
 import Gui.ImageStorage;
-import Model.Panels.Window;
+import Model.Containers.MajesticWindow;
 import Midi.DeviceEbun;
 
 import java.io.*;
 public class Main {
 
-	public static Window window = null;
+	public static MajesticWindow window = null;
 
 	public static void main(String[] args){
 		String OS_NAME = System.getProperty("os.name");
@@ -27,7 +27,7 @@ public class Main {
 		ImageStorage.inst().refreshImageSizes();
 		DeviceEbun.openMidiDevices();
 
-		window = new Window();
+		window = new MajesticWindow();
 		window.setVisible(true);
 	}
 }

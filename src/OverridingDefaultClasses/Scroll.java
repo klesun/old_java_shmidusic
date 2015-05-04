@@ -1,7 +1,5 @@
 package OverridingDefaultClasses;
 
-import Model.Panels.SheetPanel;
-
 import javax.swing.*;
 import java.awt.*;
 
@@ -12,5 +10,4 @@ public class Scroll extends JScrollPane {
 		this.getVerticalScrollBar().setUnitIncrement(16);
 		this.getVerticalScrollBar().setPreferredSize(new Dimension(10, 0));
 	}
-
 }

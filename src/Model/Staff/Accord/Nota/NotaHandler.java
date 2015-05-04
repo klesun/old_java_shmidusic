@@ -23,7 +23,7 @@ public class NotaHandler extends AbstractHandler {
 	}
 
 	@Override
-	protected void init() {
+	protected void initActionMap() {
 		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_3)).addTo(actionMap).setDo((event) -> {
 			getContext().setTupletDenominator(getContext().getTupletDenominator() == 3 ? 1 : 3);
 		}).biDirectional();

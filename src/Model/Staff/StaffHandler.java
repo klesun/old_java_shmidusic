@@ -28,17 +28,17 @@ public class StaffHandler extends AbstractHandler {
 	}
 
 	public Staff getContext() {
-		return (Staff)super.getContext();
+		return Staff.class.cast(super.getContext());
 	}
 
 	@Override
-	protected void init() {
+	protected void initActionMap() {
 
 		KeyEvent k = new KeyEvent(new JPanel(),0,0,0,0,'h'); // just for constants
 		int ctrl = k.CTRL_MASK;
 		Staff s = this.getContext();
 
-		addCombo(ctrl, k.VK_P).setDo(PlayMusThread::triggerPlayer);
+		addCombo(ctrl, k.VK_P).setDo(s::triggerPlayer);
 		addCombo(ctrl, k.VK_D).setDo(DeviceEbun::changeOutDevice);
 		addCombos(ctrl, Arrays.asList(k.VK_0, k.VK_9)).stream().forEach(factory -> { factory.setDo(s::changeMode); });
 		addCombo(ctrl, k.VK_RIGHT).setDo(s::moveFocusUsingCombo).setUndoChangeSign();

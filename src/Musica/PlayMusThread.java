@@ -1,6 +1,5 @@
 package Musica;
 
-import Main.Main;
 import Model.Combo;
 import Model.Staff.Staff;
 import Model.Staff.Accord.Nota.Nota;
@@ -44,7 +43,7 @@ public class PlayMusThread extends Thread {
 				try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна" + e); }
 				if (stop) { break; }
 			}
-			staff.gettHandler().handleKey(nextAccord);
+			staff.getHandler().handleKey(nextAccord);
 		}
 
 		stop = true;
@@ -83,17 +82,4 @@ public class PlayMusThread extends Thread {
         }
         kri4alki.removeAll(kri4alki);
     }
-
-	// event handles
-
-	public static void triggerPlayer(Combo combo) {
-		if (PlayMusThread.stop) {
-			PlayMusThread.shutTheFuckUp();
-			PlayMusThread.stop = false;
-			Staff staff = Main.window.getFocusedPanel().getStaff();
-			(new PlayMusThread(staff)).start();
-		} else {
-			PlayMusThread.stopMusic();
-		}
-	}
 }
