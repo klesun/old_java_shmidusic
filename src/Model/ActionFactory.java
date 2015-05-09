@@ -1,11 +1,15 @@
 package Model;
 
+import Model.Staff.Accord.Nota.Nota;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.function.*;
 
 public class ActionFactory {
+
+	final private static HashMap<String, Object> emptyHashMap = new HashMap<>();
 
 	public Function<Combo, Map<String, Object>> doLambda = (combo) -> { return null; };
 	public BiFunction<Combo, Map<String, Object>, Boolean> undoLambda = (combo, paramsForUndo) -> { return false; };
@@ -31,13 +35,14 @@ public class ActionFactory {
 		return this;
 	}
 
+	// -_-
 	public ActionFactory setDo2(Function<Combo, Map<String, Object>> lambda) {
 		doLambda = lambda;
 		return this;
 	}
 
 	public ActionFactory setDo(Consumer<Combo> lambda) {
-		doLambda = (e) -> { lambda.accept(e); return new HashMap<>(); };
+		doLambda = (e) -> { lambda.accept(e); return emptyHashMap; };
 		return this;
 	}
 

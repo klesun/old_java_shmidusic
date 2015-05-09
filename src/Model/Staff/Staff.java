@@ -19,6 +19,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 
 
+import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,7 +31,7 @@ public class Staff extends AbstractModel {
 	final public static int ACCORD_EPSILON = 50; // in milliseconds
 	
 	public enum aMode { insert, passive }
-	public aMode mode;
+	public static aMode mode = aMode.insert;
 
 	public StaffConfig staffConfig = null;
 
@@ -45,7 +46,6 @@ public class Staff extends AbstractModel {
 		this.parentWindow = blockPanel.parentWindow;
 		this.blockPanel = blockPanel;
 		this.staffConfig = new StaffConfig(this);
-		mode = aMode.insert;
 	}
 
 	public synchronized Staff add(Accord elem) {
@@ -57,8 +57,7 @@ public class Staff extends AbstractModel {
 
 		baseX += 2 * dx(); // невхуйебу
 
-		int taktCount = 1;
-		int curCislic = 0;
+		TactMeasurer tactMeasurer = new TactMeasurer(this);
 
 		getConfig().drawOn(g, baseX, baseY);
 		baseX += dx();
@@ -78,24 +77,18 @@ public class Staff extends AbstractModel {
 			for (Accord accord: row) {
 				int x = baseX + j * (2 * dx());
 				if (getFocusedAccord() == accord) { 
-					g.drawImage(ImageStorage.inst().getPointerImage(), x + dx(), y - this.dy() *14, getParentSheet());
+					g.drawImage(ImageStorage.inst().getPointerImage(), x + dx(), y - this.dy() * 14, getParentSheet());
 				}
 
-				if (accord.getNotaList().size() > 0) {
-
-					curCislic += accord.getShortestNumerator(); // TODO: triols are counted as each was complete nota, bad
-					if (curCislic >= getConfig().numerator * 8) { // потому что у нас шажок 1/8 когда меняем размер такта
-						curCislic %= getConfig().numerator * 8;
-						g.setColor(curCislic > 0 ? Color.BLUE : Color.BLACK);
-						g.drawLine(x + dx() * 2, y - dy() * 5, x + dx() * 2, y + dy() * 20);
-						g.setColor(Color.decode("0x00A13E"));
-						g.drawString(taktCount + "", x + dx() * 2, y - dy() * 6);
-
-						++taktCount;
-					}
-
-					accord.drawOn(g, x, y - 12 * dy());
+				if (tactMeasurer.inject(accord)) {
+					g.setColor(tactMeasurer.sumFraction.equals(new Fraction(0)) ? Color.BLACK : Color.BLUE);
+					g.drawLine(x + dx() * 2, y - dy() * 5, x + dx() * 2, y + dy() * 20);
+					g.setColor(Color.decode("0x00A13E"));
+					g.drawString(tactMeasurer.tactCount + "", x + dx() * 2, y - dy() * 6);
 				}
+
+				accord.drawOn(g, x, y - 12 * dy());
+
 				++j;
 			}
 			++i;
@@ -214,7 +207,7 @@ public class Staff extends AbstractModel {
 	}
 	public MusicPanel getParentSheet() {
 		return parentWindow.isFullscreen
-				? parentWindow.musicPanel
+				? parentWindow.fullscreenMusicPanel
 				: this.blockPanel;
 	}
 	@Override
@@ -236,7 +229,7 @@ public class Staff extends AbstractModel {
 	// action handles
 
 	public void changeMode(Combo combo) {
-		this.mode = combo.getPressedNumber() > 0 ? aMode.insert : aMode.passive;
+		mode = combo.getPressedNumber() > 0 ? aMode.insert : aMode.passive;
 	}
 
 	public Boolean moveFocusUsingCombo(Combo combo) {

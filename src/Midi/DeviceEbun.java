@@ -76,6 +76,6 @@ public class DeviceEbun {
 		Receiver tmp = theirReceiver;
 		theirReceiver = secondaryReceiver;
 		secondaryReceiver = tmp;
-		Main.window.musicPanel.getStaff().getConfig().syncSyntChannels();
+		Main.window.fullscreenMusicPanel.getStaff().getConfig().syncSyntChannels();
 	}
 }

@@ -150,9 +150,9 @@ final public class MusicPanel extends JPanel implements IModel {
 	public void switchFullscreen(Combo combo) {
 		parentWindow.isFullscreen = !parentWindow.isFullscreen;
 		if (parentWindow.isFullscreen) {
-			parentWindow.musicPanel.setStaff(this.getStaff());
+			parentWindow.fullscreenMusicPanel.setStaff(this.getStaff());
 			((CardLayout)parentWindow.cards.getLayout()).show(parentWindow.cards, parentWindow.CARDS_FULLSCREEN);
-			parentWindow.musicPanel.requestFocus();
+			parentWindow.fullscreenMusicPanel.requestFocus();
 			Settings.inst().scale(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_EQUALS));
 		} else {
 			((CardLayout)parentWindow.cards.getLayout()).show(parentWindow.cards, MajesticWindow.CARDS_STORYSPACE);

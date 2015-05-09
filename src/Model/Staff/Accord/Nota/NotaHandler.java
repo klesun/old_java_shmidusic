@@ -24,50 +24,27 @@ public class NotaHandler extends AbstractHandler {
 
 	@Override
 	protected void initActionMap() {
-		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_3)).addTo(actionMap).setDo((event) -> {
-			getContext().setTupletDenominator(getContext().getTupletDenominator() == 3 ? 1 : 3);
-		}).biDirectional();
-		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_H)).addTo(actionMap).setDo((event) -> {
-			getContext().setIsMuted(!getContext().getIsMuted());
-		}).biDirectional();
-		new ActionFactory(new Combo(KeyEvent.SHIFT_MASK, KeyEvent.VK_3)).addTo(actionMap).setDo((event) -> {
-			getContext().triggerIsSharp();
-		}).biDirectional();
-		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_2)).addTo(actionMap).setDo2((event) -> {
-			Accord accord = getContext().getParentAccord();
-			Nota clonedNota = new Nota(accord, getContext().tune).reconstructFromJson(getContext().getJsonRepresentation());
-			return new HashMap<String, Object>(){{ put("clonedNota", clonedNota); }};
-		}).setUndo((combo, paramsForUndo) -> {
-			Accord accord = getContext().getParentAccord();
-			accord.setFocusedIndex(accord.getNotaList().indexOf(paramsForUndo.get("clonedNota"))).deleteFocused();
-			accord.setFocusedIndex(accord.getNotaList().indexOf(getContext()));
-		});
+		addCombo(k.CTRL_MASK, k.VK_3).setDo((event) -> { getContext().triggerTupletDenominator(); }).biDirectional();
+		addCombo(k.CTRL_MASK, k.VK_H).setDo(combo -> { getContext().triggerIsMuted(); }).biDirectional();
+		addCombo(k.SHIFT_MASK, k.VK_3).setDo((event) -> { getContext().triggerIsSharp(); }).biDirectional();
 
-		for (Integer i: Arrays.asList(KeyEvent.VK_OPEN_BRACKET, KeyEvent.VK_CLOSE_BRACKET)) {
-			new ActionFactory(new Combo(0, i)).addTo(actionMap).setDo(getContext()::changeLength).setUndoChangeSign(); }
+		addCombo(0, k.VK_OPEN_BRACKET).setDo(getContext()::changeLength).setUndoChangeSign();
+		addCombo(0, k.VK_CLOSE_BRACKET).setDo(getContext()::changeLength).setUndoChangeSign();
 
-		new ActionFactory(new Combo(0, KeyEvent.VK_ENTER)).addTo(actionMap).setDo((event) -> { PlayMusThread.playNotu(getContext()); });
+		addCombo(0, k.VK_ENTER).setDo((event) -> { PlayMusThread.playNotu(getContext()); });
 
-		for (Integer i: Combo.getNumberKeyList()) {	new ActionFactory(new Combo(0, i)).addTo(actionMap).setDo2((combo) -> {
-			int lastChan = getContext().channel;
-			getContext().setChannel(combo.getPressedNumber());
-			return new HashMap<String, Object>() {{
-				put("lastChan", lastChan);
-			}};
-		}).setUndo((combo, paramsForUndo) -> {
-			getContext().setChannel((Integer) paramsForUndo.get("lastChan"));
-		});}
+		for (Integer i: Combo.getNumberKeyList()) {
+			addCombo(0, i).setDo2((combo) -> {
+				int lastChan = getContext().channel;
+				getContext().setChannel(combo.getPressedNumber());
+				return new HashMap<String, Object>() {{ put("lastChan", lastChan); }};
+			}).setUndo((combo, paramsForUndo) -> { getContext().setChannel((Integer) paramsForUndo.get("lastChan")); });
+		}
 
 		for (Integer i: Combo.getAsciTuneMap().keySet()) {
-			new ActionFactory(new Combo(11, i)).addTo(actionMap).setDo((combo) -> { // 11 - alt+shif+ctrl
-
-				// TODO: move stuff like constants and mode into the handler
-
-				if (getContext().getParentAccord().getParentStaff().mode == Staff.aMode.passive) { return false; }
-				else {
-					new Nota(getContext().getParentAccord(), combo.asciiToTune()).setKeydownTimestamp(System.currentTimeMillis());
-					return true;
-				}
+			addCombo(11, i).setDo((combo) -> { // 11 - alt+shif+ctrl
+				new Nota(getContext().getParentAccord(), combo.asciiToTune()).setKeydownTimestamp(System.currentTimeMillis());
+				return true;
 			});
 		}
 	}

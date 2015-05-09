@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -52,34 +53,8 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	@Override
 	public boolean equals(Object obj) { return obj != null && getClass() == obj.getClass() && tune == ((Nota)obj).tune; }
 
-	// something definitely wrong with this method, but my eyes hurt each time i look at it
-	public void changeLength(Combo combo) {
-		int sign = combo.getSign();
-
-		// TODO: points should be whole separate thing
-		while (sign > 0){
-			if (numerator % 3 == 0) {				
-				numerator += numerator/3;
-			} else {
-				numerator += numerator/2;
-			}
-			--sign;
-		}
-		while (sign < 0){
-			if (numerator % 3 == 0) {				
-				numerator -= numerator/3;
-			} else {
-				numerator -= numerator/4;
-			}
-			++sign;
-		}
-
-		if (numerator > Staff.DEFAULT_ZNAM * 2) { numerator = Staff.DEFAULT_ZNAM * 2; }
-		if (numerator < 4) { numerator = 4; }
-	}
-
 	public Boolean isLongerThan(Nota rival) {
-		return this.getNumerator() * rival.getDenominator() > rival.getNumerator() * this.getDenominator(); 
+		return getFraction().compareTo(rival.getFraction()) > 0;
 	}
 
 	@Override
@@ -184,7 +159,8 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	public Accord getParentAccord() { return (Accord)this.getModelParent(); }
 
 	public int getNumerator() { return this.numerator; }
-	public int getDenominator() { return 1 * this.getTupletDenominator(); }
+	public int getDenominator() { return this.getTupletDenominator(); }
+	public Fraction getFraction() { return new Fraction(getNumerator(), getTupletDenominator() * Staff.DEFAULT_ZNAM); }
 
 	public int getTupletDenominator() { return this.tupletDenominator; }
 	public Nota setTupletDenominator(int value) { this.tupletDenominator = value; return this; }
@@ -195,14 +171,39 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	public Nota setChannel(int channel) { this.channel = channel; return this; }
 	public Nota setTune(int value){ this.tune = value; return this; }
 	public Nota setKeydownTimestamp(long value) { this.keydownTimestamp = value; return this; }
+
+	public MusicPanel getPanel() { return this.getParentAccord().getParentStaff().getParentSheet(); }
+
+	// event handles
+
 	public Nota triggerIsSharp() { this.isSharp = !this.isSharp; return this; }
+	public Nota triggerIsMuted() { setIsMuted(!getIsMuted()); return this; }
+	public Nota triggerTupletDenominator() { setTupletDenominator(getTupletDenominator() == 3 ? 1 : 3); return this; }
 
-	// private methods
-
-	private MusicPanel getPanel() {
-		return this.getParentAccord().getParentStaff().getParentSheet();
+	public Nota incLen() {
+		// TODO: points should be whole separate thing
+		numerator += numerator % 3 == 0
+				? numerator/3
+				: numerator/2;
+		numerator = Math.min(numerator, Staff.DEFAULT_ZNAM * 2);
+		return this;
 	}
-			
+
+	public Nota decLen() {
+		// TODO: points should be whole separate thing
+		numerator -= numerator % 3 == 0
+				? numerator/3
+				: numerator/4;
+		numerator = Math.max(numerator, 4);
+		return this;
+	}
+
+	public Nota changeLength(Combo combo) {
+		return combo.getSign() > 0
+				? incLen()
+				: decLen();
+	}
+
 	// private static methods
 
 	// TODO: what if i said we could store these instead of numbers in json?

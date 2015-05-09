@@ -29,7 +29,7 @@ public class MusicPanelHandler extends AbstractHandler {
 		addCombo(ctrl, k.VK_S).setDo(makeSaveFileDialog(FileProcessor::saveJsonFile, "json"));
 
 		addCombo(ctrl, k.VK_O).setDo(combo -> {
-			JFileChooser chooser = new JFileChooser();
+			JFileChooser chooser = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/new");
 			chooser.setFileFilter(new FileNameExtensionFilter("Json Midi-music data", "json"));
 			int i = okcancel("Are your sure? Unsaved data will be lost."); // 2 - cancel, 0 - ok очевидно же
 			if (i == 0) {

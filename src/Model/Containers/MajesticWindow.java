@@ -11,13 +11,13 @@ import java.awt.event.*;
 
 public class MajesticWindow extends JFrame implements ActionListener {
 
-	public MusicPanel musicPanel;
+	public MusicPanel fullscreenMusicPanel;
 	public Storyspace storyspace;
 
 	int XP_MINWIDTH = 1024;
 	int XP_MINHEIGHT = 540; // my beloved netbook
 
-	public Boolean isFullscreen = true;
+	public Boolean isFullscreen = false;
 
 	public JPanel cards = new JPanel();
 
@@ -33,11 +33,10 @@ public class MajesticWindow extends JFrame implements ActionListener {
 		this.add(cards);
 
 		cards.add(storyspace = new Storyspace(this), CARDS_STORYSPACE);
-		cards.add(new Scroll(musicPanel = new MusicPanel(storyspace).hideGracefully()), CARDS_FULLSCREEN);
+		cards.add(new Scroll(fullscreenMusicPanel = new MusicPanel(storyspace).hideGracefully()), CARDS_FULLSCREEN);
 
 		// for user-friendship there will be one initial staff
 		storyspace.addMusicBlock(Combo.makeFake()).switchFullscreen(Combo.makeFake());
-		musicPanel.switchFullscreen(Combo.makeFake());
 	}
 
 	@Override

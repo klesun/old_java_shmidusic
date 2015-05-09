@@ -5,6 +5,7 @@ import java.awt.Graphics;
 import java.util.ArrayList;
 
 import Model.Combo;
+import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -143,9 +144,9 @@ public class Accord extends AbstractModel {
 		return nota != null ? nota.getTimeMiliseconds() : 0;
 	}
 
-	public int getShortestNumerator() {
+	public Fraction getShortestFraction() {
 		Nota nota = this.getNotaList().stream().reduce(null, (a, b) -> a != null && !a.isLongerThan(b) ? a : b);
-		return nota != null ? nota.getNumerator() : 0;
+		return nota != null ? nota.getFraction() : new Fraction(0);
 	}
 
 	public Nota getFocusedNota() {

@@ -2,7 +2,6 @@
 package Model.Staff.Accord;
 
 import Model.AbstractHandler;
-import Model.ActionFactory;
 import Model.Combo;
 import Model.Staff.Accord.Nota.Nota;
 import Model.Staff.Staff;
@@ -31,24 +30,27 @@ public class AccordHandler extends AbstractHandler {
 
 		// TODO: actionMap should not be accessed by successors, use some method instead... eventually
 
-		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_3)).addTo(actionMap).setDo((event) -> {
-			for (Nota n: getContext().getNotaList()) { n.setTupletDenominator(n.getTupletDenominator() == 3 ? 1 : 3); }
-		}).biDirectional();
+		// TODO: does not work
+		// character-key press
+		Consumer<Combo> handlePressChar = (e) -> getContext().setSlog(getContext().getSlog().concat("" + e.getKeyChar()));
+		Consumer<Combo> dehandlePressChar = (e) -> getContext().setSlog(getContext().getSlog().substring(0, getContext().getSlog().length() - 1));
+		for (int i: Combo.getCharacterKeycodeList()) {
+			addCombo(0, i).setDo(handlePressChar).setUndo(dehandlePressChar);
+			addCombo(KeyEvent.SHIFT_MASK, i).setDo(handlePressChar).setUndo(dehandlePressChar);
+		}
 
-		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_H)).addTo(actionMap).setDo((event) -> {
-			for (Nota n: getContext().getNotaList()) { n.setIsMuted(!n.getIsMuted()); }
-		}).biDirectional();
+		// TODO: move logic that action applies to all children, like dispatching event to them
 
-		new ActionFactory(new Combo(KeyEvent.SHIFT_MASK, KeyEvent.VK_3)).addTo(actionMap).setDo((event) -> {
-			for (Nota nota: getContext().getNotaList()) { nota.triggerIsSharp(); }
-		}).biDirectional();
-
-		for (Integer i: Arrays.asList(KeyEvent.VK_OPEN_BRACKET, KeyEvent.VK_CLOSE_BRACKET)) {
-			new ActionFactory(new Combo(KeyEvent.CTRL_MASK, i)).addTo(actionMap).setDo((event) -> {
+		addCombo(ctrl, k.VK_3).setDo((event) -> { getContext().getNotaList().forEach(Nota::triggerTupletDenominator); }).biDirectional();
+		addCombo(ctrl, k.VK_H).setDo((event) -> { getContext().getNotaList().forEach(Nota::triggerIsMuted); }).biDirectional();
+		addCombo(k.SHIFT_MASK, k.VK_3).setDo((event) -> { getContext().getNotaList().forEach(Nota::triggerIsSharp); }).biDirectional();
+		for (Integer i: Arrays.asList(k.VK_OPEN_BRACKET, k.VK_CLOSE_BRACKET)) {
+			addCombo(0, i).setDo((event) -> {
 				for (Nota nota : getContext().getNotaList()) { nota.changeLength(event); }
 			}).setUndoChangeSign();
 		}
-		new ActionFactory(new Combo(0, KeyEvent.VK_DELETE)).addTo(actionMap).setDo((event) -> {
+
+		addCombo(0, k.VK_DELETE).setDo((event) -> {
 			Nota nota = getContext().getFocusedNota();
 			if (nota != null) {
 				deletedNotaQueue.add(nota);
@@ -62,19 +64,14 @@ public class AccordHandler extends AbstractHandler {
 			getContext().setFocusedIndex(getContext().getFocusedIndex() + 1);
 		});
 
-		for (Integer i: Arrays.asList(KeyEvent.VK_DOWN, KeyEvent.VK_UP)) {
-			new ActionFactory(new Combo(0, i)).addTo(actionMap).setDo(getContext()::moveFocus).setUndoChangeSign();
+		for (Integer i: Arrays.asList(k.VK_DOWN, k.VK_UP)) { addCombo(0, i).setDo(getContext()::moveFocus).setUndoChangeSign(); }
+
+		for (Integer i: Combo.getNumberKeyList()) { addCombo(0, i)
+			.setDo(combo -> { getContext().setFocusedIndex(combo.getPressedNumber());})
+			.setUndo(combo -> { getContext().setFocusedIndex(-1); });
 		}
 
-		for (Integer i: Combo.getNumberKeyList()) {
-			new ActionFactory(new Combo(0, i)).addTo(actionMap).setDo((e) -> {
-				getContext().setFocusedIndex(e.getPressedNumber());
-			}).setUndo((event) -> {
-				getContext().setFocusedIndex(-1);
-			});
-		}
-
-		new ActionFactory(new Combo(0, KeyEvent.VK_BACK_SPACE)).addTo(actionMap).setDo2((event) -> {
+		addCombo(0, k.VK_BACK_SPACE).setDo2((combo) -> {
 			String slog = getContext().getSlog();
 			if (slog.length() < 1) {
 				return null;
@@ -87,22 +84,14 @@ public class AccordHandler extends AbstractHandler {
 			getContext().setSlog(getContext().getSlog() + paramsForUndo.get("erasedChar"));
 		});
 
-		new ActionFactory(new Combo(0, KeyEvent.VK_ENTER)).addTo(actionMap).setDo((event) -> {
+		addCombo(0, k.VK_ENTER).setDo((event) -> {
 			PlayMusThread.shutTheFuckUp();
 			PlayMusThread.playAccord(getContext());
 		});
 
-		// character-key press
-		Consumer<Combo> handlePressChar = (e) -> getContext().setSlog(getContext().getSlog().concat("" + e.getKeyChar()));
-		Consumer<Combo> dehandlePressChar = (e) -> getContext().setSlog(getContext().getSlog().substring(0, getContext().getSlog().length() - 1));
-		for (int i: Combo.getCharacterKeycodeList()) {
-			new ActionFactory(new Combo(0, i)).addTo(actionMap).setDo(handlePressChar).setUndo(dehandlePressChar);
-			new ActionFactory(new Combo(KeyEvent.SHIFT_MASK, i)).addTo(actionMap).setDo(handlePressChar).setUndo(dehandlePressChar);
-		}
-
 		// MIDI-key press
 		for (Integer i: Combo.getAsciTuneMap().keySet()) {
-			new ActionFactory(new Combo(11, i)).addTo(actionMap).setDo((combo) -> { // 11 - alt+shif+ctrl
+			addCombo(11, i).setDo((combo) -> { // 11 - alt+shif+ctrl
 
 				// important TODO: UX WANNA ctrl-z, bleaaatj!
 
