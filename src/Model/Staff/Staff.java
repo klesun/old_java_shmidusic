@@ -76,7 +76,7 @@ public class Staff extends AbstractModel {
 			int j = 0;
 			for (Accord accord: row) {
 				int x = baseX + j * (2 * dx());
-				if (getFocusedAccord() == accord) { 
+				if (getFocusedAccord() == accord) {
 					g.drawImage(ImageStorage.inst().getPointerImage(), x + dx(), y - this.dy() * 14, getParentSheet());
 				}
 
@@ -91,28 +91,13 @@ public class Staff extends AbstractModel {
 
 				++j;
 			}
+
+			if (getFocusedIndex() == -1) {
+				g.drawImage(ImageStorage.inst().getPointerImage(), baseX, y - this.dy() * 14, getParentSheet());
+			}
+
 			++i;
 		}
-	}
-	
-	public void clearStan() {
-		this.getAccordList().clear();
-		this.focusedIndex = -1;
-	}
-	
-	private void out(String str) {
-		System.out.println(str);
-	}
-	
-	public int changeChannelFlag(int channel) {
-		if (channel > 7 || channel < 0) return -1;
-		channelFlags ^= 1 << channel;
-		return 0;
-	}
-	
-	public Boolean getChannelFlag(int channel) {
-		if (channel > 7 || channel < 0) return false;
-		return (channelFlags & (1 << channel)) > 0;
 	}
 
 	@Override
@@ -145,26 +130,16 @@ public class Staff extends AbstractModel {
 		return this;
 	}
 
-	@Override
-	public synchronized List<? extends AbstractModel> getChildList() {
-		List childList = (List<Accord>)getAccordList().clone();
-		childList.add(0, getConfig());
-		return childList;
+	private void clearStan() {
+		this.getAccordList().clear();
+		this.focusedIndex = -1;
 	}
+
 	@Override
-	public AbstractModel getFocusedChild() {
-		return getFocusedAccord() != null ? getFocusedAccord() : getConfig();
-	}
+	public AbstractModel getFocusedChild() { return getFocusedAccord(); }
 	@Override
 	protected StaffHandler makeHandler() {
 		return new StaffHandler(this);
-	}
-
-	public Boolean moveFocus(int n) {
-		Boolean stop = getFocusedIndex() + n < -1 || getFocusedIndex() + n > getAccordList().size() - 1;
-		setFocusedIndex(getFocusedIndex() + n);
-
-		return !stop;
 	}
 
 	// getters
@@ -217,12 +192,8 @@ public class Staff extends AbstractModel {
 	}
 
 	public Staff setFocusedIndex(int value) {
-		if (this.getFocusedAccord() != null) {
-			this.getFocusedAccord().setFocusedIndex(-1);
-		}
-		value = value < -1 ? -1 : value;
-		value = value >= getAccordList().size() ? getAccordList().size() - 1 : value;
-		this.focusedIndex = value;
+		if (this.getFocusedAccord() != null) { this.getFocusedAccord().setFocusedIndex(-1); }
+		this.focusedIndex = limit(value, -1, getAccordList().size() - 1);
 		return this;
 	}
 
@@ -246,6 +217,13 @@ public class Staff extends AbstractModel {
 		return true;
 	}
 
+	public Boolean moveFocus(int n) {
+		Boolean stop = getFocusedIndex() + n < -1 || getFocusedIndex() + n > getAccordList().size() - 1;
+		setFocusedIndex(getFocusedIndex() + n);
+
+		return !stop;
+	}
+
 	public void triggerPlayer(Combo combo) {
 		if (PlayMusThread.stop) {
 			PlayMusThread.shutTheFuckUp();
@@ -254,6 +232,10 @@ public class Staff extends AbstractModel {
 		} else {
 			PlayMusThread.stopMusic();
 		}
+	}
+
+	private static int limit(int value, int min, int max) {
+		return Math.min(Math.max(value, min), max);
 	}
 }
 

@@ -19,19 +19,13 @@ public class TactMeasurer {
 	public Boolean inject(Accord accord) {
 		sumFraction = sumFraction.add(accord.getShortestFraction());
 
-		// TODO: replace with config.getFraction()
-		int tactNumerator = parent.getConfig().numerator * 8;
-		int tactDenominator = Staff.DEFAULT_ZNAM;
-		Fraction tactFraction = new Fraction(tactNumerator, tactDenominator);
-
-		if (sumFraction.compareTo(tactFraction) >= 0) {
-			sumFraction = sumFraction.subtract(tactFraction);
+		Boolean finishedTact = false;
+		while (sumFraction.compareTo(parent.getConfig().getTactSize()) >= 0) {
+			sumFraction = sumFraction.subtract(parent.getConfig().getTactSize());
 			++tactCount;
-			return true;
+			finishedTact = true;
 		}
-		else
-		{
-			return false;
-		}
+
+		return finishedTact;
 	}
 }

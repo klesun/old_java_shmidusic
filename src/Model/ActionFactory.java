@@ -1,6 +1,11 @@
 package Model;
 
+import Model.Containers.MajesticWindow;
+import Model.Containers.Panels.MusicPanel;
+import Model.Containers.Storyspace;
 import Model.Staff.Accord.Nota.Nota;
+import Model.Staff.Staff;
+import Model.Staff.StaffConfig.StaffConfig;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -43,6 +48,11 @@ public class ActionFactory {
 
 	public ActionFactory setDo(Consumer<Combo> lambda) {
 		doLambda = (e) -> { lambda.accept(e); return emptyHashMap; };
+		return this;
+	}
+
+	public ActionFactory setDoHuj(Consumer<StaffConfig> lambda) {
+		doLambda = (e) -> { lambda.accept(new StaffConfig(new Staff(new MusicPanel(new Storyspace(new MajesticWindow()))))); return emptyHashMap; };
 		return this;
 	}
 

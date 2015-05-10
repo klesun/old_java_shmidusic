@@ -64,7 +64,8 @@ public class ImageStorage {
 
 	public void reloadNotaImagesFromDisk() {
 		for (int idx = 0; idx < 6; ++idx) {
-			try { notaImgOriginal[idx] = ImageIO.read(new File("../imgs/" + pow(2, idx - 1) + "_sized.png")); } // "pow(2, -1) = 0" i feel so disgusting for myself
+			// "pow(2, -1) = 0" i feel so disgusting for myself
+			try { notaImgOriginal[idx] = ImageIO.read(getClass().getResource("imgs/" + pow(2, idx - 1) + "_sized.png")); }
 			catch (IOException e) { System.out.println(e + " Ноты не читаются!!! " + idx); }
 		}
 	}
@@ -110,13 +111,14 @@ public class ImageStorage {
 	// default images
 
 	public void loadImagesFromDisk() {
-		try {	inst().vseKartinkiOriginal[0] = ImageIO.read(new File("../imgs/vio_sized.png"));
-			inst().vseKartinkiOriginal[1] = ImageIO.read(new File("../imgs/bass_sized.png"));
-			inst().vseKartinkiOriginal[2] = ImageIO.read(new File("../imgs/flat_sized.png"));
-			inst().vseKartinkiOriginal[6] = ImageIO.read(new File("../imgs/sharp_sized.png")); // -_-
-			inst().vseKartinkiOriginal[3] = ImageIO.read(new File("../imgs/MyPointer.png"));
-			inst().vseKartinkiOriginal[4] = ImageIO.read(new File("../imgs/volume.png"));
-			inst().vseKartinkiOriginal[5] = ImageIO.read(new File("../imgs/instrument.png"));
+		try {inst().vseKartinkiOriginal[0] = ImageIO.read(getClass().getResource("imgs/vio_sized.png"));
+			inst().vseKartinkiOriginal[1] = ImageIO.read(getClass().getResource("imgs/bass_sized.png"));
+//			inst().vseKartinkiOriginal[1] = ImageIO.read(getClass().getResource("imgs/bass_sized.png"));
+			inst().vseKartinkiOriginal[2] = ImageIO.read(getClass().getResource("imgs/flat_sized.png"));
+			inst().vseKartinkiOriginal[6] = ImageIO.read(getClass().getResource("imgs/sharp_sized.png")); // -_-
+			inst().vseKartinkiOriginal[3] = ImageIO.read(getClass().getResource("imgs/MyPointer.png"));
+			inst().vseKartinkiOriginal[4] = ImageIO.read(getClass().getResource("imgs/volume.png"));
+			inst().vseKartinkiOriginal[5] = ImageIO.read(getClass().getResource("imgs/instrument.png"));
 		} catch (IOException e) { e.printStackTrace(); System.out.println("Темнишь что-то со своей картинкой..."); }
 		reloadNotaImagesFromDisk();
 	}

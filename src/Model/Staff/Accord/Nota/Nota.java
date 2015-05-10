@@ -114,11 +114,11 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		return result;
 	}
 
-	public int getTimeMiliseconds() {
+	public int getTimeMilliseconds() {
 		int minute = 60 * 1000;
 		StaffConfig config = getParentAccord().getParentStaff().getConfig();
-		return minute * 4 / Staff.DEFAULT_ZNAM / config.valueTempo * getNumerator() / getDenominator();
-		// 4 - будем брать четвертную как основную
+		int semibreveTime = 4 * minute / config.valueTempo;
+		return getFraction().multiply(semibreveTime).intValue();
 	}
 
 	public byte getVolume() {
@@ -210,10 +210,6 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	private static String strIdx(int n){ return Arrays.asList("do","re","mi","fa","so","la","ti").get(n % 12); }
 	private static int tuneToAcademicIndex(int tune) { return Arrays.asList(0,1,1,2,2,3,4,4,5,5,6,6).get(tune % 12); }
 
-	@Override
-	public List<? extends AbstractModel> getChildList() {
-		return new ArrayList<>();
-	}
 	@Override
 	public AbstractModel getFocusedChild() {
 		return null;

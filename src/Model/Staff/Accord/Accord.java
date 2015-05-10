@@ -141,7 +141,7 @@ public class Accord extends AbstractModel {
 
 	public int getShortestTime() {
 		Nota nota = this.getNotaList().stream().reduce(null, (a, b) -> a != null && !a.isLongerThan(b) && !a.getIsMuted() ? a : b);
-		return nota != null ? nota.getTimeMiliseconds() : 0;
+		return nota != null ? nota.getTimeMilliseconds() : 0;
 	}
 
 	public Fraction getShortestFraction() {
@@ -177,10 +177,6 @@ public class Accord extends AbstractModel {
 		return this;
 	}
 
-	@Override
-	public List<? extends AbstractModel> getChildList() {
-		return this.getNotaList();
-	}
 	@Override
 	public AbstractModel getFocusedChild() {
 		return this.getFocusedNota();

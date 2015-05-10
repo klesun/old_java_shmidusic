@@ -20,11 +20,10 @@ public abstract class AbstractModel implements IModel {
 
 	abstract public JSONObject getJsonRepresentation();
 	abstract public IModel reconstructFromJson(JSONObject jsObject) throws JSONException;
-
-	abstract public List<? extends AbstractModel> getChildList();
 	abstract public AbstractModel getFocusedChild();
 
 	abstract protected AbstractHandler makeHandler();
+
 	final public AbstractHandler getHandler() { return this.eventHandler; }
 
 	public abstract void drawOn(Graphics surface, int x, int y);

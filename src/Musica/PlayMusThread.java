@@ -49,14 +49,7 @@ public class PlayMusThread extends Thread {
 		stop = true;
     }
 
-	public static void playAccord(Accord accord)
-	{
-		for (Nota tmp: accord.getNotaList()) {
-			if (accord.getParentStaff().getChannelFlag(tmp.channel)) {
-				playNotu(tmp);
-			}
-		}
-    }
+	public static void playAccord(Accord accord) { accord.getNotaList().forEach(PlayMusThread::playNotu); }
     
     public static int playNotu(Nota nota){
 		if (!nota.getIsMuted()) {

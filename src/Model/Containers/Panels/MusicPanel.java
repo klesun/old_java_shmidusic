@@ -155,7 +155,8 @@ final public class MusicPanel extends JPanel implements IModel {
 			parentWindow.fullscreenMusicPanel.requestFocus();
 			Settings.inst().scale(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_EQUALS));
 		} else {
-			((CardLayout)parentWindow.cards.getLayout()).show(parentWindow.cards, MajesticWindow.CARDS_STORYSPACE);
+			// TODO: aqcuire focus pls
+			((CardLayout) parentWindow.cards.getLayout()).show(parentWindow.cards, MajesticWindow.CARDS_STORYSPACE);
 			Settings.inst().scale(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_MINUS));
 		}
 		this.validate();

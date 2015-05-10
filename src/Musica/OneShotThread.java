@@ -22,7 +22,7 @@ public class OneShotThread extends Thread{
 			
 			offMessage.setMessage(ShortMessage.NOTE_OFF, nota.channel, (byte)nota.tune, 0);
 			try {
-			    Thread.sleep(nota.getTimeMiliseconds());
+			    Thread.sleep(nota.getTimeMilliseconds());
 			} catch (InterruptedException e) {
 			    //System.out.println("Ошибка сна"+e);
 			}

@@ -29,15 +29,12 @@ public class MusicPanelHandler extends AbstractHandler {
 		addCombo(ctrl, k.VK_S).setDo(makeSaveFileDialog(FileProcessor::saveJsonFile, "json"));
 
 		addCombo(ctrl, k.VK_O).setDo(combo -> {
-			JFileChooser chooser = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/new");
+			JFileChooser chooser = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/");
 			chooser.setFileFilter(new FileNameExtensionFilter("Json Midi-music data", "json"));
-			int i = okcancel("Are your sure? Unsaved data will be lost."); // 2 - cancel, 0 - ok очевидно же
-			if (i == 0) {
-				int sVal = chooser.showOpenDialog(getContext().parentWindow);
-				if (sVal == JFileChooser.APPROVE_OPTION) {
-					if (chooser.getSelectedFile().getAbsolutePath().endsWith(".json")) {
-						FileProcessor.openJsonFile(chooser.getSelectedFile(), getContext().getStaff());
-					}
+			int sVal = chooser.showOpenDialog(getContext().parentWindow);
+			if (sVal == JFileChooser.APPROVE_OPTION) {
+				if (chooser.getSelectedFile().getAbsolutePath().endsWith(".json")) {
+					FileProcessor.openJsonFile(chooser.getSelectedFile(), getContext().getStaff());
 				}
 			}
 		});
@@ -72,7 +69,7 @@ public class MusicPanelHandler extends AbstractHandler {
 	// private methods
 
 	final private Consumer<Combo> makeSaveFileDialog(BiConsumer<File, MusicPanel> lambda, String ext) {
-		JFileChooser c2 = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/new");
+		JFileChooser c2 = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/");
 		c2.setFileFilter(new FileNameExtensionFilter(ext + "-file", ext));
 
 		return combo -> {
