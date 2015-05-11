@@ -113,7 +113,6 @@ public class ImageStorage {
 	public void loadImagesFromDisk() {
 		try {inst().vseKartinkiOriginal[0] = ImageIO.read(getClass().getResource("imgs/vio_sized.png"));
 			inst().vseKartinkiOriginal[1] = ImageIO.read(getClass().getResource("imgs/bass_sized.png"));
-//			inst().vseKartinkiOriginal[1] = ImageIO.read(getClass().getResource("imgs/bass_sized.png"));
 			inst().vseKartinkiOriginal[2] = ImageIO.read(getClass().getResource("imgs/flat_sized.png"));
 			inst().vseKartinkiOriginal[6] = ImageIO.read(getClass().getResource("imgs/sharp_sized.png")); // -_-
 			inst().vseKartinkiOriginal[3] = ImageIO.read(getClass().getResource("imgs/MyPointer.png"));

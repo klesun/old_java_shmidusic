@@ -23,10 +23,8 @@ public class ResizableScrollHandler extends AbstractHandler {
 		// design
 
 		context.content.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusGained(FocusEvent e) { context.setBorder(BorderFactory.createLineBorder(Color.GRAY, 3)); }
-			@Override
-			public void focusLost(FocusEvent e) { context.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3)); }
+			public void focusGained(FocusEvent e) { context.gotFocus(); }
+			public void focusLost(FocusEvent e) { context.lostFocus(); }
 		});
 	}
 

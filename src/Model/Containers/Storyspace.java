@@ -38,11 +38,13 @@ public class Storyspace extends JPanel implements IModel {
 		this.setBackground(Color.DARK_GRAY);
 	}
 
-	public void addModelChild(Component /*IModel*/ child) {
+	public ResizableScroll addModelChild(Component /*IModel*/ child) {
 		modelChildList.add(child);
-		this.add(new ResizableScroll(child));
+		ResizableScroll scroll = new ResizableScroll(child);
+		this.add(scroll);
 		this.validate();
 		child.requestFocus();
+		return scroll;
 	}
 
 	// getters

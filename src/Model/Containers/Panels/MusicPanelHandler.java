@@ -22,19 +22,24 @@ public class MusicPanelHandler extends AbstractHandler {
 	@Override
 	protected void initActionMap() {
 
+		JFileChooser jsonChooser = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/");
+		jsonChooser.setFileFilter(new FileNameExtensionFilter("Json Midi-music data", "json"));
+
+		JFileChooser pngChooser = new JFileChooser();
+		pngChooser.setFileFilter(new FileNameExtensionFilter("PNG images", "png"));
+
 		KeyEvent k = new KeyEvent(new JPanel(),0,0,0,0,'h'); // just for constants
 		int ctrl = KeyEvent.CTRL_MASK;
 
-		addCombo(ctrl, k.VK_E).setDo(makeSaveFileDialog(FileProcessor::savePNG, "png"));
-		addCombo(ctrl, k.VK_S).setDo(makeSaveFileDialog(FileProcessor::saveJsonFile, "json"));
+		addCombo(ctrl, k.VK_E).setDo(makeSaveFileDialog(FileProcessor::savePNG, pngChooser, "png"));
+		// TODO: save should use same chooser as open one day
+		addCombo(ctrl, k.VK_S).setDo(makeSaveFileDialog(FileProcessor::saveJsonFile, jsonChooser, "json"));
 
 		addCombo(ctrl, k.VK_O).setDo(combo -> {
-			JFileChooser chooser = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/");
-			chooser.setFileFilter(new FileNameExtensionFilter("Json Midi-music data", "json"));
-			int sVal = chooser.showOpenDialog(getContext().parentWindow);
+			int sVal = jsonChooser.showOpenDialog(getContext().parentWindow);
 			if (sVal == JFileChooser.APPROVE_OPTION) {
-				if (chooser.getSelectedFile().getAbsolutePath().endsWith(".json")) {
-					FileProcessor.openJsonFile(chooser.getSelectedFile(), getContext().getStaff());
+				if (jsonChooser.getSelectedFile().getAbsolutePath().endsWith(".json")) {
+					FileProcessor.openJsonFile(jsonChooser.getSelectedFile(), getContext());
 				}
 			}
 		});
@@ -68,15 +73,12 @@ public class MusicPanelHandler extends AbstractHandler {
 
 	// private methods
 
-	final private Consumer<Combo> makeSaveFileDialog(BiConsumer<File, MusicPanel> lambda, String ext) {
-		JFileChooser c2 = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/");
-		c2.setFileFilter(new FileNameExtensionFilter(ext + "-file", ext));
-
+	final private Consumer<Combo> makeSaveFileDialog(BiConsumer<File, MusicPanel> lambda, JFileChooser chooser, String ext) {
 		return combo -> {
-			int rVal = c2.showSaveDialog(getContext().parentWindow);
+			int rVal = chooser.showSaveDialog(getContext().parentWindow);
 			if (rVal == JFileChooser.APPROVE_OPTION) {
-				File fn = c2.getSelectedFile();
-				if (!fn.getAbsolutePath().endsWith("." + ext)) { fn = new File(fn + "." + ext); }
+				File fn = chooser.getSelectedFile();
+				if (!chooser.getFileFilter().accept(fn)) { fn = new File(fn + "." + ext); }
 				// TODO: prompt on overwrite
 				lambda.accept(fn, getContext());
 			}

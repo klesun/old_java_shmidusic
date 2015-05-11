@@ -28,10 +28,12 @@ final public class MusicPanel extends JPanel implements IModel {
 	public static int MARGIN_H = 1; // TODO: move it into Constants class maybe?
 	final public static int SISDISPLACE = 40;
 
-	private Storyspace parentStoryspace = null;
+	private ResizableScroll storyspaceScroll = null;
 	public MajesticWindow parentWindow = null; // deprecated
 	public MusicPanelHandler handler = null;
 	private Staff staff = null;
+
+	private MusicPanel storyspaceRepresentative = this;
 
 	public MusicPanel(Storyspace parentStoryspace) {
 		this.parentWindow = parentStoryspace.getWindow();
@@ -42,16 +44,14 @@ final public class MusicPanel extends JPanel implements IModel {
 		this.addMouseMotionListener(handler);
 
 		addFocusListener(new FocusAdapter() {
-			@Override
 			public void focusGained(FocusEvent e) { DumpReceiver.eventHandler = handler; }
-			@Override
 			public void focusLost(FocusEvent e) { DumpReceiver.eventHandler = null; }
 		});
 
 		this.setFocusable(true);
 		this.requestFocus();
 
-		(this.parentStoryspace = parentStoryspace).addModelChild(this);
+		storyspaceScroll = parentStoryspace.addModelChild(this);
 
 		repaint();
 	}
@@ -81,9 +81,8 @@ final public class MusicPanel extends JPanel implements IModel {
 		this.repaint();
 	}
 
-	public Scroll getScrollPane() {
-		return Scroll.class.cast(getParent().getParent()); // -_-
-	}
+	public Scroll getScrollPane() { return Scroll.class.cast(getParent().getParent()); } // -_-
+	public ResizableScroll getStoryspaceScroll() { return storyspaceRepresentative.storyspaceScroll; }
 
 	@Deprecated
 	public MusicPanel hideGracefully() {
@@ -147,17 +146,19 @@ final public class MusicPanel extends JPanel implements IModel {
 		repaint();
 	}
 
+	// this method is bad and you should feel bad
 	public void switchFullscreen(Combo combo) {
 		parentWindow.isFullscreen = !parentWindow.isFullscreen;
 		if (parentWindow.isFullscreen) {
+			parentWindow.fullscreenMusicPanel.storyspaceRepresentative = this;
 			parentWindow.fullscreenMusicPanel.setStaff(this.getStaff());
 			((CardLayout)parentWindow.cards.getLayout()).show(parentWindow.cards, parentWindow.CARDS_FULLSCREEN);
 			parentWindow.fullscreenMusicPanel.requestFocus();
 			Settings.inst().scale(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_EQUALS));
 		} else {
-			// TODO: aqcuire focus pls
 			((CardLayout) parentWindow.cards.getLayout()).show(parentWindow.cards, MajesticWindow.CARDS_STORYSPACE);
 			Settings.inst().scale(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_MINUS));
+			storyspaceRepresentative.requestFocus();
 		}
 		this.validate();
 		this.repaint();

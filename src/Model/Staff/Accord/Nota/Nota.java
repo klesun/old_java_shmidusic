@@ -126,7 +126,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 			return 0; // пауза лол какбэ
 		} else {
 			StaffConfig config = getParentAccord().getParentStaff().getConfig();
-			return (byte)(127 * config.getVolumeArray()[channel] / 100);
+			return (byte)(127 * config.getVolume(channel) / 100);
 		}
 	}
 

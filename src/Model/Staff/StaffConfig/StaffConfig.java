@@ -28,8 +28,10 @@ public class StaffConfig extends AbstractModel {
 	public int valueTempo = 120; // quarter beats per minute
 	public int numerator = 8;
 
+	// maybe create Channel class if we get more properties
 	private int[] instrumentArray = {0, 65, 66, 43, 19, 52, 6, 91, 9, 14};
 	private int[] volumeArray = {60, 60, 60, 60, 60, 60, 60, 60, 60, 60};
+	private Boolean[] muteFlagArray = {false, false, false, false, false, false, false, false, false, false}; // not stored in file for now
 
 	public StaffConfig(Staff staff) {
 		super(staff);
@@ -133,4 +135,7 @@ public class StaffConfig extends AbstractModel {
 		return this.instrumentArray;
 	}
 	public int[] getVolumeArray() { return this.volumeArray; }
+	public Boolean[] getMuteFlagArray() { return this.muteFlagArray; }
+
+	public int getVolume(int channel) { return muteFlagArray[channel] ? 0 : volumeArray[channel]; }
 }
