@@ -3,18 +3,15 @@ package Model.Containers;
 import Model.AbstractHandler;
 import Model.ComboMouse;
 
-import javax.swing.*;
 import java.awt.*;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 
-public class ResizableScrollHandler extends AbstractHandler {
+public class StoryspaceScrollHandler extends AbstractHandler {
 
 	final private static int MIN_WIDTH = 10;
 	final private static int MIN_HEIGHT = 10;
 
-	public ResizableScrollHandler(ResizableScroll context) {
+	public StoryspaceScrollHandler(StoryspaceScroll context) {
 		super(context);
 		context.addKeyListener(this);
 		context.addMouseListener(this);
@@ -25,6 +22,10 @@ public class ResizableScrollHandler extends AbstractHandler {
 		context.content.addFocusListener(new FocusAdapter() {
 			public void focusGained(FocusEvent e) { context.gotFocus(); }
 			public void focusLost(FocusEvent e) { context.lostFocus(); }
+		});
+
+		context.getVerticalScrollBar().addMouseListener(new MouseAdapter() {
+			public void mouseEntered(MouseEvent e) { context.getVerticalScrollBar().setCursor(Cursor.getDefaultCursor()); }
 		});
 	}
 
@@ -40,11 +41,16 @@ public class ResizableScrollHandler extends AbstractHandler {
 				getContext().validate();
 			} else {
 				// move panel
+				Point point = mouse.getPoint();
 				getContext().setLocation(getContext().getX() + mouse.dx, getContext().getY() + mouse.dy);
+				point.translate(-mouse.dx, -mouse.dy);
 			}
 			return true;
 		} else { return false; }
 	}
+
+	@Override
+	public Boolean mousePressedFinal(ComboMouse combo) { return combo.leftButton || combo.rightButton; }
 
 	@Override
 	public Boolean mouseMovedFinal(ComboMouse combo) {
@@ -59,5 +65,5 @@ public class ResizableScrollHandler extends AbstractHandler {
 	}
 
 	@Override
-	public ResizableScroll getContext() { return ResizableScroll.class.cast(super.getContext()); }
+	public StoryspaceScroll getContext() { return StoryspaceScroll.class.cast(super.getContext()); }
 }

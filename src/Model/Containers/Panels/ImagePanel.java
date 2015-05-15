@@ -2,7 +2,7 @@ package Model.Containers.Panels;
 
 import Gui.ImageStorage;
 import Model.*;
-import Model.Containers.ResizableScroll;
+import Model.Containers.StoryspaceScroll;
 import Model.Containers.Storyspace;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,13 +14,13 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.function.Consumer;
 
-public class ImagePanel extends JPanel implements IModel {
+public class ImagePanel extends JPanel implements IStoryspacePanel {
 
 	private BufferedImage image = null;
 	private JLabel imageLabel = null;
 	private String imagePath = "";
 
-	private Storyspace parentStoryspace = null;
+	private StoryspaceScroll scroll = null;
 	private AbstractHandler handler = null;
 
 	public ImagePanel(Storyspace parentStoryspace) {
@@ -48,13 +48,15 @@ public class ImagePanel extends JPanel implements IModel {
 		this.addMouseListener(handler);
 		this.addMouseMotionListener(handler);
 
-		(this.parentStoryspace = parentStoryspace).addModelChild(this);
+		this.scroll = parentStoryspace.addModelChild(this);
 	}
 
 	@Override
+	public StoryspaceScroll getStoryspaceScroll() { return scroll; }
+	@Override
 	public AbstractModel getFocusedChild() { return null; }
 	@Override
-	public ResizableScroll getModelParent() { return ResizableScroll.class.cast(getParent().getParent()); } // =D
+	public StoryspaceScroll getModelParent() { return StoryspaceScroll.class.cast(getParent().getParent()); } // =D
 	@Override
 	public AbstractHandler getHandler() { return this.handler; }
 
@@ -76,6 +78,8 @@ public class ImagePanel extends JPanel implements IModel {
 	private void loadImage(File file) {
 		this.imagePath = file.getAbsolutePath();
 		this.image = ImageStorage.inst().openImage(file);
+
+		scroll.setTitle(file.getName());
 
 		this.remove(imageLabel);
 		this.add(imageLabel = new JLabel(new ImageIcon(image)));

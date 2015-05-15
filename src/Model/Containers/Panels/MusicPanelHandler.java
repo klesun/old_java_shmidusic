@@ -33,14 +33,12 @@ public class MusicPanelHandler extends AbstractHandler {
 
 		addCombo(ctrl, k.VK_E).setDo(makeSaveFileDialog(FileProcessor::savePNG, pngChooser, "png"));
 		// TODO: save should use same chooser as open one day
-		addCombo(ctrl, k.VK_S).setDo(makeSaveFileDialog(FileProcessor::saveJsonFile, jsonChooser, "json"));
+		addCombo(ctrl, k.VK_S).setDo(makeSaveFileDialog(FileProcessor::saveMusicPanel, jsonChooser, "json"));
 
 		addCombo(ctrl, k.VK_O).setDo(combo -> {
 			int sVal = jsonChooser.showOpenDialog(getContext().parentWindow);
 			if (sVal == JFileChooser.APPROVE_OPTION) {
-				if (jsonChooser.getSelectedFile().getAbsolutePath().endsWith(".json")) {
-					FileProcessor.openJsonFile(jsonChooser.getSelectedFile(), getContext());
-				}
+				FileProcessor.openMusicPanel(jsonChooser.getSelectedFile(), getContext());
 			}
 		});
 

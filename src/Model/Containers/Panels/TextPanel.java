@@ -1,39 +1,40 @@
 package Model.Containers.Panels;
 
+import Gui.Constants;
 import Model.AbstractHandler;
 import Model.AbstractModel;
 import Model.ComboMouse;
-import Model.Containers.ResizableScroll;
+import Model.Containers.StoryspaceScroll;
 import Model.Containers.Storyspace;
-import Model.IModel;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.swing.*;
 
-public class TextPanel extends JTextArea implements IModel {
+public class TextPanel extends JTextArea implements IStoryspacePanel {
 
-	private Storyspace parentStoryspace = null;
+	private StoryspaceScroll scroll = null;
 	private AbstractHandler handler = null;
 
 	public TextPanel(Storyspace parentStoryspace) {
 		super();
 		this.setLineWrap(true);
+		this.setFont(Constants.PROJECT_FONT);
 		handler = new AbstractHandler(this) {
-			@Override
 			public Boolean mousePressedFinal(ComboMouse combo) { return combo.leftButton; }
-			@Override
 			public Boolean mouseDraggedFinal(ComboMouse combo) { return combo.leftButton; }
 		};
 		this.addMouseListener(handler);
 		this.addMouseMotionListener(handler);
-		(this.parentStoryspace = parentStoryspace).addModelChild(this);
+		scroll = parentStoryspace.addModelChild(this);
 	}
 
 	@Override
+	public StoryspaceScroll getStoryspaceScroll() { return scroll; }
+	@Override
 	public AbstractModel getFocusedChild() { return null; } // no Model children
 	@Override
-	public ResizableScroll getModelParent() { return ResizableScroll.class.cast(getParent().getParent()); } // =D
+	public StoryspaceScroll getModelParent() { return StoryspaceScroll.class.cast(getParent().getParent()); } // =D
 	@Override
 	public AbstractHandler getHandler() { return this.handler; }
 

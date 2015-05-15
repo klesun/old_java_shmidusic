@@ -33,7 +33,7 @@ public class MajesticWindow extends JFrame implements ActionListener {
 		this.add(cards);
 
 		cards.add(storyspace = new Storyspace(this), CARDS_STORYSPACE);
-		cards.add(new Scroll(fullscreenMusicPanel = new MusicPanel(storyspace).hideGracefully()), CARDS_FULLSCREEN);
+		cards.add(new Scroll(fullscreenMusicPanel = new MusicPanel(this)), CARDS_FULLSCREEN);
 
 		// for user-friendship there will be one initial staff
 		storyspace.addMusicBlock(Combo.makeFake()).switchFullscreen(Combo.makeFake());

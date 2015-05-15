@@ -3,19 +3,25 @@ package Model.Containers;
 import Model.AbstractHandler;
 import Model.Combo;
 import Model.ComboMouse;
+import Model.Containers.Panels.IStoryspacePanel;
 import Model.Containers.Panels.ImagePanel;
 import Model.Containers.Panels.MusicPanel;
 import Model.Containers.Panels.TextPanel;
 import Model.IModel;
 import OverridingDefaultClasses.Scroll;
+import Tools.FileProcessor;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class Storyspace extends JPanel implements IModel {
 
@@ -38,9 +44,9 @@ public class Storyspace extends JPanel implements IModel {
 		this.setBackground(Color.DARK_GRAY);
 	}
 
-	public ResizableScroll addModelChild(Component /*IModel*/ child) {
+	public StoryspaceScroll addModelChild(Component /*IModel*/ child) {
 		modelChildList.add(child);
-		ResizableScroll scroll = new ResizableScroll(child);
+		StoryspaceScroll scroll = new StoryspaceScroll(child);
 		this.add(scroll);
 		this.validate();
 		child.requestFocus();
@@ -66,7 +72,12 @@ public class Storyspace extends JPanel implements IModel {
 	@Override
 	public JSONObject getJsonRepresentation() {
 		JSONObject dict = new JSONObject();
-		dict.put("childBlockList", new JSONArray(modelChildList.stream().map(child -> IModel.class.cast(child).getJsonRepresentation()).toArray()));
+		dict.put("childBlockList", new JSONArray(modelChildList.stream().map(child -> {
+			JSONObject childJs = IModel.class.cast(child).getJsonRepresentation();
+			childJs.put("scroll", IStoryspacePanel.class.cast(child).getStoryspaceScroll().getJsonRepresentation());
+			// maybe also put child class name from here
+			return childJs;
+		}).toArray()));
 		return dict;
 	}
 	@Override
@@ -77,8 +88,8 @@ public class Storyspace extends JPanel implements IModel {
 		for (int i = 0; i < childBlockList.length(); ++i) {
 			JSONObject childJs = childBlockList.getJSONObject(i);
 			Component /*IModel*/ child = makeChildByClassName(childJs.getString("className"));
+			IStoryspacePanel.class.cast(child).getStoryspaceScroll().reconstructFromJson(childJs.getJSONObject("scroll"));
 			IModel.class.cast(child).reconstructFromJson(childJs);
-			this.addModelChild(child);
 		}
 		return this;
 	}
@@ -87,13 +98,17 @@ public class Storyspace extends JPanel implements IModel {
 
 	private static Class<?extends Component>[] childClasses = new Class[]{TextPanel.class, ImagePanel.class, MusicPanel.class};
 
-	private static Component /* IModel */ makeChildByClassName(String className) {
+	private Component /* IModel */ makeChildByClassName(String className) {
 		Component obj = null;
 		for (int i = 0; i < childClasses.length; ++i) {
-			if (childClasses[i].getSimpleName() == className) {
-				try { obj = childClasses[i].newInstance(); }
-				catch (InstantiationException e) { e.printStackTrace(); Runtime.getRuntime().halt(666); }
-				catch (IllegalAccessException e) { e.printStackTrace(); Runtime.getRuntime().halt(777); }
+			if (childClasses[i].getSimpleName().equals(className)) {
+				try {
+					obj = childClasses[i].getDeclaredConstructor(getClass()).newInstance(this);
+				} catch (Exception e) {
+					childClasses[i].getSimpleName();
+					System.out.println(e.getMessage());
+					e.printStackTrace(); Runtime.getRuntime().halt(666);
+				}
 			}
 		}
 		return obj;
@@ -102,15 +117,27 @@ public class Storyspace extends JPanel implements IModel {
 	// event handles
 	
 	private AbstractHandler makeHandler() {
+		JFileChooser jsonChooser = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/");
+		jsonChooser.setFileFilter(new FileNameExtensionFilter("Json Storyspace data", "gson"));
+
 		return new AbstractHandler(this) {
 			@Override
 			protected void initActionMap() {
-				addCombo(ctrl, k.VK_M).setDo(((Storyspace) this.getContext())::addMusicBlock);
-				addCombo(ctrl, k.VK_T).setDo(((Storyspace) this.getContext())::addTextBlock);
-				addCombo(ctrl, k.VK_I).setDo(((Storyspace) this.getContext())::addImageBlock);
+				addCombo(ctrl, k.VK_M).setDo((this.getContext())::addMusicBlock);
+				addCombo(ctrl, k.VK_T).setDo((this.getContext())::addTextBlock);
+				addCombo(ctrl, k.VK_I).setDo((this.getContext())::addImageBlock);
 
-				addCombo(ctrl, k.VK_EQUALS).setDo(((Storyspace) this.getContext())::scale);
-				addCombo(ctrl, k.VK_MINUS).setDo(((Storyspace) this.getContext())::scale);
+				addCombo(ctrl, k.VK_G).setDo(makeSaveFileDialog(FileProcessor::saveStoryspace, jsonChooser, "gson"));
+				addCombo(ctrl, k.VK_R).setDo(combo -> {
+					int sVal = jsonChooser.showOpenDialog(window);
+					if (sVal == JFileChooser.APPROVE_OPTION) {
+						FileProcessor.openStoryspace(jsonChooser.getSelectedFile(), getContext());
+					}
+					makeSaveFileDialog(FileProcessor::saveStoryspace, jsonChooser, "gson");
+				});
+
+				addCombo(ctrl, k.VK_EQUALS).setDo((this.getContext())::scale);
+				addCombo(ctrl, k.VK_MINUS).setDo((this.getContext())::scale);
 			}
 			@Override
 			public Boolean mousePressedFinal(ComboMouse mouse) {
@@ -125,6 +152,20 @@ public class Storyspace extends JPanel implements IModel {
 					-> component.setLocation(component.getX() + mouse.dx, component.getY() + mouse.dy));
 				mouseLocation.move(mouse.dx, mouse.dy);
 				return true;
+			}
+			@Override
+			public Storyspace getContext() { return (Storyspace)super.getContext(); }
+		};
+	}
+
+	final private Consumer<Combo> makeSaveFileDialog(BiConsumer<File, Storyspace> lambda, JFileChooser chooser, String ext) {
+		return combo -> {
+			int rVal = chooser.showSaveDialog(getWindow());
+			if (rVal == JFileChooser.APPROVE_OPTION) {
+				File fn = chooser.getSelectedFile();
+				if (!chooser.getFileFilter().accept(fn)) { fn = new File(fn + "." + ext); }
+				// TODO: prompt on overwrite
+				lambda.accept(fn, this);
 			}
 		};
 	}

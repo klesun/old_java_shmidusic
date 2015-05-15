@@ -5,9 +5,8 @@ import Midi.DumpReceiver;
 import Model.AbstractModel;
 import Model.Combo;
 import Model.Containers.MajesticWindow;
-import Model.Containers.ResizableScroll;
+import Model.Containers.StoryspaceScroll;
 import Model.Containers.Storyspace;
-import Model.IModel;
 import Model.Staff.Staff;
 import OverridingDefaultClasses.Scroll;
 import org.json.JSONException;
@@ -22,13 +21,13 @@ import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 
 
-final public class MusicPanel extends JPanel implements IModel {
+final public class MusicPanel extends JPanel implements IStoryspacePanel {
 
 	public int MARGIN_V = 15; // Сколько отступов сделать сверху перед рисованием полосочек // TODO: move it into Constants class maybe? // eliminate it nahuj maybe?
 	public static int MARGIN_H = 1; // TODO: move it into Constants class maybe?
 	final public static int SISDISPLACE = 40;
 
-	private ResizableScroll storyspaceScroll = null;
+	private StoryspaceScroll storyspaceScroll = null;
 	public MajesticWindow parentWindow = null; // deprecated
 	public MusicPanelHandler handler = null;
 	private Staff staff = null;
@@ -37,6 +36,16 @@ final public class MusicPanel extends JPanel implements IModel {
 
 	public MusicPanel(Storyspace parentStoryspace) {
 		this.parentWindow = parentStoryspace.getWindow();
+		thisMiddle();
+		storyspaceScroll = parentStoryspace.addModelChild(this);
+	}
+
+	public MusicPanel(MajesticWindow window) {
+		this.parentWindow = window;
+		thisMiddle();
+	}
+
+	private void thisMiddle() {
 		this.staff = new Staff(this);
 
 		this.addKeyListener(handler = new MusicPanelHandler(this));
@@ -50,8 +59,6 @@ final public class MusicPanel extends JPanel implements IModel {
 
 		this.setFocusable(true);
 		this.requestFocus();
-
-		storyspaceScroll = parentStoryspace.addModelChild(this);
 
 		repaint();
 	}
@@ -82,24 +89,17 @@ final public class MusicPanel extends JPanel implements IModel {
 	}
 
 	public Scroll getScrollPane() { return Scroll.class.cast(getParent().getParent()); } // -_-
-	public ResizableScroll getStoryspaceScroll() { return storyspaceRepresentative.storyspaceScroll; }
-
-	@Deprecated
-	public MusicPanel hideGracefully() {
-		// funny thing, we get fake empty Scroll because fullscreen MusicPanel
-		// is MusicPanel too and is placed to Storyspace as well
-		this.getScrollPane().setVisible(false);
-		return this;
-	}
+	@Override
+	public StoryspaceScroll getStoryspaceScroll() { return storyspaceRepresentative.storyspaceScroll; }
 
 	// IModel implementation
 
 	@Override
 	public AbstractModel getFocusedChild() { return getStaff(); }
 	@Override
-	public ResizableScroll getModelParent() {
-		return getScrollPane() instanceof ResizableScroll
-			? ResizableScroll.class.cast(getScrollPane())
+	public StoryspaceScroll getModelParent() {
+		return getScrollPane() instanceof StoryspaceScroll
+			? StoryspaceScroll.class.cast(getScrollPane())
 			: null;
 	}
 	@Override
@@ -109,7 +109,7 @@ final public class MusicPanel extends JPanel implements IModel {
 	public JSONObject getJsonRepresentation() {
 		JSONObject dict = new JSONObject();
 		dict.put("className", getClass().getSimpleName());
-		dict.put("staff", getStaff());
+		dict.put("staff", getStaff().getJsonRepresentation());
 		return dict;
 	}
 	@Override
