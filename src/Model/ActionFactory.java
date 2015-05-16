@@ -1,14 +1,12 @@
 package Model;
 
-import Model.Containers.MajesticWindow;
-import Model.Containers.Panels.MusicPanel;
-import Model.Containers.Storyspace;
-import Model.Staff.Accord.Nota.Nota;
-import Model.Staff.Staff;
-import Model.Staff.StaffConfig.StaffConfig;
+import Main.MajesticWindow;
+import Storyspace.Music.MusicPanel;
+import Storyspace.Storyspace;
+import Storyspace.Music.Staff.Staff;
+import Storyspace.Music.Staff.StaffConfig.StaffConfig;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.function.*;
 

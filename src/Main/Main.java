@@ -1,8 +1,7 @@
 package Main;
 
 import Gui.ImageStorage;
-import Model.Containers.MajesticWindow;
-import Midi.DeviceEbun;
+import Stuff.Midi.DeviceEbun;
 
 import java.io.*;
 public class Main {

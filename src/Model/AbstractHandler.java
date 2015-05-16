@@ -1,6 +1,6 @@
 package Model;
 
-import Model.Containers.Panels.MusicPanel;
+import Storyspace.Music.MusicPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,8 +8,6 @@ import java.awt.event.*;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 abstract public class AbstractHandler implements KeyListener, MouseListener, MouseMotionListener {
 
