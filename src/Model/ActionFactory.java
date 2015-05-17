@@ -1,10 +1,10 @@
 package Model;
 
 import Main.MajesticWindow;
-import Storyspace.Music.MusicPanel;
+import Storyspace.Staff.StaffPanel;
 import Storyspace.Storyspace;
-import Storyspace.Music.Staff.Staff;
-import Storyspace.Music.Staff.StaffConfig.StaffConfig;
+import Storyspace.Staff.Staff;
+import Storyspace.Staff.StaffConfig.StaffConfig;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,8 +14,8 @@ public class ActionFactory {
 
 	final private static HashMap<String, Object> emptyHashMap = new HashMap<>();
 
-	public Function<Combo, Map<String, Object>> doLambda = (combo) -> { return null; };
-	public BiFunction<Combo, Map<String, Object>, Boolean> undoLambda = (combo, paramsForUndo) -> { return false; };
+	public Function<Combo, Map<String, Object>> doLambda = (combo) -> null;
+	public BiFunction<Combo, Map<String, Object>, Boolean> undoLambda = (combo, paramsForUndo) -> false;
 
 	public Combo combo = null;
 
@@ -50,7 +50,7 @@ public class ActionFactory {
 	}
 
 	public ActionFactory setDoHuj(Consumer<StaffConfig> lambda) {
-		doLambda = (e) -> { lambda.accept(new StaffConfig(new Staff(new MusicPanel(new Storyspace(new MajesticWindow()))))); return emptyHashMap; };
+		doLambda = (e) -> { lambda.accept(new StaffConfig(new Staff(new StaffPanel(new Storyspace(new MajesticWindow()))))); return emptyHashMap; };
 		return this;
 	}
 

@@ -62,12 +62,7 @@ public class ImagePanel extends JPanel implements IStoryspacePanel {
 	public AbstractHandler getHandler() { return this.handler; }
 
 	@Override
-	public JSONObject getJsonRepresentation() {
-		JSONObject dict = new JSONObject();
-		dict.put("className", getClass().getSimpleName());
-		dict.put("imagePath", this.imagePath);
-		return dict;
-	}
+	public void getJsonRepresentation(JSONObject dict) { dict.put("imagePath", this.imagePath); }
 	@Override
 	public ImagePanel reconstructFromJson(JSONObject jsObject) throws JSONException {
 		this.loadImage(new File(jsObject.getString("imagePath")));

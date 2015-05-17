@@ -3,6 +3,7 @@ package Main;
 import Gui.ImageStorage;
 import Stuff.Midi.DeviceEbun;
 
+import javax.swing.*;
 import java.io.*;
 public class Main {
 
@@ -20,6 +21,12 @@ public class Main {
 		} catch (Exception e) {
 			System.out.println("blablablabalall");
 		}
+
+
+		// are we cool?
+		UIManager.getDefaults().put("ScrollPane.ancestorInputMap",
+			new UIDefaults.LazyInputMap(new Object[]{}));
+
 
 		// TODO: encapsulate somewhere
 		ImageStorage.inst().loadImagesFromDisk();

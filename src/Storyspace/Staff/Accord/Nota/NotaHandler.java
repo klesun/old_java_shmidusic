@@ -1,4 +1,4 @@
-package Storyspace.Music.Staff.Accord.Nota;
+package Storyspace.Staff.Accord.Nota;
 
 import Model.AbstractHandler;
 import Model.Combo;
@@ -30,7 +30,7 @@ public class NotaHandler extends AbstractHandler {
 
 		for (Integer i: Combo.getNumberKeyList()) {
 			addCombo(0, i).setDo2((combo) -> {
-				int lastChan = getContext().channel;
+				int lastChan = getContext().getChannel();
 				getContext().setChannel(combo.getPressedNumber());
 				return new HashMap<String, Object>() {{ put("lastChan", lastChan); }};
 			}).setUndo((combo, paramsForUndo) -> { getContext().setChannel((Integer) paramsForUndo.get("lastChan")); });

@@ -2,7 +2,8 @@
 package Model;
 
 import java.awt.Graphics;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import Gui.Settings;
 import org.json.JSONException;
@@ -18,7 +19,9 @@ public abstract class AbstractModel implements IModel {
 		this.eventHandler = this.makeHandler();
 	}
 
-	abstract public JSONObject getJsonRepresentation();
+	final public JSONObject getJsonRepresentation() {
+		return Helper.getJsonRepresentation(this);
+	}
 	abstract public IModel reconstructFromJson(JSONObject jsObject) throws JSONException;
 	abstract public AbstractModel getFocusedChild();
 
@@ -36,4 +39,5 @@ public abstract class AbstractModel implements IModel {
 
 	final public int dx() { return Settings.getStepWidth(); }
 	final public int dy() { return Settings.getStepHeight(); }
+	final protected static int limit(int value, int min, int max) { return Math.min(Math.max(value, min), max); }
 }

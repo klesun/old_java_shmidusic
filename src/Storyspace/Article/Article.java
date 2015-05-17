@@ -2,9 +2,12 @@ package Storyspace.Article;
 
 import Model.AbstractHandler;
 import Model.AbstractModel;
+import Model.Helper;
 import Storyspace.IStoryspacePanel;
 import Storyspace.StoryspaceScroll;
 import Storyspace.Storyspace;
+import com.google.common.collect.Lists;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -29,19 +32,14 @@ public class Article extends JPanel implements IStoryspacePanel {
         this.setBackground(Color.CYAN);
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-		handler = new AbstractHandler(this) {
-//			public Boolean mousePressedFinal(ComboMouse combo) { return combo.leftButton; }
-//			public Boolean mouseDraggedFinal(ComboMouse combo) { return combo.leftButton; }
-		};
-//		this.addMouseListener(handler);
-//		this.addMouseMotionListener(handler);
+		handler = new AbstractHandler(this) {};
 
         addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
+			@Override
+			public void componentResized(ComponentEvent e) {
 				sukaSdelajNormalnijRazmer();
-            }
-        });
+			}
+		});
 
 		scroll = parentStoryspace.addModelChild(this);
 	}
@@ -66,8 +64,8 @@ public class Article extends JPanel implements IStoryspacePanel {
 		par.setPreferredSize(new Dimension(width, height));
 	}
 
-	private Paragraph addNewParagraph(String text) {
-		Paragraph par = new Paragraph(this).setTextValue(text);
+	private Paragraph addNewParagraph() {
+		Paragraph par = new Paragraph(this);
         parList.add(par); // logic
 		this.add(par); // gui
 		fixParagraphWidth(par);
@@ -89,6 +87,8 @@ public class Article extends JPanel implements IStoryspacePanel {
 		return this;
 	}
 
+	private List<Paragraph> getParList() { return parList; }
+
 	@Override
 	public StoryspaceScroll getStoryspaceScroll() { return scroll; }
 	@Override
@@ -99,21 +99,20 @@ public class Article extends JPanel implements IStoryspacePanel {
 	public AbstractHandler getHandler() { return this.handler; }
 
 	@Override
-	public JSONObject getJsonRepresentation() {
-		JSONObject dict = new JSONObject();
-		dict.put("className", getClass().getSimpleName());
-		dict.put("text", this.getWholeText());
-		return dict;
+	public void getJsonRepresentation(JSONObject dict) {
+		dict.put("paragraphList", new JSONArray(getParList().stream().map(p -> Helper.getJsonRepresentation(p)).toArray()));
 	}
 
 	@Override
 	public Article reconstructFromJson(JSONObject jsObject) throws JSONException {
 		this.clearChildList();
-		String text = jsObject.getString("text");
-		String[] parList = text.split("\n");
-		for (String par: parList) {
-			this.addNewParagraph(par);
+
+		JSONArray parJsonList = jsObject.getJSONArray("paragraphList");
+		for (int idx = 0; idx < parJsonList.length(); ++idx) {
+			JSONObject childJs = parJsonList.getJSONObject(idx);
+			this.addNewParagraph().reconstructFromJson(childJs);
 		}
+
 		return this;
 	}
 }

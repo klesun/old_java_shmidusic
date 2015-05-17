@@ -1,6 +1,6 @@
-package Storyspace.Music.Staff;
+package Storyspace.Staff;
 
-import Storyspace.Music.Staff.Accord.Accord;
+import Storyspace.Staff.Accord.Accord;
 import org.apache.commons.math3.fraction.Fraction;
 
 public class TactMeasurer {

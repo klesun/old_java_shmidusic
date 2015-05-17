@@ -1,15 +1,13 @@
 package Storyspace;
 
 import Main.MajesticWindow;
-import Model.AbstractHandler;
-import Model.Combo;
-import Model.ComboMouse;
+import Model.*;
 import Storyspace.Image.ImagePanel;
-import Storyspace.Music.MusicPanel;
+import Storyspace.Staff.StaffPanel;
 import Storyspace.Article.Article;
-import Model.IModel;
 import Stuff.OverridingDefaultClasses.Scroll;
 import Stuff.Tools.FileProcessor;
+import Stuff.Tools.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,8 +18,10 @@ import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class Storyspace extends JPanel implements IModel {
 
@@ -70,15 +70,13 @@ public class Storyspace extends JPanel implements IModel {
 	public AbstractHandler getHandler() { return this.handler; }
 
 	@Override
-	public JSONObject getJsonRepresentation() {
-		JSONObject dict = new JSONObject();
+	public void getJsonRepresentation(JSONObject dict) {
 		dict.put("childBlockList", new JSONArray(modelChildList.stream().map(child -> {
-			JSONObject childJs = IModel.class.cast(child).getJsonRepresentation();
-			childJs.put("scroll", IStoryspacePanel.class.cast(child).getStoryspaceScroll().getJsonRepresentation());
-			// maybe also put child class name from here
+			JSONObject childJs = Helper.getJsonRepresentation((IModel)child);
+			childJs.put("scroll", Helper.getJsonRepresentation(IStoryspacePanel.class.cast(child).getStoryspaceScroll()));
+			childJs.put("className", child.getClass().getSimpleName());
 			return childJs;
 		}).toArray()));
-		return dict;
 	}
 	@Override
 	public Storyspace reconstructFromJson(JSONObject jsObject) throws JSONException {
@@ -88,7 +86,9 @@ public class Storyspace extends JPanel implements IModel {
 		for (int i = 0; i < childBlockList.length(); ++i) {
 			JSONObject childJs = childBlockList.getJSONObject(i);
 			Component /*IModel*/ child = makeChildByClassName(childJs.getString("className"));
-			IStoryspacePanel.class.cast(child).getStoryspaceScroll().reconstructFromJson(childJs.getJSONObject("scroll"));
+			IStoryspacePanel.class.cast(child)
+					.getStoryspaceScroll()
+					.reconstructFromJson(childJs.getJSONObject("scroll"));
 			IModel.class.cast(child).reconstructFromJson(childJs);
 		}
 		return this;
@@ -96,14 +96,13 @@ public class Storyspace extends JPanel implements IModel {
 
 	// private methods
 
-	private static Class<?extends Component>[] childClasses = new Class[]{Article.class, ImagePanel.class, MusicPanel.class};
+	private static Class<?extends Component>[] childClasses = new Class[]{Article.class, ImagePanel.class, StaffPanel.class};
 
 	private Component /* IModel */ makeChildByClassName(String className) {
-		Component obj = null;
 		for (int i = 0; i < childClasses.length; ++i) {
 			if (childClasses[i].getSimpleName().equals(className)) {
 				try {
-					obj = childClasses[i].getDeclaredConstructor(getClass()).newInstance(this);
+					return childClasses[i].getDeclaredConstructor(getClass()).newInstance(this);
 				} catch (Exception e) {
 					childClasses[i].getSimpleName();
 					System.out.println(e.getMessage());
@@ -111,7 +110,16 @@ public class Storyspace extends JPanel implements IModel {
 				}
 			}
 		}
-		return obj;
+
+		Logger.fatal("Invalid className, Storyspace denies this child [" + className + "]");
+		return null;
+	}
+
+	public List<Article> getArticles() {
+		return modelChildList.stream()
+				.filter(child -> child instanceof Article)
+				.map(child -> Article.class.cast(child))
+				.collect(Collectors.toList());
 	}
 
 	// event handles
@@ -189,7 +197,7 @@ public class Storyspace extends JPanel implements IModel {
 		}
 	}
 
-	public MusicPanel addMusicBlock(Combo combo) { return new MusicPanel(this); }
+	public StaffPanel addMusicBlock(Combo combo) { return new StaffPanel(this); }
 	public void addTextBlock(Combo combo) { new Article(this); }
 	public void addImageBlock(Combo combo) { new ImagePanel(this); }
 }

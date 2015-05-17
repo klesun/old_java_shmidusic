@@ -8,6 +8,6 @@ public interface IModel {
 	IModel getModelParent();
 	AbstractHandler getHandler();
 
-	JSONObject getJsonRepresentation();
+	void getJsonRepresentation(JSONObject dict);
 	IModel reconstructFromJson(JSONObject jsObject) throws JSONException;
 }

@@ -1,7 +1,7 @@
 package Main;
 
 import Model.Combo;
-import Storyspace.Music.MusicPanel;
+import Storyspace.Staff.StaffPanel;
 import Storyspace.Storyspace;
 import Stuff.OverridingDefaultClasses.Scroll;
 
@@ -11,7 +11,7 @@ import java.awt.*;
 
 public class MajesticWindow extends JFrame {
 
-	public MusicPanel fullscreenMusicPanel;
+	public StaffPanel fullscreenStaffPanel;
 	public Storyspace storyspace;
 
 	int XP_MINWIDTH = 1024;
@@ -33,7 +33,7 @@ public class MajesticWindow extends JFrame {
 		this.add(cards);
 
 		cards.add(storyspace = new Storyspace(this), CARDS_STORYSPACE);
-		cards.add(new Scroll(fullscreenMusicPanel = new MusicPanel(this)), CARDS_FULLSCREEN);
+		cards.add(new Scroll(fullscreenStaffPanel = new StaffPanel(this)), CARDS_FULLSCREEN);
 
 		// for user-friendship there will be one initial staff
 		storyspace.addMusicBlock(Combo.makeFake()).switchFullscreen(Combo.makeFake());

@@ -1,4 +1,4 @@
-package Storyspace.Music.Staff.Accord;
+package Storyspace.Staff.Accord;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -13,8 +13,8 @@ import org.json.JSONObject;
 import Gui.Constants;
 import Gui.Settings;
 import Model.AbstractModel;
-import Storyspace.Music.Staff.Accord.Nota.Nota;
-import Storyspace.Music.Staff.Staff;
+import Storyspace.Staff.Accord.Nota.Nota;
+import Storyspace.Staff.Staff;
 import Stuff.Tools.Fp;
 
 import java.util.Arrays;
@@ -40,11 +40,9 @@ public class Accord extends AbstractModel {
 	}
 
 	@Override
-	public JSONObject getJsonRepresentation() {
-		JSONObject dict = new JSONObject();
+	public void getJsonRepresentation(JSONObject dict) {
 		dict.put("notaList", new JSONArray(getNotaList().stream().map(n -> n.getJsonRepresentation()).toArray()));
 		dict.put("slog", this.slog);
-		return dict;
 	}
 
 	@Override
@@ -135,7 +133,7 @@ public class Accord extends AbstractModel {
 	}
 
 	public Boolean isHighestBotommedToFitSystem() {
-		Nota nota = this.getNotaList().stream().reduce(null, (a, b) -> a != null && a.tune > b.tune ? a : b);
+		Nota nota = this.getNotaList().stream().reduce(null, (a, b) -> a != null && a.getTune() > b.getTune() ? a : b);
 		return nota != null ? nota.isBotommedToFitSystem() : false;
 	}
 

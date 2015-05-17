@@ -1,6 +1,6 @@
 package Stuff.Midi;
 
-import Storyspace.Music.MusicPanelHandler;
+import Storyspace.Staff.StaffHandler;
 
 import	javax.sound.midi.MidiMessage;
 import	javax.sound.midi.ShortMessage;
@@ -8,7 +8,7 @@ import	javax.sound.midi.Receiver;
 
 public class DumpReceiver implements Receiver {
 	
-	public static MusicPanelHandler eventHandler;
+	public static StaffHandler eventHandler;
 	
 	public DumpReceiver() {}
 	

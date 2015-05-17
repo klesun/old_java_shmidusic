@@ -8,8 +8,8 @@ import java.awt.event.*;
 
 public class StoryspaceScrollHandler extends AbstractHandler {
 
-	final private static int MIN_WIDTH = 10;
-	final private static int MIN_HEIGHT = 10;
+	final private static int MIN_WIDTH = 50;
+	final private static int MIN_HEIGHT = 50;
 
 	public StoryspaceScrollHandler(StoryspaceScroll context) {
 		super(context);
@@ -25,7 +25,9 @@ public class StoryspaceScrollHandler extends AbstractHandler {
 		});
 
 		context.getVerticalScrollBar().addMouseListener(new MouseAdapter() {
-			public void mouseEntered(MouseEvent e) { context.getVerticalScrollBar().setCursor(Cursor.getDefaultCursor()); }
+			public void mouseEntered(MouseEvent e) {
+				context.getVerticalScrollBar().setCursor(Cursor.getDefaultCursor());
+			}
 		});
 	}
 

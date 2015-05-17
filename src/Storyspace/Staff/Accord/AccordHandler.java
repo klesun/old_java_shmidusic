@@ -1,10 +1,10 @@
 
-package Storyspace.Music.Staff.Accord;
+package Storyspace.Staff.Accord;
 
 import Model.AbstractHandler;
 import Model.Combo;
-import Storyspace.Music.Staff.Accord.Nota.Nota;
-import Storyspace.Music.Staff.Staff;
+import Storyspace.Staff.Accord.Nota.Nota;
+import Storyspace.Staff.Staff;
 import Stuff.Musica.PlayMusThread;
 
 import java.awt.event.KeyEvent;

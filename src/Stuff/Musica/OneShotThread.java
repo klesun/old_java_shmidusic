@@ -2,7 +2,7 @@ package Stuff.Musica;
 
 import javax.sound.midi.*;
 
-import Storyspace.Music.Staff.Accord.Nota.Nota;
+import Storyspace.Staff.Accord.Nota.Nota;
 import Stuff.Midi.DeviceEbun;
 
 public class OneShotThread extends Thread{
@@ -17,10 +17,10 @@ public class OneShotThread extends Thread{
 		try {
 			ShortMessage onMessage = new ShortMessage();
 			ShortMessage offMessage = new ShortMessage();
-			onMessage.setMessage( ShortMessage.NOTE_ON, nota.channel, (byte)nota.tune, nota.getVolume());
+			onMessage.setMessage( ShortMessage.NOTE_ON, nota.getChannel(), nota.getTune().byteValue(), nota.getVolume());
 			DeviceEbun.theirReceiver.send(onMessage, -1);
 			
-			offMessage.setMessage(ShortMessage.NOTE_OFF, nota.channel, (byte)nota.tune, 0);
+			offMessage.setMessage(ShortMessage.NOTE_OFF, nota.getChannel(), nota.getTune().byteValue(), 0);
 			try {
 			    Thread.sleep(nota.getTimeMilliseconds());
 			} catch (InterruptedException e) {
@@ -31,6 +31,6 @@ public class OneShotThread extends Thread{
 		} catch (InvalidMidiDataException e) {
 			System.out.println("InvalidMidiDataException");
 		}
-		PlayMusThread.opentNotas[nota.tune][nota.channel] = null;
+		PlayMusThread.opentNotas[nota.getTune()][nota.getChannel()] = null;
 	}
 }

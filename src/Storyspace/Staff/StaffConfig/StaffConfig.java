@@ -1,12 +1,12 @@
-package Storyspace.Music.Staff.StaffConfig;
+package Storyspace.Staff.StaffConfig;
 
 import Gui.ImageStorage;
 import Gui.Settings;
 import Model.AbstractHandler;
 import Model.AbstractModel;
-import Storyspace.Music.MusicPanel;
+import Storyspace.Staff.StaffPanel;
 import Stuff.Midi.DeviceEbun;
-import Storyspace.Music.Staff.Staff;
+import Storyspace.Staff.Staff;
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
@@ -44,14 +44,11 @@ public class StaffConfig extends AbstractModel {
 	}
 
 	@Override
-	public JSONObject getJsonRepresentation() {
-		JSONObject dict = new JSONObject();
+	public void getJsonRepresentation(JSONObject dict) {
 		dict.put("tempo", this.valueTempo);
 		dict.put("numerator", this.numerator);
 		dict.put("instrumentArray", new JSONArray(this.instrumentArray));
 		dict.put("volumeArray", new JSONArray(this.volumeArray));
-
-		return dict;
 	}
 
 	@Override
@@ -90,7 +87,7 @@ public class StaffConfig extends AbstractModel {
 	}
 
 	public BufferedImage getImage() {
-		MusicPanel sheet = this.getParentStaff().getParentSheet();
+		StaffPanel sheet = this.getParentStaff().getParentSheet();
 		int w = Settings.getNotaWidth() * 5;
 		int h = Settings.getNotaHeight() * 6;
 		BufferedImage rez = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);

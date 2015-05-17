@@ -1,7 +1,8 @@
 package Stuff.Tools;
 
-import Storyspace.Music.MusicPanel;
+import Model.Helper;
 import Main.Main;
+import Storyspace.Staff.Staff;
 import Storyspace.Storyspace;
 import Model.IModel;
 
@@ -20,12 +21,12 @@ import java.nio.file.Files;
 
 public class FileProcessor {
 	
-	public static void savePNG ( File f, MusicPanel albert ) {
-	    BufferedImage img = new BufferedImage(albert.getWidth(),albert.getHeight(), BufferedImage.TYPE_INT_ARGB);
+	public static void savePNG ( File f, Staff staff ) {
+	    BufferedImage img = new BufferedImage(staff.getWidth(), staff.getHeight(), BufferedImage.TYPE_INT_ARGB);
 	    Graphics g = img.createGraphics();
 	    g.setColor(Color.GREEN);
 	    g.fillRect(15, 15, 80, 80);
-	    albert.paintComponent(g);
+		staff.drawOn(g, 0, 0);
 	
 	    try {
 	        ImageIO.write(img, "png", f);
@@ -39,10 +40,10 @@ public class FileProcessor {
 		Main.window.setTitle(f.getAbsolutePath());
 	}
 
-	public static void saveMusicPanel(File f, MusicPanel musicPanel) {
-		saveModel(f, musicPanel.getStaff());
-		if (musicPanel.getStoryspaceScroll() != null) {
-			musicPanel.getStoryspaceScroll().setTitle(f.getName());
+	public static void saveMusicPanel(File f, Staff staff) {
+		saveModel(f, staff);
+		if (staff.getParentSheet().getStoryspaceScroll() != null) {
+			staff.getParentSheet().getStoryspaceScroll().setTitle(f.getName());
 		}
 	}
 
@@ -51,10 +52,10 @@ public class FileProcessor {
 		Main.window.setTitle(f.getAbsolutePath());
 	}
 
-	public static void openMusicPanel(File f, MusicPanel musicPanel) {
-		openModel(f, musicPanel.getStaff(), "stanExternalRepresentation");
-		if (musicPanel.getStoryspaceScroll() != null) {
-			musicPanel.getStoryspaceScroll().setTitle(f.getName());
+	public static void openStaff(File f, Staff staff) {
+		openModel(f, staff, "stanExternalRepresentation");
+		if (staff.getParentSheet().getStoryspaceScroll() != null) {
+			staff.getParentSheet().getStoryspaceScroll().setTitle(f.getName());
 		}
 	}
 
@@ -76,7 +77,7 @@ public class FileProcessor {
 	private static void saveModel(File f, IModel model) {
 		try {
 			JSONObject js = new JSONObject("{}");
-			js.put(model.getClass().getSimpleName(), model.getJsonRepresentation());
+			js.put(model.getClass().getSimpleName(), Helper.getJsonRepresentation(model));
 			try {
 				PrintWriter out = new PrintWriter(f);
 				out.println(js.toString(2));

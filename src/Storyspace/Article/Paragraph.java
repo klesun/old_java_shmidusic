@@ -20,6 +20,7 @@ public class Paragraph extends JTextArea implements IModel {
 	public Paragraph(Article parent) {
 		setLineWrap(true);
 		setWrapStyleWord(true);
+		setTabSize(4);
 		super.setFont(Constants.PROJECT_FONT);
 
 		handler = new AbstractHandler(this) {
@@ -28,6 +29,7 @@ public class Paragraph extends JTextArea implements IModel {
 		};
 		this.addMouseListener(handler);
 		this.addMouseMotionListener(handler);
+		this.addKeyListener(handler);
 
 		this.parent = parent;
 	}
@@ -50,11 +52,6 @@ public class Paragraph extends JTextArea implements IModel {
 
 	// field getters/setters
 
-	public Paragraph setTextValue(String value) {
-		super.setText(value);
-		return this;
-	}
-
 	@Override
 	public IModel getFocusedChild() { return null; }
 	@Override
@@ -63,13 +60,10 @@ public class Paragraph extends JTextArea implements IModel {
 	public AbstractHandler getHandler() { return handler; }
 
 	@Override
-	public JSONObject getJsonRepresentation() {
-		// TODO: soon
-		return null;
-	}
+	public void getJsonRepresentation(JSONObject dict) { dict.put("text", getText()); }
 	@Override
 	public IModel reconstructFromJson(JSONObject jsObject) throws JSONException {
-		// TODO: soon
-		return null;
+		setText(jsObject.getString("text"));
+		return this;
 	}
 }

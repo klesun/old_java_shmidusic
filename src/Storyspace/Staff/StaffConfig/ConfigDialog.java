@@ -1,4 +1,4 @@
-package Storyspace.Music.Staff.StaffConfig;
+package Storyspace.Staff.StaffConfig;
 
 
 import Gui.ImageStorage;

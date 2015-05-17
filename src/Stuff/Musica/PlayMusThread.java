@@ -1,9 +1,9 @@
 package Stuff.Musica;
 
 import Model.Combo;
-import Storyspace.Music.Staff.Staff;
-import Storyspace.Music.Staff.Accord.Nota.Nota;
-import Storyspace.Music.Staff.Accord.Accord;
+import Storyspace.Staff.Staff;
+import Storyspace.Staff.Accord.Nota.Nota;
+import Storyspace.Staff.Accord.Accord;
 
 import java.awt.event.KeyEvent;
 
@@ -53,8 +53,8 @@ public class PlayMusThread extends Thread {
     
     public static int playNotu(Nota nota){
 		if (!nota.getIsMuted()) {
-			int channel = nota.channel;
-			int tune = nota.tune;
+			int channel = nota.getChannel();
+			int tune = nota.getTune();
 			if (opentNotas[tune][channel] != null) {
 				opentNotas[tune][channel].interrupt();
 				try {opentNotas[tune][channel].join();} catch (Exception e) {System.out.println("Не дождались");}

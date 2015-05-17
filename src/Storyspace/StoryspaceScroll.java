@@ -32,7 +32,7 @@ public class StoryspaceScroll extends Scroll implements IModel {
 		this.setPreferredSize(new Dimension(200, 200));
 		this.setLocation(200, 150);
 		this.setSize(300, 300);
-		this.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_NEVER);
+//		this.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_NEVER);
 
 		addListeners();
 
@@ -61,14 +61,12 @@ public class StoryspaceScroll extends Scroll implements IModel {
 	public AbstractHandler getHandler() { return this.handler; }
 
 	@Override
-	public JSONObject getJsonRepresentation() {
-		JSONObject dict = new JSONObject();
+	public void getJsonRepresentation(JSONObject dict) {
 		dict.put("x", getLocation().getX());
 		dict.put("y", getLocation().getY());
 		dict.put("width", getWidth());
 		dict.put("height", getHeight());
 		dict.put("title", getTitle());
-		return dict;
 	}
 	@Override
 	public StoryspaceScroll reconstructFromJson(JSONObject jsObject) throws JSONException {

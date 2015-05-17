@@ -1,6 +1,6 @@
 package Model;
 
-import Storyspace.Music.MusicPanel;
+import Storyspace.Staff.StaffPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -48,9 +48,20 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 	// override me, please!
 	protected void initActionMap() {}
 	// implemented methods
-	final public void keyPressed(KeyEvent e) { this.handleKey(new Combo(e)); }
+	final public void keyPressed(KeyEvent e) {
+		getRootHandler().handleKey(new Combo(e));
+	}
 	final public void keyTyped(KeyEvent e) {}
 	final public void keyReleased(KeyEvent e) {}
+
+	private AbstractHandler getRootHandler() {
+		IModel rootContext = getContext();
+		while (rootContext.getModelParent() != null) {
+			rootContext = rootContext.getModelParent();
+		}
+
+		return rootContext.getHandler();
+	}
 
 	final public Boolean handleKey(Combo combo) {
 		Boolean result = false;
@@ -83,12 +94,12 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 	}
 
 	// TODO: it's so ugly...
-	private MusicPanel getSheetPanel() {
+	private StaffPanel getSheetPanel() {
 		IModel context = getContext();
-		while (!(context instanceof MusicPanel) && context != null) { // circular import? yes...
+		while (!(context instanceof StaffPanel) && context != null) { // circular import? yes...
 			context = context.getModelParent();
 		}
-		return (MusicPanel)context;
+		return (StaffPanel)context;
 	}
 
 	public IModel getContext() {

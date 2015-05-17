@@ -1,24 +1,26 @@
 // TODO: мэрджить ноты, типа целая+(половинная+четвёртая=половинная с точкой) = целая с двумя точками
 // потому что делать точки плюсиком - это убого!
 
-package Storyspace.Music.Staff;
+package Storyspace.Staff;
 
 import Gui.ImageStorage;
-import Storyspace.Music.MusicPanel;
 import Main.MajesticWindow;
 import Model.AbstractModel;
 import Model.Combo;
-import Storyspace.Music.Staff.StaffConfig.StaffConfig;
+import Storyspace.Staff.StaffConfig.StaffConfig;
 import Gui.Settings;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
-import Storyspace.Music.Staff.Accord.Accord;
+import Storyspace.Staff.Accord.Accord;
 import Stuff.Musica.PlayMusThread;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.util.Map;
 
 
+import Stuff.OverridingDefaultClasses.TruHashMap;
 import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -39,9 +41,9 @@ public class Staff extends AbstractModel {
 	public int focusedIndex = -1;
 
 	private MajesticWindow parentWindow = null;
-	public MusicPanel blockPanel = null;
+	public StaffPanel blockPanel = null;
 
-	public Staff(MusicPanel blockPanel) {
+	public Staff(StaffPanel blockPanel) {
 		super(null);
 		this.parentWindow = blockPanel.parentWindow;
 		this.blockPanel = blockPanel;
@@ -53,24 +55,31 @@ public class Staff extends AbstractModel {
 		return this;
 	}
 
+	// TODO: move into some StaffPainter class
 	public synchronized void drawOn(Graphics g, int baseX, int baseY) { // baseY - highest line y
 
-		baseX += 2 * dx(); // невхуйебу
+		baseX += StaffPanel.getMarginX();
+		baseY += StaffPanel.getMarginY();
+
+		baseX += 2 * dx(); // violin/bass keys
 
 		TactMeasurer tactMeasurer = new TactMeasurer(this);
+
+		g.setColor(Color.WHITE);
+		g.fillRect(0, 0, this.getWidth(), this.getHeight());
 
 		getConfig().drawOn(g, baseX, baseY);
 		baseX += dx();
 
 		int i = 0;
 		for (List<Accord> row: getAccordRowList()) {
-			int y = baseY + i * MusicPanel.SISDISPLACE * dy(); // bottommest y nota may be drawn on
+			int y = baseY + i * StaffPanel.SISDISPLACE * dy(); // bottommest y nota may be drawn on
 			g.drawImage(ImageStorage.inst().getViolinKeyImage(), this.dx(), y -3 * dy(), null);
 			g.drawImage(ImageStorage.inst().getBassKeyImage(), this.dx(), 11 * dy() + y, null);
 			g.setColor(Color.BLUE);
 			for (int j = 0; j < 11; ++j){
 				if (j == 5) continue;
-				g.drawLine(MusicPanel.getMarginX(), y + j * dy() *2, getWidth() - MusicPanel.getMarginX()*2, y + j* dy() *2);
+				g.drawLine(StaffPanel.getMarginX(), y + j * dy() *2, getWidth() - StaffPanel.getMarginX()*2, y + j* dy() *2);
 			}
 
 			int j = 0;
@@ -101,12 +110,9 @@ public class Staff extends AbstractModel {
 	}
 
 	@Override
-	public JSONObject getJsonRepresentation() {
-		JSONObject dict = new JSONObject();
+	public void getJsonRepresentation(JSONObject dict) {
 		dict.put("staffConfig", this.getConfig().getJsonRepresentation());
 		dict.put("accordList", new JSONArray(this.getAccordList().stream().map(p -> p.getJsonRepresentation()).toArray()));
-		
-		return dict;
 	}
 	
 	@Override
@@ -138,9 +144,7 @@ public class Staff extends AbstractModel {
 	@Override
 	public AbstractModel getFocusedChild() { return getFocusedAccord(); }
 	@Override
-	protected StaffHandler makeHandler() {
-		return new StaffHandler(this);
-	}
+	protected StaffHandler makeHandler() { return new StaffHandler(this); }
 
 	// getters
 
@@ -166,9 +170,8 @@ public class Staff extends AbstractModel {
 		return resultList;
 	}
 
-	public int getWidth() {
-		return getParentSheet().getWidth() - getParentSheet().MARGIN_H * 2;
-	}
+	public int getWidth() { return getParentSheet().getWidth(); }
+	public int getHeight() { return getParentSheet().getHeight(); }
 
 	public int getAccordInRowCount() {
 		int result = this.getWidth() / (Settings.getNotaWidth() * 2) - 3; // - 3 because violin key and phantom
@@ -180,13 +183,13 @@ public class Staff extends AbstractModel {
 	public StaffConfig getConfig() {
 		return this.staffConfig;
 	}
-	public MusicPanel getParentSheet() {
+	public StaffPanel getParentSheet() {
 		return parentWindow.isFullscreen
-				? parentWindow.fullscreenMusicPanel
+				? parentWindow.fullscreenStaffPanel
 				: this.blockPanel;
 	}
 	@Override
-	public MusicPanel getModelParent() { return getParentSheet(); }
+	public StaffPanel getModelParent() { return getParentSheet(); }
 	public int getFocusedIndex() {
 		return this.focusedIndex;
 	}
@@ -232,10 +235,6 @@ public class Staff extends AbstractModel {
 		} else {
 			PlayMusThread.stopMusic();
 		}
-	}
-
-	private static int limit(int value, int min, int max) {
-		return Math.min(Math.max(value, min), max);
 	}
 }
 

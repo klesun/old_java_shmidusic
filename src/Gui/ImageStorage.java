@@ -142,9 +142,11 @@ public class ImageStorage {
 				n == 1 ? new Color(255,0,0) : // red
 				n == 2 ? new Color(0,192,0) : // green
 				n == 3 ? new Color(0,0,255) : // blue
-				n == 4 ? new Color(255,128,0) : // orange
-				n == 5 ? new Color(192,0,192) : // magenta
-				n == 6 ? new Color(0,192,192) : // cyan
+				n == 4 ? new Color(191,191,0) : // yellow
+				n == 5 ? new Color(0,127,255) : // cyan
+				n == 6 ? new Color(192,0,192) : // magenta
+				n == 7 ? new Color(255,128,0) : // orange
+				n == 8 ? new Color(91,0,255) : // bluish magenta
 				Color.GRAY;
 	}
 }
