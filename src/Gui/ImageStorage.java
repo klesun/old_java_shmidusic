@@ -1,5 +1,7 @@
 package Gui;
 
+import Stuff.Tools.Logger;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -29,16 +31,25 @@ public class ImageStorage {
 	}
 
 	public BufferedImage openImage(File file) {
-		BufferedImage image = null;
-		if (randomImageMap.containsKey(file)) {
-			image = randomImageMap.get(file);
-		} else try {
-			image = ImageIO.read(file);
-			randomImageMap.put(file, image);
-		} catch (IOException e) {
-			System.out.println("Failed to load image file! " + file.getAbsolutePath());
+		if (!randomImageMap.containsKey(file)) {
+			try {
+				randomImageMap.put(file, ImageIO.read(file));
+			} catch (IOException e) {
+				String msg = "Failed to load image file! " + file.getAbsolutePath();
+				Logger.warning(msg);
+				randomImageMap.put(file, strToImg(msg));
+			}
 		}
-		return image;
+		return randomImageMap.get(file);
+	}
+
+	private static BufferedImage strToImg(String str) {
+		BufferedImage img = new BufferedImage(str.length() * Constants.FONT_WIDTH, Constants.FONT_HEIGHT, BufferedImage.TYPE_INT_ARGB);
+		Graphics g = img.getGraphics();
+		g.setFont(Constants.PROJECT_FONT);
+		g.setColor(Color.RED);
+		g.drawString(str, 0, Constants.FONT_HEIGHT / 2 + 4);
+		return img;
 	}
 
 	public void refreshImageSizes() {

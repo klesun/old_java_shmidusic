@@ -36,7 +36,7 @@ public class DeviceEbun {
 				device.getTransmitter().setReceiver(new DumpReceiver());
 
 				midiInputDevice = device;
-			} catch (MidiUnavailableException e) { out("Port is already being used by other program or something like that"); }
+			} catch (MidiUnavailableException e) { out("Midi-Port is already being used by other program or something like that; so no midi for you today"); }
 		} else {
 			out(MORAL_SUPPORT_MESSAGE);
 		}

@@ -3,6 +3,7 @@ package Storyspace.Article;
 import Model.AbstractHandler;
 import Model.AbstractModel;
 import Model.Helper;
+import Model.IModel;
 import Storyspace.IStoryspacePanel;
 import Storyspace.StoryspaceScroll;
 import Storyspace.Storyspace;
@@ -22,6 +23,8 @@ public class Article extends JPanel implements IStoryspacePanel {
 
 	private StoryspaceScroll scroll = null;
 	private AbstractHandler handler = null;
+
+	private Helper modelHelper = new Helper(this);
 
 	private List<Paragraph> parList = new ArrayList<>();
 
@@ -92,11 +95,20 @@ public class Article extends JPanel implements IStoryspacePanel {
 	@Override
 	public StoryspaceScroll getStoryspaceScroll() { return scroll; }
 	@Override
-	public AbstractModel getFocusedChild() { return null; } // no Model children
+	public Paragraph getFocusedChild() {
+		Component focused = getModelParent().getModelParent().getWindow().getFocusOwner();
+		return focused instanceof Paragraph && parList.contains(focused)
+				? (Paragraph)focused
+				: null;
+	}
 	@Override
-	public StoryspaceScroll getModelParent() { return StoryspaceScroll.class.cast(getParent().getParent()); } // =D
+	public StoryspaceScroll getModelParent() { return getStoryspaceScroll(); }
 	@Override
 	public AbstractHandler getHandler() { return this.handler; }
+	@Override
+	public Helper getModelHelper() {
+		return modelHelper;
+	}
 
 	@Override
 	public void getJsonRepresentation(JSONObject dict) {

@@ -77,9 +77,9 @@ public class Staff extends AbstractModel {
 			g.drawImage(ImageStorage.inst().getViolinKeyImage(), this.dx(), y -3 * dy(), null);
 			g.drawImage(ImageStorage.inst().getBassKeyImage(), this.dx(), 11 * dy() + y, null);
 			g.setColor(Color.BLUE);
-			for (int j = 0; j < 11; ++j){
+			for (int j = 0; j < 11; ++j) {
 				if (j == 5) continue;
-				g.drawLine(StaffPanel.getMarginX(), y + j * dy() *2, getWidth() - StaffPanel.getMarginX()*2, y + j* dy() *2);
+				g.drawLine(StaffPanel.getMarginX(), y + j * dy() *2, getWidth() - StaffPanel.getMarginX() * 2, y + j * dy() *2);
 			}
 
 			int j = 0;

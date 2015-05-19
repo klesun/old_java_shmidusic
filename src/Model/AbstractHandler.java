@@ -7,7 +7,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 abstract public class AbstractHandler implements KeyListener, MouseListener, MouseMotionListener {
 
@@ -85,9 +87,15 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 		return new ActionFactory(new Combo(keyMods, keyCode)).addTo(this.actionMap);
 	}
 
-	final public Map<Combo, ActionFactory> getActionMap() {
-		return actionMap;
+	final protected void addNumberComboList(int keyMods, Consumer<Integer> lambda) {
+		List<Integer> keyList = Combo.getNumberKeyList();
+		for (int keyCode: keyList) {
+			int number = new Combo(0, keyCode).getPressedNumber();
+			addCombo(keyMods, keyCode).setDo(c -> { lambda.accept(number); });
+		}
 	}
+
+	final public Map<Combo, ActionFactory> getActionMap() { return actionMap; }
 
 	final public static void destroyRedoHistory() {
 		while (unhandledEventQueue.poll() != null);
@@ -118,6 +126,7 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 	// override us, please!
 	public Boolean mouseDraggedFinal(ComboMouse combo) { return false; } // TODO: remove "final" from name somehow, it's ugly, they are almost abstract
 	public Boolean mousePressedFinal(ComboMouse combo) { return false; }
+	public Boolean mouseReleasedFinal(ComboMouse combo) { return false; }
 	public Boolean mouseMovedFinal(ComboMouse combo) { return false; }
 
 	final public Boolean mousePressed(ComboMouse combo) {
@@ -129,6 +138,18 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 			int y = Component.class.cast(getContext()).getY();
 			combo.getPoint().move(x, y);
 			return (getContext().getModelParent() != null && getContext().getModelParent().getHandler().mousePressed(combo));
+		}
+	}
+
+	final public Boolean mouseReleased(ComboMouse combo) {
+		if (mouseReleasedFinal(combo)) {
+			this.mouseLocation = combo.getPoint();
+			return true;
+		} else {
+			int x = Component.class.cast(getContext()).getX();
+			int y = Component.class.cast(getContext()).getY();
+			combo.getPoint().move(x, y);
+			return (getContext().getModelParent() != null && getContext().getModelParent().getHandler().mouseReleased(combo));
 		}
 	}
 
@@ -150,11 +171,11 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 	}
 
 	// implementing mouse listeners
-	final public void mousePressed(MouseEvent e) { mousePressed(new ComboMouse(e)); }
-	final public void mouseDragged(MouseEvent e) { mouseDragged(new ComboMouse(e, mouseLocation)); }
-	final public void mouseMoved(MouseEvent e) { mouseMoved(new ComboMouse(e, mouseLocation)); }
+	final public void mousePressed(MouseEvent e) { mousePressed(new ComboMouse(e).setOrigin(getContext())); }
+	final public void mouseReleased(MouseEvent e) { mouseReleased(new ComboMouse(e).setOrigin(getContext())); }
+	final public void mouseDragged(MouseEvent e) { mouseDragged(new ComboMouse(e, mouseLocation).setOrigin(getContext())); }
+	final public void mouseMoved(MouseEvent e) { mouseMoved(new ComboMouse(e, mouseLocation).setOrigin(getContext())); }
 	// useless for now - so i put final
-	final public void mouseReleased(MouseEvent e) {}
 	final public void mouseEntered(MouseEvent e) {}
 	final public void mouseExited(MouseEvent e) {}
 	final public void mouseClicked(MouseEvent e) {}

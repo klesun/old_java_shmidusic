@@ -14,7 +14,7 @@ import javax.swing.border.Border;
 @SuppressWarnings("serial")
 public class StoryspaceScroll extends Scroll implements IModel {
 	
-	Component /* IModel */ content = null;
+	IStoryspacePanel content = null;
 	AbstractHandler handler = null;
 
 	final private static int titleHeight = 20;
@@ -24,15 +24,14 @@ public class StoryspaceScroll extends Scroll implements IModel {
 	JPanel titlePanel = new JPanel();
 
 
-	public StoryspaceScroll(Component content) {
-		super(content);
+	public StoryspaceScroll(IStoryspacePanel content) {
+		super((Component)content);
 		this.content = content;
 
 		this.setBorder(unfocusedBorder);
 		this.setPreferredSize(new Dimension(200, 200));
 		this.setLocation(200, 150);
 		this.setSize(300, 300);
-//		this.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_NEVER);
 
 		addListeners();
 

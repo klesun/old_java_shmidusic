@@ -1,15 +1,15 @@
-package Model;
+package Model.Field;
 
 import Stuff.Tools.Logger;
 import org.json.JSONObject;
 
-// TODO: MAKE DEFINITELY separate wrapper for each primitive
-public class ModelField {
+// TODO: maybe it would better be an Interface?
+public abstract class AbstractModelField {
 
 	private String name;
 	private Object value;
 
-	public ModelField(String name, Object value) {
+	public AbstractModelField(String name, Object value) {
 		if (new JSONObject("{}").getGetterByClass(value.getClass()) == null) {
 			Logger.fatal("Unsupported Field Value Class! [" + value.getClass().getSimpleName() + "]");
 		}
@@ -32,7 +32,7 @@ public class ModelField {
 		return name;
 	}
 
-	public ModelField setValue(Object value) {
+	public AbstractModelField setValue(Object value) {
 		if (this.value.getClass() != value.getClass()) {
 			Logger.fatal("Little nigga wanna change field's class? Not so fast! [" +
 				this.value.getClass().getSimpleName() + "] != [" +

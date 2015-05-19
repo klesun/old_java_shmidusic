@@ -1,11 +1,8 @@
 package Storyspace.Staff;
 
 import Gui.Settings;
-import Model.AbstractHandler;
-import Model.ComboMouse;
+import Model.*;
 import Stuff.Midi.DumpReceiver;
-import Model.AbstractModel;
-import Model.Combo;
 import Main.MajesticWindow;
 import Storyspace.IStoryspacePanel;
 import Storyspace.StoryspaceScroll;
@@ -29,9 +26,11 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 	public static int MARGIN_H = 1; // TODO: move it into Constants class maybe?
 	final public static int SISDISPLACE = 40;
 
-	private StoryspaceScroll storyspaceScroll = null;
 	public MajesticWindow parentWindow = null; // deprecated
+
+	private StoryspaceScroll storyspaceScroll = null;
 	public AbstractHandler handler = null;
+	private Helper modelHelper = new Helper(this);
 	private Staff staff = null;
 
 	private StaffPanel storyspaceRepresentative = this;
@@ -102,6 +101,7 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 	}
 	@Override
 	public AbstractHandler getHandler() { return this.handler; }
+	public Helper getModelHelper() { return modelHelper; }
 
 	@Override
 	public void getJsonRepresentation(JSONObject dict) { 	dict.put("staff", getStaff().getJsonRepresentation()); }

@@ -1,9 +1,10 @@
 package Storyspace.Article;
 
 import Gui.Constants;
-import Model.AbstractHandler;
-import Model.ComboMouse;
-import Model.IModel;
+import Model.*;
+import Model.Field.AbstractModelField;
+import Model.Field.Int;
+import Stuff.Tools.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -12,10 +13,13 @@ import javax.swing.text.BadLocationException;
 import java.awt.*;
 
 
-public class Paragraph extends JTextArea implements IModel {
+public class Paragraph extends JTextArea implements IComponentModel {
 
 	private Article parent = null;
 	private AbstractHandler handler = null;
+	private Helper modelHelper = new Helper(this);
+
+	private Int score = modelHelper.addField("score", 0);
 
 	public Paragraph(Article parent) {
 		setLineWrap(true);
@@ -26,6 +30,11 @@ public class Paragraph extends JTextArea implements IModel {
 		handler = new AbstractHandler(this) {
 			public Boolean mousePressedFinal(ComboMouse combo) { return combo.leftButton; }
 			public Boolean mouseDraggedFinal(ComboMouse combo) { return combo.leftButton; }
+			@Override
+			protected void initActionMap() {
+				addNumberComboList(ctrl, getContext()::setScore);
+			}
+			public Paragraph getContext() { return (Paragraph)super.getContext(); }
 		};
 		this.addMouseListener(handler);
 		this.addMouseMotionListener(handler);
@@ -52,6 +61,13 @@ public class Paragraph extends JTextArea implements IModel {
 
 	// field getters/setters
 
+	public Integer getScore() { return score.getValue(); }
+	public Paragraph setScore(Integer value) {
+		score.setValue(value);
+		updateBgColor();
+		return this;
+	}
+
 	@Override
 	public IModel getFocusedChild() { return null; }
 	@Override
@@ -63,7 +79,25 @@ public class Paragraph extends JTextArea implements IModel {
 	public void getJsonRepresentation(JSONObject dict) { dict.put("text", getText()); }
 	@Override
 	public IModel reconstructFromJson(JSONObject jsObject) throws JSONException {
+		modelHelper.reconstructFromJson(jsObject);
 		setText(jsObject.getString("text"));
+		updateBgColor();
 		return this;
+	}
+
+	@Override
+	public Helper getModelHelper() {
+		return modelHelper;
+	}
+
+	// event handles
+
+	private void updateBgColor() {
+		// TODO: move this method somewhere with name getColorBetween(c1, c2, fraction)
+		Color color = getScore() == 0
+			? Color.WHITE
+			: new Color(192 + 63 - 63 * getScore() / 9, 192 + 63 * getScore() / 9, 192);
+
+		setBackground(color);
 	}
 }

@@ -3,14 +3,14 @@ package Storyspace.Staff.Accord.Nota;
 
 import Gui.ImageStorage;
 import Model.Combo;
-import Model.Helper;
-import Model.ModelField;
+import Model.Field.AbstractModelField;
+import Model.Field.Bool;
+import Model.Field.Int;
 import Storyspace.Staff.StaffPanel;
 import Storyspace.Staff.Accord.Accord;
 import java.awt.image.BufferedImage;
 import java.util.*;
 
-import Stuff.OverridingDefaultClasses.TruHashMap;
 import Stuff.Tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONException;
@@ -26,21 +26,17 @@ import java.awt.Color;
 import java.awt.Graphics;
 
 public class Nota extends AbstractModel implements Comparable<Nota> {
-	
-	private List<ModelField> fieldValueStorage = new ArrayList<>();
 
-	private ModelField tuneField = addField("tune", 34); // no exceptions
-	private ModelField numeratorField = addField("numerator", 16);
-	private ModelField channelField = addField("channel", 0);
-	private ModelField tupletDenominatorField = addField("tupletDenominator", 1);
-	private ModelField isSharpField = addField("isSharp", false);
-	private ModelField isMutedField = addField("isMuted", false);
+	// <editor-fold desc="model field declaration">
 
-	private ModelField addField(String fieldName, Object fieldValue) {
-		ModelField field = new ModelField(fieldName, fieldValue);
-		fieldValueStorage.add(field);
-		return field;
-	}
+	private Int tune = addField("tune", 34); // no exceptions
+	private Int numerator = addField("numerator", 16);
+	private Int channel = addField("channel", 0);
+	private Int tupletDenominator = addField("tupletDenominator", 1);
+	private Bool isSharp = addField("isSharp", false);
+	private Bool isMuted = addField("isMuted", false);
+
+	// </editor-fold>
 
 	public long keydownTimestamp;
 
@@ -54,10 +50,12 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		return getFraction().compareTo(rival.getFraction()) > 0;
 	}
 
+	// <editor-fold desc="implementing abstract model">
+
 	@Override
 	public void drawOn(Graphics surface, int x, int y) {
 		surface.setColor(Color.BLACK);
-		surface.drawImage(getEbonySignImage(), x + dx() / 2, y + 3 * dy() + 2, getPanel());
+		surface.drawImage(getEbonySignImage(), x + dx() / 2, y + 3 * dy() + 2, null);
 
 		BufferedImage tmpImg = getIsMuted()
 				? ImageStorage.inst().getNotaImg(getNumerator(), 9)
@@ -73,20 +71,33 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	
 	@Override
 	public void getJsonRepresentation(JSONObject dict) {
-		for (ModelField field: fieldValueStorage) {
+		for (AbstractModelField field: fieldValueStorage) {
 			dict.put(field.getName(), field.getValue());
 		}
 	}
 
 	@Override
 	public Nota reconstructFromJson(JSONObject jsObject) throws JSONException {
-		for (ModelField field: fieldValueStorage) {
+		for (AbstractModelField field: fieldValueStorage) {
 			if (jsObject.has(field.getName())) { field.setValueFromJsObject(jsObject); }
 			else { Logger.warning("Source does not have field [" + field.getName() + "] for class {" + getClass().getSimpleName() + "}"); }
 		}
 	
 		return this;
 	}
+
+	@Override
+	public AbstractModel getFocusedChild() {
+		return null;
+	}
+	@Override
+	protected NotaHandler makeHandler() { return new NotaHandler(this); }
+	@Override
+	public int compareTo(Nota n) { return n.getTune() - this.getTune(); }
+
+	// </editor-fold>
+
+	// <editor-fold desc="getters">
 
 	public int getAcademicIndex() {
 		return isEbony() && getIsSharp()
@@ -124,7 +135,9 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 			: ImageStorage.inst().getFlatImage();
 	}
 
-	// one-line-obvious-purpose methods
+	// </editor-fold>
+
+	// <editor-fold desc="one-line-getters">
 
 	// 0 - do, 2 - re, 4 - mi, 5 - fa, 7 - so, 9 - la, 10 - ti
 	public Boolean isEbony() { return Arrays.asList(1, 3, 6, 8, 10).contains(this.getTune() % 12); }
@@ -140,31 +153,33 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	public int getHeight() { return Settings.getNotaHeight(); }
 	// TODO: use it in Accord.getWidth()
 	public int getWidth() { return Settings.getNotaWidth() * 2; }
+	public Fraction getFraction() { return new Fraction(getNumerator(), getTupletDenominator() * Staff.DEFAULT_ZNAM); }
 
-	// field getters/setters
+	// </editor-fold>
+
+	// <editor-fold desc="model getters/setters">
 
 	// model getters
-	public Integer getTune() { return (Integer)tuneField.getValue(); } // TODO: make separate container classes for each primitive
-	public Integer getNumerator() { return (Integer)numeratorField.getValue(); }
-	public Integer getChannel() { return (Integer)channelField.getValue(); }
-	public Integer getTupletDenominator() { return (Integer)tupletDenominatorField.getValue(); }
-	public Boolean getIsSharp() { return (Boolean)isSharpField.getValue(); }
-	public Boolean getIsMuted() { return (Boolean)isMutedField.getValue(); }
+	public Integer getTune() { return tune.getValue(); } // TODO: make separate container classes for each primitive
+	public Integer getNumerator() { return numerator.getValue(); }
+	public Integer getChannel() { return channel.getValue(); }
+	public Integer getTupletDenominator() { return tupletDenominator.getValue(); }
+	public Boolean getIsSharp() { return isSharp.getValue(); }
+	public Boolean getIsMuted() { return isMuted.getValue(); }
 	// model setters
-	public Nota setTune(int value){ this.tuneField.setValue(value); return this; }
-	public Nota setNumerator(int value){ this.numeratorField.setValue(limit(value, 4, Staff.DEFAULT_ZNAM * 2)); return this; }
-	public Nota setChannel(int value) { this.channelField.setValue(value); return this; }
-	public Nota setTupletDenominator(int value) { this.tupletDenominatorField.setValue(value); return this; }
-	public Nota setIsSharp(Boolean value) { this.isSharpField.setValue(value); return this; }
-	public Nota setIsMuted(Boolean value) { this.isMutedField.setValue(value); return this; }
+	public Nota setTune(int value){ this.tune.setValue(value); return this; }
+	public Nota setNumerator(int value){ this.numerator.setValue(limit(value, 4, Staff.DEFAULT_ZNAM * 2)); return this; }
+	public Nota setChannel(int value) { this.channel.setValue(value); return this; }
+	public Nota setTupletDenominator(int value) { this.tupletDenominator.setValue(value); return this; }
+	public Nota setIsSharp(Boolean value) { this.isSharp.setValue(value); return this; }
+	public Nota setIsMuted(Boolean value) { this.isMuted.setValue(value); return this; }
+
+	// </editor-fold>
 
 	public Accord getParentAccord() { return (Accord)this.getModelParent(); }
-	public Fraction getFraction() { return new Fraction(getNumerator(), getTupletDenominator() * Staff.DEFAULT_ZNAM); }
 	public Nota setKeydownTimestamp(long value) { this.keydownTimestamp = value; return this; }
 
-	public StaffPanel getPanel() { return this.getParentAccord().getParentStaff().getParentSheet(); }
-
-	// event handles
+	// <editor-fold desc="event handles">
 
 	public Nota triggerIsSharp() { setIsSharp(!getIsSharp()); return this; }
 	public Nota triggerIsMuted() { setIsMuted(!getIsMuted()); return this; }
@@ -190,19 +205,11 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 				: decLen();
 	}
 
+	// </editor-fold>
+
 	// private static methods
 
 	// TODO: what if i said we could store these instead of numbers in json?
 	private static String strIdx(int n){ return Arrays.asList("do","re","mi","fa","so","la","ti").get(n % 12); }
 	private static int tuneToAcademicIndex(int tune) { return Arrays.asList(0,1,1,2,2,3,4,4,5,5,6,6).get(tune % 12); }
-
-	@Override
-	public AbstractModel getFocusedChild() {
-		return null;
-	}
-	@Override
-	protected NotaHandler makeHandler() { return new NotaHandler(this); }
-	@Override
-	public int compareTo(Nota n) { return n.getTune() - this.getTune(); }
-
 }

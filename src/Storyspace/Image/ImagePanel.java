@@ -23,6 +23,7 @@ public class ImagePanel extends JPanel implements IStoryspacePanel {
 
 	private StoryspaceScroll scroll = null;
 	private AbstractHandler handler = null;
+	private Helper modelHelper = new Helper(this);
 
 	public ImagePanel(Storyspace parentStoryspace) {
 		setFocusable(true);
@@ -60,6 +61,10 @@ public class ImagePanel extends JPanel implements IStoryspacePanel {
 	public StoryspaceScroll getModelParent() { return StoryspaceScroll.class.cast(getParent().getParent()); } // =D
 	@Override
 	public AbstractHandler getHandler() { return this.handler; }
+	@Override
+	public Helper getModelHelper() {
+		return modelHelper;
+	}
 
 	@Override
 	public void getJsonRepresentation(JSONObject dict) { dict.put("imagePath", this.imagePath); }
