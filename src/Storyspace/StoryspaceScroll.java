@@ -1,5 +1,7 @@
 package Storyspace;
 import Model.AbstractHandler;
+import Model.Helper;
+import Model.IComponentModel;
 import Model.IModel;
 import Stuff.OverridingDefaultClasses.Scroll;
 import Stuff.OverridingDefaultClasses.TruLabel;
@@ -12,10 +14,11 @@ import javax.swing.*;
 import javax.swing.border.Border;
 
 @SuppressWarnings("serial")
-public class StoryspaceScroll extends Scroll implements IModel {
+public class StoryspaceScroll extends Scroll implements IComponentModel {
 	
 	IStoryspacePanel content = null;
 	AbstractHandler handler = null;
+	private Helper modelHelper = new Helper(this);
 
 	final private static int titleHeight = 20;
 	final private static Border unfocusedBorder = BorderFactory.createMatteBorder(titleHeight, 4, 4, 4, Color.LIGHT_GRAY);
@@ -58,6 +61,10 @@ public class StoryspaceScroll extends Scroll implements IModel {
 	public Storyspace getModelParent() { return Storyspace.class.cast(getParent()); }
 	@Override
 	public AbstractHandler getHandler() { return this.handler; }
+	@Override
+	public Helper getModelHelper() {
+		return modelHelper;
+	}
 
 	@Override
 	public void getJsonRepresentation(JSONObject dict) {

@@ -1,6 +1,7 @@
 package Gui;
 
 import Stuff.Tools.Logger;
+import org.apache.commons.math3.fraction.Fraction;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -160,4 +161,18 @@ public class ImageStorage {
 				n == 8 ? new Color(91,0,255) : // bluish magenta
 				Color.GRAY;
 	}
+
+	public static Color getBetween(Color start, Color end, Fraction factor) {
+		factor = new Fraction(Math.max(factor.doubleValue(), 0));
+		factor = new Fraction(Math.min(factor.doubleValue(), 1));
+
+		int dr = factor.multiply(new Fraction(end.getRed() - start.getRed())).intValue();
+		int dg = factor.multiply(new Fraction(end.getGreen() - start.getGreen())).intValue();
+		int db = factor.multiply(new Fraction(end.getBlue() - start.getBlue())).intValue();
+		int da = factor.multiply(new Fraction(end.getAlpha() - start.getAlpha())).intValue();
+
+		return new Color(start.getRed() + dr, start.getGreen() + dg, start.getBlue() + db, start.getAlpha() + da);
+	}
+
+	final protected static int limit(int value, int min, int max) { return Math.min(Math.max(value, min), max); }
 }

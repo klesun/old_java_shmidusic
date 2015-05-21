@@ -17,13 +17,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Storyspace extends JPanel implements IModel {
+public class Storyspace extends JPanel implements IComponentModel {
 
 	private MajesticWindow window = null;
 
 	private ArrayList<IStoryspacePanel> modelChildList = new ArrayList<>();
 
 	private AbstractHandler handler = null;
+	private Helper modelHelper = new Helper(this);
 
 	public Storyspace(MajesticWindow window) {
 		this.window = window;
@@ -72,6 +73,10 @@ public class Storyspace extends JPanel implements IModel {
 	}
 	@Override
 	public AbstractHandler getHandler() { return this.handler; }
+	@Override
+	public Helper getModelHelper() {
+		return modelHelper;
+	}
 
 	@Override
 	public void getJsonRepresentation(JSONObject dict) {

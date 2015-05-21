@@ -87,7 +87,6 @@ public class StaffConfig extends AbstractModel {
 	}
 
 	public BufferedImage getImage() {
-		StaffPanel sheet = this.getParentStaff().getParentSheet();
 		int w = Settings.getNotaWidth() * 5;
 		int h = Settings.getNotaHeight() * 6;
 		BufferedImage rez = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
@@ -123,9 +122,7 @@ public class StaffConfig extends AbstractModel {
 
 	// field getters
 	
-	public Staff getParentStaff() {
-		return (Staff)this.getModelParent();
-	}
+	public Staff getParentStaff() { return (Staff)this.getModelParent(); 	}
 	public int[] getInstrumentArray() {
 		return this.instrumentArray;
 	}

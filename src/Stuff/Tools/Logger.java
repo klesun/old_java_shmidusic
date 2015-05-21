@@ -9,6 +9,13 @@ public class Logger {
 		return 666;
 	}
 
+	public static int fatal(Exception e, String msg) {
+		System.out.println("Got exception" + e.getClass().getName() + " with message: [" + e.getMessage() + "] ");
+		System.out.println(msg);
+		e.printStackTrace();
+		return 777;
+	}
+
 	public static int warning(String msg) {
 		System.out.println("Warning: " + msg);
 		return 555;

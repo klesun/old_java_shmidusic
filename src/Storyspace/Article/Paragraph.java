@@ -1,16 +1,25 @@
 package Storyspace.Article;
 
 import Gui.Constants;
+import Gui.ImageStorage;
 import Model.*;
-import Model.Field.AbstractModelField;
 import Model.Field.Int;
 import Stuff.Tools.Logger;
+import org.apache.commons.math3.fraction.Fraction;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Highlighter;
+import javax.swing.text.Highlighter.HighlightPainter;
 import java.awt.*;
+import java.util.*;
+import java.util.List;
 
 
 public class Paragraph extends JTextArea implements IComponentModel {
@@ -20,6 +29,7 @@ public class Paragraph extends JTextArea implements IComponentModel {
 	private Helper modelHelper = new Helper(this);
 
 	private Int score = modelHelper.addField("score", 0);
+	private Map<String, CatchPhrase> catchPhrases = new HashMap<>();
 
 	public Paragraph(Article parent) {
 		setLineWrap(true);
@@ -32,13 +42,18 @@ public class Paragraph extends JTextArea implements IComponentModel {
 			public Boolean mouseDraggedFinal(ComboMouse combo) { return combo.leftButton; }
 			@Override
 			protected void initActionMap() {
-				addNumberComboList(ctrl, getContext()::setScore);
+				addNumberComboList(ctrl, getContext()::setSelectedScore);
 			}
 			public Paragraph getContext() { return (Paragraph)super.getContext(); }
 		};
 		this.addMouseListener(handler);
 		this.addMouseMotionListener(handler);
 		this.addKeyListener(handler);
+		this.getDocument().addDocumentListener(new DocumentListener() {
+			public void insertUpdate(DocumentEvent e) { updateHighlightedWords(); }
+			public void removeUpdate(DocumentEvent e) { updateHighlightedWords(); }
+			public void changedUpdate(DocumentEvent e) {}
+		});
 
 		this.parent = parent;
 	}
@@ -62,8 +77,25 @@ public class Paragraph extends JTextArea implements IComponentModel {
 	// field getters/setters
 
 	public Integer getScore() { return score.getValue(); }
-	public Paragraph setScore(Integer value) {
-		score.setValue(value);
+	public Paragraph setScore(Integer value) { score.setValue(value); return this; }
+
+	public CatchPhrase addCatchPhrase(String text) {
+		CatchPhrase phrase = new CatchPhrase(this, text);
+		catchPhrases.put(text, phrase);
+		return phrase;
+	}
+
+	public void removeCatchPhrase(CatchPhrase quote) {
+		catchPhrases.remove(quote.getText());
+	}
+
+	public Paragraph setSelectedScore(Integer value) {
+		if (getSelectedText() != null) {
+			addCatchPhrase(getSelectedText()).setScore(value);
+			updateHighlightedWords();
+		} else {
+			setScore(value);
+		}
 		updateBgColor();
 		return this;
 	}
@@ -74,30 +106,78 @@ public class Paragraph extends JTextArea implements IComponentModel {
 	public IModel getModelParent() { return parent; }
 	@Override
 	public AbstractHandler getHandler() { return handler; }
-
-	@Override
-	public void getJsonRepresentation(JSONObject dict) { dict.put("text", getText()); }
-	@Override
-	public IModel reconstructFromJson(JSONObject jsObject) throws JSONException {
-		modelHelper.reconstructFromJson(jsObject);
-		setText(jsObject.getString("text"));
-		updateBgColor();
-		return this;
-	}
-
 	@Override
 	public Helper getModelHelper() {
 		return modelHelper;
 	}
 
+	@Override
+	public void getJsonRepresentation(JSONObject dict) {
+		dict.put("text", getText());
+		JSONObject phraseDict = new JSONObject();
+		for (Map.Entry<String, CatchPhrase> entry: catchPhrases.entrySet()) {
+			phraseDict.put(entry.getKey(), entry.getValue().getJsonRepresentation());
+		}
+		dict.put("catchPhrases", phraseDict);
+	}
+	@Override
+	public IModel reconstructFromJson(JSONObject jsObject) throws JSONException {
+		clearChildList();
+		modelHelper.reconstructFromJson(jsObject);
+		setText(jsObject.getString("text"));
+		if (jsObject.has("catchPhrases")) {
+			JSONObject phraseDict = jsObject.getJSONObject("catchPhrases");
+			Iterator<String> keys = phraseDict.keys();
+			while (keys.hasNext()) {
+				String key = keys.next();
+				addCatchPhrase(key).reconstructFromJson(phraseDict.getJSONObject(key));
+			}
+		}
+
+		updateBgColor();
+		updateHighlightedWords();
+		return this;
+	}
+
+	private void clearChildList() { catchPhrases.clear(); }
+
+	@Override
+	public void setText(String value) {
+		super.setText(value);
+		updateHighlightedWords();
+	}
+
+
 	// event handles
 
 	private void updateBgColor() {
-		// TODO: move this method somewhere with name getColorBetween(c1, c2, fraction)
-		Color color = getScore() == 0
-			? Color.WHITE
-			: new Color(192 + 63 - 63 * getScore() / 9, 192 + 63 * getScore() / 9, 192);
+		Color bad = new Color(255, 191, 191);
+		Color good = new Color(191, 255, 191);
+		Fraction factor = new Fraction(getScore(), 9);
 
-		setBackground(color);
+		setBackground(getScore() == 0 ? Color.WHITE : ImageStorage.getBetween(bad, good, factor));
+	}
+
+	private void updateHighlightedWords() {
+
+		getHighlighter().removeAllHighlights();
+		List<CatchPhrase> removeEm = new ArrayList<>();
+
+		for (Map.Entry<String, CatchPhrase> entry: catchPhrases.entrySet()) {
+			CatchPhrase quote = entry.getValue();
+
+			if (getText().indexOf(quote.getText()) > -1) {
+
+				HighlightPainter painter = new DefaultHighlighter.DefaultHighlightPainter(quote.getColor());
+				int p0 = getText().indexOf(quote.getText());
+				int p1 = p0 + quote.getText().length();
+
+				try { getHighlighter().addHighlight(p0, p1, painter); }
+				catch (BadLocationException e) { Logger.fatal(e, "Этого никогда не произойдёт " + e.offsetRequested()); }
+
+			} else { removeEm.add(quote); }
+		}
+
+		removeEm.forEach(this::removeCatchPhrase);
 	}
 }

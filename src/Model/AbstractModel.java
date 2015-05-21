@@ -11,6 +11,8 @@ import Gui.Settings;
 import Model.Field.AbstractModelField;
 import Model.Field.Bool;
 import Model.Field.Int;
+import Model.Field.Str;
+import Stuff.Tools.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -24,12 +26,27 @@ public abstract class AbstractModel implements IModel {
 		this.eventHandler = this.makeHandler();
 	}
 
-	final public JSONObject getJsonRepresentation() {
-		return Helper.getJsonRepresentation(this);
-	}
-	abstract public IModel reconstructFromJson(JSONObject jsObject) throws JSONException;
-	abstract public AbstractModel getFocusedChild();
+	// override me please, if you got special fields (like Lists or Objects)
+	public AbstractModel reconstructFromJson(JSONObject jsObject) throws JSONException {
+		for (AbstractModelField field: fieldValueStorage) {
+			if (jsObject.has(field.getName())) { field.setValueFromJsObject(jsObject); }
+			else { Logger.warning("Source does not have field [" + field.getName() + "] for class {" + getClass().getSimpleName() + "}"); }
+		}
 
+		return this;
+	}
+
+	// override me please, if you got special fields (like Lists or Objects)
+	public void getJsonRepresentation(JSONObject dict) {
+		for (AbstractModelField field: fieldValueStorage) {
+			dict.put(field.getName(), field.getValue());
+		}
+	}
+
+	final public JSONObject getJsonRepresentation() { return Helper.getJsonRepresentation(this); }
+
+
+	abstract public AbstractModel getFocusedChild();
 	abstract protected AbstractHandler makeHandler();
 
 	final public AbstractHandler getHandler() { return this.eventHandler; }
@@ -50,7 +67,12 @@ public abstract class AbstractModel implements IModel {
 		fieldValueStorage.add(field);
 		return field;
 	}
-	
+	protected Str addField(String fieldName, String fieldValue) {
+		Str field = new Str(fieldName, fieldValue);
+		fieldValueStorage.add(field);
+		return field;
+	}
+
 	public IModel getModelParent() { return this.parent; }
 
 	// from static context

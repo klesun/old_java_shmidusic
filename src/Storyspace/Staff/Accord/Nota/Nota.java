@@ -46,9 +46,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 		parent.add(this);
 	}
 
-	public Boolean isLongerThan(Nota rival) {
-		return getFraction().compareTo(rival.getFraction()) > 0;
-	}
+	public Boolean isLongerThan(Nota rival) { return getFraction().compareTo(rival.getFraction()) > 0; }
 
 	// <editor-fold desc="implementing abstract model">
 
@@ -65,25 +63,6 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 
 		if (getTupletDenominator() != 1) { for (int i = 0; i < 3; ++i) { surface.drawLine(x + getStickX(), y + i, x + getStickX() -6, y + i); } }
 		if (getNumerator() % 3 == 0) { surface.fillOval(x + Settings.getStepWidth() + getWidth()*2/5, y + getHeight()*7/8, getHeight()/8, getHeight()/8); }
-	}
-
-	// getters/setters
-	
-	@Override
-	public void getJsonRepresentation(JSONObject dict) {
-		for (AbstractModelField field: fieldValueStorage) {
-			dict.put(field.getName(), field.getValue());
-		}
-	}
-
-	@Override
-	public Nota reconstructFromJson(JSONObject jsObject) throws JSONException {
-		for (AbstractModelField field: fieldValueStorage) {
-			if (jsObject.has(field.getName())) { field.setValueFromJsObject(jsObject); }
-			else { Logger.warning("Source does not have field [" + field.getName() + "] for class {" + getClass().getSimpleName() + "}"); }
-		}
-	
-		return this;
 	}
 
 	@Override

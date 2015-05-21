@@ -1,5 +1,6 @@
 package Storyspace;
 
+import Main.MajesticWindow;
 import Model.*;
 import Stuff.Tools.FileProcessor;
 import Stuff.Tools.Logger;
@@ -14,15 +15,16 @@ import java.util.function.Consumer;
 
 public class StoryspaceHandler extends AbstractHandler {
 
-	JFileChooser jsonChooser = new JFileChooser("/home/klesun/yuzefa_git/storyspaceContent/");
-
 	public StoryspaceHandler(Storyspace context) {
 		super(context);
-		jsonChooser.setFileFilter(new FileNameExtensionFilter("Json Storyspace data", "gson"));
 	}
 
 	@Override
 	protected void initActionMap() {
+
+		JFileChooser jsonChooser = new JFileChooser("/home/klesun/yuzefa_git/storyspaceContent/");
+		jsonChooser.setFileFilter(new FileNameExtensionFilter("Json Storyspace data", "gson"));
+
 		addCombo(ctrl, k.VK_M).setDo((this.getContext())::addMusicBlock);
 		addCombo(ctrl, k.VK_T).setDo((this.getContext())::addTextBlock);
 		addCombo(ctrl, k.VK_I).setDo((this.getContext())::addImageBlock);
@@ -77,7 +79,7 @@ public class StoryspaceHandler extends AbstractHandler {
 
 	final private Consumer<Combo> makeSaveFileDialog(BiConsumer<File, Storyspace> lambda, JFileChooser chooser, String ext) {
 		return combo -> {
-			int rVal = chooser.showSaveDialog(getContext().getWindow());
+			int rVal = chooser.showSaveDialog(getContext());
 			if (rVal == JFileChooser.APPROVE_OPTION) {
 				File fn = chooser.getSelectedFile();
 				if (!chooser.getFileFilter().accept(fn)) { fn = new File(fn + "." + ext); }
