@@ -1,9 +1,6 @@
 package Storyspace.Article;
 
-import Model.AbstractHandler;
-import Model.AbstractModel;
-import Model.Helper;
-import Model.IModel;
+import Model.*;
 import Storyspace.IStoryspacePanel;
 import Storyspace.StoryspaceScroll;
 import Storyspace.Storyspace;
@@ -32,27 +29,37 @@ public class Article extends JPanel implements IStoryspacePanel {
 
 	public Article(Storyspace parentStoryspace) {
 		super();
-        this.setBackground(Color.CYAN);
+        this.setBackground(Color.DARK_GRAY);
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-		handler = new AbstractHandler(this) {};
+		handler = new AbstractHandler(this) {
+			protected void initActionMap() {
+				addCombo(0, k.VK_DOWN).setDo(getContext()::focusNext);
+				addCombo(0, k.VK_UP).setDo(getContext()::focusBack);
+			}
+			public Article getContext() {
+				return (Article)super.getContext();
+			}
+		};
 
         addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
+				for (Paragraph par: parList) { fixParagraphWidth(par); }
 				sukaSdelajNormalnijRazmer();
 			}
 		});
 
 		scroll = parentStoryspace.addModelChild(this);
+
+		this.addNewParagraph();
 	}
 
 	/** @forbidden - you don't want change that method!!! these lines worth DOZENS OF HOURS */
-	private void sukaSdelajNormalnijRazmer() {
+	public void sukaSdelajNormalnijRazmer() {
 		int width = scroll.getWidth() - SCROLL_BAR_WIDTH;
 		int height = 0;
 		for (Paragraph par: parList) {
-			fixParagraphWidth(par);
 			height += par.getPreferredSize().getHeight();
 		}
 		this.setMinimumSize(new Dimension(1, 1));
@@ -60,28 +67,24 @@ public class Article extends JPanel implements IStoryspacePanel {
 	}
 
 	/** @forbidden - you don't want change that method!!! these lines worth DOZENS OF HOURS */
-	private void fixParagraphWidth(Paragraph par) {
+	public void fixParagraphWidth(Paragraph par) { // TODO: move to Paragraph
 		int width = scroll.getWidth() - SCROLL_BAR_WIDTH;
 		int height = par.getHeightIfWidthWas(width);
 		par.setMinimumSize(new Dimension(1, 1));
 		par.setPreferredSize(new Dimension(width, height));
 	}
 
-	private Paragraph addNewParagraph() {
+	public Paragraph addNewParagraph(int index) {
 		Paragraph par = new Paragraph(this);
-        parList.add(par); // logic
-		this.add(par); // gui
-		fixParagraphWidth(par);
+		if (index > -1) { parList.add(index, par);
+		} else { parList.add(par); }
+		this.add(par, index);
 
 		return par;
 	}
 
-	private String getWholeText() {
-		String text = "";
-		for (Paragraph par: parList) {
-			text += par.getText() + '\n';
-		}
-		return text;
+	public Paragraph addNewParagraph() {
+		return addNewParagraph(-1);
 	}
 
 	private Article clearChildList() {
@@ -90,7 +93,7 @@ public class Article extends JPanel implements IStoryspacePanel {
 		return this;
 	}
 
-	private List<Paragraph> getParList() { return parList; }
+	public List<Paragraph> getParList() { return parList; }
 
 	@Override
 	public StoryspaceScroll getStoryspaceScroll() { return scroll; }
@@ -125,6 +128,29 @@ public class Article extends JPanel implements IStoryspacePanel {
 			this.addNewParagraph().reconstructFromJson(childJs);
 		}
 
+		sukaSdelajNormalnijRazmer();
 		return this;
 	}
+
+	private int getFocusedIndex() {
+		return this.getFocusedChild() == null
+				? -1
+				: this.parList.indexOf(getFocusedChild());
+	}
+
+	private Article setFocusedIndex(int value) {
+		if (parList.size() > 0) {
+			int idx = limit(value, 0, parList.size() - 1);
+			parList.get(idx).requestFocus();
+		}
+		return this;
+	}
+
+	// event handles
+
+	public void focusNext(Combo c) { this.setFocusedIndex(this.getFocusedIndex() + 1); }
+
+	public void focusBack(Combo c) { this.setFocusedIndex(this.getFocusedIndex() - 1); }
+
+	final protected static int limit(int value, int min, int max) { return Math.min(Math.max(value, min), max); }
 }

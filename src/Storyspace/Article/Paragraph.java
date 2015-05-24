@@ -15,11 +15,11 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
-import javax.swing.text.Highlighter;
 import javax.swing.text.Highlighter.HighlightPainter;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.Map.Entry;
 
 
 public class Paragraph extends JTextArea implements IComponentModel {
@@ -41,17 +41,29 @@ public class Paragraph extends JTextArea implements IComponentModel {
 			public Boolean mousePressedFinal(ComboMouse combo) { return combo.leftButton; }
 			public Boolean mouseDraggedFinal(ComboMouse combo) { return combo.leftButton; }
 			@Override
-			protected void initActionMap() {
-				addNumberComboList(ctrl, getContext()::setSelectedScore);
-			}
+			protected void initActionMap() { addNumberComboList(ctrl, getContext()::setSelectedScore); }
 			public Paragraph getContext() { return (Paragraph)super.getContext(); }
 		};
 		this.addMouseListener(handler);
 		this.addMouseMotionListener(handler);
 		this.addKeyListener(handler);
+
+		Paragraph par = this;
+
 		this.getDocument().addDocumentListener(new DocumentListener() {
-			public void insertUpdate(DocumentEvent e) { updateHighlightedWords(); }
-			public void removeUpdate(DocumentEvent e) { updateHighlightedWords(); }
+			public void insertUpdate(DocumentEvent e) {
+				SwingUtilities.invokeLater(() -> splitIfGotLineBreaks());
+				updateHighlightedWords();
+
+				parent.fixParagraphWidth(par);
+				parent.sukaSdelajNormalnijRazmer();
+			}
+			public void removeUpdate(DocumentEvent e) {
+				updateHighlightedWords();
+
+				parent.fixParagraphWidth(par);
+				parent.sukaSdelajNormalnijRazmer();
+			}
 			public void changedUpdate(DocumentEvent e) {}
 		});
 
@@ -77,7 +89,11 @@ public class Paragraph extends JTextArea implements IComponentModel {
 	// field getters/setters
 
 	public Integer getScore() { return score.getValue(); }
-	public Paragraph setScore(Integer value) { score.setValue(value); return this; }
+	public Paragraph setScore(Integer value) {
+		score.setValue(value);
+		updateBgColor();
+		return this;
+	}
 
 	public CatchPhrase addCatchPhrase(String text) {
 		CatchPhrase phrase = new CatchPhrase(this, text);
@@ -115,7 +131,7 @@ public class Paragraph extends JTextArea implements IComponentModel {
 	public void getJsonRepresentation(JSONObject dict) {
 		dict.put("text", getText());
 		JSONObject phraseDict = new JSONObject();
-		for (Map.Entry<String, CatchPhrase> entry: catchPhrases.entrySet()) {
+		for (Entry<String, CatchPhrase> entry: catchPhrases.entrySet()) {
 			phraseDict.put(entry.getKey(), entry.getValue().getJsonRepresentation());
 		}
 		dict.put("catchPhrases", phraseDict);
@@ -136,6 +152,7 @@ public class Paragraph extends JTextArea implements IComponentModel {
 
 		updateBgColor();
 		updateHighlightedWords();
+		parent.fixParagraphWidth(this);
 		return this;
 	}
 
@@ -158,7 +175,7 @@ public class Paragraph extends JTextArea implements IComponentModel {
 		setBackground(getScore() == 0 ? Color.WHITE : ImageStorage.getBetween(bad, good, factor));
 	}
 
-	private void updateHighlightedWords() {
+	private Paragraph updateHighlightedWords() {
 
 		getHighlighter().removeAllHighlights();
 		List<CatchPhrase> removeEm = new ArrayList<>();
@@ -179,5 +196,18 @@ public class Paragraph extends JTextArea implements IComponentModel {
 		}
 
 		removeEm.forEach(this::removeCatchPhrase);
+
+		return this;
+	}
+
+	private void splitIfGotLineBreaks() {
+		String[] pars = getText().split("\n");
+		if (pars.length > 1) { this.setText(pars[0]); }
+		for (int idx = 1; idx < pars.length; ++idx) {
+			Paragraph par = parent.addNewParagraph(parent.getParList().indexOf(this) + 1);
+			par.setScore(getScore()).setText(pars[idx]);
+			for (CatchPhrase quote: catchPhrases.values()) { par.addCatchPhrase(quote.getText()).setScore(quote.getScore()); }
+			par.updateHighlightedWords().requestFocus();
+		}
 	}
 }
