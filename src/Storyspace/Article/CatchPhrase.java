@@ -1,18 +1,16 @@
 package Storyspace.Article;
 
 import Gui.ImageStorage;
-import Model.AbstractHandler;
 import Model.AbstractModel;
-import Model.Field.Int;
-import Model.Field.Str;
+import Model.Field.ModelField;
 import org.apache.commons.math3.fraction.Fraction;
 
 import java.awt.*;
 
 public class CatchPhrase extends AbstractModel {
 
-	private Str text = addField("text", "");
-	private Int score = addField("score", 4);
+	private ModelField<String> text = h.addField("text", "");
+	private ModelField<Integer> score = h.addField("score", 4);
 
 	public CatchPhrase(Paragraph parent, String text) {
 		super(parent);
@@ -36,11 +34,4 @@ public class CatchPhrase extends AbstractModel {
 
 		return ImageStorage.getBetween(bad, good, factor);
 	}
-
-	@Override
-	public AbstractModel getFocusedChild() { return null; } // last generation... just like sasuke
-	@Override
-	protected AbstractHandler makeHandler() { return new AbstractHandler(this) {}; }
-	@Override
-	public void drawOn(Graphics surface, int x, int y) {} // TODO: soon
 }

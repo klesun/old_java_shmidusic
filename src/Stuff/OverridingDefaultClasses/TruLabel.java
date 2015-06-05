@@ -9,4 +9,9 @@ public class TruLabel extends JLabel {
 		super(text);
 		setFont(Constants.PROJECT_FONT);
 	}
+
+	public TruLabel(String text, int align) {
+		super(text, align);
+		setFont(Constants.PROJECT_FONT);
+	}
 }

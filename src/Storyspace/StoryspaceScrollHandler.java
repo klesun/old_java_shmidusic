@@ -3,6 +3,7 @@ package Storyspace;
 import Model.AbstractHandler;
 import Model.ComboMouse;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -32,7 +33,12 @@ public class StoryspaceScrollHandler extends AbstractHandler {
 	}
 
 	@Override
-	protected void initActionMap() {}
+	protected void initActionMap() {
+		addCombo(ctrl, k.VK_DELETE).setDo(c -> { getContext().getModelParent().removeModelChild(getContext().content); });
+		addCombo(0, k.VK_F2).setDo(c -> {
+			getContext().setTitle(JOptionPane.showInputDialog(getContext(), "Type new name for panel: ", getContext().getTitle()));
+		});
+	}
 
 	@Override
 	public Boolean mouseDraggedFinal(ComboMouse mouse) {

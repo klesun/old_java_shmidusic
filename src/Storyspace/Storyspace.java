@@ -48,6 +48,17 @@ public class Storyspace extends JPanel implements IComponentModel {
 		return scroll;
 	}
 
+	public void removeModelChild(IStoryspacePanel child) {
+		this.remove(child.getStoryspaceScroll());
+		modelChildList.remove(child);
+		repaint();
+	}
+
+	private void clearChildList() {
+		this.removeAll();
+		this.modelChildList.clear();
+	}
+
 	// getters
 
 	public MajesticWindow getWindow() { return this.window; }
@@ -55,15 +66,15 @@ public class Storyspace extends JPanel implements IComponentModel {
 	// overriding IModel
 
 	@Override
-	public IModel getModelParent() { return null; } // Storyspace is root parent
+	public IComponentModel getModelParent() { return null; } // Storyspace is root parent
 	@Override
-	public IModel getFocusedChild() { // i think, i don't get awt philosophy...
+	public StoryspaceScroll getFocusedChild() { // i think, i don't get awt philosophy...
 		Component focused = window.getFocusOwner();
 		if (focused instanceof IModel) {
 			IModel model = (IModel)focused;
 			while (model != null) {
 				if (modelChildList.contains(model)) {
-					return model;
+					return IStoryspacePanel.class.cast(model).getStoryspaceScroll();
 				}
 				model = model.getModelParent();
 			}
@@ -89,25 +100,25 @@ public class Storyspace extends JPanel implements IComponentModel {
 	}
 	@Override
 	public Storyspace reconstructFromJson(JSONObject jsObject) throws JSONException {
-		this.removeAll();
-		this.modelChildList.clear();
+		clearChildList();
 		JSONArray childBlockList = jsObject.getJSONArray("childBlockList");
 		for (int i = 0; i < childBlockList.length(); ++i) {
 			JSONObject childJs = childBlockList.getJSONObject(i);
-			Component /*IModel*/ child = makeChildByClassName(childJs.getString("className"));
-			IStoryspacePanel.class.cast(child)
-					.getStoryspaceScroll()
-					.reconstructFromJson(childJs.getJSONObject("scroll"));
-			IModel.class.cast(child).reconstructFromJson(childJs);
+			IStoryspacePanel child = makeChildByClassName(childJs.getString("className"));
+			child.getStoryspaceScroll().reconstructFromJson(childJs.getJSONObject("scroll"));
+			child.reconstructFromJson(childJs);
+
+			// StaffPanels take ~10 mib; Articles - ~1 mib
+//			Logger.logMemory("reconstructed " + child.getClass().getSimpleName() + " [" + child.getStoryspaceScroll().toString() + "]");
 		}
 		return this;
 	}
 
 	// private methods
 
-	private static Class<?extends Component>[] childClasses = new Class[]{Article.class, ImagePanel.class, StaffPanel.class};
+	private static Class<?extends IStoryspacePanel>[] childClasses = new Class[]{Article.class, ImagePanel.class, StaffPanel.class};
 
-	private Component /* IModel */ makeChildByClassName(String className) {
+	private IStoryspacePanel makeChildByClassName(String className) {
 		for (int i = 0; i < childClasses.length; ++i) {
 			if (childClasses[i].getSimpleName().equals(className)) {
 				try {

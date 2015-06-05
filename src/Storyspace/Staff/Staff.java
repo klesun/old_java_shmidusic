@@ -26,7 +26,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Staff extends AbstractModel {
+public class Staff extends MidianaComponent {
 	public byte channelFlags = -1;
 
 	public static final int DEFAULT_ZNAM = 64; // TODO: move it into some constants maybe
@@ -142,7 +142,7 @@ public class Staff extends AbstractModel {
 	}
 
 	@Override
-	public AbstractModel getFocusedChild() { return getFocusedAccord(); }
+	public Accord getFocusedChild() { return getFocusedAccord(); }
 	@Override
 	protected StaffHandler makeHandler() { return new StaffHandler(this); }
 

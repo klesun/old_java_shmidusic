@@ -1,5 +1,6 @@
 package Model;
 
+import Storyspace.Staff.MidianaComponent;
 import Storyspace.Staff.StaffPanel;
 
 import javax.swing.*;
@@ -13,7 +14,7 @@ import java.util.function.Consumer;
 
 abstract public class AbstractHandler implements KeyListener, MouseListener, MouseMotionListener {
 
-	private IModel context = null;
+	private IComponentModel context = null;
 	protected LinkedHashMap<Combo, ActionFactory> actionMap = new LinkedHashMap<>();
 	protected static LinkedList<Action> handledEventQueue = new LinkedList<>(); // for ctrl-z
 	protected static LinkedList<Action> unhandledEventQueue = new LinkedList<>(); // for ctrl-y
@@ -21,7 +22,7 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 	// mouse
 	protected Point mouseLocation = new Point(0,0);
 
-	public AbstractHandler(IModel context) {
+	public AbstractHandler(IComponentModel context) {
 		this.context = context;
 		this.initActionMap();
 
@@ -57,7 +58,7 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 	final public void keyReleased(KeyEvent e) {}
 
 	private AbstractHandler getRootHandler() {
-		IModel rootContext = getContext();
+		IComponentModel rootContext = getContext();
 		while (rootContext.getModelParent() != null) {
 			rootContext = rootContext.getModelParent();
 		}
@@ -79,7 +80,9 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 				}
 			}
 		}
-		if (getSheetPanel() != null) { getSheetPanel().checkCam(); } // говно!!!
+		if (getContext() instanceof MidianaComponent) { // i don't like this
+			MidianaComponent.class.cast(getContext()).getFirstPanelParent().checkCam();
+		}
 		return result;
 	}
 
@@ -101,16 +104,7 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 		while (unhandledEventQueue.poll() != null);
 	}
 
-	// TODO: it's so ugly...
-	private StaffPanel getSheetPanel() {
-		IModel context = getContext();
-		while (!(context instanceof StaffPanel) && context != null) { // circular import? yes...
-			context = context.getModelParent();
-		}
-		return (StaffPanel)context;
-	}
-
-	public IModel getContext() {
+	public IComponentModel getContext() {
 		return this.context;
 	}
 

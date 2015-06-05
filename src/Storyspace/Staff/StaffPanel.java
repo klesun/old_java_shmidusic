@@ -35,6 +35,9 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 
 	private StaffPanel storyspaceRepresentative = this;
 
+	private JSONObject staffJson;
+	private Boolean loadJsonOnFocus = false;
+
 	public StaffPanel(Storyspace parentStoryspace) {
 		this.parentWindow = parentStoryspace.getWindow();
 		thisMiddle();
@@ -53,8 +56,17 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 		this.addMouseListener(handler);
 		this.addMouseMotionListener(handler);
 
+		StaffPanel panel = this;
+
 		addFocusListener(new FocusAdapter() {
-			public void focusGained(FocusEvent e) { DumpReceiver.eventHandler = (StaffHandler)staff.getHandler(); }
+			public void focusGained(FocusEvent e) {
+				if (loadJsonOnFocus) {
+					staff.reconstructFromJson(staffJson);
+					loadJsonOnFocus = false;
+				}
+				staff.getConfig().syncSyntChannels();
+				DumpReceiver.eventHandler = (StaffHandler)staff.getHandler();
+			}
 			public void focusLost(FocusEvent e) { DumpReceiver.eventHandler = null; }
 		});
 
@@ -67,7 +79,11 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 	public int getTotalRowCount() { return getStaff().getAccordRowList().size(); }
 	
 	@Override
-	public void paintComponent(Graphics g) { getStaff().drawOn(g, 0, 0); }
+	public void paintComponent(Graphics g) {
+		if (!loadJsonOnFocus) {
+			getStaff().drawOn(g, 0, 0);
+		}
+	}
 
 	public int getFocusedSystemY() {
 		return SISDISPLACE * dy() * (getStaff().getFocusedIndex() / getStaff().getAccordInRowCount());
@@ -92,7 +108,7 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 	// IModel implementation
 
 	@Override
-	public AbstractModel getFocusedChild() { return getStaff(); }
+	public Staff getFocusedChild() { return getStaff(); }
 	@Override
 	public StoryspaceScroll getModelParent() {
 		return getScrollPane() instanceof StoryspaceScroll
@@ -104,10 +120,13 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 	public Helper getModelHelper() { return modelHelper; }
 
 	@Override
-	public void getJsonRepresentation(JSONObject dict) { 	dict.put("staff", getStaff().getJsonRepresentation()); }
+	public void getJsonRepresentation(JSONObject dict) {
+		dict.put("staff", loadJsonOnFocus ? staffJson : getStaff().getJsonRepresentation());
+	}
 	@Override
 	public StaffPanel reconstructFromJson(JSONObject jsObject) throws JSONException {
-		this.staff = new Staff(this).reconstructFromJson(jsObject.getJSONObject("staff"));
+		this.staffJson = jsObject.getJSONObject("staff");
+		this.loadJsonOnFocus = true;
 		return this;
 	}
 
@@ -150,6 +169,7 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 			((CardLayout)parentWindow.cards.getLayout()).show(parentWindow.cards, parentWindow.CARDS_FULLSCREEN);
 			parentWindow.fullscreenStaffPanel.requestFocus();
 			Settings.inst().scale(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_EQUALS));
+			parentWindow.setTitle(getStoryspaceScroll().getTitle());
 		} else {
 			((CardLayout) parentWindow.cards.getLayout()).show(parentWindow.cards, MajesticWindow.CARDS_STORYSPACE);
 			Settings.inst().scale(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_MINUS));
@@ -165,8 +185,8 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 		return new AbstractHandler(this) {
 			protected void initActionMap() {
 				addCombo(ctrl, k.VK_F).setDo(getContext()::switchFullscreen);
-				addCombo(ctrl, k.VK_PAGE_DOWN).setDo(getContext()::page);
-				addCombo(ctrl, k.VK_PAGE_UP).setDo(getContext()::page);
+				addCombo(0, k.VK_PAGE_DOWN).setDo(getContext()::page);
+				addCombo(0, k.VK_PAGE_UP).setDo(getContext()::page);
 			}
 			public Boolean mousePressedFinal(ComboMouse mouse) {
 				if (mouse.leftButton) {

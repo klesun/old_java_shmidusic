@@ -3,9 +3,10 @@ package Model;
 import java.awt.*;
 import java.awt.event.FocusListener;
 
-public interface IComponentModel extends IModel {
+public interface IComponentModel extends IModel { // lol TODO: you should do something
 
-	Helper getModelHelper();
+	IComponentModel getFocusedChild();
+	AbstractHandler getHandler();
 
 	// <editor-fold desc="these methods will be always overridden by Component">
 

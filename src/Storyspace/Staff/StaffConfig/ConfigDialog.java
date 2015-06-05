@@ -2,74 +2,106 @@ package Storyspace.Staff.StaffConfig;
 
 
 import Gui.ImageStorage;
+import Model.AbstractModel;
+import Model.Field.Arr;
+import Model.Field.ModelField;
+import Stuff.OverridingDefaultClasses.ModelFieldInput;
+import Stuff.OverridingDefaultClasses.TruLabel;
+import Stuff.Tools.Logger;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class ConfigDialog extends JPanel {
 
 	final private static int CHANNEL_COUNT = 10;
+	final private static int CELL_HEIGHT = 30;
+	final private static int CELL_WIDTH = 75;
+
+	List<ModelFieldInput> inputList = new ArrayList<>();
+	Consumer<AbstractModel> onConfirm;
 
 	StaffConfig parent = null;
-
-	JTextField[] channelInstrumentInputList = new JTextField[CHANNEL_COUNT];
-	JTextField[] channelVolumeInputList = new JTextField[CHANNEL_COUNT];
-	JCheckBox[] channleMuteCheckboxList = new JCheckBox[CHANNEL_COUNT];
-
-	JPanel channelGridPanel = new JPanel(new GridLayout(CHANNEL_COUNT + 1, 4, 20, 20));
 
 	public ConfigDialog(StaffConfig parent) {
 		super();
 		this.parent = parent;
 
-		channelGridPanel.setPreferredSize(new Dimension(200, 400));
+		this.addChannelSetupGrid();
+		this.addPropertyGrid();
+	}
+
+	public void showMenuDialog(Consumer<AbstractModel> onConfirm) {
+		int option = JOptionPane.showConfirmDialog(null, this, "Enter instruments for channels", JOptionPane.OK_CANCEL_OPTION);
+		if (option == JOptionPane.OK_OPTION) {
+			confirmChanges();
+			onConfirm.accept(parent);
+		}
+	}
+
+	private void addChannelSetupGrid() {
+
+		List<String> fieldList = parent.getChannelList().get(0).getFieldList();
+
+		JPanel channelGridPanel = new JPanel(new GridLayout(CHANNEL_COUNT + 1, fieldList.size(), 4, 4));
+		channelGridPanel.setPreferredSize(new Dimension(fieldList.size() * CELL_WIDTH, (CHANNEL_COUNT + 1) * CELL_HEIGHT));
+		channelGridPanel.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.DARK_GRAY));
 		this.add(channelGridPanel);
 
 		// header grid row
+		channelGridPanel.add(new JLabel(""));
+		for (String header: fieldList) { channelGridPanel.add(new TruLabel(header)); }
 
+		parent.getModelHelper().getFieldStorage().stream().filter(field -> field instanceof Arr).forEach(field -> {
+			List<AbstractModel> modelList = (List<AbstractModel>)field.getValue();
+			for (int i = 0; i < modelList.size(); ++i) {
 
-		// filling grid with cells
-		for (int i = 0; i < 10; ++i) {
-			channelGridPanel.add(new JLabel("      " + i));
+				channelGridPanel.add(new TruLabel(i + "", SwingConstants.RIGHT));
 
-			channelInstrumentInputList[i] = new JTextField();
-			channelGridPanel.add(channelInstrumentInputList[i]); channelInstrumentInputList[i].setForeground(ImageStorage.getColorByChannel(i));
-
-			channelVolumeInputList[i] = new JTextField();
-			channelGridPanel.add(channelVolumeInputList[i]); channelVolumeInputList[i].setForeground(ImageStorage.getColorByChannel(i));
-
-			channleMuteCheckboxList[i] = new JCheckBox();
-			channelGridPanel.add(channleMuteCheckboxList[i]);
-		}
+				AbstractModel model = modelList.get(i);
+				for (ModelField channelField: model.getModelHelper().getFieldStorage()) {
+					JTextField textField = checkEm(new ModelFieldInput(channelField));
+					textField.setForeground(ImageStorage.getColorByChannel(i));
+					channelGridPanel.add(textField);
+				}
+			}
+		});
 	}
 
-	public void showMenuDialog() {
+	private void addPropertyGrid() {
 
-		// TODO: use float instead of %
+		List<ModelField> propertyList = parent.getModelHelper().getFieldStorage().stream().filter(field -> !(field instanceof Arr)).collect(Collectors.toList());
 
-		for (int i = 0; i < CHANNEL_COUNT; ++i) {
-			channelInstrumentInputList[i].setText(parent.getInstrumentArray()[i] + "");
-			channelVolumeInputList[i].setText(parent.getVolumeArray()[i] + "");
-			channleMuteCheckboxList[i].setSelected(parent.getMuteFlagArray()[i]);
+		JPanel propertyGridPanel = new JPanel(new GridLayout(propertyList.size() + 1, 2, 4, 4));
+		propertyGridPanel.setPreferredSize(new Dimension(2 * CELL_WIDTH, (propertyList.size() + 1) * CELL_HEIGHT));
+		this.add(propertyGridPanel);
+
+		String[] gridHeaders = new String[]{"Prop.", "Value"};
+		// header grid row
+		for (String header: gridHeaders) { propertyGridPanel.add(new TruLabel(header)); }
+
+		// filling grid with cells
+		for (ModelField field: propertyList) {
+			propertyGridPanel.add(new TruLabel(field.getName()));
+			propertyGridPanel.add(checkEm(new ModelFieldInput(field)));
 		}
-
-		int option = JOptionPane.showConfirmDialog(null, this, "Enter instruments for channels", JOptionPane.OK_CANCEL_OPTION);
-		if (option == JOptionPane.OK_OPTION) { confirmChanges(); }
 	}
 
 	private void confirmChanges() {
-		for (int i = 0; i < CHANNEL_COUNT; ++i) {
-			int instrument = limit(Integer.parseInt(channelInstrumentInputList[i].getText()), 0, 127);
-			int volume = limit(Integer.parseInt(channelVolumeInputList[i].getText()), 0, 100);
-
-			parent.getInstrumentArray()[i] = instrument;
-			parent.getVolumeArray()[i] = volume;
-			parent.getMuteFlagArray()[i] = channleMuteCheckboxList[i].isSelected();
-		};
-		parent.syncSyntChannels();
+		for (ModelFieldInput input: inputList) {
+			input.getOwner().setValueFromString(input.getText());
+		}
 	}
 
-	private static int limit(int value, int min, int max) {
-		return Math.min(Math.max(value, min), max);
+	private ModelFieldInput checkEm(ModelFieldInput input) {
+		this.inputList.add(input);
+		return input;
 	}
 }

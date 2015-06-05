@@ -3,10 +3,9 @@ package Storyspace.Article;
 import Gui.Constants;
 import Gui.ImageStorage;
 import Model.*;
-import Model.Field.Int;
+import Model.Field.ModelField;
 import Stuff.Tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -28,7 +27,7 @@ public class Paragraph extends JTextArea implements IComponentModel {
 	private AbstractHandler handler = null;
 	private Helper modelHelper = new Helper(this);
 
-	private Int score = modelHelper.addField("score", 0);
+	private ModelField<Integer> score = modelHelper.addField("score", 0);
 	private Map<String, CatchPhrase> catchPhrases = new HashMap<>();
 
 	public Paragraph(Article parent) {
@@ -41,7 +40,15 @@ public class Paragraph extends JTextArea implements IComponentModel {
 			public Boolean mousePressedFinal(ComboMouse combo) { return combo.leftButton; }
 			public Boolean mouseDraggedFinal(ComboMouse combo) { return combo.leftButton; }
 			@Override
-			protected void initActionMap() { addNumberComboList(ctrl, getContext()::setSelectedScore); }
+			protected void initActionMap() {
+				addNumberComboList(ctrl, getContext()::setSelectedScore);
+				addCombo(0, k.VK_DOWN).setDo(c -> getRowIndex() < getRowCount() - 1);
+				addCombo(0, k.VK_UP).setDo(c -> getRowIndex() > 0);
+				addCombo(0, k.VK_LEFT).setDo(c -> getCaretPosition() > 0);
+				addCombo(0, k.VK_BACK_SPACE).setDo(c -> getCaretPosition() > 0);
+				addCombo(0, k.VK_RIGHT).setDo(c -> getCaretPosition() < getText().length());
+				addCombo(0, k.VK_DELETE).setDo(c -> getCaretPosition() < getText().length());
+			}
 			public Paragraph getContext() { return (Paragraph)super.getContext(); }
 		};
 		this.addMouseListener(handler);
@@ -68,6 +75,25 @@ public class Paragraph extends JTextArea implements IComponentModel {
 		});
 
 		this.parent = parent;
+	}
+
+	public int getRowIndex() {
+		// Костыль могёт - костыль вперёд!
+
+		Rectangle r = null;
+		try { r = modelToView(getCaretPosition()); }
+		catch (BadLocationException e) { Logger.fatal(e, "It should never happen"); }
+
+		return (r.y + r.height) / getFontMetrics(getFont()).getHeight() - 1;
+
+	}
+
+	public int getRowCount() {
+		Rectangle r = null;
+		try { r = modelToView(getText().length()); }
+		catch (BadLocationException e) { Logger.fatal(e, "It should never happen"); }
+
+		return (r.y + r.height) / getFontMetrics(getFont()).getHeight() - 1;
 	}
 
 	public int getHeightIfWidthWas(int width) {
@@ -117,9 +143,9 @@ public class Paragraph extends JTextArea implements IComponentModel {
 	}
 
 	@Override
-	public IModel getFocusedChild() { return null; }
+	public IComponentModel getFocusedChild() { return null; }
 	@Override
-	public IModel getModelParent() { return parent; }
+	public Article getModelParent() { return parent; }
 	@Override
 	public AbstractHandler getHandler() { return handler; }
 	@Override
@@ -209,5 +235,12 @@ public class Paragraph extends JTextArea implements IComponentModel {
 			for (CatchPhrase quote: catchPhrases.values()) { par.addCatchPhrase(quote.getText()).setScore(quote.getScore()); }
 			par.updateHighlightedWords().requestFocus();
 		}
+	}
+
+	public void mergeBackTo(Paragraph bequested) {
+		bequested.append(this.getText());
+		bequested.catchPhrases.putAll(this.catchPhrases);
+		bequested.updateHighlightedWords();
+		parent.removeParagraph(this);
 	}
 }

@@ -4,13 +4,16 @@ import Gui.ImageStorage;
 import Gui.Settings;
 import Model.AbstractHandler;
 import Model.AbstractModel;
-import Storyspace.Staff.StaffPanel;
+import Model.Field.Arr;
+import Model.Field.ModelField;
+import Storyspace.Staff.MidianaComponent;
 import Stuff.Midi.DeviceEbun;
 import Storyspace.Staff.Staff;
 
-import java.awt.Graphics;
-import java.awt.image.BufferedImage;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.ShortMessage;
@@ -21,15 +24,27 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class StaffConfig extends AbstractModel {
+public class StaffConfig extends MidianaComponent {
 
-	public int valueTempo = 120; // quarter beats per minute
-	public int numerator = 8;
+	// TODO: use Fraction
+	private ModelField<Integer> numerator = h.addField("numerator", 8); // because 8x8 = 64; 64/64 = 1; obvious
+	private ModelField<Integer> tempo = h.addField("tempo", 120);
 
-	// maybe create Channel class if we get more properties
-	private int[] instrumentArray = {0, 65, 66, 43, 19, 52, 6, 91, 9, 14};
-	private int[] volumeArray = {60, 60, 60, 60, 60, 60, 60, 60, 60, 60};
-	private Boolean[] muteFlagArray = {false, false, false, false, false, false, false, false, false, false}; // not stored in file for now
+	private Arr<Channel> channelList = (Arr<Channel>)h.addField("channelList", makeChannelList(), Channel.class);
+
+	private List<Channel> makeChannelList() {
+		List<Channel> list = new ArrayList<>();
+
+		int[] tones = {0, 65, 66, 43, 19, 52, 6, 91, 9, 14};
+		int[] volumes = {60, 60, 60, 60, 60, 60, 60, 60, 60, 60};
+		Boolean[] mutes = {false, false, false, false, false, false, false, false, false, false};
+
+		for (int i = 0; i < 10; ++i) {
+			list.add(new Channel(this).setInstrument(tones[i]).setVolume(volumes[i]).setIsMuted(mutes[i]));
+		}
+
+		return list;
+	}
 
 	public StaffConfig(Staff staff) {
 		super(staff);
@@ -38,34 +53,14 @@ public class StaffConfig extends AbstractModel {
 	public ConfigDialog getDialog() { return new ConfigDialog(this); }
 
 	public Fraction getTactSize() {
-		int tactNumerator = numerator * 8;
+		int tactNumerator = getNumerator() * 8;
 		int tactDenominator = Staff.DEFAULT_ZNAM;
 		return new Fraction(tactNumerator, tactDenominator);
 	}
 
 	@Override
-	public void getJsonRepresentation(JSONObject dict) {
-		dict.put("tempo", this.valueTempo);
-		dict.put("numerator", this.numerator);
-		dict.put("instrumentArray", new JSONArray(this.instrumentArray));
-		dict.put("volumeArray", new JSONArray(this.volumeArray));
-	}
-
-	@Override
 	public StaffConfig reconstructFromJson(JSONObject jsObject) throws JSONException {
-		this.valueTempo = jsObject.getInt("tempo");
-		if (jsObject.has("numerator")) { // TODO: [deprecated], it should be always true
-			this.numerator = jsObject.getInt("numerator");
-		}
-		if (jsObject.has("instrumentArray")) { // TODO: [deprecated], it should be always true one day
-			JSONArray jsArray = jsObject.getJSONArray("instrumentArray");
-			for (int i = 0; i < 10; ++i) { this.instrumentArray[i] = jsArray.getInt(i); }
-		}
-		if (jsObject.has("volumeArray")) { // TODO: [deprecated], it should be always true one day
-			JSONArray jsArray = jsObject.getJSONArray("volumeArray");
-			for (int i = 0; i < 10; ++i) { this.volumeArray[i] = jsArray.getInt(i); }
-		}
-
+		super.reconstructFromJson(jsObject);
 		syncSyntChannels();
 		return this;
 	}
@@ -73,12 +68,14 @@ public class StaffConfig extends AbstractModel {
 	public void syncSyntChannels() {
 		ShortMessage instrMess = new ShortMessage();
 		try {
-			for (int i = 0; i < 10; ++i) {
-				instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, i, this.instrumentArray[i], 0);
+			for (int i = 0; i < getChannelList().size(); ++i) {
+				instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, i, this.getChannelList().get(i).getInstrument(), 0);
 				DeviceEbun.theirReceiver.send(instrMess, -1);
 			}
-		} catch (InvalidMidiDataException exc) { System.out.println("Midi error, could not sync channle instruments!"); }
+		} catch (InvalidMidiDataException exc) { System.out.println("Midi error, could not sync channel instruments!"); }
 	}
+
+	public static void syncSyntChannels(AbstractModel c) { ((StaffConfig)c).syncSyntChannels(); }
 
 	@Override
 	public void drawOn(Graphics g, int xIndent, int yIndent) {
@@ -93,7 +90,7 @@ public class StaffConfig extends AbstractModel {
 		Graphics g = rez.getGraphics();
 		g.setColor(Color.black);
 
-		int tz=8, tc = numerator;
+		int tz=8, tc = getNumerator();
 		while (tz>4 && tc%2==0) {
 			tz /= 2;
 			tc /= 2;
@@ -108,13 +105,13 @@ public class StaffConfig extends AbstractModel {
 		g.drawImage(ImageStorage.inst().getQuarterImage(), tpx, tpy, null);
 		inches = Settings.getNotaHeight()*9/20;
 		g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, inches)); // 12 - 7px width
-		g.drawString(" = "+valueTempo, tpx + Settings.getNotaWidth()*4/5, tpy + inches*4/5 + Settings.getNotaHeight()*13/20);
+		g.drawString(" = " + getTempo() , tpx + Settings.getNotaWidth()*4/5, tpy + inches*4/5 + Settings.getNotaHeight()*13/20);
 
 		return rez;
 	}
 
 	@Override
-	public AbstractModel getFocusedChild() {
+	public MidianaComponent getFocusedChild() {
 		return null;
 	}
 	@Override
@@ -122,12 +119,16 @@ public class StaffConfig extends AbstractModel {
 
 	// field getters
 	
-	public Staff getParentStaff() { return (Staff)this.getModelParent(); 	}
-	public int[] getInstrumentArray() {
-		return this.instrumentArray;
-	}
-	public int[] getVolumeArray() { return this.volumeArray; }
-	public Boolean[] getMuteFlagArray() { return this.muteFlagArray; }
+	public Staff getParentStaff() { return (Staff)this.getModelParent(); }
 
-	public int getVolume(int channel) { return muteFlagArray[channel] ? 0 : volumeArray[channel]; }
+	public Integer getTempo() { return this.tempo.getValue(); }
+	public StaffConfig setTempo(int value) { this.tempo.setValue(value); return this; }
+	public Integer getNumerator() { return this.numerator.getValue(); }
+	public StaffConfig setNumerator(int value) { this.numerator.setValue(value); return this; }
+	public List<Channel> getChannelList() { return this.channelList.getValue(); }
+
+	public int getVolume(int channel) {
+		Channel chan = getChannelList().get(channel);
+		return chan.getIsMuted() ? 0 : chan.getVolume();
+	}
 }

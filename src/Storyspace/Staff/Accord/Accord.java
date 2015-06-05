@@ -5,6 +5,7 @@ import java.awt.Graphics;
 import java.util.ArrayList;
 
 import Model.Combo;
+import Storyspace.Staff.MidianaComponent;
 import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -12,7 +13,6 @@ import org.json.JSONObject;
 
 import Gui.Constants;
 import Gui.Settings;
-import Model.AbstractModel;
 import Storyspace.Staff.Accord.Nota.Nota;
 import Storyspace.Staff.Staff;
 import Stuff.Tools.Fp;
@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class Accord extends AbstractModel {
+public class Accord extends MidianaComponent {
 
 	ArrayList<Nota> notaList = new ArrayList<Nota>();
 	String slog = "";
@@ -50,7 +50,7 @@ public class Accord extends AbstractModel {
 		JSONArray notaJsonList = jsObject.getJSONArray("notaList");
 		for (int idx = 0; idx < notaJsonList.length(); ++idx) {
 			JSONObject childJs = notaJsonList.getJSONObject(idx);
-			new Nota(this, 0).reconstructFromJson(childJs); // -_-
+			new Nota(this, 0).reconstructFromJson(childJs);
 		}
 		this.slog = jsObject.getString("slog");
 		return this;
@@ -176,7 +176,7 @@ public class Accord extends AbstractModel {
 	}
 
 	@Override
-	public AbstractModel getFocusedChild() {
+	public Nota getFocusedChild() {
 		return this.getFocusedNota();
 	}
 	@Override

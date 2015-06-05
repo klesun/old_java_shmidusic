@@ -35,7 +35,11 @@ public class Article extends JPanel implements IStoryspacePanel {
 		handler = new AbstractHandler(this) {
 			protected void initActionMap() {
 				addCombo(0, k.VK_DOWN).setDo(getContext()::focusNext);
+				addCombo(0, k.VK_RIGHT).setDo(getContext()::focusNext);
 				addCombo(0, k.VK_UP).setDo(getContext()::focusBack);
+				addCombo(0, k.VK_LEFT).setDo(getContext()::focusBack);
+				addCombo(0, k.VK_BACK_SPACE).setDo(getContext()::mergeBack);
+				addCombo(0, k.VK_DELETE).setDo(getContext()::mergeNext);
 			}
 			public Article getContext() {
 				return (Article)super.getContext();
@@ -85,6 +89,12 @@ public class Article extends JPanel implements IStoryspacePanel {
 
 	public Paragraph addNewParagraph() {
 		return addNewParagraph(-1);
+	}
+
+	public Article removeParagraph(Paragraph par) {
+		parList.remove(par);
+		this.remove(par);
+		return this;
 	}
 
 	private Article clearChildList() {
@@ -149,8 +159,27 @@ public class Article extends JPanel implements IStoryspacePanel {
 	// event handles
 
 	public void focusNext(Combo c) { this.setFocusedIndex(this.getFocusedIndex() + 1); }
-
 	public void focusBack(Combo c) { this.setFocusedIndex(this.getFocusedIndex() - 1); }
+
+	public void mergeBack(Combo c) {
+		if (getFocusedIndex() > 0) {
+			Paragraph back = getParList().get(getFocusedIndex() - 1);
+			int caretPos = back.getText().length();
+			getFocusedChild().mergeBackTo(back);
+			back.requestFocus();
+			back.setCaretPosition(caretPos);
+		}
+	}
+	public void mergeNext(Combo c) {
+		if (getFocusedIndex() < getParList().size() - 1 && getFocusedIndex() > -1) {
+			SwingUtilities.invokeLater(() -> {
+				int caretPos = getFocusedChild().getText().length();
+				Paragraph next = getParList().get(getFocusedIndex() + 1);
+				next.mergeBackTo(getFocusedChild());
+				getFocusedChild().setCaretPosition(caretPos);
+			});
+		}
+	}
 
 	final protected static int limit(int value, int min, int max) { return Math.min(Math.max(value, min), max); }
 }

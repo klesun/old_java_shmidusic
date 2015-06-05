@@ -56,7 +56,7 @@ public class ImagePanel extends JPanel implements IStoryspacePanel {
 	@Override
 	public StoryspaceScroll getStoryspaceScroll() { return scroll; }
 	@Override
-	public AbstractModel getFocusedChild() { return null; }
+	public IComponentModel getFocusedChild() { return null; }
 	@Override
 	public StoryspaceScroll getModelParent() { return StoryspaceScroll.class.cast(getParent().getParent()); } // =D
 	@Override

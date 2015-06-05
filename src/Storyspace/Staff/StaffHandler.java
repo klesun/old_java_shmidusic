@@ -1,6 +1,7 @@
 
 package Storyspace.Staff;
 import Gui.Settings;
+import Storyspace.Staff.StaffConfig.StaffConfig;
 import Stuff.Midi.DeviceEbun;
 import Model.AbstractHandler;
 import Model.ActionFactory;
@@ -117,7 +118,7 @@ public class StaffHandler extends AbstractHandler {
 		});
 
 		addCombo(0, k.VK_ESCAPE).setDo((event) -> {
-			getContext().getConfig().getDialog().showMenuDialog();
+			getContext().getConfig().getDialog().showMenuDialog(StaffConfig::syncSyntChannels);
 		});
 
 		for (Integer i: Combo.getAsciTuneMap().keySet()) {

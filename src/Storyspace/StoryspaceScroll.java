@@ -56,7 +56,7 @@ public class StoryspaceScroll extends Scroll implements IComponentModel {
 	// implementing IModel
 
 	@Override
-	public IModel getFocusedChild() { return IModel.class.cast(content); }
+	public IComponentModel getFocusedChild() { return IComponentModel.class.cast(content); }
 	@Override
 	public Storyspace getModelParent() { return Storyspace.class.cast(getParent()); }
 	@Override
@@ -87,12 +87,11 @@ public class StoryspaceScroll extends Scroll implements IComponentModel {
 	public StoryspaceScroll setTitle(String title) {
 		this.titlePanel.removeAll();
 		this.titlePanel.add(new TruLabel(title));
+		this.titlePanel.validate();
 		return this;
 	}
 
-	public String getTitle() {
-		return TruLabel.class.cast(titlePanel.getComponent(0)).getText();
-	}
+	public String getTitle() { return TruLabel.class.cast(titlePanel.getComponent(0)).getText(); }
 
 	public void gotFocus() {
 		setBorder(StoryspaceScroll.focusedBorder);
@@ -102,5 +101,10 @@ public class StoryspaceScroll extends Scroll implements IComponentModel {
 	public void lostFocus() {
 		setBorder(StoryspaceScroll.unfocusedBorder);
 		titlePanel.setBackground(new Color(238, 238, 238));
+	}
+
+	@Override
+	public String toString() {
+		return "Scroll: " + " " + getTitle();
 	}
 }

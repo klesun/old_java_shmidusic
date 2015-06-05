@@ -3,18 +3,13 @@ package Storyspace.Staff.Accord.Nota;
 
 import Gui.ImageStorage;
 import Model.Combo;
-import Model.Field.AbstractModelField;
-import Model.Field.Bool;
-import Model.Field.Int;
-import Storyspace.Staff.StaffPanel;
+import Model.Field.ModelField;
+import Storyspace.Staff.MidianaComponent;
 import Storyspace.Staff.Accord.Accord;
 import java.awt.image.BufferedImage;
 import java.util.*;
 
-import Stuff.Tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import Gui.Settings;
 import Model.AbstractModel;
@@ -25,16 +20,16 @@ import Stuff.Tools.Fp;
 import java.awt.Color;
 import java.awt.Graphics;
 
-public class Nota extends AbstractModel implements Comparable<Nota> {
+public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	// <editor-fold desc="model field declaration">
 
-	private Int tune = addField("tune", 34); // no exceptions
-	private Int numerator = addField("numerator", 16);
-	private Int channel = addField("channel", 0);
-	private Int tupletDenominator = addField("tupletDenominator", 1);
-	private Bool isSharp = addField("isSharp", false);
-	private Bool isMuted = addField("isMuted", false);
+	private ModelField<Integer> tune = h.addField("tune", 34);
+	private ModelField<Integer> numerator = h.addField("numerator", 16);
+	private ModelField<Integer> channel = h.addField("channel", 0);
+	private ModelField<Integer> tupletDenominator = h.addField("tupletDenominator", 1);
+	private ModelField<Boolean> isSharp = h.addField("isSharp", false);
+	private ModelField<Boolean> isMuted = h.addField("isMuted", false);
 
 	// </editor-fold>
 
@@ -66,9 +61,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	}
 
 	@Override
-	public AbstractModel getFocusedChild() {
-		return null;
-	}
+	public MidianaComponent getFocusedChild() { return null; }
 	@Override
 	protected NotaHandler makeHandler() { return new NotaHandler(this); }
 	@Override
@@ -94,7 +87,7 @@ public class Nota extends AbstractModel implements Comparable<Nota> {
 	public int getTimeMilliseconds() {
 		int minute = 60 * 1000;
 		StaffConfig config = getParentAccord().getParentStaff().getConfig();
-		int semibreveTime = 4 * minute / config.valueTempo;
+		int semibreveTime = 4 * minute / config.getTempo();
 		return getFraction().multiply(semibreveTime).intValue();
 	}
 
