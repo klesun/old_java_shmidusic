@@ -4,18 +4,14 @@ package Storyspace.Staff.StaffConfig;
 import Gui.ImageStorage;
 import Model.AbstractModel;
 import Model.Field.Arr;
-import Model.Field.ModelField;
+import Model.Field.Field;
 import Stuff.OverridingDefaultClasses.ModelFieldInput;
 import Stuff.OverridingDefaultClasses.TruLabel;
-import Stuff.Tools.Logger;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -66,7 +62,7 @@ public class ConfigDialog extends JPanel {
 				channelGridPanel.add(new TruLabel(i + "", SwingConstants.RIGHT));
 
 				AbstractModel model = modelList.get(i);
-				for (ModelField channelField: model.getModelHelper().getFieldStorage()) {
+				for (Field channelField: model.getModelHelper().getFieldStorage()) {
 					JTextField textField = checkEm(new ModelFieldInput(channelField));
 					textField.setForeground(ImageStorage.getColorByChannel(i));
 					channelGridPanel.add(textField);
@@ -77,7 +73,7 @@ public class ConfigDialog extends JPanel {
 
 	private void addPropertyGrid() {
 
-		List<ModelField> propertyList = parent.getModelHelper().getFieldStorage().stream().filter(field -> !(field instanceof Arr)).collect(Collectors.toList());
+		List<Field> propertyList = parent.getModelHelper().getFieldStorage().stream().filter(field -> !(field instanceof Arr)).collect(Collectors.toList());
 
 		JPanel propertyGridPanel = new JPanel(new GridLayout(propertyList.size() + 1, 2, 4, 4));
 		propertyGridPanel.setPreferredSize(new Dimension(2 * CELL_WIDTH, (propertyList.size() + 1) * CELL_HEIGHT));
@@ -88,7 +84,7 @@ public class ConfigDialog extends JPanel {
 		for (String header: gridHeaders) { propertyGridPanel.add(new TruLabel(header)); }
 
 		// filling grid with cells
-		for (ModelField field: propertyList) {
+		for (Field field: propertyList) {
 			propertyGridPanel.add(new TruLabel(field.getName()));
 			propertyGridPanel.add(checkEm(new ModelFieldInput(field)));
 		}

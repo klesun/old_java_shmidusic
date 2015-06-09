@@ -2,18 +2,20 @@ package Model.Field;
 
 import Model.IModel;
 import Stuff.Tools.Logger;
+import org.apache.commons.math3.fraction.Fraction;
+import org.apache.commons.math3.fraction.FractionFormat;
 import org.json.JSONObject;
 
 import java.util.List;
 import java.util.function.Function;
 
-public class ModelField<huj> {
+public class Field<huj> {
 
 	private String name;
 	private huj value;
 	protected IModel owner;
 
-	public ModelField(String name, huj value, IModel owner) {
+	public Field(String name, huj value, IModel owner) {
 		if (new JSONObject("{}").getGetterByClass(value.getClass()) == null) {
 			Logger.fatal("Unsupported Field Value Class! [" + value.getClass().getSimpleName() + "]");
 		}
@@ -31,7 +33,7 @@ public class ModelField<huj> {
 		setValue(value);
 	}
 
-	public ModelField<huj> addTo(List<ModelField> fieldStorage) {
+	public Field<huj> addTo(List<Field> fieldStorage) {
 		fieldStorage.add(this);
 		return this;
 	}
@@ -42,12 +44,12 @@ public class ModelField<huj> {
 
 	public String getName() { return name; }
 
-	public ModelField setValue(huj value) {
+	public Field setValue(huj value) {
 		this.value = value;
 		return this;
 	}
 
-	public ModelField setValueFromString(String str) {
+	public Field setValueFromString(String str) {
 		setValue((huj)getParseStringLambda().apply(str));
 		return this;
 	}
@@ -55,6 +57,7 @@ public class ModelField<huj> {
 	private Function<String, Object> getParseStringLambda() {
 		return 	getValue().getClass() == Integer.class ? Integer::parseInt :
 				getValue().getClass() == Boolean.class ? Boolean::parseBoolean :
+				getValue().getClass() == Fraction.class ? new FractionFormat()::parse :
 				getValue().getClass() == String.class ? s -> s :
 				s -> Logger.fatal("NO WAI!!!");
 

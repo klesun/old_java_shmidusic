@@ -71,7 +71,10 @@ public class Accord extends MidianaComponent {
 		surface.setColor(Color.black);
 		for (int i = 0; i < getNotaList().size(); ++i) {
 			Nota nota = getNotaList().get(i);
-			int notaY = y + getLowestPossibleNotaRelativeY() - Settings.getStepHeight() * nota.getAbsoluteAcademicIndex();
+			int notaY = y + getLowestPossibleNotaY() - dy() * nota.getAbsoluteAcademicIndex() + (oneOctaveLower ? 7 * dy() : 0);
+			int notaX = i > 0 && getNotaList().get(i - 1).getAbsoluteAcademicIndex() == nota.getAbsoluteAcademicIndex()
+				? x + Settings.getStepWidth() / 3 // TODO: draw them flipped
+				: x;
 
 			if (nota == this.getFocusedNota()) {
 				List<Integer> p = nota.getAncorPoint();
@@ -79,11 +82,6 @@ public class Accord extends MidianaComponent {
 				surface.setColor(Color.red);
 				surface.fillOval(x + p.get(0) + r * 2, notaY + p.get(1) - r, r * 2, r * 2);
 			}
-
-			notaY += oneOctaveLower ? 7 * dy() : 0;
-			int notaX = i > 0 && getNotaList().get(i - 1).getAbsoluteAcademicIndex() == nota.getAbsoluteAcademicIndex() 
-					? x + Settings.getStepWidth() / 3 // TODO: draw them flipped
-					: x;
 			
 			nota.drawOn(surface, notaX, notaY);
 			if (nota.isStriked() != oneOctaveLower) {
@@ -120,7 +118,7 @@ public class Accord extends MidianaComponent {
 	// getters/setters
 
 	public int getHeight() {
-		return this.getLowestPossibleNotaRelativeY();
+		return this.getLowestPossibleNotaY();
 	}
 
 	public ArrayList<Nota> getNotaList() {
@@ -151,7 +149,7 @@ public class Accord extends MidianaComponent {
 		return getFocusedIndex() > -1 ? this.getNotaList().get(getFocusedIndex()) : null;
 	}
 
-	public int getLowestPossibleNotaRelativeY () {
+	public int getLowestPossibleNotaY() {
 		return 50 * dy();
 	}
 

@@ -8,7 +8,7 @@ import org.json.JSONObject;
 
 import java.util.List;
 
-public class Arr<ELEM_CLASS extends AbstractModel> extends ModelField<List<ELEM_CLASS>> {
+public class Arr<ELEM_CLASS extends AbstractModel> extends Field<List<ELEM_CLASS>> {
 
 	Class<ELEM_CLASS> elemClass;
 

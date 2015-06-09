@@ -5,7 +5,7 @@ import Gui.Settings;
 import Model.AbstractHandler;
 import Model.AbstractModel;
 import Model.Field.Arr;
-import Model.Field.ModelField;
+import Model.Field.Field;
 import Storyspace.Staff.MidianaComponent;
 import Stuff.Midi.DeviceEbun;
 import Storyspace.Staff.Staff;
@@ -19,7 +19,6 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.ShortMessage;
 
 import org.apache.commons.math3.fraction.Fraction;
-import org.json.JSONArray;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,8 +26,8 @@ import org.json.JSONObject;
 public class StaffConfig extends MidianaComponent {
 
 	// TODO: use Fraction
-	private ModelField<Integer> numerator = h.addField("numerator", 8); // because 8x8 = 64; 64/64 = 1; obvious
-	private ModelField<Integer> tempo = h.addField("tempo", 120);
+	private Field<Integer> numerator = h.addField("numerator", 8); // because 8x8 = 64; 64/64 = 1; obvious
+	private Field<Integer> tempo = h.addField("tempo", 120);
 
 	private Arr<Channel> channelList = (Arr<Channel>)h.addField("channelList", makeChannelList(), Channel.class);
 

@@ -3,7 +3,7 @@ package Storyspace.Article;
 import Gui.Constants;
 import Gui.ImageStorage;
 import Model.*;
-import Model.Field.ModelField;
+import Model.Field.Field;
 import Stuff.Tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONException;
@@ -27,7 +27,7 @@ public class Paragraph extends JTextArea implements IComponentModel {
 	private AbstractHandler handler = null;
 	private Helper modelHelper = new Helper(this);
 
-	private ModelField<Integer> score = modelHelper.addField("score", 0);
+	private Field<Integer> score = modelHelper.addField("score", 0);
 	private Map<String, CatchPhrase> catchPhrases = new HashMap<>();
 
 	public Paragraph(Article parent) {
@@ -227,14 +227,27 @@ public class Paragraph extends JTextArea implements IComponentModel {
 	}
 
 	private void splitIfGotLineBreaks() {
+
+		// reserving links to CatchPhrases to be able to copy 'em, cuz when we do setText() they would disappear from Par
+		List<CatchPhrase> rezQuotes = new ArrayList<>(catchPhrases.values());
+
 		String[] pars = getText().split("\n");
-		if (pars.length > 1) { this.setText(pars[0]); }
+		if (pars.length > 1) {
+			this.replaceRange("", pars[0].length(), this.getText().length());
+		}
+
 		for (int idx = 1; idx < pars.length; ++idx) {
 			Paragraph par = parent.addNewParagraph(parent.getParList().indexOf(this) + 1);
 			par.setScore(getScore()).setText(pars[idx]);
-			for (CatchPhrase quote: catchPhrases.values()) { par.addCatchPhrase(quote.getText()).setScore(quote.getScore()); }
-			par.updateHighlightedWords().requestFocus();
+			par.consumeQuoteList(rezQuotes).updateHighlightedWords().requestFocus();
 		}
+	}
+
+	public Paragraph consumeQuoteList(List<CatchPhrase> quotes) {
+		for (CatchPhrase quote: quotes) {
+			this.addCatchPhrase(quote.getText()).setScore(quote.getScore());
+		}
+		return this;
 	}
 
 	public void mergeBackTo(Paragraph bequested) {

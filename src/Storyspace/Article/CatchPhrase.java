@@ -2,15 +2,15 @@ package Storyspace.Article;
 
 import Gui.ImageStorage;
 import Model.AbstractModel;
-import Model.Field.ModelField;
+import Model.Field.Field;
 import org.apache.commons.math3.fraction.Fraction;
 
 import java.awt.*;
 
 public class CatchPhrase extends AbstractModel {
 
-	private ModelField<String> text = h.addField("text", "");
-	private ModelField<Integer> score = h.addField("score", 4);
+	private Field<String> text = h.addField("text", "");
+	private Field<Integer> score = h.addField("score", 4);
 
 	public CatchPhrase(Paragraph parent, String text) {
 		super(parent);

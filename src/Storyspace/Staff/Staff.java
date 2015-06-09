@@ -29,9 +29,10 @@ import org.json.JSONObject;
 public class Staff extends MidianaComponent {
 	public byte channelFlags = -1;
 
+	final public static int SISDISPLACE = 40;
 	public static final int DEFAULT_ZNAM = 64; // TODO: move it into some constants maybe
 	final public static int ACCORD_EPSILON = 50; // in milliseconds
-	
+
 	public enum aMode { insert, passive }
 	public static aMode mode = aMode.insert;
 
@@ -58,8 +59,8 @@ public class Staff extends MidianaComponent {
 	// TODO: move into some StaffPainter class
 	public synchronized void drawOn(Graphics g, int baseX, int baseY) { // baseY - highest line y
 
-		baseX += StaffPanel.getMarginX();
-		baseY += StaffPanel.getMarginY();
+		baseX += getMarginX();
+		baseY += getMarginY();
 
 		baseX += 2 * dx(); // violin/bass keys
 
@@ -73,13 +74,13 @@ public class Staff extends MidianaComponent {
 
 		int i = 0;
 		for (List<Accord> row: getAccordRowList()) {
-			int y = baseY + i * StaffPanel.SISDISPLACE * dy(); // bottommest y nota may be drawn on
+			int y = baseY + i * SISDISPLACE * dy(); // bottommest y nota may be drawn on
 			g.drawImage(ImageStorage.inst().getViolinKeyImage(), this.dx(), y -3 * dy(), null);
 			g.drawImage(ImageStorage.inst().getBassKeyImage(), this.dx(), 11 * dy() + y, null);
 			g.setColor(Color.BLUE);
 			for (int j = 0; j < 11; ++j) {
 				if (j == 5) continue;
-				g.drawLine(StaffPanel.getMarginX(), y + j * dy() *2, getWidth() - StaffPanel.getMarginX() * 2, y + j * dy() *2);
+				g.drawLine(getMarginX(), y + j * dy() *2, getWidth() - getMarginX() * 2, y + j * dy() *2);
 			}
 
 			int j = 0;
@@ -90,7 +91,7 @@ public class Staff extends MidianaComponent {
 				}
 
 				if (tactMeasurer.inject(accord)) {
-					g.setColor(tactMeasurer.sumFraction.equals(new Fraction(0)) ? Color.BLACK : Color.BLUE);
+					g.setColor(tactMeasurer.sumFraction.equals(new Fraction(0)) ? Color.BLACK : new Color(255, 31, 0)); // reddish orange
 					g.drawLine(x + dx() * 2, y - dy() * 5, x + dx() * 2, y + dy() * 20);
 					g.setColor(Color.decode("0x00A13E"));
 					g.drawString(tactMeasurer.tactCount + "", x + dx() * 2, y - dy() * 6);
@@ -114,7 +115,7 @@ public class Staff extends MidianaComponent {
 		dict.put("staffConfig", this.getConfig().getJsonRepresentation());
 		dict.put("accordList", new JSONArray(this.getAccordList().stream().map(p -> p.getJsonRepresentation()).toArray()));
 	}
-	
+
 	@Override
 	public Staff reconstructFromJson(JSONObject jsObject) throws JSONException {
 		this.clearStan();
@@ -132,7 +133,7 @@ public class Staff extends MidianaComponent {
 			JSONObject childJs = accordJsonList.getJSONObject(idx);
 			this.add(new Accord(this).reconstructFromJson(childJs)).moveFocus(1);
 		}
-		
+
 		return this;
 	}
 
@@ -166,12 +167,24 @@ public class Staff extends MidianaComponent {
 			resultList.add(this.getAccordList().subList(fromIdx, Math.min(fromIdx + getAccordInRowCount(), this.getAccordList().size())));
 		}
 
-		if (resultList.isEmpty()) { resultList.add(new ArrayList<>()); }		
+		if (resultList.isEmpty()) { resultList.add(new ArrayList<>()); }
 		return resultList;
 	}
 
+	public int getHeightIf(int width) {
+		return getAccordRowList().size() * SISDISPLACE * dy();
+	}
+
+
 	public int getWidth() { return getParentSheet().getWidth(); }
 	public int getHeight() { return getParentSheet().getHeight(); }
+
+	public int getMarginX() {
+		return Math.round(StaffPanel.MARGIN_H * dx());
+	}
+	public int getMarginY() {
+		return Math.round(StaffPanel.MARGIN_V * dy());
+	}
 
 	public int getAccordInRowCount() {
 		int result = this.getWidth() / (Settings.getNotaWidth() * 2) - 3; // - 3 because violin key and phantom

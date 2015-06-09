@@ -24,13 +24,13 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 
 	public static int MARGIN_V = 15; // Сколько отступов сделать сверху перед рисованием полосочек // TODO: move it into Constants class maybe? // eliminate it nahuj maybe?
 	public static int MARGIN_H = 1; // TODO: move it into Constants class maybe?
-	final public static int SISDISPLACE = 40;
 
 	public MajesticWindow parentWindow = null; // deprecated
 
 	private StoryspaceScroll storyspaceScroll = null;
 	public AbstractHandler handler = null;
 	private Helper modelHelper = new Helper(this);
+	private Helper h = modelHelper;
 	private Staff staff = null;
 
 	private StaffPanel storyspaceRepresentative = this;
@@ -86,21 +86,21 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 	}
 
 	public int getFocusedSystemY() {
-		return SISDISPLACE * dy() * (getStaff().getFocusedIndex() / getStaff().getAccordInRowCount());
+		return Staff.SISDISPLACE * dy() * (getStaff().getFocusedIndex() / getStaff().getAccordInRowCount());
 	}
 	
 	public void checkCam() {
+		int width = getScrollPane().getWidth();
 		JScrollBar vertical = getScrollPane().getVerticalScrollBar();
-		if (vertical.getValue() + parentWindow.getHeight() < getFocusedSystemY() + SISDISPLACE * dy() ||
+		if (vertical.getValue() + getScrollPane().getHeight() < getFocusedSystemY() + Staff.SISDISPLACE * dy() ||
 			vertical.getValue() > getFocusedSystemY()) {
 			vertical.setValue(getFocusedSystemY());
 		}
-		this.setPreferredSize(new Dimension(10, this.getTotalRowCount() * SISDISPLACE * this.dy()));	//	Needed for the scrollBar bars to appear
+		this.setPreferredSize(new Dimension(width - 25, getStaff().getHeightIf(width)));	//	Needed for the scrollBar bars to appear
 		this.revalidate();	//	Needed to recalc the scrollBar bars
 
 		this.repaint();
 	}
-
 	public Scroll getScrollPane() { return Scroll.class.cast(getParent().getParent()); } // -_-
 	@Override
 	public StoryspaceScroll getStoryspaceScroll() { return storyspaceRepresentative.storyspaceScroll; }
@@ -136,27 +136,15 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 	public Staff getStaff() { return this.staff; }
 
 	// maybe put it into AbstractModel?
-	private static int dx() { return Settings.getStepWidth(); }
 	private static int dy() { return Settings.getStepHeight(); }
 
 	// Until here
-
-	// TODO: move to Staff
-	public static int getMarginX() {
-		return Math.round(MARGIN_H * dx());
-	}
-	public static int getMarginY() {
-		return Math.round(MARGIN_V * dy());
-	}
 
 	// event handles
 
 	public void page(Combo combo) {
 		JScrollBar vertical = getScrollPane().getVerticalScrollBar();
-		int pos = vertical.getValue() + combo.getSign() * SISDISPLACE * this.dy();
-		if (pos<0) pos = 0;
-		if (pos>vertical.getMaximum()) pos = vertical.getMaximum();
-		vertical.setValue(pos);
+		vertical.setValue(h.limit(vertical.getValue() + combo.getSign() * Staff.SISDISPLACE * this.dy(), 0, vertical.getMaximum()));
 		repaint();
 	}
 

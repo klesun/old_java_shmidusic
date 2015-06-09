@@ -1,9 +1,10 @@
 package Model;
 
 import Model.Field.Arr;
-import Model.Field.ModelField;
+import Model.Field.Field;
 import Storyspace.Article.Paragraph;
 import Stuff.Tools.Logger;
+import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONObject;
 
 import java.awt.*;
@@ -26,7 +27,7 @@ public class Helper {
 		// TODO: arghhh! No instanceof! Interface::getHelper mazafaka!
 		if (model instanceof Paragraph) {
 			Helper helper = Paragraph.class.cast(model).getModelHelper();
-			for (ModelField field : helper.fieldStorage) {
+			for (Field field : helper.fieldStorage) {
 				dict.put(field.getName(), field.getValue());
 			}
 		}
@@ -35,13 +36,13 @@ public class Helper {
 	}
 
 	public void getJsonRepresentation(JSONObject dict) {
-		for (ModelField field : fieldStorage) {
+		for (Field field : fieldStorage) {
 			dict.put(field.getName(), field.getJsonValue());
 		}
 	}
 
 	public void reconstructFromJson(JSONObject jsObject) {
-		for (ModelField field : fieldStorage) {
+		for (Field field : fieldStorage) {
 			if (jsObject.has(field.getName())) { field.setValueFromJsObject(jsObject); }
 			else { Logger.warning("Source does not have field [" + field.getName() + "] for class {" + getClass().getSimpleName() + "}"); }
 		}
@@ -54,20 +55,25 @@ public class Helper {
 
 	// field getters
 
-	private List<ModelField> fieldStorage = new ArrayList<>();
+	private List<Field> fieldStorage = new ArrayList<>();
 
-	public List<ModelField> getFieldStorage() { return fieldStorage; }
+	public List<Field> getFieldStorage() { return fieldStorage; }
 
-	public ModelField<Integer> addField(String fieldName, Integer fieldValue) {
-		return new ModelField<>(fieldName, fieldValue, model).addTo(fieldStorage);
+	public Field<Integer> addField(String fieldName, Integer fieldValue) {
+		return new Field<>(fieldName, fieldValue, model).addTo(fieldStorage);
 	}
-	public ModelField<String> addField(String fieldName, String fieldValue) {
-		return new ModelField<>(fieldName, fieldValue, model).addTo(fieldStorage);
+	public Field<Fraction> addField(String fieldName, Fraction fieldValue) {
+		return new Field<>(fieldName, fieldValue, model).addTo(fieldStorage);
 	}
-	public ModelField<Boolean> addField(String fieldName, Boolean fieldValue) {
-		return new ModelField<>(fieldName, fieldValue, model).addTo(fieldStorage);
+	public Field<String> addField(String fieldName, String fieldValue) {
+		return new Field<>(fieldName, fieldValue, model).addTo(fieldStorage);
+	}
+	public Field<Boolean> addField(String fieldName, Boolean fieldValue) {
+		return new Field<>(fieldName, fieldValue, model).addTo(fieldStorage);
 	}
 	public Arr<? extends AbstractModel> addField(String fieldName, List<? extends AbstractModel> fieldValue, Class<? extends AbstractModel> cls) {
 		return (Arr)new Arr(fieldName, fieldValue, model, cls).addTo(fieldStorage);
 	}
+
+	final public static int limit(int value, int min, int max) { return Math.min(Math.max(value, min), max); }
 }

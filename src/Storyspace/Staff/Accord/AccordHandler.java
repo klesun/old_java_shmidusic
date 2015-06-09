@@ -48,6 +48,7 @@ public class AccordHandler extends AbstractHandler {
 			addCombo(0, i).setDo((event) -> {
 				for (Nota nota : getContext().getNotaList()) { nota.changeLength(event); }
 			}).setUndoChangeSign();
+			// TODO: NO! IT'S NOT undoChangeSign!!! what if some notas where already at the edge and some not?! you stupid full of shit!
 		}
 
 		addCombo(0, k.VK_DELETE).setDo((event) -> {

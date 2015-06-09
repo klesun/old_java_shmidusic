@@ -1,14 +1,13 @@
 package Storyspace.Staff.StaffConfig;
 
 import Model.AbstractModel;
-import Model.Field.ModelField;
-import Model.IComponentModel;
+import Model.Field.Field;
 
 public class Channel extends AbstractModel {
 
-	private ModelField<Integer> instrument = h.addField("instrument", 0);
-	private ModelField<Integer> volume = h.addField("volume", 0);
-	private ModelField<Boolean> isMuted = h.addField("isMuted", false);
+	private Field<Integer> instrument = h.addField("instrument", 0);
+	private Field<Integer> volume = h.addField("volume", 0);
+	private Field<Boolean> isMuted = h.addField("isMuted", false);
 
 	public Channel(StaffConfig parent) { super(parent); }
 

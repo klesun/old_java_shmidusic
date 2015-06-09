@@ -3,33 +3,40 @@ package Storyspace.Staff.Accord.Nota;
 
 import Gui.ImageStorage;
 import Model.Combo;
-import Model.Field.ModelField;
+import Model.Field.Field;
 import Storyspace.Staff.MidianaComponent;
 import Storyspace.Staff.Accord.Accord;
 import java.awt.image.BufferedImage;
+import java.math.BigInteger;
 import java.util.*;
 
+import Stuff.Tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 
 import Gui.Settings;
-import Model.AbstractModel;
 import Storyspace.Staff.StaffConfig.StaffConfig;
 import Storyspace.Staff.Staff;
 import Stuff.Tools.Fp;
+import org.json.JSONObject;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	// <editor-fold desc="model field declaration">
 
-	private ModelField<Integer> tune = h.addField("tune", 34);
-	private ModelField<Integer> numerator = h.addField("numerator", 16);
-	private ModelField<Integer> channel = h.addField("channel", 0);
-	private ModelField<Integer> tupletDenominator = h.addField("tupletDenominator", 1);
-	private ModelField<Boolean> isSharp = h.addField("isSharp", false);
-	private ModelField<Boolean> isMuted = h.addField("isMuted", false);
+	private Field<Integer> tune = h.addField("tune", 34);
+	private Field<Fraction> length = h.addField("length", new Fraction(1, 4));
+//	private Field<Integer> numerator = h.addField("numerator", 16); // deprecated
+	private Field<Integer> channel = h.addField("channel", 0);
+	private Field<Integer> tupletDenominator = h.addField("tupletDenominator", 1);
+	private Field<Boolean> isSharp = h.addField("isSharp", false);
+	private Field<Boolean> isMuted = h.addField("isMuted", false);
+
+	final private static int MAX_DOT_COUNT = 5;
 
 	// </editor-fold>
 
@@ -57,7 +64,9 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 		surface.drawImage(tmpImg, x + getNotaImgRelX(), y, null);
 
 		if (getTupletDenominator() != 1) { for (int i = 0; i < 3; ++i) { surface.drawLine(x + getStickX(), y + i, x + getStickX() -6, y + i); } }
-		if (getNumerator() % 3 == 0) { surface.fillOval(x + Settings.getStepWidth() + getWidth()*2/5, y + getHeight()*7/8, getHeight()/8, getHeight()/8); }
+		for (int i = 0; i < getDotCount(); ++i) {
+			surface.fillOval(x + dx() * 5/3 + dx() * i / getDotCount(), y + dy() * 7, dy(), dy());
+		}
 	}
 
 	@Override
@@ -66,6 +75,16 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	protected NotaHandler makeHandler() { return new NotaHandler(this); }
 	@Override
 	public int compareTo(Nota n) { return n.getTune() - this.getTune(); }
+
+	@Override
+	public Nota reconstructFromJson(JSONObject dict) {
+		super.reconstructFromJson(dict);
+		/** @deprecated */
+		if (dict.has("numerator")) {
+			this.setLength(new Fraction(dict.getInt("numerator"), 64));
+		}
+		return this;
+	}
 
 	// </editor-fold>
 
@@ -101,10 +120,50 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	}
 
 	private BufferedImage getEbonySignImage() {
-		return !this.isEbony()
-			? null // not sure that it will do the trick...
-			: getIsSharp() ? ImageStorage.inst().getSharpImage()
-			: ImageStorage.inst().getFlatImage();
+		return  !this.isEbony() ? null :
+				getIsSharp() ? ImageStorage.inst().getSharpImage() :
+				ImageStorage.inst().getFlatImage();
+	}
+
+	// TODO: it definitely can be implemented somehow better, but i'm to stupid to realize how exactly
+	private int getDotCount() {
+		int dots = 0;
+
+		// does not take into account, that Nota can be triplet (cuz for now we store triplet denominator separately)
+
+		Fraction checkSum = getCleanLength();
+
+		while (checkSum.compareTo(getLength()) != 0) { // for deadlock safety would be better while < 0, but for debug - this... actually even with while < 0 can be deadlock so nevermind - it works 120%
+			++dots;
+			checkSum = checkSum.add(getCleanLength().divide(pow(2, dots)));
+
+			// for a case. Deadlock is deadlock after all
+			if (dots > MAX_DOT_COUNT) { Logger.fatal("Could not determine dot count for Fraction: [" + getLength() + "]"); }
+		}
+
+		return dots;
+	}
+
+	private void setDotCount(int dotCount) {
+		// does not take into account, that Nota can be triplet (cuz for now we store triplet denominator separately)
+
+		Fraction checkSum = getCleanLength();
+
+		for (int i = 1; i <= dotCount; ++i) {
+			checkSum = checkSum.add(getCleanLength().divide(pow(2, i)));
+		}
+
+		this.setLength(checkSum);
+	}
+
+	private int pow(int n, int e) {
+		return e == 0 ? 1 : n * pow(n, e - 1);
+	}
+
+	private Fraction getCleanLength() { // i.e. length without dots: 1/4, 1/2
+		return getLength().getDenominator() == 1
+				? new Fraction(getLength().getNumerator() * 2, getLength().getDenominator() + 1)
+				: new Fraction(getLength().getNumerator() + 1, getLength().getDenominator() * 2);
 	}
 
 	// </editor-fold>
@@ -125,7 +184,8 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	public int getHeight() { return Settings.getNotaHeight(); }
 	// TODO: use it in Accord.getWidth()
 	public int getWidth() { return Settings.getNotaWidth() * 2; }
-	public Fraction getFraction() { return new Fraction(getNumerator(), getTupletDenominator() * Staff.DEFAULT_ZNAM); }
+	@Deprecated
+	public Fraction getFraction() { return getLength(); }
 
 	// </editor-fold>
 
@@ -133,14 +193,16 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	// model getters
 	public Integer getTune() { return tune.getValue(); } // TODO: make separate container classes for each primitive
-	public Integer getNumerator() { return numerator.getValue(); }
+	@Deprecated
+	public Integer getNumerator() { return length.getValue().getNumerator() * 64 / length.getValue().getDenominator(); } // 16 because  byte is 256 - so if 1/4 is 16 then we can fir both 2/1 and 1/16... but now we use json so never mind
+	public Fraction getLength() { return length.getValue(); }
 	public Integer getChannel() { return channel.getValue(); }
 	public Integer getTupletDenominator() { return tupletDenominator.getValue(); }
 	public Boolean getIsSharp() { return isSharp.getValue(); }
 	public Boolean getIsMuted() { return isMuted.getValue(); }
 	// model setters
 	public Nota setTune(int value){ this.tune.setValue(value); return this; }
-	public Nota setNumerator(int value){ this.numerator.setValue(limit(value, 4, Staff.DEFAULT_ZNAM * 2)); return this; }
+	public Nota setLength(Fraction value){ this.length.setValue(limit(value, new Fraction(1, 16), new Fraction(2))); return this; }
 	public Nota setChannel(int value) { this.channel.setValue(value); return this; }
 	public Nota setTupletDenominator(int value) { this.tupletDenominator.setValue(value); return this; }
 	public Nota setIsSharp(Boolean value) { this.isSharp.setValue(value); return this; }
@@ -159,15 +221,13 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	public Nota incLen() {
 		// TODO: points should be whole separate thing
-		int incrDenom = getNumerator() % 3 == 0 ? 3 : 2;
-		setNumerator(getNumerator() + getNumerator() / incrDenom);
+		setLength(new Fraction(getLength().getNumerator() * 2, getLength().getDenominator()));
 		return this;
 	}
 
 	public Nota decLen() {
 		// TODO: points should be whole separate thing
-		int decrDenom = getNumerator() % 3 == 0 ? 3 : 4;
-		setNumerator(getNumerator() - getNumerator() / decrDenom);
+		setLength(new Fraction(getLength().getNumerator(), getLength().getDenominator() * 2));
 		return this;
 	}
 
@@ -175,6 +235,30 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 		return combo.getSign() > 0
 				? incLen()
 				: decLen();
+	}
+
+	public Boolean putDot() {
+		if (getDotCount() < MAX_DOT_COUNT) {
+			setDotCount(getDotCount() + 1);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public Boolean removeDot() {
+		if (getDotCount() > 0) {
+			setDotCount(getDotCount() - 1);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public Boolean dot(Combo combo) {
+		return combo.getSign() > 0
+			? putDot()
+			: removeDot();
 	}
 
 	// </editor-fold>
