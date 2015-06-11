@@ -55,24 +55,30 @@ public class PlayMusThread extends Thread {
 		if (!nota.getIsMuted()) {
 			int channel = nota.getChannel();
 			int tune = nota.getTune();
-			if (opentNotas[tune][channel] != null) {
-				opentNotas[tune][channel].interrupt();
-				try {opentNotas[tune][channel].join();} catch (Exception e) {System.out.println("Не дождались");}
-				opentNotas[tune][channel] = null;
+
+			OneShotThread oldThread = opentNotas[tune][channel];
+
+			if (oldThread == null || oldThread.getNota().linkedTo() != nota) {
+
+				if (oldThread != null) {
+					oldThread.interrupt();
+					try { oldThread.join(); } catch (Exception e) { System.out.println("Не дождались"); }
+				}
+
+				OneShotThread thr = new OneShotThread(nota);
+				opentNotas[tune][channel] = thr;
+				kri4alki.add(opentNotas[tune][channel]);
+				thr.start();
 			}
-			OneShotThread thr = new OneShotThread(nota);
-			opentNotas[tune][channel] = thr;
-			kri4alki.add(opentNotas[tune][channel]);
-			thr.start();
 		}
     	return 0;
     }
 
-    public static ArrayList<OneShotThread> kri4alki = new ArrayList<OneShotThread>();
+    public static ArrayList<OneShotThread> kri4alki = new ArrayList<>();
     public static void shutTheFuckUp() {
         for (OneShotThread tmp: kri4alki) {
             if (tmp.isAlive()) tmp.interrupt();
         }
-        kri4alki.removeAll(kri4alki);
+        kri4alki.clear();
     }
 }

@@ -2,7 +2,7 @@ package Storyspace.Staff.Accord;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.util.ArrayList;
+import java.util.*;
 
 import Model.Combo;
 import Storyspace.Staff.MidianaComponent;
@@ -16,10 +16,6 @@ import Gui.Settings;
 import Storyspace.Staff.Accord.Nota.Nota;
 import Storyspace.Staff.Staff;
 import Stuff.Tools.Fp;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 public class Accord extends MidianaComponent {
 
@@ -135,14 +131,18 @@ public class Accord extends MidianaComponent {
 		return nota != null ? nota.isBotommedToFitSystem() : false;
 	}
 
+	public Nota findByTune(int tune) {
+		return this.getNotaList().stream().filter(n -> n.getTune() == tune).findFirst().orElse(null);
+	}
+
 	public int getShortestTime() {
 		Nota nota = this.getNotaList().stream().reduce(null, (a, b) -> a != null && !a.isLongerThan(b) && !a.getIsMuted() ? a : b);
-		return nota != null ? nota.getTimeMilliseconds() : 0;
+		return nota != null ? nota.getTimeMilliseconds(false) : 0;
 	}
 
 	public Fraction getShortestFraction() {
 		Nota nota = this.getNotaList().stream().reduce(null, (a, b) -> a != null && !a.isLongerThan(b) ? a : b);
-		return nota != null ? nota.getFraction() : new Fraction(0);
+		return nota != null ? nota.getLength() : new Fraction(0);
 	}
 
 	public Nota getFocusedNota() {
@@ -164,6 +164,13 @@ public class Accord extends MidianaComponent {
 	public Accord setSlog(String value) { this.slog = value; return this; }
 	public int getFocusedIndex() {
 		return this.focusedIndex;
+	}
+
+	public Accord getNext() {
+		int nextIndex = getParentStaff().getAccordList().indexOf(this) + 1;
+		return nextIndex < getParentStaff().getAccordList().size()
+				? getParentStaff().getAccordList().get(nextIndex)
+				: null;
 	}
 
 	public Accord setFocusedIndex(int value) {

@@ -91,7 +91,7 @@ public class Staff extends MidianaComponent {
 				}
 
 				if (tactMeasurer.inject(accord)) {
-					g.setColor(tactMeasurer.sumFraction.equals(new Fraction(0)) ? Color.BLACK : new Color(255, 31, 0)); // reddish orange
+					g.setColor(tactMeasurer.sumFraction.equals(new Fraction(0)) ? Color.BLACK : new Color(255, 63, 0)); // reddish orange
 					g.drawLine(x + dx() * 2, y - dy() * 5, x + dx() * 2, y + dy() * 20);
 					g.setColor(Color.decode("0x00A13E"));
 					g.drawString(tactMeasurer.tactCount + "", x + dx() * 2, y - dy() * 6);
@@ -233,14 +233,16 @@ public class Staff extends MidianaComponent {
 		return true;
 	}
 
-	public Boolean moveFocus(int n) {
+	public Boolean moveFocus(int n)
+	{
 		Boolean stop = getFocusedIndex() + n < -1 || getFocusedIndex() + n > getAccordList().size() - 1;
 		setFocusedIndex(getFocusedIndex() + n);
 
 		return !stop;
 	}
 
-	public void triggerPlayer(Combo combo) {
+	public void triggerPlayer(Combo combo)
+	{
 		if (PlayMusThread.stop) {
 			PlayMusThread.shutTheFuckUp();
 			PlayMusThread.stop = false;

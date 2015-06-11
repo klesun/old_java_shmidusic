@@ -6,8 +6,9 @@ import Model.Combo;
 import Model.Field.Field;
 import Storyspace.Staff.MidianaComponent;
 import Storyspace.Staff.Accord.Accord;
+
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.math.BigInteger;
 import java.util.*;
 
 import Stuff.Tools.Logger;
@@ -15,14 +16,10 @@ import org.apache.commons.math3.fraction.Fraction;
 
 import Gui.Settings;
 import Storyspace.Staff.StaffConfig.StaffConfig;
-import Storyspace.Staff.Staff;
 import Stuff.Tools.Fp;
 import org.json.JSONObject;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.List;
 
 public class Nota extends MidianaComponent implements Comparable<Nota> {
 
@@ -35,6 +32,7 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	private Field<Integer> tupletDenominator = h.addField("tupletDenominator", 1);
 	private Field<Boolean> isSharp = h.addField("isSharp", false);
 	private Field<Boolean> isMuted = h.addField("isMuted", false);
+	private Field<Boolean> isLinkedToNext = h.addField("isLinkedToNext", false);
 
 	final private static int MAX_DOT_COUNT = 5;
 
@@ -48,7 +46,7 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 		parent.add(this);
 	}
 
-	public Boolean isLongerThan(Nota rival) { return getFraction().compareTo(rival.getFraction()) > 0; }
+	public Boolean isLongerThan(Nota rival) { return getLength().compareTo(rival.getLength()) > 0; }
 
 	// <editor-fold desc="implementing abstract model">
 
@@ -58,12 +56,21 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 		surface.drawImage(getEbonySignImage(), x + dx() / 2, y + 3 * dy() + 2, null);
 
 		BufferedImage tmpImg = getIsMuted()
-				? ImageStorage.inst().getNotaImg(getNumerator(), 9)
-				: ImageStorage.inst().getNotaImg(getNumerator(), getChannel());
+				? ImageStorage.inst().getNotaImg(getCleanLength(), 9)
+				: ImageStorage.inst().getNotaImg(getCleanLength(), getChannel());
+
+		if (getIsLinkedToNext()) {
+			Fp.drawParabola((Graphics2D) surface, new Rectangle(x + dx() * 3 / 2, y + dy() * 7, dx() * 2, dy() * 2));
+		}
 
 		surface.drawImage(tmpImg, x + getNotaImgRelX(), y, null);
 
-		if (getTupletDenominator() != 1) { for (int i = 0; i < 3; ++i) { surface.drawLine(x + getStickX(), y + i, x + getStickX() -6, y + i); } }
+		if (getTupletDenominator() != 1) {
+			for (int i = 0; i < getTupletDenominator(); ++i) {
+				surface.drawLine(x + getStickX(), y + i * 2 + 1, x + getStickX() - 6, y + i * 2 + 1);
+			}
+		}
+
 		for (int i = 0; i < getDotCount(); ++i) {
 			surface.fillOval(x + dx() * 5/3 + dx() * i / getDotCount(), y + dy() * 7, dy(), dy());
 		}
@@ -103,11 +110,14 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 		return result;
 	}
 
-	public int getTimeMilliseconds() {
+	public int getTimeMilliseconds(Boolean includeLinkedTime) {
 		int minute = 60 * 1000;
 		StaffConfig config = getParentAccord().getParentStaff().getConfig();
 		int semibreveTime = 4 * minute / config.getTempo();
-		return getFraction().multiply(semibreveTime).intValue();
+
+		int linkedTime = (includeLinkedTime && getIsLinkedToNext()) ? linkedTo().getTimeMilliseconds(true) : 0;
+
+		return getLength().multiply(semibreveTime).intValue() + linkedTime;
 	}
 
 	public byte getVolume() {
@@ -184,22 +194,19 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	public int getHeight() { return Settings.getNotaHeight(); }
 	// TODO: use it in Accord.getWidth()
 	public int getWidth() { return Settings.getNotaWidth() * 2; }
-	@Deprecated
-	public Fraction getFraction() { return getLength(); }
 
 	// </editor-fold>
 
 	// <editor-fold desc="model getters/setters">
 
 	// model getters
-	public Integer getTune() { return tune.getValue(); } // TODO: make separate container classes for each primitive
-	@Deprecated
-	public Integer getNumerator() { return length.getValue().getNumerator() * 64 / length.getValue().getDenominator(); } // 16 because  byte is 256 - so if 1/4 is 16 then we can fir both 2/1 and 1/16... but now we use json so never mind
+	public Integer getTune() { return tune.getValue(); }
 	public Fraction getLength() { return length.getValue(); }
 	public Integer getChannel() { return channel.getValue(); }
 	public Integer getTupletDenominator() { return tupletDenominator.getValue(); }
 	public Boolean getIsSharp() { return isSharp.getValue(); }
 	public Boolean getIsMuted() { return isMuted.getValue(); }
+	public Boolean getIsLinkedToNext() { return isLinkedToNext.getValue(); }
 	// model setters
 	public Nota setTune(int value){ this.tune.setValue(value); return this; }
 	public Nota setLength(Fraction value){ this.length.setValue(limit(value, new Fraction(1, 16), new Fraction(2))); return this; }
@@ -207,6 +214,7 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	public Nota setTupletDenominator(int value) { this.tupletDenominator.setValue(value); return this; }
 	public Nota setIsSharp(Boolean value) { this.isSharp.setValue(value); return this; }
 	public Nota setIsMuted(Boolean value) { this.isMuted.setValue(value); return this; }
+	public Nota setIsLinkedToNext(Boolean value) { this.isLinkedToNext.setValue(value); return this; }
 
 	// </editor-fold>
 
@@ -217,7 +225,27 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	public Nota triggerIsSharp() { setIsSharp(!getIsSharp()); return this; }
 	public Nota triggerIsMuted() { setIsMuted(!getIsMuted()); return this; }
+	public Boolean triggerIsLinkedToNext() {
+		if (getNext() != null || getIsLinkedToNext() == true) {
+			setIsLinkedToNext(!getIsLinkedToNext());
+			return true;
+		} else {
+			return false;
+		}
+	}
 	public Nota triggerTupletDenominator() { setTupletDenominator(getTupletDenominator() == 3 ? 1 : 3); return this; }
+
+	public Nota linkedTo() {
+		return this.getIsLinkedToNext() ? this.getNext() : null;
+	}
+
+	/** @return Nota of the next accord with same tune or null */
+	private Nota getNext() {
+		Accord nextAccord = getParentAccord().getNext();
+		return nextAccord != null
+				? nextAccord.findByTune(this.getTune())
+				: null;
+	}
 
 	public Nota incLen() {
 		// TODO: points should be whole separate thing

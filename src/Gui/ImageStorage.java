@@ -76,8 +76,7 @@ public class ImageStorage {
 
 	public void reloadNotaImagesFromDisk() {
 		for (int idx = 0; idx < 6; ++idx) {
-			// "pow(2, -1) = 0" i feel so disgusting for myself
-			try { notaImgOriginal[idx] = ImageIO.read(getClass().getResource("imgs/" + pow(2, idx - 1) + "_sized.png")); }
+			try { notaImgOriginal[idx] = ImageIO.read(getClass().getResource("imgs/" + (idx == 0 ? 0 : pow2(idx - 1)) + "_sized.png")); }
 			catch (IOException e) { System.out.println(e + " Ноты не читаются!!! " + idx); }
 		}
 	}
@@ -115,9 +114,12 @@ public class ImageStorage {
 		}
 	}
 
-	public BufferedImage getNotaImg(int numerator, int channel) {
-		int idx = (int)(Math.ceil(7 - Math.log(numerator) / Math.log(2) ));
-		return coloredNotas[channel][idx];
+	public BufferedImage getNotaImg(Fraction length, int channel) {
+
+		int fileIdx = length.getDenominator() / length.getNumerator();
+		int arrIdx = fileIdx == 0 ? 0 : 1 + log2(fileIdx);
+
+		return coloredNotas[channel][arrIdx];
 	}
 
 	// default images
@@ -143,10 +145,23 @@ public class ImageStorage {
 
 	// static methods
 
-	private static int pow(int n, int k){
-		if (k < 0) return 0; // GENIUSSSS!!!!!!
-		if (k==0) return 1;
-		return n*pow(n, k-1);
+	private static int log2(int n) {
+
+		if (n == 1) {
+			return 0;
+		} else if (n <= 0 || n % 2 != 0) {
+			return Logger.fatal("Number " + n + " does not have integer logarithm with base 2 ");
+		} else {
+			return 1 + log2(n / 2);
+		}
+	}
+
+	private static int pow2(int k){
+		if (k==0) {
+			return 1;
+		} else {
+			return 2 * pow2(k - 1);
+		}
 	}
 
 	public static Color getColorByChannel(int n) {

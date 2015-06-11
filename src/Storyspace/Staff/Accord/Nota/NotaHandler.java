@@ -22,6 +22,7 @@ public class NotaHandler extends AbstractHandler {
 		addCombo(k.CTRL_MASK, k.VK_3).setDo((event) -> { getContext().triggerTupletDenominator(); }).biDirectional();
 		addCombo(k.CTRL_MASK, k.VK_H).setDo(combo -> { getContext().triggerIsMuted(); }).biDirectional();
 		addCombo(k.SHIFT_MASK, k.VK_3).setDo((event) -> { getContext().triggerIsSharp(); }).biDirectional();
+		addCombo(k.SHIFT_MASK, k.VK_BACK_QUOTE).setDo((event) -> { getContext().triggerIsLinkedToNext(); }).biDirectional();
 
 		// TODO: these four shortcuts actually totally break our undo-redo system. Try inc len to the edge, move pointer, inc it another time then ctrl-z and OOPS!
 		addCombo(0, k.VK_OPEN_BRACKET).setDo(getContext()::changeLength).setUndoChangeSign();

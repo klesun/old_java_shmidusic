@@ -1,7 +1,6 @@
 package Stuff.Tools;
 
-import java.awt.Color;
-import java.awt.Graphics;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,5 +18,31 @@ public class Fp {
 			resultVector.add(vector1.get(i) + vector2.get(i));
 		}
 		return resultVector;
+	}
+
+	/** draws parabola, that would fit into the rectangle */
+	public static void drawParabola(Graphics2D g, Rectangle r) {
+		Color tmpColor = g.getColor();
+		Stroke tmpStroke = g.getStroke();
+		g.setColor(Color.MAGENTA);
+		g.setStroke(new BasicStroke(2));
+
+		double sharpness = r.getHeight() / Math.pow(r.getWidth() / 2.0, 2);
+		int baseX = r.x + r.width / 2;
+		int baseY = r.y + r.height;
+
+		int lastX = - r.width / 2;
+		int lastY = (int)(lastX * lastX * sharpness);
+
+		for (int x0 = - r.width / 2 + 1; x0 < r.width / 2; ++x0) {
+			int y0 = (int)(x0 * x0 * sharpness);
+			g.drawLine(baseX + lastX, baseY - lastY, baseX + x0, baseY - y0);
+
+			lastX = x0;
+			lastY = y0;
+		}
+
+		g.setColor(tmpColor);
+		g.setStroke(tmpStroke);
 	}
 }
