@@ -37,4 +37,8 @@ public class OneShotThread extends Thread{
 	public Nota getNota() {
 		return this.nota;
 	}
+
+	public void setNota(Nota nota) {
+		this.nota = nota;
+	}
 }

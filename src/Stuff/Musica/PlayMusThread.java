@@ -69,6 +69,8 @@ public class PlayMusThread extends Thread {
 				opentNotas[tune][channel] = thr;
 				kri4alki.add(opentNotas[tune][channel]);
 				thr.start();
+			} else if (oldThread.getNota().linkedTo() == nota) {
+				oldThread.setNota(nota); // to allow more than 2 notas linking
 			}
 		}
     	return 0;

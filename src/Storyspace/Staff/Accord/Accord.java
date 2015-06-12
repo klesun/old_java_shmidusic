@@ -131,8 +131,8 @@ public class Accord extends MidianaComponent {
 		return nota != null ? nota.isBotommedToFitSystem() : false;
 	}
 
-	public Nota findByTune(int tune) {
-		return this.getNotaList().stream().filter(n -> n.getTune() == tune).findFirst().orElse(null);
+	public Nota findByTuneAndChannel(int tune, int channel) {
+		return this.getNotaList().stream().filter(n -> n.getTune() == tune && n.getChannel() == channel).findFirst().orElse(null);
 	}
 
 	public int getShortestTime() {

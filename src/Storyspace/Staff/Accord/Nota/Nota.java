@@ -243,7 +243,7 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	private Nota getNext() {
 		Accord nextAccord = getParentAccord().getNext();
 		return nextAccord != null
-				? nextAccord.findByTune(this.getTune())
+				? nextAccord.findByTuneAndChannel(this.getTune(), this.getChannel())
 				: null;
 	}
 

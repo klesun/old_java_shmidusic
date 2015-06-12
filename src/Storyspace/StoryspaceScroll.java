@@ -36,15 +36,11 @@ public class StoryspaceScroll extends Scroll implements IComponentModel {
 		this.setLocation(200, 150);
 		this.setSize(300, 300);
 
-		addListeners();
+		handler = new StoryspaceScrollHandler(this);
 
 		titlePanel.setSize(getWidth(), titleHeight);
 		titlePanel.add(new TruLabel("Unsaved " + content.getClass().getSimpleName()));
 		this.add(titlePanel);
-	}
-	
-	private void addListeners() {
-		handler = new StoryspaceScrollHandler(this);
 	}
 
 	@Override

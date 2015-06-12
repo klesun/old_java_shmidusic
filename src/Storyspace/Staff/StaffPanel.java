@@ -56,8 +56,6 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 		this.addMouseListener(handler);
 		this.addMouseMotionListener(handler);
 
-		StaffPanel panel = this;
-
 		addFocusListener(new FocusAdapter() {
 			public void focusGained(FocusEvent e) {
 				if (loadJsonOnFocus) {
@@ -76,8 +74,6 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 		repaint();
 	}
 
-	public int getTotalRowCount() { return getStaff().getAccordRowList().size(); }
-	
 	@Override
 	public void paintComponent(Graphics g) {
 		if (!loadJsonOnFocus) {

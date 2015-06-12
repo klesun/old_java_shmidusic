@@ -30,6 +30,11 @@ public class StoryspaceScrollHandler extends AbstractHandler {
 				context.getVerticalScrollBar().setCursor(Cursor.getDefaultCursor());
 			}
 		});
+
+		// removing stupid built-ins
+		InputMap im = context.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		im.put(KeyStroke.getKeyStroke("UP"), "none");
+		im.put(KeyStroke.getKeyStroke("DOWN"), "none");
 	}
 
 	@Override

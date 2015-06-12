@@ -2,38 +2,53 @@ package Main;
 
 import Gui.ImageStorage;
 import Stuff.Midi.DeviceEbun;
+import Stuff.Tools.Logger;
 
-import javax.swing.*;
 import java.io.*;
 public class Main {
 
 	public static MajesticWindow window = null;
 
 	public static void main(String[] args){
-		String OS_NAME = System.getProperty("os.name");
-		try {
-			System.out.println(OS_NAME);
-			if (OS_NAME.equals("Windows XP") || OS_NAME.equals("Windows 7")) { // looks like windows 7 has different encoding
-				PrintStream out = new PrintStream(System.out, true, "Cp866");
-				System.setOut(out);
-			}
-			System.out.println("Отведай же ещё этих сочных французских булок");
-		} catch (Exception e) {
-			System.out.println("blablablabalall");
-		}
 
+		/** @debug */
+		resetTimer("Starting program");
 
-		// are we cool?
-		UIManager.getDefaults().put("ScrollPane.ancestorInputMap",
-			new UIDefaults.LazyInputMap(new Object[]{}));
+		/** @debug */
+		resetTimer("Loaded images from disk");
 
-
-		// TODO: encapsulate somewhere
-		ImageStorage.inst().loadImagesFromDisk();
 		ImageStorage.inst().refreshImageSizes();
+
+		/** @debug */
+		resetTimer("Refreshed image sizes");
+
 		DeviceEbun.openMidiDevices();
 
+		/** @debug */
+		resetTimer("Opened Midi devices");
+
 		window = new MajesticWindow();
+
+		/** @debug */
+		resetTimer("Created window");
+
 		window.setVisible(true);
+
+		/** @debug */
+		resetTimer("Made window visible");
+	}
+
+	/** @debug */
+	private static Long time = null;
+
+	/** @debug */
+	private static void resetTimer(String msg) {
+		if (time == null) {
+			time = System.nanoTime();
+		}
+
+		long newTime = System.nanoTime();
+		System.out.println("==== " + (newTime - time)/1e9 + " - " + msg);
+		time = newTime;
 	}
 }
