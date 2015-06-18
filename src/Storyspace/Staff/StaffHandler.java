@@ -30,6 +30,7 @@ public class StaffHandler extends AbstractHandler {
 
 	public void handleMidiEvent(Integer tune, int forca, int timestamp) {
 		if (forca > 0) {
+			// BEWARE: we get sometimes double messages when my synt has "LAYER/AUTO HARMONIZE" button on. That is button, that makes one key press sound with two instruments
 			this.handleKey(new Combo(11, Combo.tuneToAscii(tune))); // (11 -ctrl+shift+alt)+someKey
 		} else {
 			// keyup event
@@ -126,13 +127,9 @@ public class StaffHandler extends AbstractHandler {
 
 				// TODO: move stuff like constants and mode into the handler
 
-				long timestamp = System.currentTimeMillis();
-
 				if (s.mode == Staff.aMode.passive) { return false; }
 				else {
-					Accord newAccord = new Accord(s);
-					new Nota(newAccord, combo.asciiToTune()).setKeydownTimestamp(timestamp);
-					s.add(newAccord);
+					s.addNewAccord().addNewNota().setTune(combo.asciiToTune());
 					handleKey(new Combo(0, k.VK_RIGHT));
 					return true;
 				}

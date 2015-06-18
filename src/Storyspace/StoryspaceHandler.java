@@ -40,6 +40,9 @@ public class StoryspaceHandler extends AbstractHandler {
 
 		addCombo(ctrl, k.VK_EQUALS).setDo((this.getContext())::scale);
 		addCombo(ctrl, k.VK_MINUS).setDo((this.getContext())::scale);
+
+
+		addCombo(ctrl, k.VK_K).setDo(() -> { Logger.fatal("Artificial fatal was generated (sorry if you pressed this shortcut occasionally =()"); });
 	}
 	@Override
 	public Boolean mousePressedFinal(ComboMouse mouse) {

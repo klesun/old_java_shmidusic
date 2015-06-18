@@ -26,13 +26,8 @@ public abstract class AbstractModel implements IModel {
 		return getModelHelper().getFieldStorage().stream().map(f -> f.getName()).collect(Collectors.toList());
 	}
 
-	// override me please
-	public AbstractModel reconstructFromJson(JSONObject jsObject) throws JSONException {
-		h.reconstructFromJson(jsObject);
-		return this;
-	}
+	public AbstractModel reconstructFromJson(JSONObject jsObject) throws JSONException { return (AbstractModel)h.reconstructFromJson(jsObject);	}
 
-	// override me please
 	public void getJsonRepresentation(JSONObject dict) {
 		h.getJsonRepresentation(dict);
 	}

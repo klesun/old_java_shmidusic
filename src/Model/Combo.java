@@ -1,5 +1,6 @@
 package Model;
 
+import Stuff.Tools.Logger;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import javafx.scene.input.KeyCode;
@@ -79,7 +80,7 @@ public class Combo {
 		} else if (getAntiKeyMap().inverse().containsKey(keyCode)) {
 			return getAntiKeyMap().inverse().get(keyCode);
 		} else {
-			System.out.println("Жопа!!! Этот метод не должен вызываться с параметром " + keyCode);
+			Logger.fatal("Жопа!!! Этот метод не должен вызываться с параметром " + keyCode);
 			System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
 			return keyCode;
 		}

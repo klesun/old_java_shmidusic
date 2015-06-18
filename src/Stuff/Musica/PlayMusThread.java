@@ -4,6 +4,9 @@ import Model.Combo;
 import Storyspace.Staff.Staff;
 import Storyspace.Staff.Accord.Nota.Nota;
 import Storyspace.Staff.Accord.Accord;
+import Stuff.Midi.DeviceEbun;
+import Stuff.Midi.Playback;
+import org.apache.commons.math3.fraction.Fraction;
 
 import java.awt.event.KeyEvent;
 
@@ -49,9 +52,15 @@ public class PlayMusThread extends Thread {
 		stop = true;
     }
 
-	public static void playAccord(Accord accord) { accord.getNotaList().forEach(PlayMusThread::playNotu); }
+	public static void playAccord(Accord accord) {
+		Playback.inst().resetDiminendo();
+		accord.getNotaList().forEach(PlayMusThread::playNotu);
+		if (accord.getIsDiminendo()) {
+			runDiminendoThread(accord.getShortestTime(), 127, 0);
+		}
+	}
     
-    public static int playNotu(Nota nota){
+    public static void playNotu(Nota nota){
 		if (!nota.getIsMuted()) {
 			int channel = nota.getChannel();
 			int tune = nota.getTune();
@@ -73,7 +82,6 @@ public class PlayMusThread extends Thread {
 				oldThread.setNota(nota); // to allow more than 2 notas linking
 			}
 		}
-    	return 0;
     }
 
     public static ArrayList<OneShotThread> kri4alki = new ArrayList<>();
@@ -83,4 +91,21 @@ public class PlayMusThread extends Thread {
         }
         kri4alki.clear();
     }
+
+	final private static long DIMINDENDO_STEP_TIME = Nota.getTimeMilliseconds(new Fraction(1, 16), 120);
+
+	private static void runDiminendoThread(int time, int from, int to) {
+		Playback.inst().diminendoThread = new Thread(() -> {
+
+			long startMilliseconds = System.currentTimeMillis();
+			long endMilliseconds = System.currentTimeMillis() + time;
+
+			for (long curMillis = startMilliseconds; curMillis < endMilliseconds; curMillis = System.currentTimeMillis()) {
+				long volume = from + (to - from) * (curMillis - startMilliseconds) / time;
+				DeviceEbun.setVolume((int)volume);
+				try { Thread.sleep(DIMINDENDO_STEP_TIME); } catch (InterruptedException exc) { break; }
+			}
+		});
+		Playback.inst().diminendoThread.start();
+	}
 }

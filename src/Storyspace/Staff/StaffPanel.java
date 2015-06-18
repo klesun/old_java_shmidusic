@@ -145,17 +145,20 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 	}
 
 	// this method is bad and you should feel bad
-	public void switchFullscreen(Combo combo) {
+	public void switchFullscreen() {
 		parentWindow.isFullscreen = !parentWindow.isFullscreen;
 		if (parentWindow.isFullscreen) {
-			parentWindow.fullscreenStaffPanel.storyspaceRepresentative = this;
-			parentWindow.fullscreenStaffPanel.setStaff(this.getStaff());
-			((CardLayout)parentWindow.cards.getLayout()).show(parentWindow.cards, parentWindow.CARDS_FULLSCREEN);
-			parentWindow.fullscreenStaffPanel.requestFocus();
+			parentWindow.switchTo(MajesticWindow.cardEnum.CARDS_FULLSCREEN);
+
+			StaffPanel fullscreenPanel = parentWindow.fullscreenStaffPanel;
+			fullscreenPanel.storyspaceRepresentative = this;
+			fullscreenPanel.setStaff(this.getStaff());
+			fullscreenPanel.requestFocus();
 			Settings.inst().scale(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_EQUALS));
 			parentWindow.setTitle(getStoryspaceScroll().getTitle());
 		} else {
-			((CardLayout) parentWindow.cards.getLayout()).show(parentWindow.cards, MajesticWindow.CARDS_STORYSPACE);
+			parentWindow.switchTo(MajesticWindow.cardEnum.CARDS_STORYSPACE);
+
 			Settings.inst().scale(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_MINUS));
 			storyspaceRepresentative.requestFocus();
 		}

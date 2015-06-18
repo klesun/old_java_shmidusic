@@ -35,17 +35,23 @@ public class Helper {
 		return dict;
 	}
 
+	// TODO: use it instead of the deprecated above
+	public JSONObject getJsonRepresentation() {
+		return Helper.getJsonRepresentation(model);
+	}
+
 	public void getJsonRepresentation(JSONObject dict) {
 		for (Field field : fieldStorage) {
 			dict.put(field.getName(), field.getJsonValue());
 		}
 	}
 
-	public void reconstructFromJson(JSONObject jsObject) {
+	public IModel reconstructFromJson(JSONObject jsObject) {
 		for (Field field : fieldStorage) {
 			if (jsObject.has(field.getName())) { field.setValueFromJsObject(jsObject); }
 			else { Logger.warning("Source does not have field [" + field.getName() + "] for class {" + getClass().getSimpleName() + "}"); }
 		}
+		return model;
 	}
 
 	public Cursor getDefaultCursor() {

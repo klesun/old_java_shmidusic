@@ -1,6 +1,7 @@
 
 package Stuff.test;
 
+import Storyspace.Staff.Accord.Nota.Nota;
 import Stuff.Midi.MidiCommon;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
@@ -33,50 +34,38 @@ public class PitchBendAndVolumeTest {
 			{72, 64},
 		};
 		
-		setInstrument(22);
+		setInstrument(81);
 
-		int tune = 70;
-		int tune2 = 75;
+		int tune = b(Nota.TI);
+		int tune2 = b(Nota.MI) + Nota.OCTAVA;
 		
 		resetAllControllers();
-		sendMessage(ShortMessage.CONTROL_CHANGE, 0, 65, 127); // portamento on/off
-		sendMessage(ShortMessage.CONTROL_CHANGE, 0, 5, 65); // portamento time 1
-		sendMessage(ShortMessage.CONTROL_CHANGE, 0, 37, 65); // portamento time 2
-
-		doPortamento(huj);
 		
-//		openNota(tune);
-//		try { Thread.sleep(1000); } catch (InterruptedException exc) {}
+		openNota(tune, 127);
+		try { Thread.sleep(1000); } catch (InterruptedException exc) {}
 
-//		for (int i = 0; i < 4; ++i) {
-//			doCrescendo(0, 127, 1000);
-//		}
+		for (int i = 0; i < 4; ++i) {
+			doCrescendo(0, 127, 1000);
+		}
 		
-//		closeNota(tune);
-//		openNota(tune2);
+		closeNota(tune);
+		openNota(tune2, 63);
+
+		try { Thread.sleep(1000); } catch (InterruptedException exc) {}
+		resetAllControllers();
+		closeNota(tune2);
+		closeNota(tune2);
+		closeNota(tune2);
+		closeNota(tune2);
 
 		midiDevice.close();
 		theirReceiver.close();
 	}
 
-	// not sure, looks like portamento does not existr
-	private static void doPortamento(int[][] huj) {
-		int dt = 32;
-		int lastOpened = 0;
-		int epsilon = 0;
-		for (int[] record: huj) {
-			
-			try { Thread.sleep(epsilon); } catch (InterruptedException exc) {}
-			openNota(record[0]);
-			closeNota(lastOpened);
-			
-			
-			lastOpened = record[0];
-			try { Thread.sleep(dt * record[1] - epsilon); } catch (InterruptedException exc) {}
-		}
-		closeNota(lastOpened);
+	private static int b(int tune) {
+		return tune - 1;
 	}
-	
+
 	private static void doCrescendo(int from, int to, int timeMili) {
 		if (from >= to) { return; }
 
@@ -98,8 +87,8 @@ public class PitchBendAndVolumeTest {
 		}
 	}
 	
-	private static void openNota(int n) {
-		sendMessage(ShortMessage.NOTE_ON, 0, n, 63);
+	private static void openNota(int n, int volume) {
+		sendMessage(ShortMessage.NOTE_ON, 0, n, volume);
 	}
 	
 	private static void setVibrato(int n) {

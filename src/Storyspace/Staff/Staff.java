@@ -56,6 +56,12 @@ public class Staff extends MidianaComponent {
 		return this;
 	}
 
+	public Accord addNewAccord() {
+		Accord accord = new Accord(this);
+		this.add(accord);
+		return accord;
+	}
+
 	// TODO: move into some StaffPainter class
 	public synchronized void drawOn(Graphics g, int baseX, int baseY) { // baseY - highest line y
 
@@ -131,7 +137,7 @@ public class Staff extends MidianaComponent {
 		}
 		for (int idx = 0; idx < accordJsonList.length(); ++idx) {
 			JSONObject childJs = accordJsonList.getJSONObject(idx);
-			this.add(new Accord(this).reconstructFromJson(childJs)).moveFocus(1);
+			this.add((Accord)new Accord(this).reconstructFromJson(childJs)).moveFocus(1);
 		}
 
 		return this;

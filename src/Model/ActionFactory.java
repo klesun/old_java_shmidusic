@@ -1,6 +1,8 @@
 package Model;
 
 import Main.MajesticWindow;
+import Storyspace.Staff.Accord.Accord;
+import Storyspace.Staff.MidianaComponent;
 import Storyspace.Staff.StaffPanel;
 import Storyspace.Storyspace;
 import Storyspace.Staff.Staff;
@@ -49,8 +51,8 @@ public class ActionFactory {
 		return this;
 	}
 
-	public ActionFactory setDoHuj(Consumer<StaffConfig> lambda) {
-		doLambda = (e) -> { lambda.accept(new StaffConfig(new Staff(new StaffPanel(new Storyspace(new MajesticWindow()))))); return emptyHashMap; };
+	public ActionFactory setDo(Runnable lambda) {
+		doLambda = (e) -> { lambda.run(); return emptyHashMap; };
 		return this;
 	}
 

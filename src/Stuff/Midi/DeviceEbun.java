@@ -1,20 +1,33 @@
 package Stuff.Midi;
 
-import javax.sound.midi.MidiDevice;
-import javax.sound.midi.MidiSystem;
-import javax.sound.midi.MidiUnavailableException;
-import javax.sound.midi.Receiver;
+import javax.sound.midi.*;
 
 import Main.Main;
 import Model.Combo;
+import Storyspace.Staff.Accord.Accord;
+import Stuff.Tools.Logger;
 
 
 public class DeviceEbun {
+
+	final static int PAN = 10;
+	final static int VOLUME = 7;
+	final static int RESET_ALL_CONTROLLERS = 121;
+
+	static DeviceEbun instance = null;
+
 	public static MidiDevice midiInputDevice = null;
 	public static MidiDevice midiOutputDevice = null;
 
 	public static Receiver theirReceiver = null;
     private static Receiver secondaryReceiver = null;
+
+	public static DeviceEbun inst() {
+		if (instance == null) {
+			instance = new DeviceEbun();
+		}
+		return instance;
+	}
 
 	public static void openMidiDevices() {
 		DeviceEbun.openInDevice();
@@ -22,13 +35,13 @@ public class DeviceEbun {
 	}
 
 	private static void openInDevice() {
-		System.out.println("Opening input device...");
+		Logger.logForUser("Opening input device...");
 		int count = MidiCommon.listDevicesAndExit(true, false);
 		MidiCommon.listDevicesAndExit(false,true,false);
 		MidiDevice.Info	info;
 		if ( count > 1 ) { // if 1 - software real-time-sequencer; if 2 - + real midi device
 			info = MidiCommon.getMidiDeviceInfo(1, false); // 99% cases it is the midi-port we need
-			System.out.println("Selected port: " + info.getName() + " " + info.getDescription()+" "+info.toString());
+			Logger.logForUser("Selected port: " + info.getName() + " " + info.getDescription() + " " + info.toString());
 			MidiDevice device = null;
 			try {
 				device = MidiSystem.getMidiDevice(info);
@@ -36,9 +49,9 @@ public class DeviceEbun {
 				device.getTransmitter().setReceiver(new DumpReceiver());
 
 				midiInputDevice = device;
-			} catch (MidiUnavailableException e) { out("Midi-Port is already being used by other program or something like that; so no midi for you today"); }
+			} catch (MidiUnavailableException e) { Logger.logForUser("Midi-Port is already being used by other program or something like that; so no midi for you today"); }
 		} else {
-			out(MORAL_SUPPORT_MESSAGE);
+			Logger.logForUser(MORAL_SUPPORT_MESSAGE);
 		}
 	}
 
@@ -77,5 +90,17 @@ public class DeviceEbun {
 		theirReceiver = secondaryReceiver;
 		secondaryReceiver = tmp;
 		Main.window.fullscreenStaffPanel.getStaff().getConfig().syncSyntChannels();
+	}
+
+	public static void setVolume(int n) {
+		int channel = 0;
+		sendMessage(ShortMessage.CONTROL_CHANGE, channel, VOLUME, n);
+	}
+
+	private static void sendMessage(int status, int channel, int data1, int data2) {
+		ShortMessage message = new ShortMessage();
+		try { message.setMessage(status, channel, data1, data2); }
+		catch (InvalidMidiDataException exc) { Logger.fatal(exc, "You are not right"); }
+		theirReceiver.send(message, -1);
 	}
 }

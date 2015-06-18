@@ -1,20 +1,35 @@
 package Stuff.Tools;
 
+import Main.Main;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class Logger {
 
-	public static int fatal(String msg) {
-		System.out.println("Fatal: " + msg);
-		new Throwable().printStackTrace();
-		Runtime.getRuntime().exit(666);
-		return 666;
+	private static Long time = null;
+
+	final private static String PRE_FATAL_BACKUP_FOLDER = "./savedJustBeforeFatal/";
+
+	public static void fatal(String msg) {
+		fatal("Fatal: " + msg, new Throwable());
 	}
 
-	public static int fatal(Exception e, String msg) {
-		System.out.println("Got exception" + e.getClass().getName() + " with message: [" + e.getMessage() + "] ");
+	public static void fatal(Exception e, String msg) {
+		fatal("Got exception" + e.getClass().getName() + " with message: [" + e.getMessage() + "] - " + msg, e);
+	}
+
+	private static void fatal(String msg, Throwable traceProvider) {
 		System.out.println(msg);
-		e.printStackTrace();
+		traceProvider.printStackTrace();
+
+		// TODO: save storyspace somewhere for a case
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+		new File(PRE_FATAL_BACKUP_FOLDER).mkdirs();
+		FileProcessor.saveStoryspace(new File(PRE_FATAL_BACKUP_FOLDER + "fatal_backup_" + dateFormat.format(new Date()) + ".midiana.json"), Main.window.storyspace);
+
 		Runtime.getRuntime().exit(666);
-		return 777;
 	}
 
 	public static int warning(String msg) {
@@ -34,5 +49,19 @@ public class Logger {
 		long allocatedMemory = totalMemory - Runtime.getRuntime().freeMemory();
 		System.out.println(totalMemory / mb + " " + Runtime.getRuntime().freeMemory() / mb + " " + allocatedMemory / mb + " " + msg);
 		return 111;
+	}
+
+	public static void resetTimer(String msg) {
+		if (time == null) {
+			time = System.nanoTime();
+		}
+
+		long newTime = System.nanoTime();
+		logForUser("==== " + (newTime - time)/1e9 + " - " + msg);
+		time = newTime;
+	}
+
+	public static void logForUser(String msg) {
+		Main.window.terminal.append("\n" + msg);
 	}
 }

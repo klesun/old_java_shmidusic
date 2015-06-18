@@ -59,7 +59,7 @@ public class Field<huj> {
 				getValue().getClass() == Boolean.class ? Boolean::parseBoolean :
 				getValue().getClass() == Fraction.class ? new FractionFormat()::parse :
 				getValue().getClass() == String.class ? s -> s :
-				s -> Logger.fatal("NO WAI!!!");
+				s -> { Logger.fatal("NO WAI!!!"); return -100; };
 
 	}
 }

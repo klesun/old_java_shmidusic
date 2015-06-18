@@ -59,8 +59,6 @@ public class ImageStorage {
 
 	public void refreshNotaSizes() {
 
-		// new HashMap<Fraction, BufferedImage>()[CHANNEL_COUNT];
-
 		int w1, h1; Graphics2D g;
 		w1 = Settings.getNotaWidth(); h1 = Settings.getNotaHeight();
 
@@ -185,7 +183,8 @@ public class ImageStorage {
 		if (n == 1) {
 			return 0;
 		} else if (n <= 0 || n % 2 != 0) {
-			return Logger.fatal("Number " + n + " does not have integer logarithm with base 2 ");
+			Logger.fatal("Number " + n + " does not have integer logarithm with base 2 ");
+			return -100;
 		} else {
 			return 1 + log2(n / 2);
 		}

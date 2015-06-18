@@ -28,16 +28,14 @@ public class AccordHandler extends AbstractHandler {
 
 		// TODO: nota appending should be AccordHandler event!!! (now it is done with code in Staff::addPressed())
 
-		// TODO: actionMap should not be accessed by successors, use some method instead... eventually
-
 		// TODO: does not work
 		// character-key press
-		Consumer<Combo> handlePressChar = (e) -> getContext().setSlog(getContext().getSlog().concat("" + e.getKeyChar()));
-		Consumer<Combo> dehandlePressChar = (e) -> getContext().setSlog(getContext().getSlog().substring(0, getContext().getSlog().length() - 1));
-		for (int i: Combo.getCharacterKeycodeList()) {
-			addCombo(0, i).setDo(handlePressChar).setUndo(dehandlePressChar);
-			addCombo(KeyEvent.SHIFT_MASK, i).setDo(handlePressChar).setUndo(dehandlePressChar);
-		}
+//		Consumer<Combo> handlePressChar = (e) -> getContext().setSlog(getContext().getSlog().concat("" + e.getKeyChar()));
+//		Consumer<Combo> dehandlePressChar = (e) -> getContext().setSlog(getContext().getSlog().substring(0, getContext().getSlog().length() - 1));
+//		for (int i: Combo.getCharacterKeycodeList()) {
+//			addCombo(0, i).setDo(handlePressChar).setUndo(dehandlePressChar);
+//			addCombo(KeyEvent.SHIFT_MASK, i).setDo(handlePressChar).setUndo(dehandlePressChar);
+//		}
 
 		// TODO: move logic that action applies to all children, like dispatching event to them
 
@@ -61,9 +59,11 @@ public class AccordHandler extends AbstractHandler {
 				return false;
 			}
 		}).setUndo((event) -> {
-			getContext().add(deletedNotaQueue.pollLast());
+			getContext().getNotaList().add(deletedNotaQueue.pollLast());
 			getContext().setFocusedIndex(getContext().getFocusedIndex() + 1);
 		});
+
+		addCombo(ctrl, k.VK_PERIOD).setDo(getContext()::triggerIsDiminendo).biDirectional();
 
 		for (Integer i: Arrays.asList(k.VK_DOWN, k.VK_UP)) { addCombo(0, i).setDo(getContext()::moveFocus).setUndoChangeSign(); }
 
@@ -102,7 +102,7 @@ public class AccordHandler extends AbstractHandler {
 				if (getContext().getParentStaff().mode == Staff.aMode.passive) { return false; }
 
 				if (timestamp - getContext().getEarliestKeydown() < Staff.ACCORD_EPSILON) {
-					new Nota(getContext(), combo.asciiToTune()).setKeydownTimestamp(timestamp);
+					getContext().addNewNota().setTune(combo.asciiToTune());
 					return true;
 				} else {
 					return false;

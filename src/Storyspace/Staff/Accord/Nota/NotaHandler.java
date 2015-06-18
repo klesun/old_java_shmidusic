@@ -42,7 +42,7 @@ public class NotaHandler extends AbstractHandler {
 
 		for (Integer i: Combo.getAsciTuneMap().keySet()) {
 			addCombo(11, i).setDo((combo) -> { // 11 - alt+shif+ctrl
-				new Nota(getContext().getParentAccord(), combo.asciiToTune()).setKeydownTimestamp(System.currentTimeMillis());
+				getContext().getParentAccord().addNewNota().setTune(combo.asciiToTune());
 				return true;
 			});
 		}

@@ -11,6 +11,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 
+import Stuff.OverridingDefaultClasses.Pnt;
 import Stuff.Tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 
@@ -27,7 +28,6 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	private Field<Integer> tune = h.addField("tune", 34);
 	private Field<Fraction> length = h.addField("length", new Fraction(1, 4));
-//	private Field<Integer> numerator = h.addField("numerator", 16); // deprecated
 	private Field<Integer> channel = h.addField("channel", 0);
 	private Field<Integer> tupletDenominator = h.addField("tupletDenominator", 1);
 	private Field<Boolean> isSharp = h.addField("isSharp", false);
@@ -40,11 +40,7 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	public long keydownTimestamp;
 
-	public Nota(Accord parent, int tune) {
-		super(parent);
-		setTune(tune);
-		parent.add(this);
-	}
+	public Nota(Accord parent) { super(parent); }
 
 	public Boolean isLongerThan(Nota rival) { return getLength().compareTo(rival.getLength()) > 0; }
 
@@ -103,21 +99,17 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 				: Nota.tuneToAcademicIndex(this.getTune());
 	}
 
-	public List<Integer> getTraitCoordinates() {
-		ArrayList result = new ArrayList();
-		result.addAll(Fp.vectorSum(getAncorPoint(), Arrays.asList(-getWidth() * 6 / 25, 0)));
-		result.addAll(Fp.vectorSum(getAncorPoint(), Arrays.asList(+getWidth() * 6 / 25, 0)));
-		return result;
-	}
-
 	public int getTimeMilliseconds(Boolean includeLinkedTime) {
-		int minute = 60 * 1000;
 		StaffConfig config = getParentAccord().getParentStaff().getConfig();
-		int semibreveTime = 4 * minute / config.getTempo();
-
 		int linkedTime = (includeLinkedTime && getIsLinkedToNext()) ? linkedTo().getTimeMilliseconds(true) : 0;
 
-		return getLength().multiply(semibreveTime).intValue() + linkedTime;
+		return getTimeMilliseconds(getLength(), config.getTempo()) + linkedTime;
+	}
+
+	public static int getTimeMilliseconds(Fraction length, int tempo) {
+		int minute = 60 * 1000;
+		int semibreveTime = 4 * minute / tempo;
+		return length.multiply(semibreveTime).intValue();
 	}
 
 	public byte getVolume() {
@@ -187,7 +179,9 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	public int getAbsoluteAcademicIndex() { return getAcademicIndex() + getOctave() * 7; }
 	public int getOctave() { return this.getTune()/12; }
-	public List<Integer> getAncorPoint() { return Arrays.asList(getWidth()*16/25, Settings.getStepHeight() * 7); }
+	@Deprecated
+	public List<Integer> getAncorPointDeprecated() { return Arrays.asList(getWidth()*16/25, Settings.getStepHeight() * 7); }
+	public Pnt getAncorPoint() { return new Pnt(getWidth()*16/25, Settings.getStepHeight() * 7); }
 	public int getNotaImgRelX() { return this.getWidth() / 2; } // bad name
 	public int getStickX() { return this.getNotaImgRelX() + dx() / 2; }
 
@@ -223,8 +217,10 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	// <editor-fold desc="event handles">
 
-	public Nota triggerIsSharp() { setIsSharp(!getIsSharp()); return this; }
-	public Nota triggerIsMuted() { setIsMuted(!getIsMuted()); return this; }
+	public Nota triggerIsSharp() {
+		setIsSharp(!getIsSharp()); return this; }
+	public Nota triggerIsMuted() {
+		setIsMuted(!getIsMuted()); return this; }
 	public Boolean triggerIsLinkedToNext() {
 		if (getNext() != null || getIsLinkedToNext() == true) {
 			setIsLinkedToNext(!getIsLinkedToNext());
@@ -248,13 +244,11 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	}
 
 	public Nota incLen() {
-		// TODO: points should be whole separate thing
 		setLength(new Fraction(getLength().getNumerator() * 2, getLength().getDenominator()));
 		return this;
 	}
 
 	public Nota decLen() {
-		// TODO: points should be whole separate thing
 		setLength(new Fraction(getLength().getNumerator(), getLength().getDenominator() * 2));
 		return this;
 	}
@@ -290,6 +284,17 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	}
 
 	// </editor-fold>
+
+	final public static int OCTAVA = 12;
+
+	// small octava
+	final public static int DO = 48;
+	final public static int RE = 50;
+	final public static int MI = 52;
+	final public static int FA = 53;
+	final public static int SO = 55;
+	final public static int LA = 57;
+	final public static int TI = 59;
 
 	// private static methods
 

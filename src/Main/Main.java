@@ -11,44 +11,29 @@ public class Main {
 
 	public static void main(String[] args){
 
-		/** @debug */
-		resetTimer("Starting program");
+		window = new MajesticWindow();
+
+		// TODO: show these opening status messages in window while user is waiting to entertain him
 
 		/** @debug */
-		resetTimer("Loaded images from disk");
+		Logger.resetTimer("Starting program");
+
+		/** @debug */
+		Logger.resetTimer("Loaded images from disk");
 
 		ImageStorage.inst().refreshImageSizes();
 
 		/** @debug */
-		resetTimer("Refreshed image sizes");
+		Logger.resetTimer("Refreshed image sizes");
 
 		DeviceEbun.openMidiDevices();
 
 		/** @debug */
-		resetTimer("Opened Midi devices");
+		Logger.resetTimer("Opened Midi devices");
 
-		window = new MajesticWindow();
-
-		/** @debug */
-		resetTimer("Created window");
-
-		window.setVisible(true);
+		window.init();
 
 		/** @debug */
-		resetTimer("Made window visible");
-	}
-
-	/** @debug */
-	private static Long time = null;
-
-	/** @debug */
-	private static void resetTimer(String msg) {
-		if (time == null) {
-			time = System.nanoTime();
-		}
-
-		long newTime = System.nanoTime();
-		System.out.println("==== " + (newTime - time)/1e9 + " - " + msg);
-		time = newTime;
+		Logger.resetTimer("Created window");
 	}
 }
