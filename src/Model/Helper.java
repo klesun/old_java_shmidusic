@@ -28,7 +28,7 @@ public class Helper {
 		if (model instanceof Paragraph) {
 			Helper helper = Paragraph.class.cast(model).getModelHelper();
 			for (Field field : helper.fieldStorage) {
-				dict.put(field.getName(), field.getValue());
+				dict.put(field.getName(), field.get());
 			}
 		}
 
@@ -65,20 +65,25 @@ public class Helper {
 
 	public List<Field> getFieldStorage() { return fieldStorage; }
 
+	@Deprecated // use direct construct instead
 	public Field<Integer> addField(String fieldName, Integer fieldValue) {
-		return new Field<>(fieldName, fieldValue, model).addTo(fieldStorage);
+		return new Field<>(fieldName, fieldValue, model);
 	}
+	@Deprecated // use direct construct instead
 	public Field<Fraction> addField(String fieldName, Fraction fieldValue) {
-		return new Field<>(fieldName, fieldValue, model).addTo(fieldStorage);
+		return new Field<>(fieldName, fieldValue, model);
 	}
+	@Deprecated // use direct construct instead
 	public Field<String> addField(String fieldName, String fieldValue) {
-		return new Field<>(fieldName, fieldValue, model).addTo(fieldStorage);
+		return new Field<>(fieldName, fieldValue, model);
 	}
+	@Deprecated // use direct construct instead
 	public Field<Boolean> addField(String fieldName, Boolean fieldValue) {
-		return new Field<>(fieldName, fieldValue, model).addTo(fieldStorage);
+		return new Field<>(fieldName, fieldValue, model);
 	}
+	@Deprecated // use direct construct instead
 	public Arr<? extends AbstractModel> addField(String fieldName, List<? extends AbstractModel> fieldValue, Class<? extends AbstractModel> cls) {
-		return (Arr)new Arr(fieldName, fieldValue, model, cls).addTo(fieldStorage);
+		return (Arr)new Arr(fieldName, fieldValue, model, cls);
 	}
 
 	final public static int limit(int value, int min, int max) { return Math.min(Math.max(value, min), max); }

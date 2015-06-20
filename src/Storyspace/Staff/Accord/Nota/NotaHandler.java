@@ -2,7 +2,9 @@ package Storyspace.Staff.Accord.Nota;
 
 import Model.AbstractHandler;
 import Model.Combo;
+import Storyspace.Staff.StaffHandler;
 import Stuff.Musica.PlayMusThread;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 
@@ -33,18 +35,29 @@ public class NotaHandler extends AbstractHandler {
 		addCombo(0, k.VK_ENTER).setDo((event) -> { PlayMusThread.playNotu(getContext()); });
 
 		for (Integer i: Combo.getNumberKeyList()) {
-			addCombo(0, i).setDo2((combo) -> {
-				int lastChan = getContext().getChannel();
-				getContext().setChannel(combo.getPressedNumber());
-				return new HashMap<String, Object>() {{ put("lastChan", lastChan); }};
-			}).setUndo((combo, paramsForUndo) -> { getContext().setChannel((Integer) paramsForUndo.get("lastChan")); });
+			addCombo(0, i).setDo((combo) -> {
+				int newChan = combo.getPressedNumber();
+				changeChannel(getContext(), newChan);
+				getStaffHandler().setDefaultChannel(newChan);
+			});
 		}
 
 		for (Integer i: Combo.getAsciTuneMap().keySet()) {
-			addCombo(11, i).setDo((combo) -> { // 11 - alt+shif+ctrl
-				getContext().getParentAccord().addNewNota().setTune(combo.asciiToTune());
+			addCombo(Combo.getAsciiTuneMods(), i).setDo((combo) -> { // 11 - alt+shif+ctrl
+				getContext().getParentAccord().addNewNota(combo.asciiToTune(), getStaffHandler().getDefaultChannel());
 				return true;
 			});
 		}
+	}
+
+	synchronized private static void changeChannel(Nota nota, int channel) {
+		JSONObject js = nota.getJsonRepresentation();
+		nota.getParentAccord().remove(nota);
+		js.put(nota.channel.getName(), channel);
+		nota.getParentAccord().addNewNota(js);
+	}
+
+	private StaffHandler getStaffHandler() {
+		return getContext().getParentAccord().getParentStaff().getHandler();
 	}
 }

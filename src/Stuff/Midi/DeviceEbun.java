@@ -5,14 +5,24 @@ import javax.sound.midi.*;
 import Main.Main;
 import Model.Combo;
 import Storyspace.Staff.Accord.Accord;
+import Storyspace.Staff.Accord.Nota.Nota;
 import Stuff.Tools.Logger;
 
 
 public class DeviceEbun {
 
+	// data1 of ShortMessage.CONTROL_CHANGE
 	final static int PAN = 10;
 	final static int VOLUME = 7;
 	final static int RESET_ALL_CONTROLLERS = 121;
+
+	// the first byte (status)
+	final private static int DRUM_NOTE_ON = 0x99;
+	final private static int DRUM_NOTE_OFF = 0x89;
+
+	final private static int DRUM_CHANNEL = 10; 	// it's not actually really a channel. we can send normal messages to channel 10
+												// and they would sound with grand piano or ororgan, but i disable this channel, cuz
+												// i think it's simpler for user experience, but i may be wrong
 
 	static DeviceEbun instance = null;
 
@@ -79,7 +89,7 @@ public class DeviceEbun {
 	}
 
 	private static void out(String strMessage) { System.out.println(strMessage); }
-	private static String MORAL_SUPPORT_MESSAGE = "You kinda don't have MIDI IN device, so you can only type notas from qwerty-keyboard. Pity you.";
+	private static String MORAL_SUPPORT_MESSAGE = "You kinda don't have MIDI IN device, so you can only type notas from qwerty-keyboard holding alt. Pity you.";
 
 	// event handles
 
@@ -92,15 +102,37 @@ public class DeviceEbun {
 		Main.window.fullscreenStaffPanel.getStaff().getConfig().syncSyntChannels();
 	}
 
-	public static void setVolume(int n) {
-		int channel = 0;
-		sendMessage(ShortMessage.CONTROL_CHANGE, channel, VOLUME, n);
+	public static void setVolume(int channel, int value) {
+		sendMessage(ShortMessage.CONTROL_CHANGE, channel, VOLUME, value);
+	}
+
+	public static void openNota(Nota nota) {
+		if (nota.getChannel() != DRUM_CHANNEL) {
+			sendMessage(ShortMessage.NOTE_ON, nota.getChannel(), nota.tune.get(), nota.getVolume());
+		} else {
+			sendMessage(DRUM_NOTE_ON, nota.tune.get(), nota.getVolume());
+		}
+	}
+
+	public static void closeNota(Nota nota) {
+		if (nota.getChannel() != DRUM_CHANNEL) {
+			sendMessage(ShortMessage.NOTE_OFF, nota.getChannel(), nota.tune.get(), 0);
+		} else {
+			sendMessage(DRUM_NOTE_ON, nota.tune.get(), 0);
+		}
 	}
 
 	private static void sendMessage(int status, int channel, int data1, int data2) {
 		ShortMessage message = new ShortMessage();
 		try { message.setMessage(status, channel, data1, data2); }
-		catch (InvalidMidiDataException exc) { Logger.fatal(exc, "You are not right"); }
+		catch (InvalidMidiDataException exc) { Logger.fatal(exc, "You are not right " + status + " " + channel + " " + data1 + " " + data2); }
+		theirReceiver.send(message, -1);
+	}
+
+	private static void sendMessage(int status, int data1, int data2) {
+		ShortMessage message = new ShortMessage();
+		try { message.setMessage(status, data1, data2); }
+		catch (InvalidMidiDataException exc) { Logger.fatal(exc, "You are not right " + status + " " + " " + data1 + " " + data2); }
 		theirReceiver.send(message, -1);
 	}
 }

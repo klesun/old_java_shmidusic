@@ -2,9 +2,9 @@ package Stuff.OverridingDefaultClasses;
 
 import java.util.HashMap;
 
-public class TruHashMap extends HashMap {
+public class TruHashMap<KeyClass, ValueClass> extends HashMap {
 
-	public TruHashMap p(String key, Object value) {
+	public TruHashMap<KeyClass, ValueClass> p(KeyClass key, ValueClass value) {
 		put(key, value);
 		return this;
 	}

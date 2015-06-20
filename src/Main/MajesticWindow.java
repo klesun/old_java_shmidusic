@@ -39,7 +39,7 @@ public class MajesticWindow extends JFrame {
 		cards.setLayout(new CardLayout());
 		this.add(cards);
 
-		terminal = new JTextArea("zhopa");
+		terminal = new JTextArea("Midiana terminal at your service!");
 		terminal.setEditable(false);
 		cards.add(terminal, cardEnum.CARDS_TERMINAL.name());
 

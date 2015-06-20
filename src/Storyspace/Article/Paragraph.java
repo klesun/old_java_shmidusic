@@ -114,9 +114,9 @@ public class Paragraph extends JTextArea implements IComponentModel {
 
 	// field getters/setters
 
-	public Integer getScore() { return score.getValue(); }
+	public Integer getScore() { return score.get(); }
 	public Paragraph setScore(Integer value) {
-		score.setValue(value);
+		score.set(value);
 		updateBgColor();
 		return this;
 	}

@@ -16,8 +16,22 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 
 	private IComponentModel context = null;
 	protected LinkedHashMap<Combo, ActionFactory> actionMap = new LinkedHashMap<>();
+	@Deprecated
 	protected static LinkedList<Action> handledEventQueue = new LinkedList<>(); // for ctrl-z
+	@Deprecated
 	protected static LinkedList<Action> unhandledEventQueue = new LinkedList<>(); // for ctrl-y
+
+	private LinkedList<SimpleAction> simpleActionQueue = new LinkedList<>();
+	private int simpleActionIterator = 0;
+
+	synchronized final public void performAction(SimpleAction action) {
+		if (simpleActionIterator < simpleActionQueue.size()) {
+			this.simpleActionQueue = new LinkedList<>(simpleActionQueue.subList(0, simpleActionIterator));
+		}
+		simpleActionQueue.addLast(action);
+		action.redo();
+		++simpleActionIterator;
+	}
 
 	// mouse
 	protected Point mouseLocation = new Point(0,0);

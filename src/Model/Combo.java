@@ -7,6 +7,7 @@ import javafx.scene.input.KeyCode;
 
 import java.awt.event.KeyEvent;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 public class Combo {
 
@@ -44,11 +45,18 @@ public class Combo {
 	}
 
 	public int getPressedNumber() {
-		return (getKeyCode() >= '0' && getKeyCode() <= '9') ? getKeyCode() - '0' : getKeyCode() - KeyEvent.VK_NUMPAD0;
+		return (getKeyCode() >= '0' && getKeyCode() <= '9') ? getKeyCode() - '0' :
+			(getKeyCode() >= KeyEvent.VK_NUMPAD0 && getKeyCode() <= KeyEvent.VK_NUMPAD9) ? getKeyCode() - KeyEvent.VK_NUMPAD0 :
+			(getKeyCode() >= KeyEvent.VK_F1 && getKeyCode() <= KeyEvent.VK_F12) ? getKeyCode() - KeyEvent.VK_F1 + 1:
+			Logger.getFatal("You ask me to get pressed number from not number button! You fag. " + getKeyCode());
 	}
 
 	public int asciiToTune() {
 		return getAsciTuneMap().get(getKeyCode());
+	}
+
+	public static int getAsciiTuneMods() {
+		return KeyEvent.ALT_MASK;
 	}
 
 	// static - public
@@ -57,6 +65,7 @@ public class Combo {
 		List<Integer> keyList = new ArrayList<>();
 		for (Integer i = KeyEvent.VK_0; i <= KeyEvent.VK_9; ++i) { keyList.add(i); }
 		for (Integer i = KeyEvent.VK_NUMPAD0; i <= KeyEvent.VK_NUMPAD9; ++i) { keyList.add(i); }
+		for (Integer i = KeyEvent.VK_F1; i <= KeyEvent.VK_F12; ++i) { keyList.add(i); }
 		return keyList;
 	}
 
@@ -155,6 +164,9 @@ public class Combo {
 				// TODO: not parsed back correctly
 			}
 		}
+
+		map.put(KeyEvent.VK_PAUSE, 0);
+
 		return map;
 	}
 

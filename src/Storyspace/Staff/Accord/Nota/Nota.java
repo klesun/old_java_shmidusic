@@ -26,15 +26,17 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	// <editor-fold desc="model field declaration">
 
-	private Field<Integer> tune = h.addField("tune", 34);
-	private Field<Fraction> length = h.addField("length", new Fraction(1, 4));
-	private Field<Integer> channel = h.addField("channel", 0);
-	private Field<Integer> tupletDenominator = h.addField("tupletDenominator", 1);
-	private Field<Boolean> isSharp = h.addField("isSharp", false);
-	private Field<Boolean> isMuted = h.addField("isMuted", false);
-	private Field<Boolean> isLinkedToNext = h.addField("isLinkedToNext", false);
+	public Field<Integer> tune = new Field<>("tune", Integer.class, true, this);
+	protected Field<Integer> channel = new Field<>("channel", Integer.class, true, this);
+
+	public Field<Fraction> length = new Field<>("length", new Fraction(1, 4), this);
+	private Field<Integer> tupletDenominator = new Field<>("tupletDenominator", 1, this);
+	private Field<Boolean> isSharp = new Field<>("isSharp", false, this);
+	private Field<Boolean> isMuted = new Field<>("isMuted", false, this);
+	private Field<Boolean> isLinkedToNext = new Field<>("isLinkedToNext", false, this);
 
 	final private static int MAX_DOT_COUNT = 5;
+	final private static int PAUSE_POSITION = 3 * 7;
 
 	// </editor-fold>
 
@@ -42,7 +44,7 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	public Nota(Accord parent) { super(parent); }
 
-	public Boolean isLongerThan(Nota rival) { return getLength().compareTo(rival.getLength()) > 0; }
+	public Boolean isLongerThan(Nota rival) { return length.get().compareTo(rival.length.get()) > 0; }
 
 	// <editor-fold desc="implementing abstract model">
 
@@ -51,7 +53,7 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 		surface.setColor(Color.BLACK);
 		surface.drawImage(getEbonySignImage(), x + dx() / 2, y + 3 * dy() + 2, null);
 
-		BufferedImage tmpImg = getIsMuted()
+		BufferedImage tmpImg = getIsMuted() || isPause()
 				? ImageStorage.inst().getNotaImg(getCleanLength(), 9)
 				: ImageStorage.inst().getNotaImg(getCleanLength(), getChannel());
 
@@ -77,7 +79,17 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	@Override
 	protected NotaHandler makeHandler() { return new NotaHandler(this); }
 	@Override
-	public int compareTo(Nota n) { return n.getTune() - this.getTune(); }
+	public int compareTo(Nota n) { return n.tune.get() - this.tune.get(); }
+
+	@Override
+	public int hashCode() {
+		return (tune.get().byteValue() << (8 * 3) + limit(channel.get(), 0, 15) << (8 * 2 + 4)); // 1111 1111 1111 0000 0000 0000 0000 0000
+	}
+
+	@Override
+	public boolean equals(Object rival) { 	// it's a bit arguable. this equals is supposed to be used only in context of one Accord or Playback (two equal Nota-s cant sound simulatenously)
+		return rival instanceof Nota && ((Nota)rival).tune.get() == this.tune.get() && ((Nota)rival).channel.get() == this.channel.get();
+	}
 
 	@Override
 	public Nota reconstructFromJson(JSONObject dict) {
@@ -95,15 +107,15 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	public int getAcademicIndex() {
 		return isEbony() && getIsSharp()
-				? Nota.tuneToAcademicIndex(this.getTune()) - 1
-				: Nota.tuneToAcademicIndex(this.getTune());
+				? Nota.tuneToAcademicIndex(this.tune.get()) - 1
+				: Nota.tuneToAcademicIndex(this.tune.get());
 	}
 
 	public int getTimeMilliseconds(Boolean includeLinkedTime) {
 		StaffConfig config = getParentAccord().getParentStaff().getConfig();
 		int linkedTime = (includeLinkedTime && getIsLinkedToNext()) ? linkedTo().getTimeMilliseconds(true) : 0;
 
-		return getTimeMilliseconds(getLength(), config.getTempo()) + linkedTime;
+		return getTimeMilliseconds(length.get(), config.getTempo()) + linkedTime;
 	}
 
 	public static int getTimeMilliseconds(Fraction length, int tempo) {
@@ -113,7 +125,7 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	}
 
 	public byte getVolume() {
-		if (this.getTune() == 36) {
+		if (getIsMuted() || isPause()) {
 			return 0; // пауза лол какбэ
 		} else {
 			StaffConfig config = getParentAccord().getParentStaff().getConfig();
@@ -135,12 +147,12 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 		Fraction checkSum = getCleanLength();
 
-		while (checkSum.compareTo(getLength()) != 0) { // for deadlock safety would be better while < 0, but for debug - this... actually even with while < 0 can be deadlock so nevermind - it works 120%
+		while (checkSum.compareTo(length.get()) != 0) { // for deadlock safety would be better while < 0, but for debug - this... actually even with while < 0 can be deadlock so nevermind - it works 120%
 			++dots;
 			checkSum = checkSum.add(getCleanLength().divide(pow(2, dots)));
 
 			// for a case. Deadlock is deadlock after all
-			if (dots > MAX_DOT_COUNT) { Logger.fatal("Could not determine dot count for Fraction: [" + getLength() + "]"); }
+			if (dots > MAX_DOT_COUNT) { Logger.fatal("Could not determine dot count for Fraction: [" + length.get() + "]"); }
 		}
 
 		return dots;
@@ -163,9 +175,9 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	}
 
 	private Fraction getCleanLength() { // i.e. length without dots: 1/4, 1/2
-		return getLength().getDenominator() == 1
-				? new Fraction(getLength().getNumerator() * 2, getLength().getDenominator() + 1)
-				: new Fraction(getLength().getNumerator() + 1, getLength().getDenominator() * 2);
+		return length.get().getDenominator() == 1
+				? new Fraction(length.get().getNumerator() * 2, length.get().getDenominator() + 1)
+				: new Fraction(length.get().getNumerator() + 1, length.get().getDenominator() * 2);
 	}
 
 	// </editor-fold>
@@ -173,12 +185,12 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	// <editor-fold desc="one-line-getters">
 
 	// 0 - do, 2 - re, 4 - mi, 5 - fa, 7 - so, 9 - la, 10 - ti
-	public Boolean isEbony() { return Arrays.asList(1, 3, 6, 8, 10).contains(this.getTune() % 12); }
+	public Boolean isEbony() { return Arrays.asList(1, 3, 6, 8, 10).contains(this.tune.get() % 12); }
 	public Boolean isBotommedToFitSystem() { return this.getOctave() > 6; } // 8va
 	public Boolean isStriked() { return getAbsoluteAcademicIndex() % 2 == 1; }
 
-	public int getAbsoluteAcademicIndex() { return getAcademicIndex() + getOctave() * 7; }
-	public int getOctave() { return this.getTune()/12; }
+	public int getAbsoluteAcademicIndex() { return isPause() ? PAUSE_POSITION : getAcademicIndex() + getOctave() * 7; }
+	public int getOctave() { return this.tune.get() /12; }
 	@Deprecated
 	public List<Integer> getAncorPointDeprecated() { return Arrays.asList(getWidth()*16/25, Settings.getStepHeight() * 7); }
 	public Pnt getAncorPoint() { return new Pnt(getWidth()*16/25, Settings.getStepHeight() * 7); }
@@ -189,26 +201,31 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	// TODO: use it in Accord.getWidth()
 	public int getWidth() { return Settings.getNotaWidth() * 2; }
 
+	private Boolean isPause() { return tune.get() == 0; }
+
 	// </editor-fold>
 
 	// <editor-fold desc="model getters/setters">
 
+	// TODO: we can use this.{field}.get instead of manually creating separate getters
 	// model getters
-	public Integer getTune() { return tune.getValue(); }
-	public Fraction getLength() { return length.getValue(); }
-	public Integer getChannel() { return channel.getValue(); }
-	public Integer getTupletDenominator() { return tupletDenominator.getValue(); }
-	public Boolean getIsSharp() { return isSharp.getValue(); }
-	public Boolean getIsMuted() { return isMuted.getValue(); }
-	public Boolean getIsLinkedToNext() { return isLinkedToNext.getValue(); }
+	public Integer getChannel() { return channel.get(); }
+	public Integer getTupletDenominator() { return tupletDenominator.get(); }
+	public Boolean getIsSharp() { return isSharp.get(); }
+	public Boolean getIsMuted() { return isMuted.get(); }
+	public Boolean getIsLinkedToNext() { return isLinkedToNext.get(); }
 	// model setters
-	public Nota setTune(int value){ this.tune.setValue(value); return this; }
-	public Nota setLength(Fraction value){ this.length.setValue(limit(value, new Fraction(1, 16), new Fraction(2))); return this; }
-	public Nota setChannel(int value) { this.channel.setValue(value); return this; }
-	public Nota setTupletDenominator(int value) { this.tupletDenominator.setValue(value); return this; }
-	public Nota setIsSharp(Boolean value) { this.isSharp.setValue(value); return this; }
-	public Nota setIsMuted(Boolean value) { this.isMuted.setValue(value); return this; }
-	public Nota setIsLinkedToNext(Boolean value) { this.isLinkedToNext.setValue(value); return this; }
+	public Nota setTune(int value){
+		this.tune.set(value);
+		return this;
+	}
+	public Nota setLength(Fraction value){ this.length.set(limit(value, new Fraction(1, 16), new Fraction(2))); return this; }
+	/** @Bug - nota is immutable, this will blow with fatal !!! */
+	public Nota setChannel(int value) { this.channel.set(value); return this; }
+	public Nota setTupletDenominator(int value) { this.tupletDenominator.set(value); return this; }
+	public Nota setIsSharp(Boolean value) { this.isSharp.set(value); return this; }
+	public Nota setIsMuted(Boolean value) { this.isMuted.set(value); return this; }
+	public Nota setIsLinkedToNext(Boolean value) { this.isLinkedToNext.set(value); return this; }
 
 	// </editor-fold>
 
@@ -239,17 +256,17 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	private Nota getNext() {
 		Accord nextAccord = getParentAccord().getNext();
 		return nextAccord != null
-				? nextAccord.findByTuneAndChannel(this.getTune(), this.getChannel())
+				? nextAccord.findByTuneAndChannel(this.tune.get(), this.getChannel())
 				: null;
 	}
 
 	public Nota incLen() {
-		setLength(new Fraction(getLength().getNumerator() * 2, getLength().getDenominator()));
+		setLength(new Fraction(length.get().getNumerator() * 2, length.get().getDenominator()));
 		return this;
 	}
 
 	public Nota decLen() {
-		setLength(new Fraction(getLength().getNumerator(), getLength().getDenominator() * 2));
+		setLength(new Fraction(length.get().getNumerator(), length.get().getDenominator() * 2));
 		return this;
 	}
 

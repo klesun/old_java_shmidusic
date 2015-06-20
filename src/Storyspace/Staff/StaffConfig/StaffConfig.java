@@ -34,12 +34,11 @@ public class StaffConfig extends MidianaComponent {
 	private List<Channel> makeChannelList() {
 		List<Channel> list = new ArrayList<>();
 
-		int[] tones = {0, 65, 66, 43, 19, 52, 6, 91, 9, 14};
-		int[] volumes = {60, 60, 60, 60, 60, 60, 60, 60, 60, 60};
-		Boolean[] mutes = {false, false, false, false, false, false, false, false, false, false};
+		int[] tones = {0, 65, 66, 43, 19, 52, 6, 91, 9, 14, 0, 0, 0, 0, 0, 0};
 
-		for (int i = 0; i < 10; ++i) {
-			list.add(new Channel(this).setInstrument(tones[i]).setVolume(volumes[i]).setIsMuted(mutes[i]));
+		for (int i = 0; i < ImageStorage.CHANNEL_COUNT; ++i) {
+			Channel channel = new Channel(this).setInstrument(tones[i]);
+			list.add(channel);
 		}
 
 		return list;
@@ -120,11 +119,11 @@ public class StaffConfig extends MidianaComponent {
 	
 	public Staff getParentStaff() { return (Staff)this.getModelParent(); }
 
-	public Integer getTempo() { return this.tempo.getValue(); }
-	public StaffConfig setTempo(int value) { this.tempo.setValue(value); return this; }
-	public Integer getNumerator() { return this.numerator.getValue(); }
-	public StaffConfig setNumerator(int value) { this.numerator.setValue(value); return this; }
-	public List<Channel> getChannelList() { return this.channelList.getValue(); }
+	public Integer getTempo() { return this.tempo.get(); }
+	public StaffConfig setTempo(int value) { this.tempo.set(value); return this; }
+	public Integer getNumerator() { return this.numerator.get(); }
+	public StaffConfig setNumerator(int value) { this.numerator.set(value); return this; }
+	public List<Channel> getChannelList() { return (ArrayList<Channel>)this.channelList.get(); }
 
 	public int getVolume(int channel) {
 		Channel chan = getChannelList().get(channel);

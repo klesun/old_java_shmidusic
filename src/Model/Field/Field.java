@@ -1,65 +1,86 @@
 package Model.Field;
 
 import Model.IModel;
+import Stuff.OverridingDefaultClasses.TruHashMap;
 import Stuff.Tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 import org.apache.commons.math3.fraction.FractionFormat;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
-public class Field<huj> {
+public class Field<EncapsulatedClass> {
 
 	private String name;
-	private huj value;
+	private EncapsulatedClass value;
 	protected IModel owner;
 
-	public Field(String name, huj value, IModel owner) {
-		if (new JSONObject("{}").getGetterByClass(value.getClass()) == null) {
-			Logger.fatal("Unsupported Field Value Class! [" + value.getClass().getSimpleName() + "]");
-		}
+	private Boolean isFinal = false;
+	private Boolean isValueSet = false;
+	private Class<EncapsulatedClass> elemClass;
+
+	public Field(String name, EncapsulatedClass value, IModel owner) {
+		this(name, (Class<EncapsulatedClass>)value.getClass(), false, owner);
+		set(value);
+	}
+
+	public Field(String name, Class<EncapsulatedClass> cls, Boolean isFinal, IModel owner) {
+		checkValueClass(cls);
+		this.elemClass = cls;
 		this.owner = owner;
-		this.value = value;
 		this.name = name;
-	}
 
-	// override me please!
-	public Object getJsonValue() { return getValue(); };
-
-	// override me please!
-	public void setValueFromJsObject(JSONObject jsObject) {
-		huj value = (huj)jsObject.get(getName(), getValue().getClass());
-		setValue(value);
-	}
-
-	public Field<huj> addTo(List<Field> fieldStorage) {
-		fieldStorage.add(this);
-		return this;
+		owner.getModelHelper().getFieldStorage().add(this);
+		this.isFinal = isFinal;
 	}
 
 	// field getters/setters
 
-	public huj getValue() { return value; }
+	public EncapsulatedClass get() { return value; }
 
 	public String getName() { return name; }
 
-	public Field setValue(huj value) {
-		this.value = value;
+	public Field set(EncapsulatedClass value) {
+		if (this.isFinal && isValueSet) {
+			Logger.fatal("You are trying to change immutable field! " + getName() + " " + get() + " " + value);
+		} else {
+			this.value = value;
+			isValueSet = true;
+		}
 		return this;
+	}
+
+	// override me please!
+	public Object getJsonValue() { return get(); };
+
+	// override me please!
+	public void setValueFromJsObject(JSONObject jsObject) {
+		this.setValueFromString(jsObject.get(getName()).toString());
 	}
 
 	public Field setValueFromString(String str) {
-		setValue((huj)getParseStringLambda().apply(str));
+		set((EncapsulatedClass)getParserMap().get(elemClass).apply(str));
+
 		return this;
 	}
 
-	private Function<String, Object> getParseStringLambda() {
-		return 	getValue().getClass() == Integer.class ? Integer::parseInt :
-				getValue().getClass() == Boolean.class ? Boolean::parseBoolean :
-				getValue().getClass() == Fraction.class ? new FractionFormat()::parse :
-				getValue().getClass() == String.class ? s -> s :
-				s -> { Logger.fatal("NO WAI!!!"); return -100; };
+	private static Map<Class, Function<String, Object>> getParserMap() {
+		TruHashMap<Class, Function<String, Object>> map = new TruHashMap<>();
+		map.p(Integer.class, Integer::parseInt)
+			.p(Boolean.class, Boolean::parseBoolean)
+			.p(Fraction.class, new FractionFormat()::parse)
+			.p(String.class, s -> s);
+		return map;
+	}
 
+	/** dies if class is wrong */
+	protected void checkValueClass(Class cls) {
+		if (!getParserMap().containsKey(cls)) {
+			Logger.fatal("Unsupported Field Value Class! [" + cls.getSimpleName() + "]");
+		}
 	}
 }

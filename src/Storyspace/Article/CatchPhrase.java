@@ -20,12 +20,12 @@ public class CatchPhrase extends AbstractModel {
 	// model field getters/setter
 
 	// getters
-	public String getText() { return text.getValue(); }
-	public int getScore() { return score.getValue(); }
+	public String getText() { return text.get(); }
+	public int getScore() { return score.get(); }
 	// setters
-	public CatchPhrase setScore(int value) { score.setValue(value); return this; }
+	public CatchPhrase setScore(int value) { score.set(value); return this; }
 	// text should be immutable
-	private CatchPhrase setText(String value) { text.setValue(value); return this; }
+	private CatchPhrase setText(String value) { text.set(value); return this; }
 
 	public Color getColor() {
 		Color bad = new Color(255, 0, 0, 63);

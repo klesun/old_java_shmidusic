@@ -27,7 +27,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Staff extends MidianaComponent {
-	public byte channelFlags = -1;
 
 	final public static int SISDISPLACE = 40;
 	public static final int DEFAULT_ZNAM = 64; // TODO: move it into some constants maybe
@@ -122,19 +121,15 @@ public class Staff extends MidianaComponent {
 		dict.put("accordList", new JSONArray(this.getAccordList().stream().map(p -> p.getJsonRepresentation()).toArray()));
 	}
 
+	// TODO: model, mazafaka!
 	@Override
 	public Staff reconstructFromJson(JSONObject jsObject) throws JSONException {
 		this.clearStan();
-		JSONArray accordJsonList;
-		if (jsObject.has("childList")) { // TODO: deprecated. Run some script on all files, i won't manually resave all of them... again
-			accordJsonList = jsObject.getJSONArray("childList");
-			this.getConfig().reconstructFromJson(accordJsonList.getJSONObject(0)); // TODO: it is so lame, but i spent hours to save all these files in this format
-			accordJsonList.remove(0);
-		} else {
-			accordJsonList = jsObject.getJSONArray("accordList");
-			JSONObject configJson = jsObject.getJSONObject("staffConfig");
-			this.getConfig().reconstructFromJson(configJson);
-		}
+
+		JSONArray accordJsonList = jsObject.getJSONArray("accordList");
+		JSONObject configJson = jsObject.getJSONObject("staffConfig");
+		this.getConfig().reconstructFromJson(configJson);
+
 		for (int idx = 0; idx < accordJsonList.length(); ++idx) {
 			JSONObject childJs = accordJsonList.getJSONObject(idx);
 			this.add((Accord)new Accord(this).reconstructFromJson(childJs)).moveFocus(1);
@@ -142,6 +137,9 @@ public class Staff extends MidianaComponent {
 
 		return this;
 	}
+
+	@Override
+	public StaffHandler getHandler() { return (StaffHandler)super.getHandler(); }
 
 	private void clearStan() {
 		this.getAccordList().clear();

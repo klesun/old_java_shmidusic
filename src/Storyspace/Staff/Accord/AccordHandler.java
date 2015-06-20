@@ -5,6 +5,7 @@ import Model.AbstractHandler;
 import Model.Combo;
 import Storyspace.Staff.Accord.Nota.Nota;
 import Storyspace.Staff.Staff;
+import Storyspace.Staff.StaffHandler;
 import Stuff.Musica.PlayMusThread;
 
 import java.awt.event.KeyEvent;
@@ -92,7 +93,7 @@ public class AccordHandler extends AbstractHandler {
 
 		// MIDI-key press
 		for (Integer i: Combo.getAsciTuneMap().keySet()) {
-			addCombo(11, i).setDo((combo) -> { // 11 - alt+shif+ctrl
+			addCombo(Combo.getAsciiTuneMods(), i).setDo((combo) -> { // 11 - alt+shif+ctrl
 
 				// important TODO: UX WANNA ctrl-z, bleaaatj!
 
@@ -102,12 +103,16 @@ public class AccordHandler extends AbstractHandler {
 				if (getContext().getParentStaff().mode == Staff.aMode.passive) { return false; }
 
 				if (timestamp - getContext().getEarliestKeydown() < Staff.ACCORD_EPSILON) {
-					getContext().addNewNota().setTune(combo.asciiToTune());
+					getContext().addNewNota(combo.asciiToTune(), getStaffHandler().getDefaultChannel());
 					return true;
 				} else {
 					return false;
 				}
 			});
 		}
+	}
+
+	private StaffHandler getStaffHandler() {
+		return getContext().getParentStaff().getHandler();
 	}
 }

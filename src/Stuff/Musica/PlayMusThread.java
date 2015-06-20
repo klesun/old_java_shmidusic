@@ -1,19 +1,27 @@
 package Stuff.Musica;
 
+import Gui.ImageStorage;
 import Model.Combo;
 import Storyspace.Staff.Staff;
 import Storyspace.Staff.Accord.Nota.Nota;
 import Storyspace.Staff.Accord.Accord;
 import Stuff.Midi.DeviceEbun;
 import Stuff.Midi.Playback;
+import Stuff.OverridingDefaultClasses.SynchronizedHashMap;
+import Stuff.Tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 
 import java.awt.event.KeyEvent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PlayMusThread extends Thread {
-    public static OneShotThread[][] opentNotas = new OneShotThread[192][10];
+
+	final private static long DIMINDENDO_STEP_TIME = Nota.getTimeMilliseconds(new Fraction(1, 16), 120);
+
+    public static HashMap<Nota, Thread> opentNotas = new HashMap<>();
 
 	private Staff staff = null;
 
@@ -59,40 +67,56 @@ public class PlayMusThread extends Thread {
 			runDiminendoThread(accord.getShortestTime(), 127, 0);
 		}
 	}
-    
-    public static void playNotu(Nota nota){
-		if (!nota.getIsMuted()) {
-			int channel = nota.getChannel();
-			int tune = nota.getTune();
 
-			OneShotThread oldThread = opentNotas[tune][channel];
+	public static void playNotu(Nota newNota){
 
-			if (oldThread == null || oldThread.getNota().linkedTo() != nota) {
+		synchronized (opentNotas) {
+			Thread oldThread = opentNotas.get(newNota);
+			Nota oldNota = opentNotas.keySet().stream().filter(k -> k.equals(newNota)).findAny().orElse(null);
+
+			if (oldThread == null || oldNota.linkedTo() != newNota) {
 
 				if (oldThread != null) {
 					oldThread.interrupt();
-					try { oldThread.join(); } catch (Exception e) { System.out.println("Не дождались"); }
+					try { oldThread.join(); }
+					catch (Exception e) { System.out.println("Не дождались"); }
 				}
 
-				OneShotThread thr = new OneShotThread(nota);
-				opentNotas[tune][channel] = thr;
-				kri4alki.add(opentNotas[tune][channel]);
-				thr.start();
-			} else if (oldThread.getNota().linkedTo() == nota) {
-				oldThread.setNota(nota); // to allow more than 2 notas linking
+				runNotaThread(newNota);
+
+			} else if (oldNota.linkedTo() == newNota) {
+				opentNotas.put(newNota, opentNotas.get(newNota)); // updating key with new nota
 			}
 		}
     }
 
-    public static ArrayList<OneShotThread> kri4alki = new ArrayList<>();
-    public static void shutTheFuckUp() {
-        for (OneShotThread tmp: kri4alki) {
-            if (tmp.isAlive()) tmp.interrupt();
-        }
-        kri4alki.clear();
+	public static void shutTheFuckUp() {
+		synchronized (opentNotas) {
+			opentNotas.values().stream().filter(thread -> thread.isAlive()).forEach(java.lang.Thread::interrupt);
+			opentNotas.clear();
+		}
     }
 
-	final private static long DIMINDENDO_STEP_TIME = Nota.getTimeMilliseconds(new Fraction(1, 16), 120);
+	private static void runNotaThread(Nota nota) {
+
+		Thread thread = new Thread(() -> {
+			DeviceEbun.openNota(nota);
+
+			try { Thread.sleep(nota.getTimeMilliseconds(true)); }
+			catch (InterruptedException e) {}
+
+			DeviceEbun.closeNota(nota);
+
+			synchronized (opentNotas) {
+				opentNotas.remove(nota);
+			}
+		});
+
+		synchronized (opentNotas) {
+			opentNotas.put(nota, thread);
+		}
+		thread.start();
+	}
 
 	private static void runDiminendoThread(int time, int from, int to) {
 		Playback.inst().diminendoThread = new Thread(() -> {
@@ -102,7 +126,7 @@ public class PlayMusThread extends Thread {
 
 			for (long curMillis = startMilliseconds; curMillis < endMilliseconds; curMillis = System.currentTimeMillis()) {
 				long volume = from + (to - from) * (curMillis - startMilliseconds) / time;
-				DeviceEbun.setVolume((int)volume);
+				DeviceEbun.setVolume(0, (int)volume);
 				try { Thread.sleep(DIMINDENDO_STEP_TIME); } catch (InterruptedException exc) { break; }
 			}
 		});

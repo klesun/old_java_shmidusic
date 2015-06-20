@@ -9,7 +9,7 @@ public class ModelFieldInput extends JTextField {
 	Field owner;
 
 	public ModelFieldInput(Field owner) {
-		super(owner.getValue().toString());
+		super(owner.get().toString());
 		this.owner = owner;
 	}
 

@@ -26,9 +26,9 @@ public class AccordPainter extends AbstractPainter {
 		}
 
 		for (int i = 0; i < a.getNotaList().size(); ++i) {
-			Nota nota = a.getNotaList().get(i);
+			Nota nota = a.notaList.get(i);
 			int notaY = a.getLowestPossibleNotaY() - dy() * nota.getAbsoluteAcademicIndex() + (oneOctaveLower ? 7 * dy() : 0);
-			int notaX = i > 0 && a.getNotaList().get(i - 1).getAbsoluteAcademicIndex() == nota.getAbsoluteAcademicIndex()
+			int notaX = i > 0 && a.notaList.get(i - 1).getAbsoluteAcademicIndex() == nota.getAbsoluteAcademicIndex()
 				? dx() / 3 // TODO: draw them flipped
 				: 0;
 

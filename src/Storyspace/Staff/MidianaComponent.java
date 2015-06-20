@@ -21,7 +21,7 @@ abstract public class MidianaComponent extends AbstractModel implements ICompone
 		this.eventHandler = this.makeHandler();
 	}
 
-	final public AbstractHandler getHandler() { return this.eventHandler; }
+	public AbstractHandler getHandler() { return this.eventHandler; }
 
 	@Override
 	final public void setCursor(Cursor cursor) {

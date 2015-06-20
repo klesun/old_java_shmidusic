@@ -12,6 +12,11 @@ public class Logger {
 
 	final private static String PRE_FATAL_BACKUP_FOLDER = "./savedJustBeforeFatal/";
 
+	public static int getFatal(String msg) {
+		fatal(msg);
+		return -100;
+	}
+
 	public static void fatal(String msg) {
 		fatal("Fatal: " + msg, new Throwable());
 	}
@@ -24,7 +29,7 @@ public class Logger {
 		System.out.println(msg);
 		traceProvider.printStackTrace();
 
-		// TODO: save storyspace somewhere for a case
+		// TODO: if we don't have permissions - let user manually selected where to save
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
 		new File(PRE_FATAL_BACKUP_FOLDER).mkdirs();
 		FileProcessor.saveStoryspace(new File(PRE_FATAL_BACKUP_FOLDER + "fatal_backup_" + dateFormat.format(new Date()) + ".midiana.json"), Main.window.storyspace);
@@ -43,12 +48,11 @@ public class Logger {
 	}
 
 
-	public static int logMemory(String msg) {
+	public static void logMemory(String msg) {
 		int mb = 1024 * 1024;
 		long totalMemory = Runtime.getRuntime().totalMemory();
 		long allocatedMemory = totalMemory - Runtime.getRuntime().freeMemory();
 		System.out.println(totalMemory / mb + " " + Runtime.getRuntime().freeMemory() / mb + " " + allocatedMemory / mb + " " + msg);
-		return 111;
 	}
 
 	public static void resetTimer(String msg) {

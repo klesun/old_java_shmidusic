@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class ConfigDialog extends JPanel {
 
-	final private static int CHANNEL_COUNT = 10;
+	final private static int CHANNEL_COUNT = ImageStorage.CHANNEL_COUNT;
 	final private static int CELL_HEIGHT = 30;
 	final private static int CELL_WIDTH = 75;
 
@@ -56,7 +56,7 @@ public class ConfigDialog extends JPanel {
 		for (String header: fieldList) { channelGridPanel.add(new TruLabel(header)); }
 
 		parent.getModelHelper().getFieldStorage().stream().filter(field -> field instanceof Arr).forEach(field -> {
-			List<AbstractModel> modelList = (List<AbstractModel>)field.getValue();
+			List<AbstractModel> modelList = (List<AbstractModel>)field.get();
 			for (int i = 0; i < modelList.size(); ++i) {
 
 				channelGridPanel.add(new TruLabel(i + "", SwingConstants.RIGHT));

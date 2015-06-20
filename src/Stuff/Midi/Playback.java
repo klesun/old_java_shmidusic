@@ -20,6 +20,6 @@ public class Playback {
 			diminendoThread.interrupt();
 			this.diminendoThread = null;
 		}
-		DeviceEbun.setVolume(127);
+		DeviceEbun.setVolume(0, 127);
 	}
 }

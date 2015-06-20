@@ -28,10 +28,12 @@ public class StaffHandler extends AbstractHandler {
 		return Staff.class.cast(super.getContext());
 	}
 
+	private int defaultChannel = 0; // default channel for new Nota-s
+
 	public void handleMidiEvent(Integer tune, int forca, int timestamp) {
 		if (forca > 0) {
 			// BEWARE: we get sometimes double messages when my synt has "LAYER/AUTO HARMONIZE" button on. That is button, that makes one key press sound with two instruments
-			this.handleKey(new Combo(11, Combo.tuneToAscii(tune))); // (11 -ctrl+shift+alt)+someKey
+			this.handleKey(new Combo(Combo.getAsciiTuneMods(), Combo.tuneToAscii(tune))); // (11 -ctrl+shift+alt)+someKey
 		} else {
 			// keyup event
 		}
@@ -123,19 +125,22 @@ public class StaffHandler extends AbstractHandler {
 		});
 
 		for (Integer i: Combo.getAsciTuneMap().keySet()) {
-			addCombo(11, i).setDo((combo) -> { // 11 - alt+shif+ctrl
+			addCombo(Combo.getAsciiTuneMods(), i).setDo((combo) -> { // 11 - alt+shif+ctrl
 
-				// TODO: move stuff like constants and mode into the handler
+				// TODO: lets have a mode, that would change on "Insert" button instead of ctrl-shift-alt combination, please. thanx
 
 				if (s.mode == Staff.aMode.passive) { return false; }
 				else {
-					s.addNewAccord().addNewNota().setTune(combo.asciiToTune());
+					s.addNewAccord().addNewNota(combo.asciiToTune(), getDefaultChannel());
 					handleKey(new Combo(0, k.VK_RIGHT));
 					return true;
 				}
 			});
 		}
 	}
+
+	public void setDefaultChannel(int value) { this.defaultChannel = value; }
+	public int getDefaultChannel() { return this.defaultChannel; }
 
 	// private methods
 

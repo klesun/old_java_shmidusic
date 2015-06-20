@@ -16,7 +16,7 @@ import java.util.List;
 public class ImageStorage {
 
 	final private static String DEFAULT_IMAGE_FOLDER = "imgs/";
-	final private static int CHANNEL_COUNT = 10;
+	final public static int CHANNEL_COUNT = 16;
 
 	private static ImageStorage instance = null;
 
@@ -68,7 +68,7 @@ public class ImageStorage {
 		}
 
 		// renewing other colored notas
-		for (int chan = 1; chan < 10; ++chan) {
+		for (int chan = 1; chan < CHANNEL_COUNT; ++chan) {
 			for (Fraction length: getAvailableNotaLengthList()) {
 				coloredNotas[chan].put(length, new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB));
 				g = (Graphics2D)coloredNotas[chan].get(length).getGraphics();
