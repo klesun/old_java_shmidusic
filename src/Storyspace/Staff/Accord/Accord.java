@@ -83,7 +83,7 @@ public class Accord extends MidianaComponent {
 
 	public Fraction getShortestFraction() {
 		Nota nota = this.getNotaList().stream().reduce(null, (a, b) -> a != null && !a.isLongerThan(b) && !a.getIsMuted() ? a : b);
-		return nota != null ? nota.length.get() : new Fraction(0);
+		return nota != null ? nota.getRealLength() : new Fraction(0);
 	}
 
 	synchronized public Nota getFocusedNota() {

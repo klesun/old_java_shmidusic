@@ -16,12 +16,13 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayMusThread extends Thread {
 
 	final private static long DIMINDENDO_STEP_TIME = Nota.getTimeMilliseconds(new Fraction(1, 16), 120);
 
-    public static HashMap<Nota, Thread> opentNotas = new HashMap<>();
+    public static Map<Nota, Thread> opentNotas = new ConcurrentHashMap<>();
 
 	private Staff staff = null;
 
@@ -70,35 +71,30 @@ public class PlayMusThread extends Thread {
 
 	public static void playNotu(Nota newNota){
 
-		synchronized (opentNotas) {
-			Thread oldThread = opentNotas.get(newNota);
-			Nota oldNota = opentNotas.keySet().stream().filter(k -> k.equals(newNota)).findAny().orElse(null);
+		Nota oldNota = opentNotas.keySet().stream().filter(k -> k.equals(newNota)).findAny().orElse(null);
+		Thread oldThread = opentNotas.get(newNota);
 
-			if (oldThread == null || oldNota.linkedTo() != newNota) {
+		if (oldThread == null || oldNota.linkedTo() != newNota) {
 
-				if (oldThread != null) {
-					oldThread.interrupt();
-					try { oldThread.join(); }
-					catch (Exception e) { System.out.println("Не дождались"); }
-				}
-
-				runNotaThread(newNota);
-
-			} else if (oldNota.linkedTo() == newNota) {
-				opentNotas.put(newNota, opentNotas.get(newNota)); // updating key with new nota
+			if (oldThread != null) {
+				oldThread.interrupt();
+				try { oldThread.join(); }
+				catch (Exception e) { System.out.println("Не дождались"); }
 			}
+
+			runNotaThread(newNota);
+
+		} else if (oldNota.linkedTo() == newNota) {
+			opentNotas.put(newNota, opentNotas.get(newNota)); // updating key with new nota
 		}
     }
 
 	public static void shutTheFuckUp() {
-		synchronized (opentNotas) {
-			opentNotas.values().stream().filter(thread -> thread.isAlive()).forEach(java.lang.Thread::interrupt);
-			opentNotas.clear();
-		}
+		opentNotas.values().stream().filter(thread -> thread.isAlive()).forEach(java.lang.Thread::interrupt);
+		opentNotas.clear();
     }
 
 	private static void runNotaThread(Nota nota) {
-
 		Thread thread = new Thread(() -> {
 			DeviceEbun.openNota(nota);
 
@@ -107,20 +103,15 @@ public class PlayMusThread extends Thread {
 
 			DeviceEbun.closeNota(nota);
 
-			synchronized (opentNotas) {
-				opentNotas.remove(nota);
-			}
+			opentNotas.remove(nota);
 		});
 
-		synchronized (opentNotas) {
-			opentNotas.put(nota, thread);
-		}
+		opentNotas.put(nota, thread);
 		thread.start();
 	}
 
 	private static void runDiminendoThread(int time, int from, int to) {
 		Playback.inst().diminendoThread = new Thread(() -> {
-
 			long startMilliseconds = System.currentTimeMillis();
 			long endMilliseconds = System.currentTimeMillis() + time;
 

@@ -79,7 +79,7 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	@Override
 	protected NotaHandler makeHandler() { return new NotaHandler(this); }
 	@Override
-	public int compareTo(Nota n) { return n.tune.get() - this.tune.get(); }
+	public int compareTo(Nota n) { return ((n.tune.get() - this.tune.get()) << 4) + (n.channel.get() - this.channel.get()); }
 
 	@Override
 	public int hashCode() {
@@ -111,11 +111,15 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 				: Nota.tuneToAcademicIndex(this.tune.get());
 	}
 
+	public Fraction getRealLength() { // that includes tuplet denominator
+		return length.get().divide(tupletDenominator.get());
+	}
+
 	public int getTimeMilliseconds(Boolean includeLinkedTime) {
 		StaffConfig config = getParentAccord().getParentStaff().getConfig();
 		int linkedTime = (includeLinkedTime && getIsLinkedToNext()) ? linkedTo().getTimeMilliseconds(true) : 0;
 
-		return getTimeMilliseconds(length.get(), config.getTempo()) + linkedTime;
+		return getTimeMilliseconds(getRealLength(), config.getTempo()) + linkedTime;
 	}
 
 	public static int getTimeMilliseconds(Fraction length, int tempo) {
