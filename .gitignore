@@ -6,7 +6,6 @@ build.xml
 manifest.mf
 Thumbs.db
 .*
-libs/*
 /src/nbproject/private/
 /midiana/nbproject/private/
 /midiana/build/
