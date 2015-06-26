@@ -25,9 +25,16 @@ import org.json.JSONObject;
 
 public class StaffConfig extends MidianaComponent {
 
+	final private static int MIN_TEMPO = 15; // i doubt you would need longer. with this 1/16 lasts one second
+	final private static int MAX_TEMPO = 480; // i hope no one needs more
+
+	final private static int MAX_TACT_NUMERATOR = 32; // four whole notas
+
+	// tempo 60 => quarter nota = 1 second
+
 	// TODO: use Fraction
-	private Field<Integer> numerator = h.addField("numerator", 8); // because 8x8 = 64; 64/64 = 1; obvious
-	private Field<Integer> tempo = h.addField("tempo", 120);
+	private Field<Integer> numerator = new Field<>("numerator", 8, this, n -> limit(n, 1, MAX_TACT_NUMERATOR)); // h.addField("numerator", 8); // because 8x8 = 64; 64/64 = 1; obvious
+	private Field<Integer> tempo = new Field<>("tempo", 120, this, n -> limit(n, MIN_TEMPO, MAX_TEMPO)); // h.addField("tempo", 120);
 
 	private Arr<Channel> channelList = (Arr<Channel>)h.addField("channelList", makeChannelList(), Channel.class);
 
@@ -59,6 +66,13 @@ public class StaffConfig extends MidianaComponent {
 	@Override
 	public StaffConfig reconstructFromJson(JSONObject jsObject) throws JSONException {
 		super.reconstructFromJson(jsObject);
+		/** @legacy we used to have 10 channels instead of 16 in past - so we got it in old files */
+		if (channelList.get().size() < ImageStorage.CHANNEL_COUNT) {
+			List<Channel> defaultChannelList = makeChannelList();
+			for (int i = channelList.get().size(); i < ImageStorage.CHANNEL_COUNT; ++i) {
+				channelList.get().add(defaultChannelList.get(i));
+			}
+		}
 		syncSyntChannels();
 		return this;
 	}

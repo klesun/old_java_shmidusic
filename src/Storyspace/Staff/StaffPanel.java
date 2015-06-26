@@ -20,6 +20,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 
 
+// TODO: maybe it will be good for performance if it was not JPanel, but Canvas, cuz all we do with it - just painting...
 final public class StaffPanel extends JPanel implements IStoryspacePanel {
 
 	public static int MARGIN_V = 15; // Сколько отступов сделать сверху перед рисованием полосочек // TODO: move it into Constants class maybe? // eliminate it nahuj maybe?
@@ -40,16 +41,7 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 
 	public StaffPanel(Storyspace parentStoryspace) {
 		this.parentWindow = parentStoryspace.getWindow();
-		thisMiddle();
-		storyspaceScroll = parentStoryspace.addModelChild(this);
-	}
 
-	public StaffPanel(MajesticWindow window) {
-		this.parentWindow = window;
-		thisMiddle();
-	}
-
-	private void thisMiddle() {
 		this.staff = new Staff(this);
 
 		this.addKeyListener(handler = makeHandler());
@@ -63,7 +55,7 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 					loadJsonOnFocus = false;
 				}
 				staff.getConfig().syncSyntChannels();
-				DumpReceiver.eventHandler = (StaffHandler)staff.getHandler();
+				DumpReceiver.eventHandler = staff.getHandler();
 			}
 			public void focusLost(FocusEvent e) { DumpReceiver.eventHandler = null; }
 		});
@@ -72,6 +64,8 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 		this.requestFocus();
 
 		repaint();
+
+		storyspaceScroll = parentStoryspace.addModelChild(this);
 	}
 
 	@Override
@@ -128,7 +122,6 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 
 	// getters/setters
 
-	public StaffPanel setStaff(Staff staff) { this.staff = staff; return this; }
 	public Staff getStaff() { return this.staff; }
 
 	// maybe put it into AbstractModel?
@@ -144,34 +137,12 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 		repaint();
 	}
 
-	// this method is bad and you should feel bad
-	public void switchFullscreen() {
-		parentWindow.isFullscreen = !parentWindow.isFullscreen;
-		if (parentWindow.isFullscreen) {
-			parentWindow.switchTo(MajesticWindow.cardEnum.CARDS_FULLSCREEN);
-
-			StaffPanel fullscreenPanel = parentWindow.fullscreenStaffPanel;
-			fullscreenPanel.storyspaceRepresentative = this;
-			fullscreenPanel.setStaff(this.getStaff());
-			fullscreenPanel.requestFocus();
-			Settings.inst().scale(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_EQUALS));
-			parentWindow.setTitle(getStoryspaceScroll().getTitle());
-		} else {
-			parentWindow.switchTo(MajesticWindow.cardEnum.CARDS_STORYSPACE);
-
-			Settings.inst().scale(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_MINUS));
-			storyspaceRepresentative.requestFocus();
-		}
-		this.validate();
-		this.repaint();
-	}
-
 	// private methods
 
 	private AbstractHandler makeHandler() {
 		return new AbstractHandler(this) {
 			protected void initActionMap() {
-				addCombo(ctrl, k.VK_F).setDo(getContext()::switchFullscreen);
+//				addCombo(ctrl, k.VK_F).setDo(getContext()::switchFullscreen);
 				addCombo(0, k.VK_PAGE_DOWN).setDo(getContext()::page);
 				addCombo(0, k.VK_PAGE_UP).setDo(getContext()::page);
 			}

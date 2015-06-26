@@ -85,7 +85,9 @@ public class PlayMusThread extends Thread {
 			runNotaThread(newNota);
 
 		} else if (oldNota.linkedTo() == newNota) {
-			opentNotas.put(newNota, opentNotas.get(newNota)); // updating key with new nota
+			// updating key with new nota
+			opentNotas.remove(newNota); // it won't overwrite key otherwise
+			opentNotas.put(newNota, oldThread);
 		}
     }
 

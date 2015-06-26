@@ -93,13 +93,12 @@ public class DeviceEbun {
 
 	// event handles
 
-	public static void changeOutDevice(Combo combo) {
+	public static void changeOutDevice() {
 		MidiCommon.listDevicesAndExit(false, true, false);
 
 		Receiver tmp = theirReceiver;
 		theirReceiver = secondaryReceiver;
 		secondaryReceiver = tmp;
-		Main.window.fullscreenStaffPanel.getStaff().getConfig().syncSyntChannels();
 	}
 
 	public static void setVolume(int channel, int value) {

@@ -21,6 +21,7 @@ public class Storyspace extends JPanel implements IComponentModel {
 
 	private MajesticWindow window = null;
 
+	@Deprecated // no need to have direct access to them and makes confusion
 	private ArrayList<IStoryspacePanel> modelChildList = new ArrayList<>();
 
 	private AbstractHandler handler = null;
@@ -41,7 +42,7 @@ public class Storyspace extends JPanel implements IComponentModel {
 
 	public StoryspaceScroll addModelChild(IStoryspacePanel child) {
 		modelChildList.add(child);
-		StoryspaceScroll scroll = new StoryspaceScroll(child);
+		StoryspaceScroll scroll = new StoryspaceScroll(child, this);
 		this.add(scroll);
 		this.validate();
 		child.requestFocus();
@@ -143,6 +144,11 @@ public class Storyspace extends JPanel implements IComponentModel {
 	}
 
 	// event handles
+
+	public void pushToFront(StoryspaceScroll scroll) {
+		setComponentZOrder(scroll, 0);
+		repaint();
+	}
 
 	public void scale(Combo combo) {
 		int sign = combo.getSign();

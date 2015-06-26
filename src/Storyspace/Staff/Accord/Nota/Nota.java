@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 import java.util.*;
 
 import Stuff.OverridingDefaultClasses.Pnt;
+import Stuff.Tools.Bin;
 import Stuff.Tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 
@@ -44,7 +45,7 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	public Nota(Accord parent) { super(parent); }
 
-	public Boolean isLongerThan(Nota rival) { return length.get().compareTo(rival.length.get()) > 0; }
+	public Boolean isLongerThan(Nota rival) { return getRealLength().compareTo(rival.getRealLength()) > 0; }
 
 	// <editor-fold desc="implementing abstract model">
 
@@ -117,7 +118,7 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	public int getTimeMilliseconds(Boolean includeLinkedTime) {
 		StaffConfig config = getParentAccord().getParentStaff().getConfig();
-		int linkedTime = (includeLinkedTime && getIsLinkedToNext()) ? linkedTo().getTimeMilliseconds(true) : 0;
+		int linkedTime = (includeLinkedTime && linkedTo() != null) ? linkedTo().getTimeMilliseconds(true) : 0;
 
 		return getTimeMilliseconds(getRealLength(), config.getTempo()) + linkedTime;
 	}
@@ -143,28 +144,40 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 				ImageStorage.inst().getFlatImage();
 	}
 
-	// TODO: it definitely can be implemented somehow better, but i'm to stupid to realize how exactly
-	private int getDotCount() {
-		int dots = 0;
 
-		// does not take into account, that Nota can be triplet (cuz for now we store triplet denominator separately)
+	// 1/256 + 1/128 + 1/64 + 1/32 + 1/16 + 1/8 + 1/4 + 1/2 = 1111 1111
 
-		Fraction checkSum = getCleanLength();
+	// 0000 0111 - true
 
-		while (checkSum.compareTo(length.get()) != 0) { // for deadlock safety would be better while < 0, but for debug - this... actually even with while < 0 can be deadlock so nevermind - it works 120%
-			++dots;
-			checkSum = checkSum.add(getCleanLength().divide(pow(2, dots)));
+	// 0001 1111 - true
 
-			// for a case. Deadlock is deadlock after all
-			if (dots > MAX_DOT_COUNT) { Logger.fatal("Could not determine dot count for Fraction: [" + length.get() + "]"); }
+	// 0011 1111 - true
+
+	// 0010 0110 - false
+
+	/** @return true if length can be expressed through sum 2 + 1 + 1/2 + 1/4 + 1/8 + ... 1/2^n */
+	private static Boolean isDotable(Fraction length) {
+		length = length.divide(ImageStorage.getGreatestPossibleNotaLength().multiply(2)); // to make sure, that the length is less than 1
+		if (length.compareTo(new Fraction(1)) >= 0) {
+			Logger.fatal("Providen fraction is greater than 1 even after deviding it to gretest possible Nota length! We'll all die!!!" + length);
 		}
 
-		return dots;
+		if (Bin.isPowerOf2(length.getDenominator())) { // will be false for triols
+			return Bin.isPowerOf2(length.getNumerator() + 1); // not sure... but, ok, kinda sure
+		} else {
+			return false;
+		}
+	}
+
+	private int getDotCount() {
+
+		Fraction length = this.length.get().divide(ImageStorage.getGreatestPossibleNotaLength().multiply(2)); // to make sure, that the length is less than 1
+		// don't worry, denominator does not affect dot count
+
+		return 31 - Integer.numberOfLeadingZeros(length.getNumerator() + 1) - 1; // 3/8 => 001_1_ + 1 = 0100 => 3 - 2 = 1 >D
 	}
 
 	private void setDotCount(int dotCount) {
-		// does not take into account, that Nota can be triplet (cuz for now we store triplet denominator separately)
-
 		Fraction checkSum = getCleanLength();
 
 		for (int i = 1; i <= dotCount; ++i) {

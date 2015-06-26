@@ -38,6 +38,9 @@ public class Logger {
 	}
 
 	public static int warning(String msg) {
+
+		// TODO: group similar warnings (i.e. when json does not have a field versus setting value that does not match a normalization rule)
+
 		System.out.println("Warning: " + msg);
 		return 555;
 	}
@@ -67,5 +70,6 @@ public class Logger {
 
 	public static void logForUser(String msg) {
 		Main.window.terminal.append("\n" + msg);
+		System.out.println("*** " + msg);
 	}
 }

@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class StaffHandler extends AbstractHandler {
@@ -43,7 +44,10 @@ public class StaffHandler extends AbstractHandler {
 	protected void initActionMap() {
 
 		JFileChooser jsonChooser = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/");
-		jsonChooser.setFileFilter(new FileNameExtensionFilter("Json Midi-music data", "json"));
+		jsonChooser.setFileFilter(new FileFilter() {
+			public boolean accept(File f) { 	return f.getAbsolutePath().endsWith(".midi.json") || f.isDirectory(); }
+			public String getDescription() { return "Json Midi-music data"; }
+		});
 
 		JFileChooser pngChooser = new JFileChooser();
 		pngChooser.setFileFilter(new FileNameExtensionFilter("PNG images", "png"));
@@ -54,25 +58,44 @@ public class StaffHandler extends AbstractHandler {
 		Staff s = this.getContext();
 
 		addCombo(ctrl, k.VK_P).setDo(s::triggerPlayer);
-		addCombo(ctrl, k.VK_D).setDo(DeviceEbun::changeOutDevice);
-		addCombos(ctrl, Arrays.asList(k.VK_0, k.VK_9)).stream().forEach(factory -> {
-			factory.setDo(s::changeMode);
+		addCombo(ctrl, k.VK_D).setDo(() -> {
+			DeviceEbun.changeOutDevice();
+			getContext().getConfig().syncSyntChannels();
+
 		});
+		addCombos(ctrl, Arrays.asList(k.VK_0, k.VK_9)).stream().forEach(factory -> factory.setDo(s::changeMode));
 		addCombo(ctrl, k.VK_RIGHT).setDo(s::moveFocusUsingCombo).setUndoChangeSign();
 
 		addCombo(ctrl, k.VK_UP).setDo(s::moveFocusRow).setUndoChangeSign();
 		addCombo(ctrl, k.VK_DOWN).setDo(s::moveFocusRow).setUndoChangeSign();
 
 		// teared from StaffPanel
-		addCombo(ctrl, k.VK_EQUALS).setDo(Settings.inst()::scale);
-		addCombo(ctrl, k.VK_MINUS).setDo(Settings.inst()::scale);
+		addCombo(ctrl, k.VK_EQUALS).setDo(() -> Settings.inst().scale(+1));
+		addCombo(ctrl, k.VK_MINUS).setDo(() -> Settings.inst().scale(-1));
+
 		addCombo(ctrl, k.VK_E).setDo(makeSaveFileDialog(FileProcessor::savePNG, pngChooser, "png"));
+
+		addCombo(ctrl, k.VK_F).setDo(() -> {
+			Settings.inst().scale(getContext().getParentSheet().getStoryspaceScroll().isFullscreen() ? -1 : 1);
+			return false; // we don't want to interrupt parent's action, just do something before
+		});
+
 		// TODO: save should use same chooser as open one day
-		addCombo(ctrl, k.VK_S).setDo(makeSaveFileDialog(FileProcessor::saveMusicPanel, jsonChooser, "json"));
+		addCombo(ctrl, k.VK_S).setDo(makeSaveFileDialog(FileProcessor::saveMusicPanel, jsonChooser, "midi.json"));
 		addCombo(ctrl, k.VK_O).setDo(combo -> {
 			int sVal = jsonChooser.showOpenDialog(getContext().getParentSheet());
 			if (sVal == JFileChooser.APPROVE_OPTION) {
 				FileProcessor.openStaff(jsonChooser.getSelectedFile(), getContext());
+			}
+		});
+
+		addCombo(ctrl, k.VK_W).setDo(() -> {
+			for (Accord accord: getContext().getAccordList()) {
+				Nota oldPause = accord.findByTuneAndChannel(36, 0);
+				if (oldPause != null) {
+					accord.remove(oldPause);
+					accord.addNewNota(0, 0).setLength(oldPause.length.get()).setTupletDenominator(oldPause.getTupletDenominator());
+				}
 			}
 		});
 
@@ -125,12 +148,13 @@ public class StaffHandler extends AbstractHandler {
 		});
 
 		for (Integer i: Combo.getAsciTuneMap().keySet()) {
-			addCombo(Combo.getAsciiTuneMods(), i).setDo((combo) -> { // 11 - alt+shif+ctrl
+			addCombo(Combo.getAsciiTuneMods(), i).setOmitMenuBar(true).setDo((combo) -> { // 11 - alt+shif+ctrl
 
 				// TODO: lets have a mode, that would change on "Insert" button instead of ctrl-shift-alt combination, please. thanx
 
-				if (s.mode == Staff.aMode.passive) { return false; }
-				else {
+				if (s.mode == Staff.aMode.passive) {
+					return false;
+				} else {
 					s.addNewAccord().addNewNota(combo.asciiToTune(), getDefaultChannel());
 					handleKey(new Combo(0, k.VK_RIGHT));
 					return true;

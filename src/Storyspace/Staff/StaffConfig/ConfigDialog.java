@@ -46,7 +46,7 @@ public class ConfigDialog extends JPanel {
 
 		List<String> fieldList = parent.getChannelList().get(0).getFieldList();
 
-		JPanel channelGridPanel = new JPanel(new GridLayout(CHANNEL_COUNT + 1, fieldList.size(), 4, 4));
+		JPanel channelGridPanel = new JPanel(new GridLayout(CHANNEL_COUNT + 1, fieldList.size() + 1, 4, 4));
 		channelGridPanel.setPreferredSize(new Dimension(fieldList.size() * CELL_WIDTH, (CHANNEL_COUNT + 1) * CELL_HEIGHT));
 		channelGridPanel.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.DARK_GRAY));
 		this.add(channelGridPanel);

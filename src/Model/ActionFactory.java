@@ -1,15 +1,10 @@
 package Model;
 
-import Main.MajesticWindow;
-import Storyspace.Staff.Accord.Accord;
-import Storyspace.Staff.MidianaComponent;
-import Storyspace.Staff.StaffPanel;
-import Storyspace.Storyspace;
-import Storyspace.Staff.Staff;
-import Storyspace.Staff.StaffConfig.StaffConfig;
+import Stuff.Tools.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.function.*;
 
 public class ActionFactory {
@@ -18,6 +13,8 @@ public class ActionFactory {
 
 	public Function<Combo, Map<String, Object>> doLambda = (combo) -> null;
 	public BiFunction<Combo, Map<String, Object>, Boolean> undoLambda = (combo, paramsForUndo) -> false;
+
+	private Boolean omitMenuBar = false;
 
 	public Combo combo = null;
 
@@ -52,7 +49,18 @@ public class ActionFactory {
 	}
 
 	public ActionFactory setDo(Runnable lambda) {
-		doLambda = (e) -> { lambda.run(); return emptyHashMap; };
+		doLambda = (e) -> {
+			lambda.run(); return emptyHashMap; };
+		return this;
+	}
+
+	public ActionFactory setDo(Callable<Boolean> lambda) {
+		doLambda = (e) -> {
+			Boolean result = false;
+			try { result = lambda.call(); }
+			catch (Exception exc) { Logger.fatal(exc, "Sorry bro, nevhujebu. This lambda came from ActionFactory::setDo(Callable<Boolean>)"); }
+			return result ? emptyHashMap : null;
+		};
 		return this;
 	}
 
@@ -74,6 +82,15 @@ public class ActionFactory {
 	public ActionFactory setUndoChangeSign() {
 		this.undoLambda = (combo, action) -> this.doLambda.apply(combo.changeSign()) != null ? true : false;
 		return this;
+	}
+
+	public ActionFactory setOmitMenuBar(Boolean value) {
+		this.omitMenuBar = true;
+		return this;
+	}
+
+	public Boolean omitMenuBar() {
+		return this.omitMenuBar;
 	}
 
 	public Action createAction() {

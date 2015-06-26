@@ -18,9 +18,8 @@ import org.json.JSONObject;
 public class Accord extends MidianaComponent {
 
 	private Field<Boolean> isDiminendo = new Field<>("isDiminendo", false, this);
+	public Field<String> slog = new Field<>("slog", "", this);
 	public Arr<Nota> notaList = new Arr<>("notaList", new TreeSet<>(), this, Nota.class);
-
-	String slog = "";
 
 	int focusedIndex = -1;
 
@@ -33,8 +32,8 @@ public class Accord extends MidianaComponent {
 
 	// responses to events (actions)
 
-	public Boolean moveFocus(Combo combo) {
-		int n = combo.getSign();
+	public Boolean moveFocus(int n) {
+
 		int wasIndex = getFocusedIndex();
 		if (this.getFocusedIndex() + n > this.getNotaList().size() - 1) {
 			this.setFocusedIndex(-1);
@@ -43,6 +42,7 @@ public class Accord extends MidianaComponent {
 		} else {
 			this.setFocusedIndex(this.getFocusedIndex() + n);
 		}
+
 		return wasIndex != getFocusedIndex();
 	}
 
@@ -99,10 +99,8 @@ public class Accord extends MidianaComponent {
 	public Staff getParentStaff() {
 		return (Staff)this.getModelParent();
 	}
-	public String getSlog() {
-		return this.slog;
-	}
-	public Accord setSlog(String value) { this.slog = value; return this; }
+	public String getSlog() { return this.slog.get(); }
+	public Accord setSlog(String value) { this.slog.set(value); return this; }
 	public int getFocusedIndex() {
 		return this.focusedIndex;
 	}
@@ -110,7 +108,7 @@ public class Accord extends MidianaComponent {
 	public Boolean getIsDiminendo() { return isDiminendo.get(); }
 	public void setIsDiminendo(Boolean value) { isDiminendo.set(value); }
 
-	public void triggerIsDiminendo(Combo c) {
+	public void triggerIsDiminendo() {
 		setIsDiminendo(!getIsDiminendo());
 	}
 

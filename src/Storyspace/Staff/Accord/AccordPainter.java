@@ -1,5 +1,6 @@
 package Storyspace.Staff.Accord;
 
+import Gui.Constants;
 import Gui.Settings;
 import Model.AbstractPainter;
 import Storyspace.Staff.Accord.Nota.Nota;
@@ -42,8 +43,7 @@ public class AccordPainter extends AbstractPainter {
 			}
 		}
 
-//		surface.setColor(Color.BLACK);
-//		surface.drawString(a.getSlog(), x, y + Constants.FONT_HEIGHT); // dead a bit
+		drawString(a.getSlog(), 0, Constants.FONT_HEIGHT, Color.BLACK);
 
 		if (a.getIsDiminendo()) {
 			drawLine(dx() / 2, dy() * 4, dx() * 3/2, dy() * 6);

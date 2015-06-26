@@ -3,7 +3,7 @@ package Model;
 import java.awt.*;
 import java.awt.event.FocusListener;
 
-public interface IComponentModel extends IModel { // lol TODO: you should do something
+public interface IComponentModel extends IModel {
 
 	IComponentModel getFocusedChild();
 	AbstractHandler getHandler();

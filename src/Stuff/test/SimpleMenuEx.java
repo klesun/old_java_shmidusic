@@ -39,12 +39,7 @@ public class SimpleMenuEx extends JFrame {
 		JMenuItem eMenuItem = new JMenuItem("Exit", icon);
 		eMenuItem.setMnemonic(KeyEvent.VK_E);
 		eMenuItem.setToolTipText("Exit application");
-		eMenuItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent event) {
-				System.exit(0);
-			}
-		});
+		eMenuItem.addActionListener(event -> System.exit(0));
 
 		file.add(eMenuItem);
 		menubar.add(file);

@@ -23,6 +23,13 @@ public class Field<EncapsulatedClass> {
 	private Boolean isValueSet = false;
 	private Class<EncapsulatedClass> elemClass;
 
+	Function<EncapsulatedClass, EncapsulatedClass> normalize = null;
+
+	public Field(String name, EncapsulatedClass value, IModel owner, Function<EncapsulatedClass, EncapsulatedClass> normalizeLambda) {
+		this(name, value, owner);
+		this.normalize = normalizeLambda;
+	}
+
 	public Field(String name, EncapsulatedClass value, IModel owner) {
 		this(name, (Class<EncapsulatedClass>)value.getClass(), false, owner);
 		set(value);
@@ -48,7 +55,13 @@ public class Field<EncapsulatedClass> {
 		if (this.isFinal && isValueSet) {
 			Logger.fatal("You are trying to change immutable field! " + getName() + " " + get() + " " + value);
 		} else {
-			this.value = value;
+
+			EncapsulatedClass normalizedValue = normalize != null ? normalize.apply(value) : value;
+			if (!normalizedValue.equals(value)) {
+				Logger.warning("Tried to set invalid value: [" + value + "] for Field [" + getName() + "] of [" + owner.getClass().getSimpleName() + "]");
+			}
+
+			this.value = normalizedValue;
 			isValueSet = true;
 		}
 		return this;

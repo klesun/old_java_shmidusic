@@ -1,13 +1,17 @@
 package Model;
 
+import Stuff.OverridingDefaultClasses.TruHashMap;
 import Stuff.Tools.Logger;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import javafx.scene.input.KeyCode;
 
 import java.awt.event.KeyEvent;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 public class Combo {
 
@@ -69,6 +73,10 @@ public class Combo {
 		return keyList;
 	}
 
+	public static List<Combo> getNumberComboList(int mod) {
+		return getNumberKeyList().stream().map(num -> new Combo(mod, num)).collect(Collectors.toList());
+	}
+
 	public static List<Integer> getCharacterKeycodeList() {
 		List<Integer> keyList = new ArrayList<>();
 		for (Integer i = KeyEvent.VK_COMMA; i <= KeyEvent.VK_DIVIDE; ++i) { keyList.add(i); }
@@ -108,7 +116,17 @@ public class Combo {
 
 	@Override
 	public String toString() {
-		return "" + this.mod + " " + this.keyCode;
+		return (this.mod > 0 ? this.getModName() + "+" : "") + this.getKeyName();
+	}
+
+	private String getModName() {
+		Map<Integer, String> modMap = new TruHashMap<>().p(KeyEvent.SHIFT_MASK, "Shift").p(KeyEvent.CTRL_MASK, "Ctrl").p(KeyEvent.ALT_MASK, "Alt");
+		return modMap.get(this.mod);
+	}
+
+	private String getKeyName() {
+		return Character.toString((char)getKeyCode());
+//		return Character.getName(getKeyCode());
 	}
 
 	@Override
@@ -167,6 +185,15 @@ public class Combo {
 
 		map.put(KeyEvent.VK_PAUSE, 0);
 
+		return map;
+	}
+
+	public static BiMap<Combo, Integer> getComboTuneMap() {
+		int mod = getAsciiTuneMods();
+		BiMap<Combo, Integer> map = HashBiMap.create();
+		for (Map.Entry<Integer, Integer> entry: getAsciTuneMap().entrySet()) {
+			map.put(new Combo(mod, entry.getKey()), entry.getValue());
+		}
 		return map;
 	}
 

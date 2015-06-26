@@ -2,7 +2,7 @@ package Storyspace;
 import Model.AbstractHandler;
 import Model.Helper;
 import Model.IComponentModel;
-import Model.IModel;
+import Stuff.OverridingDefaultClasses.Pnt;
 import Stuff.OverridingDefaultClasses.Scroll;
 import Stuff.OverridingDefaultClasses.TruLabel;
 import org.json.JSONException;
@@ -17,28 +17,39 @@ import javax.swing.border.Border;
 public class StoryspaceScroll extends Scroll implements IComponentModel {
 	
 	IStoryspacePanel content = null;
+	Storyspace parent;
 	AbstractHandler handler = null;
 	private Helper modelHelper = new Helper(this);
 
-	final private static int titleHeight = 20;
-	final private static Border unfocusedBorder = BorderFactory.createMatteBorder(titleHeight, 4, 4, 4, Color.LIGHT_GRAY);
-	final private static Border focusedBorder = BorderFactory.createMatteBorder(titleHeight, 4, 4, 4, Color.GRAY);
+	final private static int TITLE_HEIGHT = 20;
+	final private static int BORDER_WIDTH = 4;
+	final private static Border unfocusedBorder = BorderFactory.createMatteBorder(TITLE_HEIGHT, 4, 4, 4, Color.LIGHT_GRAY);
+	final private static Border focusedBorder = BorderFactory.createMatteBorder(TITLE_HEIGHT, 4, 4, 4, Color.GRAY);
+
+	final private static int DEFAULT_X = 200;
+	final private static int DEFAULT_Y = 150;
+	final private static int DEFAULT_WIDTH = 300;
+	final private static int DEFAULT_HEIGHT = 300;
 
 	JPanel titlePanel = new JPanel();
 
+	// for return from fullscreen mode
+	private Dimension lastSize = new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+	private Point lastPosition = new Point(DEFAULT_X, DEFAULT_Y);
+	private Boolean isFullscreen = false;
 
-	public StoryspaceScroll(IStoryspacePanel content) {
+	public StoryspaceScroll(IStoryspacePanel content, Storyspace parent) {
 		super((Component)content);
 		this.content = content;
+		this.parent = parent;
 
 		this.setBorder(unfocusedBorder);
-		this.setPreferredSize(new Dimension(200, 200));
-		this.setLocation(200, 150);
-		this.setSize(300, 300);
+		this.setLocation(DEFAULT_X, DEFAULT_Y);
+		this.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
 		handler = new StoryspaceScrollHandler(this);
 
-		titlePanel.setSize(getWidth(), titleHeight);
+		titlePanel.setSize(getWidth(), TITLE_HEIGHT);
 		titlePanel.add(new TruLabel("Unsaved " + content.getClass().getSimpleName()));
 		this.add(titlePanel);
 	}
@@ -46,7 +57,7 @@ public class StoryspaceScroll extends Scroll implements IComponentModel {
 	@Override
 	public void setSize(int width, int height) {
 		super.setSize(width, height);
-		titlePanel.setSize(getWidth(), titleHeight);
+		titlePanel.setSize(getWidth(), TITLE_HEIGHT);
 	}
 	
 	// implementing IModel
@@ -54,7 +65,7 @@ public class StoryspaceScroll extends Scroll implements IComponentModel {
 	@Override
 	public IComponentModel getFocusedChild() { return IComponentModel.class.cast(content); }
 	@Override
-	public Storyspace getModelParent() { return Storyspace.class.cast(getParent()); }
+	public Storyspace getModelParent() { return this.parent; }
 	@Override
 	public AbstractHandler getHandler() { return this.handler; }
 	@Override
@@ -78,6 +89,10 @@ public class StoryspaceScroll extends Scroll implements IComponentModel {
 		return this;
 	}
 
+	public Boolean isFullscreen() {
+		return isFullscreen;
+	}
+
 	// event handles
 
 	public StoryspaceScroll setTitle(String title) {
@@ -90,6 +105,8 @@ public class StoryspaceScroll extends Scroll implements IComponentModel {
 	public String getTitle() { return TruLabel.class.cast(titlePanel.getComponent(0)).getText(); }
 
 	public void gotFocus() {
+		getModelParent().pushToFront(this);
+
 		setBorder(StoryspaceScroll.focusedBorder);
 		titlePanel.setBackground(new Color(200, 200, 200));
 	}
@@ -97,6 +114,29 @@ public class StoryspaceScroll extends Scroll implements IComponentModel {
 	public void lostFocus() {
 		setBorder(StoryspaceScroll.unfocusedBorder);
 		titlePanel.setBackground(new Color(238, 238, 238));
+	}
+
+	public void switchFullscreen() {
+		if (!isFullscreen) {
+			lastPosition = getLocation();
+			lastSize = getSize();
+			fitToScreen();
+			getModelParent().getWindow().setTitle(getTitle());
+		} else {
+			setLocation(lastPosition);
+			setSize(lastSize);
+		}
+
+		content.requestFocus();
+		isFullscreen = !isFullscreen;
+	}
+
+	public void fitToScreen() {
+		int dw = 2 * BORDER_WIDTH;
+		int dh = TITLE_HEIGHT + BORDER_WIDTH;
+
+		setLocation(-BORDER_WIDTH, -TITLE_HEIGHT);
+		setSize(getModelParent().getWidth() + dw, getModelParent().getHeight() + dh);
 	}
 
 	@Override

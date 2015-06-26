@@ -13,6 +13,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,7 +51,9 @@ public class Article extends JPanel implements IStoryspacePanel {
         addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
-				for (Paragraph par: parList) { fixParagraphWidth(par); }
+				for (Paragraph par : parList) {
+					fixParagraphWidth(par);
+				}
 				sukaSdelajNormalnijRazmer();
 			}
 		});
@@ -80,8 +84,15 @@ public class Article extends JPanel implements IStoryspacePanel {
 
 	public Paragraph addNewParagraph(int index) {
 		Paragraph par = new Paragraph(this);
-		if (index > -1) { parList.add(index, par);
-		} else { parList.add(par); }
+
+		// cuz this is wrapper of focused elements unlike ImagePanel and StaffPanel and can't be focused itself
+		par.addFocusListener(new FocusAdapter() {
+			public void focusGained(FocusEvent e) { getStoryspaceScroll().gotFocus(); }
+			public void focusLost(FocusEvent e) { getStoryspaceScroll().lostFocus(); }
+		});
+
+		if (index > -1) { parList.add(index, par); }
+		else { parList.add(par); }
 		this.add(par, index);
 
 		return par;

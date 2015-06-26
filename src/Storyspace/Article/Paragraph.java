@@ -16,6 +16,8 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter.HighlightPainter;
 import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
@@ -59,7 +61,8 @@ public class Paragraph extends JTextArea implements IComponentModel {
 
 		this.getDocument().addDocumentListener(new DocumentListener() {
 			public void insertUpdate(DocumentEvent e) {
-				SwingUtilities.invokeLater(() -> splitIfGotLineBreaks());
+
+				SwingUtilities.invokeLater(par::splitIfGotLineBreaks); // invokeLater() because java.lang.IllegalStateException: Attempt to mutate in notification
 				updateHighlightedWords();
 
 				parent.fixParagraphWidth(par);
@@ -232,6 +235,7 @@ public class Paragraph extends JTextArea implements IComponentModel {
 		List<CatchPhrase> rezQuotes = new ArrayList<>(catchPhrases.values());
 
 		String[] pars = getText().split("\n");
+
 		if (pars.length > 1) {
 			this.replaceRange("", pars[0].length(), this.getText().length());
 		}

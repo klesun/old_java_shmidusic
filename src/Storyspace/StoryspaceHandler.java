@@ -6,6 +6,7 @@ import Stuff.Tools.FileProcessor;
 import Stuff.Tools.Logger;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.File;
@@ -15,34 +16,35 @@ import java.util.function.Consumer;
 
 public class StoryspaceHandler extends AbstractHandler {
 
-	public StoryspaceHandler(Storyspace context) {
-		super(context);
-	}
+	public StoryspaceHandler(Storyspace context) { super(context); }
 
 	@Override
 	protected void initActionMap() {
 
 		JFileChooser jsonChooser = new JFileChooser("/home/klesun/yuzefa_git/storyspaceContent/");
-		jsonChooser.setFileFilter(new FileNameExtensionFilter("Json Storyspace data", "gson"));
+		jsonChooser.setFileFilter(new FileFilter() {
+			public boolean accept(File f) { 	return f.getAbsolutePath().endsWith(".stsp.json") || f.isDirectory(); }
+			public String getDescription() { return "Json Storyspace data"; }
+		});
 
 		addCombo(ctrl, k.VK_M).setDo((this.getContext())::addMusicBlock);
 		addCombo(ctrl, k.VK_T).setDo((this.getContext())::addTextBlock);
 		addCombo(ctrl, k.VK_I).setDo((this.getContext())::addImageBlock);
 
-		addCombo(ctrl, k.VK_G).setDo(makeSaveFileDialog(FileProcessor::saveStoryspace, jsonChooser, "gson"));
+		addCombo(ctrl, k.VK_G).setDo(makeSaveFileDialog(FileProcessor::saveStoryspace, jsonChooser, "stsp.json"));
 		addCombo(ctrl, k.VK_R).setDo(combo -> {
 			int sVal = jsonChooser.showOpenDialog(getContext().getWindow());
 			if (sVal == JFileChooser.APPROVE_OPTION) {
 				FileProcessor.openStoryspace(jsonChooser.getSelectedFile(), getContext());
 			}
-			makeSaveFileDialog(FileProcessor::saveStoryspace, jsonChooser, "gson");
+			makeSaveFileDialog(FileProcessor::saveStoryspace, jsonChooser, "stsp.json");
 		});
 
 		addCombo(ctrl, k.VK_EQUALS).setDo((this.getContext())::scale);
 		addCombo(ctrl, k.VK_MINUS).setDo((this.getContext())::scale);
 
 
-		addCombo(ctrl, k.VK_K).setDo(() -> { Logger.fatal("Artificial fatal was generated (sorry if you pressed this shortcut occasionally =()"); });
+		addCombo(ctrl, k.VK_K).setDo(() -> { Logger.fatal("Artificial fatal was generated (sorry if you pressed this shortcut occasionally D= )"); });
 	}
 	@Override
 	public Boolean mousePressedFinal(ComboMouse mouse) {

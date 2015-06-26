@@ -31,6 +31,12 @@ public class StoryspaceScrollHandler extends AbstractHandler {
 			}
 		});
 
+		context.getModelParent().addComponentListener(new ComponentAdapter() {
+			public void componentResized(ComponentEvent e) {
+				if (context.isFullscreen()) { context.fitToScreen(); } // throws suka null-pointer exception
+			}
+		});
+
 		// removing stupid built-ins
 		InputMap im = context.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		im.put(KeyStroke.getKeyStroke("UP"), "none");
@@ -39,41 +45,52 @@ public class StoryspaceScrollHandler extends AbstractHandler {
 
 	@Override
 	protected void initActionMap() {
-		addCombo(ctrl, k.VK_DELETE).setDo(c -> { getContext().getModelParent().removeModelChild(getContext().content); });
-		addCombo(0, k.VK_F2).setDo(c -> {
-			getContext().setTitle(JOptionPane.showInputDialog(getContext(), "Type new name for panel: ", getContext().getTitle()));
-		});
+		addCombo(ctrl, k.VK_DELETE).setDo(c -> { getContext().getModelParent().removeModelChild(getContext().content); }); // TODO: it would be not bad to make it undoable
+		addCombo(0, k.VK_F2).setDo(() -> getContext().setTitle(JOptionPane.showInputDialog(getContext(), "Type new name for panel: ", getContext().getTitle())));
+		addCombo(ctrl, k.VK_F).setDo(getContext()::switchFullscreen);
 	}
 
 	@Override
 	public Boolean mouseDraggedFinal(ComboMouse mouse) {
-		if (mouse.leftButton || mouse.rightButton) {
-			if (mouseLocation.getX() > getContext().getWidth() - 10 && mouseLocation.getY() > getContext().getHeight() - 10) {
-				// resize panel
-				getContext().setSize(Math.max(getContext().getWidth() + mouse.dx, MIN_WIDTH), Math.max(getContext().getHeight() + mouse.dy, MIN_HEIGHT));
-				getContext().validate();
-			} else {
-				// move panel
-				Point point = mouse.getPoint();
-				getContext().setLocation(getContext().getX() + mouse.dx, getContext().getY() + mouse.dy);
-				point.translate(-mouse.dx, -mouse.dy);
-			}
+
+		if (getContext().isFullscreen()) {
 			return true;
-		} else { return false; }
+		} else {
+			if (mouse.leftButton || mouse.rightButton) {
+				if (mouseLocation.getX() > getContext().getWidth() - 10 && mouseLocation.getY() > getContext().getHeight() - 10) {
+					// resize panel
+					getContext().setSize(Math.max(getContext().getWidth() + mouse.dx, MIN_WIDTH), Math.max(getContext().getHeight() + mouse.dy, MIN_HEIGHT));
+					getContext().validate();
+				} else {
+					// move panel
+					Point point = mouse.getPoint();
+					getContext().setLocation(getContext().getX() + mouse.dx, getContext().getY() + mouse.dy);
+					point.translate(-mouse.dx, -mouse.dy);
+				}
+				return true;
+			} else {
+				return false;
+			}
+		}
 	}
 
 	@Override
-	public Boolean mousePressedFinal(ComboMouse combo) { return combo.leftButton || combo.rightButton; }
+	public Boolean mousePressedFinal(ComboMouse combo) { return combo.leftButton || combo.rightButton || getContext().isFullscreen(); }
 
 	@Override
 	public Boolean mouseMovedFinal(ComboMouse combo) {
 		Point point = combo.getPoint();
-		if (point.getX() > getContext().getWidth() - 10 && point.getY() > getContext().getHeight() - 10) {
-			getContext().setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+
+		if (getContext().isFullscreen()) {
 			return true;
 		} else {
-			getContext().setCursor(Cursor.getDefaultCursor());
-			return false;
+			if (point.getX() > getContext().getWidth() - 10 && point.getY() > getContext().getHeight() - 10) {
+				getContext().setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+				return true;
+			} else {
+				getContext().setCursor(Cursor.getDefaultCursor());
+				return false;
+			}
 		}
 	}
 

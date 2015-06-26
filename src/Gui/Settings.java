@@ -7,6 +7,7 @@ public class Settings {
 	private static Settings instance = null;
 
 	private int scaleKoefficient = -1;
+	private int defaultChannel = 0;
 
 	public static Settings inst() {
 		if (instance == null) {
@@ -15,8 +16,15 @@ public class Settings {
 		return instance;
 	}
 
-	public void scale(Combo combo) {
-		this.scaleKoefficient = combo.getSign() == 1 ? -1 : -3;
+//	public void scale(Combo combo) {
+//		scale(combo.getSign());
+//	}
+
+	public void setDefaultChannel(int value) { this.defaultChannel = value; }
+	public int getDefaultChannel() { return this.defaultChannel; }
+
+	public void scale(int sign) {
+		this.scaleKoefficient = sign == 1 ? -1 : -3;
 		ImageStorage.inst().refreshImageSizes();
 	}
 

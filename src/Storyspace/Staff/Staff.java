@@ -200,10 +200,8 @@ public class Staff extends MidianaComponent {
 	public StaffConfig getConfig() {
 		return this.staffConfig;
 	}
-	public StaffPanel getParentSheet() {
-		return parentWindow.isFullscreen
-				? parentWindow.fullscreenStaffPanel
-				: this.blockPanel;
+	public StaffPanel getParentSheet() { // ???
+		return this.blockPanel;
 	}
 	@Override
 	public StaffPanel getModelParent() { return getParentSheet(); }
@@ -214,6 +212,7 @@ public class Staff extends MidianaComponent {
 	public Staff setFocusedIndex(int value) {
 		if (this.getFocusedAccord() != null) { this.getFocusedAccord().setFocusedIndex(-1); }
 		this.focusedIndex = limit(value, -1, getAccordList().size() - 1);
+
 		return this;
 	}
 

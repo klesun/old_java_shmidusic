@@ -7,6 +7,8 @@
 
 package Stuff.Midi;
 
+import Stuff.Tools.Logger;
+
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
@@ -141,6 +143,6 @@ public class MidiCommon
 
     private static void out(String strMessage)
     {
-        System.out.println(strMessage);
+        Logger.logForUser(strMessage);
     }
 }
