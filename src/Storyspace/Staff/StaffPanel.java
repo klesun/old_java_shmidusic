@@ -15,9 +15,7 @@ import java.awt.*;
 
 import javax.swing.*;
 
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 
 
 // TODO: maybe it will be good for performance if it was not JPanel, but Canvas, cuz all we do with it - just painting...
@@ -38,6 +36,8 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 
 	private JSONObject staffJson;
 	private Boolean loadJsonOnFocus = false;
+	@Deprecated // we should not have cases when complete repaint is required in future
+	private Boolean completeRepaintRequired = true;
 
 	public StaffPanel(Storyspace parentStoryspace) {
 		this.parentWindow = parentStoryspace.getWindow();
@@ -57,13 +57,18 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 				staff.getConfig().syncSyntChannels();
 				DumpReceiver.eventHandler = staff.getHandler();
 			}
-			public void focusLost(FocusEvent e) { DumpReceiver.eventHandler = null; }
+
+			public void focusLost(FocusEvent e) {
+				DumpReceiver.eventHandler = null;
+			}
 		});
 
 		this.setFocusable(true);
 		this.requestFocus();
 
-		repaint();
+		this.setBackground(Color.WHITE);
+
+		repaint(); // needed ?
 
 		storyspaceScroll = parentStoryspace.addModelChild(this);
 	}
@@ -71,7 +76,13 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 	@Override
 	public void paintComponent(Graphics g) {
 		if (!loadJsonOnFocus) {
-			getStaff().drawOn(g, 0, 0);
+			if (completeRepaintRequired) {
+				super.paintComponent(g);
+				getStaff().drawOn(g, true);
+				completeRepaintRequired = false;
+			} else {
+				getStaff().drawOn(g, false);
+			}
 		}
 	}
 
@@ -87,7 +98,7 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 			vertical.setValue(getFocusedSystemY());
 		}
 		this.setPreferredSize(new Dimension(width - 25, getStaff().getHeightIf(width)));	//	Needed for the scrollBar bars to appear
-		this.revalidate();	//	Needed to recalc the scrollBar bars
+//		this.revalidate();	//	Needed to recalc the scrollBar bars
 
 		this.repaint();
 	}

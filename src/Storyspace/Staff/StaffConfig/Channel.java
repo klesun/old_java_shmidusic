@@ -1,13 +1,16 @@
 package Storyspace.Staff.StaffConfig;
 
+import Gui.ImageStorage;
 import Model.AbstractModel;
 import Model.Field.Field;
 
 public class Channel extends AbstractModel {
 
-	private Field<Integer> instrument = h.addField("instrument", 0);
-	private Field<Integer> volume = h.addField("volume", 60);
-	private Field<Boolean> isMuted = h.addField("isMuted", false);
+	final public static int CHANNEL_COUNT = 16;
+
+	private Field<Integer> instrument = new Field<>("instrument", 0, this, i -> limit(i, 0, 127)); // why store the constant here if may in ImageStorage =D
+	private Field<Integer> volume = new Field<>("volume", 60, this, v -> limit(v, 0, 127));
+	private Field<Boolean> isMuted = new Field<>("isMuted", false, this);
 
 	public Channel(StaffConfig parent) { super(parent); }
 

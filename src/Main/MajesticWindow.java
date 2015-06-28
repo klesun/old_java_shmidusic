@@ -52,7 +52,7 @@ public class MajesticWindow extends JFrame {
 	public void init() {
 		cards.add(storyspace = new Storyspace(this), cardEnum.CARDS_STORYSPACE.name());
 
-		addMenuBar();
+//		addMenuBar();
 
 		switchTo(cardEnum.CARDS_STORYSPACE);
 		// for user-friendship there will be one initial staff

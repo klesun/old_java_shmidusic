@@ -1,5 +1,6 @@
 package Gui;
 
+import Storyspace.Staff.StaffConfig.Channel;
 import Storyspace.Staff.StaffConfig.StaffConfig;
 import Stuff.Tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
@@ -16,24 +17,27 @@ import java.util.List;
 public class ImageStorage {
 
 	final private static String DEFAULT_IMAGE_FOLDER = "imgs/";
-	final public static int CHANNEL_COUNT = 16;
 
 	private static ImageStorage instance = null;
 
-	private Map<Fraction, BufferedImage>[] coloredNotas = new Map[CHANNEL_COUNT];
-	static {
-		for (int i = 0; i < CHANNEL_COUNT; ++i) { inst().coloredNotas[i] = new HashMap<>(); }
-	}
+	private Map<Fraction, BufferedImage>[] coloredNotas = new Map[Channel.CHANNEL_COUNT];
 
 	private Map<File, BufferedImage> defaultImageMap = new HashMap<>();
 	private Map<File, BufferedImage> sizedDefaultImageMap = new HashMap<>();
 	private Map<File, BufferedImage> randomImageMap = new HashMap<>();
 
-	private ImageStorage() {}
+	public ImageStorage() {
+		for (int i = 0; i < Channel.CHANNEL_COUNT; ++i) {
+			coloredNotas[i] = new HashMap<>();
+		}
+		refreshImageSizes();
+		instance = this;
+	}
 
+	// TODO: make some fields final when calling it from Main
 	public static ImageStorage inst() {
 		if (ImageStorage.instance == null) {
-			ImageStorage.instance = new ImageStorage();
+			Logger.fatal("tried to access ImageStorage instance before it was inited from Main.java");
 		}
 		return ImageStorage.instance;
 	}
@@ -54,7 +58,7 @@ public class ImageStorage {
 
 	public void refreshImageSizes() {
 		sizedDefaultImageMap.clear();
-		refreshNotaSizes();
+		refreshNotaSizes(); // TODO: maybe make Nota-s lazy too ?
 	}
 
 	public void refreshNotaSizes() {
@@ -68,7 +72,7 @@ public class ImageStorage {
 		}
 
 		// renewing other colored notas
-		for (int chan = 1; chan < CHANNEL_COUNT; ++chan) {
+		for (int chan = 1; chan < Channel.CHANNEL_COUNT; ++chan) {
 			for (Fraction length: getAvailableNotaLengthList()) {
 				coloredNotas[chan].put(length, new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB));
 				g = (Graphics2D)coloredNotas[chan].get(length).getGraphics();
@@ -89,6 +93,11 @@ public class ImageStorage {
 	// it's 2/1
 	public static Fraction getGreatestPossibleNotaLength() {
 		return getAvailableNotaLengthList().get(0);
+	}
+
+	// it's 1/16
+	public static Fraction getSmallestPossibleNotaLength() {
+		return getAvailableNotaLengthList().get(getAvailableNotaLengthList().size() -1);
 	}
 
 	// from 2/1 downto 1/16

@@ -27,6 +27,7 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	// <editor-fold desc="model field declaration">
 
+	// TODO: normalization rules maybe ???
 	public Field<Integer> tune = new Field<>("tune", Integer.class, true, this);
 	protected Field<Integer> channel = new Field<>("channel", Integer.class, true, this);
 
@@ -49,7 +50,6 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	// <editor-fold desc="implementing abstract model">
 
-	@Override
 	public void drawOn(Graphics surface, int x, int y) {
 		surface.setColor(Color.BLACK);
 		surface.drawImage(getEbonySignImage(), x + dx() / 2, y + 3 * dy() + 2, null);

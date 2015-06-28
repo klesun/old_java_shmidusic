@@ -1,10 +1,12 @@
 package Stuff.Midi;
 
 import Storyspace.Staff.StaffHandler;
+import Stuff.Tools.Logger;
 
 import	javax.sound.midi.MidiMessage;
 import	javax.sound.midi.ShortMessage;
 import	javax.sound.midi.Receiver;
+import java.util.Arrays;
 
 public class DumpReceiver implements Receiver {
 	
@@ -25,7 +27,7 @@ public class DumpReceiver implements Receiver {
 				this.eventHandler.handleMidiEvent( tune, forca, (int)timestamp );
 			}
 	    } else {
-			// Handle instrument change/pitch-bend/tune/etc // Actually, useless
+			Logger.warning("Ignored midi-message: [" + Arrays.toString(message.getMessage()) +  "]");
 		}
 	}
 }

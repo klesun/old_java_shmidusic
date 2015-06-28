@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 public class ConfigDialog extends JPanel {
 
-	final private static int CHANNEL_COUNT = ImageStorage.CHANNEL_COUNT;
 	final private static int CELL_HEIGHT = 30;
 	final private static int CELL_WIDTH = 75;
 
@@ -46,8 +45,8 @@ public class ConfigDialog extends JPanel {
 
 		List<String> fieldList = parent.getChannelList().get(0).getFieldList();
 
-		JPanel channelGridPanel = new JPanel(new GridLayout(CHANNEL_COUNT + 1, fieldList.size() + 1, 4, 4));
-		channelGridPanel.setPreferredSize(new Dimension(fieldList.size() * CELL_WIDTH, (CHANNEL_COUNT + 1) * CELL_HEIGHT));
+		JPanel channelGridPanel = new JPanel(new GridLayout(Channel.CHANNEL_COUNT + 1, fieldList.size() + 1, 4, 4));
+		channelGridPanel.setPreferredSize(new Dimension(fieldList.size() * CELL_WIDTH, (Channel.CHANNEL_COUNT + 1) * CELL_HEIGHT));
 		channelGridPanel.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.DARK_GRAY));
 		this.add(channelGridPanel);
 

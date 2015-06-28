@@ -1,5 +1,6 @@
 package Gui;
 
+import Model.ActionResult;
 import Model.Combo;
 
 public class Settings {
@@ -16,16 +17,13 @@ public class Settings {
 		return instance;
 	}
 
-//	public void scale(Combo combo) {
-//		scale(combo.getSign());
-//	}
-
 	public void setDefaultChannel(int value) { this.defaultChannel = value; }
 	public int getDefaultChannel() { return this.defaultChannel; }
 
-	public void scale(int sign) {
+	public ActionResult scale(int sign) {
 		this.scaleKoefficient = sign == 1 ? -1 : -3;
 		ImageStorage.inst().refreshImageSizes();
+		return new ActionResult("defaultly passed to parent");
 	}
 
 	public static int getStepWidth() { return inst().getNotaWidth(); } // nota image width (the one OS would display when you click on fil->properties)

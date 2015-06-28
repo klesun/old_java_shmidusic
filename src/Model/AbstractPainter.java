@@ -10,9 +10,9 @@ import java.awt.*;
 
 abstract public class AbstractPainter {
 
-	protected MidianaComponent context;
-	private Graphics g;
-	private int x, y;
+	final protected MidianaComponent context;
+	final private Graphics g;
+	final private int x, y;
 
 	public AbstractPainter(MidianaComponent context, Graphics g, int x, int y) {
 		this.context = context;
@@ -23,6 +23,9 @@ abstract public class AbstractPainter {
 
 	abstract public void draw();
 
+	final protected void fillRect(Rectangle r, Color c) {
+		performWithColor(c, () -> g.fillRect(this.x + r.x, this.y + r.y, r.width, r.height));
+	}
 	final protected void drawDot(Point p, int r, Color c) {
 		performWithColor(c, () -> g.fillOval(this.x + p.x, this.y + p.y, r * 2, r * 2));
 	}
@@ -32,8 +35,12 @@ abstract public class AbstractPainter {
 	final protected void drawString(String str, int x0, int y0, Color c) {
 		performWithColor(c, () -> g.drawString(str, x + x0, y + y0));
 	}
-	final protected void drawModel(MidianaComponent model, int x0, int y0) {
-		model.drawOn(g, x + x0, y + y0);
+	// TODO: uncomment once all models have same params for drawOn
+//	final protected void drawModel(MidianaComponent model, int x0, int y0) {
+//		model.drawOn(g, x + x0, y + y0);
+//	}
+	final protected void drawImage(Image image, int x0, int y0) {
+		g.drawImage(image, x + x0, y + y0, null);
 	}
 
 	private void performWithColor(Color c, Runnable lambda) {

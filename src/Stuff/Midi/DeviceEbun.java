@@ -2,10 +2,9 @@ package Stuff.Midi;
 
 import javax.sound.midi.*;
 
-import Main.Main;
-import Model.Combo;
-import Storyspace.Staff.Accord.Accord;
+import Model.ActionResult;
 import Storyspace.Staff.Accord.Nota.Nota;
+import Storyspace.Staff.StaffConfig.StaffConfig;
 import Stuff.Tools.Logger;
 
 
@@ -26,11 +25,18 @@ public class DeviceEbun {
 
 	static DeviceEbun instance = null;
 
-	public static MidiDevice midiInputDevice = null;
-	public static MidiDevice midiOutputDevice = null;
-
 	public static Receiver theirReceiver = null;
-    private static Receiver secondaryReceiver = null;
+
+	private static Receiver hardwareReceiver = null;
+	private static Receiver softwareReceiver;
+	private static Boolean isPlaybackSoftware;
+	static {
+		try {	MidiDevice gervill = MidiSystem.getMidiDevice(MidiCommon.getMidiDeviceInfo("Gervill", true));
+				gervill.open();
+				softwareReceiver = gervill.getReceiver();
+				isPlaybackSoftware = true;
+		} catch (MidiUnavailableException e) { Logger.fatal(e, "Не отдался нам Gervill "); }
+	}
 
 	public static DeviceEbun inst() {
 		if (instance == null) {
@@ -40,11 +46,10 @@ public class DeviceEbun {
 	}
 
 	public static void openMidiDevices() {
-		DeviceEbun.openInDevice();
-		DeviceEbun.openOutDevice();
+		DeviceEbun.openHardwareDevice();
 	}
 
-	private static void openInDevice() {
+	private static void openHardwareDevice() {
 		Logger.logForUser("Opening input device...");
 		int count = MidiCommon.listDevicesAndExit(true, false);
 		MidiCommon.listDevicesAndExit(false,true,false);
@@ -52,53 +57,48 @@ public class DeviceEbun {
 		if ( count > 1 ) { // if 1 - software real-time-sequencer; if 2 - + real midi device
 			info = MidiCommon.getMidiDeviceInfo(1, false); // 99% cases it is the midi-port we need
 			Logger.logForUser("Selected port: " + info.getName() + " " + info.getDescription() + " " + info.toString());
-			MidiDevice device = null;
 			try {
-				device = MidiSystem.getMidiDevice(info);
+				MidiDevice device = MidiSystem.getMidiDevice(info);
 				device.open();
 				device.getTransmitter().setReceiver(new DumpReceiver());
 
-				midiInputDevice = device;
+				// opening output device
+				MidiDevice.Info outputInfo = MidiCommon.getMidiDeviceInfo(device.getDeviceInfo().getName(), true);
+				try {
+					MidiDevice midiOutputDevice = MidiSystem.getMidiDevice(outputInfo);
+					midiOutputDevice.open();
+					hardwareReceiver = midiOutputDevice.getReceiver();
+					changeOutDevice();
+				} catch (MidiUnavailableException e) { Logger.warning("Failed to use MIDI device as OUT. Its weird, cuz with input of this device everything is alright =D"); }
+
 			} catch (MidiUnavailableException e) { Logger.logForUser("Midi-Port is already being used by other program or something like that; so no midi for you today"); }
 		} else {
 			Logger.logForUser(MORAL_SUPPORT_MESSAGE);
 		}
 	}
 
-	// opens real midi device ONLY if was called AFTER openInDevice()!
-	private static void openOutDevice() {
-		MidiDevice.Info info;
-
-        // opening emulated MIDI OUT
-        info = MidiCommon.getMidiDeviceInfo("Gervill", true);
-        try {
-            midiOutputDevice = MidiSystem.getMidiDevice(info);
-            midiOutputDevice.open();
-            secondaryReceiver = theirReceiver = midiOutputDevice.getReceiver();
-        } catch (MidiUnavailableException e) { out("Не отдался нам Gervill " + e); System.exit(1); }
-
-        // opening real MIDI OUT device
-		if (midiInputDevice != null) {
-			info = MidiCommon.getMidiDeviceInfo(midiInputDevice.getDeviceInfo().getName(), true);
-			try {
-				midiOutputDevice = MidiSystem.getMidiDevice(info);
-				midiOutputDevice.open();
-				theirReceiver = midiOutputDevice.getReceiver();
-			} catch (MidiUnavailableException e) { out("Failed to use MIDI device as OUT"); }
-		}
+	public static Boolean isPlaybackSoftware() {
+		return isPlaybackSoftware;
 	}
 
-	private static void out(String strMessage) { System.out.println(strMessage); }
+	private static ActionResult changeOutDevice() {
+		return hardwareReceiver != null
+				? new ActionResult((isPlaybackSoftware = !isPlaybackSoftware) || true)
+				: new ActionResult("Sorry. I wish i could change output device, but you have only software playback now, cuz hardware midi output device failed to load at the start of program.");
+	}
+
+	public static Receiver getPlaybackReceiver() {
+		return isPlaybackSoftware ? softwareReceiver : hardwareReceiver;
+	}
+
 	private static String MORAL_SUPPORT_MESSAGE = "You kinda don't have MIDI IN device, so you can only type notas from qwerty-keyboard holding alt. Pity you.";
 
 	// event handles
 
-	public static void changeOutDevice() {
-		MidiCommon.listDevicesAndExit(false, true, false);
-
-		Receiver tmp = theirReceiver;
-		theirReceiver = secondaryReceiver;
-		secondaryReceiver = tmp;
+	public static ActionResult changeOutDevice(StaffConfig config) {
+		ActionResult success = changeOutDevice();
+		config.syncSyntChannels();
+		return success;
 	}
 
 	public static void setVolume(int channel, int value) {
@@ -117,7 +117,7 @@ public class DeviceEbun {
 		if (nota.getChannel() != DRUM_CHANNEL) {
 			sendMessage(ShortMessage.NOTE_OFF, nota.getChannel(), nota.tune.get(), 0);
 		} else {
-			sendMessage(DRUM_NOTE_ON, nota.tune.get(), 0);
+			sendMessage(DRUM_NOTE_OFF, nota.tune.get(), 0);
 		}
 	}
 
@@ -125,13 +125,13 @@ public class DeviceEbun {
 		ShortMessage message = new ShortMessage();
 		try { message.setMessage(status, channel, data1, data2); }
 		catch (InvalidMidiDataException exc) { Logger.fatal(exc, "You are not right " + status + " " + channel + " " + data1 + " " + data2); }
-		theirReceiver.send(message, -1);
+		getPlaybackReceiver().send(message, -1);
 	}
 
 	private static void sendMessage(int status, int data1, int data2) {
 		ShortMessage message = new ShortMessage();
 		try { message.setMessage(status, data1, data2); }
 		catch (InvalidMidiDataException exc) { Logger.fatal(exc, "You are not right " + status + " " + " " + data1 + " " + data2); }
-		theirReceiver.send(message, -1);
+		getPlaybackReceiver().send(message, -1);
 	}
 }

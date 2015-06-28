@@ -4,7 +4,6 @@ import Gui.ImageStorage;
 import Stuff.Midi.DeviceEbun;
 import Stuff.Tools.Logger;
 
-import java.io.*;
 public class Main {
 
 	public static MajesticWindow window = null;
@@ -19,9 +18,9 @@ public class Main {
 		Logger.resetTimer("Starting program");
 
 		/** @debug */
-		Logger.resetTimer("Loaded images from disk");
+		Logger.resetTimer("Loading images from disk");
 
-		ImageStorage.inst().refreshImageSizes();
+		new ImageStorage();
 
 		/** @debug */
 		Logger.resetTimer("Refreshed image sizes");

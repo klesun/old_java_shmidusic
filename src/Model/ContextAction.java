@@ -10,12 +10,12 @@ public class ContextAction<C extends IComponentModel> {
 	private String name = "Anonymous";
 	private String description = "No description";
 
-	private Function<C, Boolean> redo;
+	private Function<C, ActionResult> redo;
 	private Runnable undo = null;
 
 	public ContextAction() {}
 
-	public ContextAction<C> setRedo(Function<C, Boolean> lambda) {
+	public ContextAction<C> setRedo(Function<C, ActionResult> lambda) {
 		this.redo = lambda;
 		return this;
 	}
@@ -23,7 +23,7 @@ public class ContextAction<C extends IComponentModel> {
 	public ContextAction<C> setRedo(Consumer<C> lambda) {
 		return setRedo(context -> {
 			lambda.accept(context);
-			return true;
+			return new ActionResult(true);
 		});
 	}
 
@@ -32,11 +32,11 @@ public class ContextAction<C extends IComponentModel> {
 		return this;
 	}
 
-	public Boolean redo(C context) {
+	public ActionResult redo(C context) {
 		return this.redo.apply(context);
 	}
 
-	public Function<C, Boolean> getRedo() {
+	public Function<C, ActionResult> getRedo() {
 		return this.redo;
 	}
 }

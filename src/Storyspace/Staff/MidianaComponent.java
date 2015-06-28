@@ -14,7 +14,7 @@ abstract public class MidianaComponent extends AbstractModel implements ICompone
 
 	abstract public MidianaComponent getFocusedChild();
 	abstract protected AbstractHandler makeHandler();
-	public abstract void drawOn(Graphics surface, int x, int y); // TODO: renmae to paintComponent() for compatibility with AWT components
+//	public abstract void drawOn(Graphics surface, int x, int y); // TODO: renmae to paintComponent() for compatibility with AWT components
 
 	public MidianaComponent(IComponentModel parent) {
 		super(parent);

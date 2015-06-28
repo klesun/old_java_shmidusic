@@ -30,36 +30,6 @@ public class NotaHandler extends AbstractHandler {
 		for (Map.Entry<Combo, ContextAction<Nota>> entry: makeStaticActionMap().entrySet()) {
 			new ActionFactory(entry.getKey()).addTo(this.actionMap).setDo(() -> entry.getValue().redo(getContext()));
 		}
-
-//		addCombo(k.CTRL_MASK, k.VK_3).setDo((event) -> { getContext().triggerTupletDenominator(); }).biDirectional();
-//		addCombo(k.CTRL_MASK, k.VK_H).setDo(combo -> { getContext().triggerIsMuted(); }).biDirectional();
-//		addCombo(k.SHIFT_MASK, k.VK_3).setDo((event) -> { getContext().triggerIsSharp(); }).biDirectional();
-//		addCombo(k.SHIFT_MASK, k.VK_BACK_QUOTE).setDo((event) -> { getContext().triggerIsLinkedToNext(); }).biDirectional();
-//
-//		// TODO: these four shortcuts actually totally break our undo-redo system. Try inc len to the edge, move pointer, inc it another time then ctrl-z and OOPS!
-//		addCombo(0, k.VK_OPEN_BRACKET).setDo(getContext()::changeLength).setUndoChangeSign();
-//		addCombo(0, k.VK_CLOSE_BRACKET).setDo(getContext()::changeLength).setUndoChangeSign();
-//		addCombo(0, k.VK_PERIOD).setDo(getContext()::dot).setUndoChangeSign();
-//		addCombo(0, k.VK_COMMA).setDo(getContext()::dot).setUndoChangeSign();
-//
-//		addCombo(0, k.VK_ENTER).setDo((event) -> {
-//			PlayMusThread.playNotu(getContext());
-//		});
-//
-//		for (Integer i: Combo.getNumberKeyList()) {
-//			addCombo(0, i).setDo((combo) -> {
-//				int newChan = combo.getPressedNumber();
-//				changeChannel(getContext(), newChan);
-//				getStaffHandler(getContext()).setDefaultChannel(newChan);
-//			});
-//		}
-//
-//		for (Integer i: Combo.getAsciTuneMap().keySet()) {
-//			addCombo(Combo.getAsciiTuneMods(), i).setOmitMenuBar(true).setDo((combo) -> { // 11 - alt+shif+ctrl
-//				getContext().getParentAccord().addNewNota(combo.asciiToTune(), getStaffHandler(getContext()).getDefaultChannel());
-//				return true;
-//			});
-//		}
 	}
 
 	public static Map<Combo, ContextAction<Nota>> makeStaticActionMap() {

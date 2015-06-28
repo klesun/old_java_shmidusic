@@ -1,26 +1,33 @@
 package Stuff.Musica;
 
 import Gui.ImageStorage;
+import Model.ActionResult;
 import Model.Combo;
+import Storyspace.Staff.Accord.AccordHandler;
 import Storyspace.Staff.Staff;
 import Storyspace.Staff.Accord.Nota.Nota;
 import Storyspace.Staff.Accord.Accord;
+import Storyspace.Staff.StaffConfig.StaffConfig;
 import Stuff.Midi.DeviceEbun;
 import Stuff.Midi.Playback;
 import Stuff.OverridingDefaultClasses.SynchronizedHashMap;
 import Stuff.Tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 
+import javax.swing.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class PlayMusThread extends Thread {
 
-	final private static long DIMINDENDO_STEP_TIME = Nota.getTimeMilliseconds(new Fraction(1, 16), 120);
+	final private static long DIMINDENDO_STEP_TIME = Nota.getTimeMilliseconds(new Fraction(1, 16), 240); // 0.0625 sec
 
     public static Map<Nota, Thread> opentNotas = new ConcurrentHashMap<>();
 
@@ -35,7 +42,7 @@ public class PlayMusThread extends Thread {
 		this.staff = staff;
 	}
 
-    @Override
+    @Deprecated // use Playback::playStaff() instead
     public void run() {
 
 		// TODO: i may be a paranoic, but i definitely feel, that timing (sound) is wrong for about 20-30 milliseconds
@@ -48,21 +55,22 @@ public class PlayMusThread extends Thread {
 		// for some reason has huge delay between sound and canvas repainting
 		if (staff.getFocusedAccord() != null) { this.playAccord(staff.getFocusedAccord()); }
 		int accordsLeft = staff.getAccordList().size() - staff.getFocusedIndex() - 1;
-		Combo nextAccord = new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT);
     	for (int i = 0; stop == false && i <= accordsLeft; ++i) {
 			if (staff.getFocusedAccord() != null) {
 				int time = staff.getFocusedAccord().getShortestTime();
 				try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна" + e); }
 				if (stop) { break; }
 			}
-			staff.getHandler().handleKey(nextAccord);
+
+			staff.getHandler().handleKey(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT));
 		}
 
 		stop = true;
     }
 
+	@Deprecated // move it to Playback class
 	public static void playAccord(Accord accord) {
-		Playback.inst().resetDiminendo();
+		Playback.resetDiminendo();
 		accord.getNotaList().forEach(PlayMusThread::playNotu);
 		if (accord.getIsDiminendo()) {
 			runDiminendoThread(accord.getShortestTime(), 127, 0);
@@ -113,7 +121,7 @@ public class PlayMusThread extends Thread {
 	}
 
 	private static void runDiminendoThread(int time, int from, int to) {
-		Playback.inst().diminendoThread = new Thread(() -> {
+		Playback.diminendoThread = new Thread(() -> {
 			long startMilliseconds = System.currentTimeMillis();
 			long endMilliseconds = System.currentTimeMillis() + time;
 
@@ -123,6 +131,6 @@ public class PlayMusThread extends Thread {
 				try { Thread.sleep(DIMINDENDO_STEP_TIME); } catch (InterruptedException exc) { break; }
 			}
 		});
-		Playback.inst().diminendoThread.start();
+		Playback.diminendoThread.start();
 	}
 }

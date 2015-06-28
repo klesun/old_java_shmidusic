@@ -36,14 +36,14 @@ public class StaffConfig extends MidianaComponent {
 	private Field<Integer> numerator = new Field<>("numerator", 8, this, n -> limit(n, 1, MAX_TACT_NUMERATOR)); // h.addField("numerator", 8); // because 8x8 = 64; 64/64 = 1; obvious
 	private Field<Integer> tempo = new Field<>("tempo", 120, this, n -> limit(n, MIN_TEMPO, MAX_TEMPO)); // h.addField("tempo", 120);
 
-	private Arr<Channel> channelList = (Arr<Channel>)h.addField("channelList", makeChannelList(), Channel.class);
+	private Arr<Channel> channelList = new Arr<>("channelList", makeChannelList(), this, Channel.class);
 
 	private List<Channel> makeChannelList() {
 		List<Channel> list = new ArrayList<>();
 
 		int[] tones = {0, 65, 66, 43, 19, 52, 6, 91, 9, 14, 0, 0, 0, 0, 0, 0};
 
-		for (int i = 0; i < ImageStorage.CHANNEL_COUNT; ++i) {
+		for (int i = 0; i < Channel.CHANNEL_COUNT; ++i) {
 			Channel channel = new Channel(this).setInstrument(tones[i]);
 			list.add(channel);
 		}
@@ -67,9 +67,9 @@ public class StaffConfig extends MidianaComponent {
 	public StaffConfig reconstructFromJson(JSONObject jsObject) throws JSONException {
 		super.reconstructFromJson(jsObject);
 		/** @legacy we used to have 10 channels instead of 16 in past - so we got it in old files */
-		if (channelList.get().size() < ImageStorage.CHANNEL_COUNT) {
+		if (channelList.get().size() < Channel.CHANNEL_COUNT) {
 			List<Channel> defaultChannelList = makeChannelList();
-			for (int i = channelList.get().size(); i < ImageStorage.CHANNEL_COUNT; ++i) {
+			for (int i = channelList.get().size(); i < Channel.CHANNEL_COUNT; ++i) {
 				channelList.get().add(defaultChannelList.get(i));
 			}
 		}
@@ -82,14 +82,13 @@ public class StaffConfig extends MidianaComponent {
 		try {
 			for (int i = 0; i < getChannelList().size(); ++i) {
 				instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, i, this.getChannelList().get(i).getInstrument(), 0);
-				DeviceEbun.theirReceiver.send(instrMess, -1);
+				DeviceEbun.getPlaybackReceiver().send(instrMess, -1);
 			}
 		} catch (InvalidMidiDataException exc) { System.out.println("Midi error, could not sync channel instruments!"); }
 	}
 
 	public static void syncSyntChannels(AbstractModel c) { ((StaffConfig)c).syncSyntChannels(); }
 
-	@Override
 	public void drawOn(Graphics g, int xIndent, int yIndent) {
 		int dX = Settings.getNotaWidth()/5, dY = Settings.getNotaHeight()*2;
 		g.drawImage(this.getImage(), xIndent - dX, yIndent - dY, null);

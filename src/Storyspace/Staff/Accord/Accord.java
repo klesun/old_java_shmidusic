@@ -21,13 +21,24 @@ public class Accord extends MidianaComponent {
 	public Field<String> slog = new Field<>("slog", "", this);
 	public Arr<Nota> notaList = new Arr<>("notaList", new TreeSet<>(), this, Nota.class);
 
+	private Boolean surfaceChanged = true;
+
 	int focusedIndex = -1;
 
-	public Accord(Staff parent) { super(parent); }
- 
-	@Override
-	public void drawOn(Graphics surface, int x, int y) {
-		new AccordPainter(this, surface, x, y).draw();
+	public Accord(Staff parent) {
+		super(parent);
+		h.getFieldStorage().forEach(f -> f.setOnChange(this::surfaceChanged));
+	}
+
+	public void surfaceChanged() {
+		this.surfaceChanged = true;
+	}
+
+	public void drawOn(Graphics surface, int x, int y, Boolean completeRepaintRequired) {
+		if (completeRepaintRequired || surfaceChanged) {
+			new AccordPainter(this, surface, x, y).draw();
+			surfaceChanged = false;
+		}
 	}
 
 	// responses to events (actions)

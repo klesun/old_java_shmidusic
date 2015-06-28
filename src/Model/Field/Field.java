@@ -24,15 +24,14 @@ public class Field<EncapsulatedClass> {
 	private Class<EncapsulatedClass> elemClass;
 
 	Function<EncapsulatedClass, EncapsulatedClass> normalize = null;
+	Runnable onChange = null;
+
+    public Field(String name, EncapsulatedClass value, IModel owner) { this(name, value, owner, null); }
 
 	public Field(String name, EncapsulatedClass value, IModel owner, Function<EncapsulatedClass, EncapsulatedClass> normalizeLambda) {
-		this(name, value, owner);
+        this(name, (Class<EncapsulatedClass>)value.getClass(), false, owner);
 		this.normalize = normalizeLambda;
-	}
-
-	public Field(String name, EncapsulatedClass value, IModel owner) {
-		this(name, (Class<EncapsulatedClass>)value.getClass(), false, owner);
-		set(value);
+        set(value);
 	}
 
 	public Field(String name, Class<EncapsulatedClass> cls, Boolean isFinal, IModel owner) {
@@ -63,8 +62,15 @@ public class Field<EncapsulatedClass> {
 
 			this.value = normalizedValue;
 			isValueSet = true;
+
+			if (onChange != null) { onChange.run(); }
 		}
 		return this;
+	}
+
+	// TODO: do something similar for Arr when need to add/remove element
+	public void setOnChange(Runnable onChange) {
+		this.onChange = onChange;
 	}
 
 	// override me please!
