@@ -162,6 +162,7 @@ public class StaffHandler extends AbstractHandler {
 
 		TruHashMap<Combo, ContextAction<Staff>> actionMap = new TruHashMap<>();
 
+		// TODO: make folder of project default path
 		JFileChooser jsonChooser = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/");
 		jsonChooser.setFileFilter(new FileFilter() {
 			public boolean accept(File f) { 	return f.getAbsolutePath().endsWith(".midi.json") || f.isDirectory(); }
@@ -172,14 +173,12 @@ public class StaffHandler extends AbstractHandler {
 		pngChooser.setFileFilter(new FileNameExtensionFilter("PNG images", "png"));
 
 		actionMap
-//			.p(new Combo(ctrl, k.VK_P), mkAction(Staff::triggerPlayer))
-			.p(new Combo(ctrl, k.VK_P), mkFailableAction(Playback::playStaff))
+			.p(new Combo(ctrl, k.VK_P), mkAction(Staff::triggerPlayback))
 			.p(new Combo(ctrl, k.VK_D), mkFailableAction(s -> DeviceEbun.changeOutDevice(s.getConfig())))
 			.p(new Combo(ctrl, k.VK_MINUS), mkFailableAction(s -> Settings.inst().scale(-1)))
 			.p(new Combo(ctrl, k.VK_EQUALS), mkFailableAction(s -> Settings.inst().scale(+1)))
 			.p(new Combo(ctrl, k.VK_0), mkAction(s -> s.mode = Staff.aMode.passive))
 			.p(new Combo(ctrl, k.VK_9), mkAction(s -> s.mode = Staff.aMode.insert))
-			.p(new Combo(ctrl, k.VK_RIGHT), mkFailableAction(s -> s.moveFocusWithPlayback(1, false))) // TODO: it should NOT be action for user, it's complicated and useless for him... but for some reason outside of this lambda methods makes image lag
 			.p(new Combo(0, k.VK_ESCAPE), mkAction(s -> s.getConfig().getDialog().showMenuDialog(StaffConfig::syncSyntChannels)))
 			.p(new Combo(0, k.VK_LEFT), mkFailableAction(s -> s.moveFocusWithPlayback(-1)))
 			.p(new Combo(0, k.VK_RIGHT), mkFailableAction(s -> s.moveFocusWithPlayback(1)))

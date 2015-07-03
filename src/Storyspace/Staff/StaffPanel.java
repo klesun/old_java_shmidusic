@@ -74,16 +74,25 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 	}
 
 	@Override
+
+	// TODO: maybe make it synchronized or so...
+
 	public void paintComponent(Graphics g) {
 		if (!loadJsonOnFocus) {
-			if (completeRepaintRequired) {
+			if (simpleRapint) {
+				simpleRapint = false;
+				getStaff().drawOn(g, false);
+			} else {
 				super.paintComponent(g);
 				getStaff().drawOn(g, true);
-				completeRepaintRequired = false;
-			} else {
-				getStaff().drawOn(g, false);
 			}
 		}
+	}
+
+	private Boolean simpleRapint = false;
+
+	public void repaintNow() {
+		getStaff().drawOn(getGraphics(), false);
 	}
 
 	public int getFocusedSystemY() {
@@ -91,16 +100,19 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 	}
 	
 	public void checkCam() {
+		simpleRapint = true;
 		int width = getScrollPane().getWidth();
 		JScrollBar vertical = getScrollPane().getVerticalScrollBar();
+		// does not work for some reason
 		if (vertical.getValue() + getScrollPane().getHeight() < getFocusedSystemY() + Staff.SISDISPLACE * dy() ||
 			vertical.getValue() > getFocusedSystemY()) {
 			vertical.setValue(getFocusedSystemY());
+			simpleRapint = false;
 		}
 		this.setPreferredSize(new Dimension(width - 25, getStaff().getHeightIf(width)));	//	Needed for the scrollBar bars to appear
-//		this.revalidate();	//	Needed to recalc the scrollBar bars
+		this.revalidate();	//	Needed to recalc the scrollBar bars
 
-		this.repaint();
+		repaint();
 	}
 	public Scroll getScrollPane() { return Scroll.class.cast(getParent().getParent()); } // -_-
 	@Override

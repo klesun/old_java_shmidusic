@@ -18,6 +18,7 @@ import java.util.List;
 
 import Storyspace.Staff.Accord.Accord;
 import Stuff.Midi.DeviceEbun;
+import Stuff.Midi.Playback;
 import Stuff.Musica.PlayMusThread;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -45,7 +46,8 @@ public class Staff extends MidianaComponent {
 	private ArrayList<Accord> accordList = new ArrayList<>();
 	public int focusedIndex = -1;
 
-	public StaffPanel blockPanel = null;
+	final private StaffPanel blockPanel;
+	final private Playback playback;
 
 	private Boolean surfaceChanged = true;
 
@@ -53,11 +55,16 @@ public class Staff extends MidianaComponent {
 		super(null);
 		this.blockPanel = blockPanel;
 		this.staffConfig = new StaffConfig(this);
+		this.playback = new Playback(this);
 	}
 
 	public Accord addNewAccord() {
+		return addNewAccord(true);
+	}
+
+	public Accord addNewAccord(Boolean withPlayback) {
 		Accord accord = new Accord(this);
-		if (DeviceEbun.isPlaybackSoftware()) { // i.e. when playback is not done with piano - no need to play pressed accord, user hears it anyways
+		if (DeviceEbun.isPlaybackSoftware() && withPlayback) { // i.e. when playback is not done with piano - no need to play pressed accord, user hears it anyways
 			new Thread(() -> { Uninterruptibles.sleepUninterruptibly(AccordHandler.ACCORD_EPSILON, TimeUnit.MILLISECONDS); PlayMusThread.playAccord(accord); }).start();
 		}
 		this.add(accord, getFocusedIndex() + 1);
@@ -107,8 +114,8 @@ public class Staff extends MidianaComponent {
 				accord.drawOn(g, x, y - 12 * dy(), completeRepaintRequired);
 				if (tactMeasurer.inject(accord)) {
 					g.setColor(tactMeasurer.sumFraction.equals(new Fraction(0)) ? Color.BLACK : new Color(255, 63, 0)); // reddish orange
-					g.drawLine(x + dx() * 2, y - dy() * 5, x + dx() * 2, y + dy() * 20);
-					g.setColor(Color.decode("0x00A13E"));
+					g.drawLine(x + dx() * 2 - 1, y - dy() * 5, x + dx() * 2 - 1, y + dy() * 20); // -1 cuz elsevere next nota will erase it =D
+					g.setColor(new Color(0, 161, 62));
 					g.drawString(tactMeasurer.tactCount + "", x + dx() * 2, y - dy() * 6);
 				}
 
@@ -124,25 +131,6 @@ public class Staff extends MidianaComponent {
 			++i;
 		}
 	}
-
-	// i hope i wont need this
-	// TODO: move into some StaffPainter class
-//	public void repaintPointer(int oldPos) {
-//		int baseX = getMarginX() + 2 * dx() + dx();
-//		int baseY = getMarginY();
-//
-//		int w = ImageStorage.inst().getPointerImage().getWidth();
-//		int h = ImageStorage.inst().getPointerImage().getHeight();
-//
-//		int oldX = baseX + (oldPos % getAccordInRowCount()) * (2 * dx()) + dx();
-//		int oldY = baseY + (oldPos / getAccordInRowCount()) * SISDISPLACE * dy() - this.dy() * 14;
-//
-//		int newX = baseX + (getFocusedIndex() % getAccordInRowCount()) * (2 * dx()) + dx();
-//		int newY = baseY + (getFocusedIndex() / getAccordInRowCount()) * SISDISPLACE * dy() - this.dy() * 14;
-//
-//		getParentSheet().repaint(0, oldX, oldY, w, h);
-//		getParentSheet().repaint(0, newX, newY, w, h);
-//	}
 
 	@Override
 	public void getJsonRepresentation(JSONObject dict) {
@@ -161,7 +149,7 @@ public class Staff extends MidianaComponent {
 
 		for (int idx = 0; idx < accordJsonList.length(); ++idx) {
 			JSONObject childJs = accordJsonList.getJSONObject(idx);
-			this.addNewAccord().reconstructFromJson(childJs);
+			this.addNewAccord(false).reconstructFromJson(childJs);
 			this.moveFocus(1); // TODO: maybe not ?
 		}
 
@@ -250,6 +238,10 @@ public class Staff extends MidianaComponent {
 
 	// action handles
 
+    public void triggerPlayback() {
+        this.playback.trigger();
+    }
+
 	public void changeMode(Combo combo) {
 		mode = combo.getPressedNumber() > 0 ? aMode.insert : aMode.passive;
 	}
@@ -257,7 +249,10 @@ public class Staff extends MidianaComponent {
 	public ActionResult moveFocusWithPlayback(int sign, Boolean interruptSounding) {
 		ActionResult result = moveFocus(sign);
 		if (getFocusedAccord() != null && result.isSuccess()) {
-			if (interruptSounding) { PlayMusThread.shutTheFuckUp(); }
+			if (interruptSounding) {
+				PlayMusThread.shutTheFuckUp();
+				playback.interrupt();
+			}
 			PlayMusThread.playAccord(getFocusedAccord());
 		}
 		return result;
@@ -278,17 +273,6 @@ public class Staff extends MidianaComponent {
 		setFocusedIndex(getFocusedIndex() + n);
 
 		return !stop ? new ActionResult(true) : new ActionResult("dead end");
-	}
-
-	public void triggerPlayer()
-	{
-		if (PlayMusThread.stop) {
-			PlayMusThread.shutTheFuckUp();
-			PlayMusThread.stop = false;
-			(new PlayMusThread(this)).start();
-		} else {
-			PlayMusThread.stopMusic();
-		}
 	}
 }
 

@@ -32,7 +32,7 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	protected Field<Integer> channel = new Field<>("channel", Integer.class, true, this);
 
 	public Field<Fraction> length = new Field<>("length", new Fraction(1, 4), this);
-	private Field<Integer> tupletDenominator = new Field<>("tupletDenominator", 1, this);
+	private Field<Boolean> isTriplet = new Field<>("isTriplet", false, this);
 	private Field<Boolean> isSharp = new Field<>("isSharp", false, this);
 	private Field<Boolean> isMuted = new Field<>("isMuted", false, this);
 	private Field<Boolean> isLinkedToNext = new Field<>("isLinkedToNext", false, this);
@@ -44,7 +44,10 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	public long keydownTimestamp;
 
-	public Nota(Accord parent) { super(parent); }
+	public Nota(Accord parent) {
+		super(parent);
+		h.getFieldStorage().forEach(f -> f.setOnChange(getParentAccord()::surfaceChanged));
+	}
 
 	public Boolean isLongerThan(Nota rival) { return getRealLength().compareTo(rival.getRealLength()) > 0; }
 
@@ -113,7 +116,7 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	}
 
 	public Fraction getRealLength() { // that includes tuplet denominator
-		return length.get().divide(tupletDenominator.get());
+		return length.get().divide(isTriplet.get() ? 3 : 1);
 	}
 
 	public int getTimeMilliseconds(Boolean includeLinkedTime) {
@@ -227,7 +230,7 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	// TODO: we can use this.{field}.get instead of manually creating separate getters
 	// model getters
 	public Integer getChannel() { return channel.get(); }
-	public Integer getTupletDenominator() { return tupletDenominator.get(); }
+	public Integer getTupletDenominator() { return isTriplet.get() ? 3 : 1; }
 	public Boolean getIsSharp() { return isSharp.get(); }
 	public Boolean getIsMuted() { return isMuted.get(); }
 	public Boolean getIsLinkedToNext() { return isLinkedToNext.get(); }
@@ -239,7 +242,7 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	public Nota setLength(Fraction value){ this.length.set(limit(value, new Fraction(1, 16), new Fraction(2))); return this; }
 	/** @Bug - nota is immutable, this will blow with fatal !!! */
 	public Nota setChannel(int value) { this.channel.set(value); return this; }
-	public Nota setTupletDenominator(int value) { this.tupletDenominator.set(value); return this; }
+	public Nota setTupletDenominator(int value) { this.isTriplet.set(value == 3 ? true : false); return this; }
 	public Nota setIsSharp(Boolean value) { this.isSharp.set(value); return this; }
 	public Nota setIsMuted(Boolean value) { this.isMuted.set(value); return this; }
 	public Nota setIsLinkedToNext(Boolean value) { this.isLinkedToNext.set(value); return this; }

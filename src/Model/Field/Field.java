@@ -5,36 +5,41 @@ import Stuff.OverridingDefaultClasses.TruHashMap;
 import Stuff.Tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 import org.apache.commons.math3.fraction.FractionFormat;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.awt.*;
 import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class Field<EncapsulatedClass> {
+public class Field<E> {
 
-	private String name;
-	private EncapsulatedClass value;
-	protected IModel owner;
+	final private String name;
+	final protected IModel owner;
+	final public Boolean isFinal;
+	final private Class<E> elemClass;
 
-	private Boolean isFinal = false;
+	private E value;
+
+	public E defaultValue = null;
 	private Boolean isValueSet = false;
-	private Class<EncapsulatedClass> elemClass;
+	Function<E, E> normalize = null;
+	@Deprecated // i used it to repaint, but now we have separate repinting lambda
+	private Runnable onChange = null;
+	private BiFunction<Rectangle, E, Consumer<Graphics>> paintingLambda = null;
+	private Boolean changedSinceLastRepaint = true;
 
-	Function<EncapsulatedClass, EncapsulatedClass> normalize = null;
-	Runnable onChange = null;
+    public Field(String name, E value, IModel owner) { this(name, value, owner, null); }
 
-    public Field(String name, EncapsulatedClass value, IModel owner) { this(name, value, owner, null); }
-
-	public Field(String name, EncapsulatedClass value, IModel owner, Function<EncapsulatedClass, EncapsulatedClass> normalizeLambda) {
-        this(name, (Class<EncapsulatedClass>)value.getClass(), false, owner);
+	public Field(String name, E value, IModel owner, Function<E, E> normalizeLambda) {
+        this(name, (Class<E>)value.getClass(), false, owner);
 		this.normalize = normalizeLambda;
+		this.defaultValue = value;
         set(value);
 	}
 
-	public Field(String name, Class<EncapsulatedClass> cls, Boolean isFinal, IModel owner) {
+	public Field(String name, Class<E> cls, Boolean isFinal, IModel owner) {
 		checkValueClass(cls);
 		this.elemClass = cls;
 		this.owner = owner;
@@ -46,26 +51,45 @@ public class Field<EncapsulatedClass> {
 
 	// field getters/setters
 
-	public EncapsulatedClass get() { return value; }
+	public E get() { return value; }
 
 	public String getName() { return name; }
 
-	public Field set(EncapsulatedClass value) {
+	public Field<E> set(E value) {
 		if (this.isFinal && isValueSet) {
 			Logger.fatal("You are trying to change immutable field! " + getName() + " " + get() + " " + value);
 		} else {
 
-			EncapsulatedClass normalizedValue = normalize != null ? normalize.apply(value) : value;
+			E normalizedValue = normalize != null ? normalize.apply(value) : value;
 			if (!normalizedValue.equals(value)) {
 				Logger.warning("Tried to set invalid value: [" + value + "] for Field [" + getName() + "] of [" + owner.getClass().getSimpleName() + "]");
 			}
 
+			this.changedSinceLastRepaint |= this.value != normalizedValue;
 			this.value = normalizedValue;
 			isValueSet = true;
 
-			if (onChange != null) { onChange.run(); }
+			if (onChange != null) {
+				onChange.run();
+			}
 		}
 		return this;
+	}
+
+	public Field<E> setPaintingLambda(BiFunction<Rectangle, E, Consumer<Graphics>> paintingLambda) {
+		this.paintingLambda = paintingLambda;
+		return this;
+	}
+
+	public Boolean hasPaintingLambda() {
+		return this.paintingLambda != null;
+	}
+
+	public void repaintIfNeeded(Graphics g, Rectangle r) {
+		if (hasPaintingLambda() && changedSinceLastRepaint) {
+			this.paintingLambda.apply(r, get()).accept(g);
+			this.changedSinceLastRepaint = false;
+		}
 	}
 
 	// TODO: do something similar for Arr when need to add/remove element
@@ -82,7 +106,7 @@ public class Field<EncapsulatedClass> {
 	}
 
 	public Field setValueFromString(String str) {
-		set((EncapsulatedClass)getParserMap().get(elemClass).apply(str));
+		set((E)getParserMap().get(elemClass).apply(str));
 
 		return this;
 	}

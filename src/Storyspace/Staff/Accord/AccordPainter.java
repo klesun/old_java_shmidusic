@@ -4,6 +4,7 @@ import Gui.Constants;
 import Gui.ImageStorage;
 import Gui.Settings;
 import Model.AbstractPainter;
+import Model.Field.Field;
 import Storyspace.Staff.Accord.Nota.Nota;
 import Storyspace.Staff.MidianaComponent;
 import Stuff.OverridingDefaultClasses.Pnt;
@@ -11,6 +12,8 @@ import Stuff.Tools.Fp;
 
 import java.awt.*;
 import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class AccordPainter extends AbstractPainter {
 
@@ -60,16 +63,20 @@ public class AccordPainter extends AbstractPainter {
 			}
 		}
 
-		drawString(a.getSlog(), 0, Constants.FONT_HEIGHT, Color.BLACK);
-
-		if (a.getIsDiminendo()) {
-			drawLine(dx() / 2, dy() * 4, dx() * 3/2, dy() * 6);
-			drawLine(dx() / 2, dy() * 8, dx() * 3/2, dy() * 6);
-		}
-
 		if (a.getParentStaff().getFocusedAccord() == a) {
 			drawImage(ImageStorage.inst().getPointerImage(), dx(), 0);
 		}
+
+		drawFields();
+
+		// gonna use Field::painting instead
+
+//		drawString(a.getSlog(), 0, Constants.FONT_HEIGHT, Color.BLACK);
+
+//		if (a.getIsDiminendo()) {
+//			drawLine(dx() / 2, dy() * 4, dx() * 3/2, dy() * 6);
+//			drawLine(dx() / 2, dy() * 8, dx() * 3/2, dy() * 6);
+//		}
 	}
 
 	private int getNotaY(Nota nota, Boolean oneOctaveLower) {
@@ -78,8 +85,19 @@ public class AccordPainter extends AbstractPainter {
 	}
 
 	@Deprecated // it should be only in AbstractPainter
-	private void drawModel(Nota model, int x0, int y0) {
-		model.drawOn(gDeprecated, xDeprecated + x0, yDeprecated + y0);
+	private void drawModel(Nota model, int x0, int y0) { model.drawOn(gDeprecated, xDeprecated + x0, yDeprecated + y0); }
+
+	@Deprecated // it should be only in AbstractPainter
+	private void drawFields() {
+		List<Field> drawableList = context.getModelHelper().getFieldStorage().stream().filter(f -> f.hasPaintingLambda()).collect(Collectors.toList());
+
+		int w = dx() * 2;
+		int dy = dy(); // TODO: it should be TOTAL_SPACE_FOR_THEM / THEIR_COUNT one day
+
+		for (int i = 0; i < drawableList.size(); ++i) {
+			Rectangle r = new Rectangle(xDeprecated, yDeprecated + dy, w, dy);
+			drawableList.get(i).repaintIfNeeded(gDeprecated, r);
+		}
 	}
 
 	private Straight getTraitCoordinates(Nota nota) {

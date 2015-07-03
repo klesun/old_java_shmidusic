@@ -71,7 +71,7 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 	final public void keyTyped(KeyEvent e) {}
 	final public void keyReleased(KeyEvent e) {}
 
-	private AbstractHandler getRootHandler() {
+	public AbstractHandler getRootHandler() {
 		IComponentModel rootContext = getContext();
 		while (rootContext.getModelParent() != null) {
 			rootContext = rootContext.getModelParent();

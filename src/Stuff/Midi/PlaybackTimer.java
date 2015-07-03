@@ -1,95 +1,75 @@
 package Stuff.Midi;
 
+import Gui.ImageStorage;
+import Storyspace.Staff.Accord.Nota.Nota;
+import Storyspace.Staff.StaffConfig.StaffConfig;
 import Stuff.Tools.Logger;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.sun.org.apache.xpath.internal.operations.Bool;
+import org.apache.commons.math3.fraction.Fraction;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PlaybackTimer {
-	private long iteration = 0;
+
 	// TODO: запили лучше свой таймер и сверяй не по номеру итерации, а по системному времени !!!
-	final private HardcoreTimer timer;
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	//  Понел ёпта ?
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	final private StaffConfig config;
+	private Thread timerThread = null;
+
+	private Boolean stop = false;
 
 	// please, note that with this implementation we may have only one task per iteration. i hope it's exactly what we need
-	private Map<Long, Runnable> tasks = new HashMap<>();
+	private Map<Fraction, Runnable> tasks = new HashMap<>();
 
-	public PlaybackTimer(int period) {
-		this.timer = new HardcoreTimer(period, this::onTimer);
+	public PlaybackTimer(StaffConfig config) {
+		this.config = config;
 	}
 
-	public void addTask(long iteration, Runnable task) {
-		this.tasks.put(iteration, task);
+	public void addTask(Fraction fraction, Runnable task) {
+		this.tasks.put(fraction, task);
 	}
 
 	public void start() {
-		timer.start();
-	}
-
-	public void interrupt() {
-		timer.stop();
-	}
-
-	// it still lags. i'm afraid swing timer callss events one after another, not on time or something synchronizes 'em => slows
-	private void onTimer() {
-		final long iteration = incrementIteration();
-		if (tasks.isEmpty() || tasks.keySet().stream().noneMatch(t -> t >= iteration)) {
-			interrupt();
-		} else {
-			if (tasks.containsKey(iteration)) {
-				// BUAHAHAHAHA
-				new Thread(tasks.get(iteration)).start();
-				tasks.remove(iteration);
+		this.timerThread = new Thread(() -> {
+			long startTime = System.currentTimeMillis();
+			while (!tasks.isEmpty() && !stop) {
+				long now = System.currentTimeMillis();
+				Set<Fraction> keys = tasks.keySet().stream()
+					.filter(f -> startTime + toMillis(f) <= now)
+					.collect(Collectors.toSet());
+				for (Fraction key : keys) {
+					new Thread(tasks.remove(key)).start();
+				}
+				try { Thread.sleep(getTimerPeriod()); }
+				catch (InterruptedException exc) { Logger.FYI("Playback finished"); }
 			}
+		});
+		this.timerThread.start();
+	}
+
+	synchronized public void interrupt() {
+		this.stop = true;
+		if (this.timerThread != null) {
+			this.timerThread.interrupt();
 		}
 	}
 
-	synchronized private long incrementIteration() {
-		return this.iteration++;
+	private long toMillis(Fraction f) {
+		int tempo = config.getTempo();
+		return Nota.getTimeMilliseconds(f, tempo);
 	}
 
-	// it sleeps in current thread >D
-	private class HardcoreTimer {
-
-		final private Runnable onTimer;
-		final private int period;
-		private Thread runningThread = null;
-
-		private Boolean stop = false;
-
-		public HardcoreTimer(int period, Runnable onTimer) {
-			this.period = period;
-			this.onTimer = onTimer;
-		}
-
-		public void start() {
-			this.runningThread = new Thread(this::runIteration);
-			this.runningThread.start();
-		}
-
-		// will be called in the lambda in runIteration()... likely
-		synchronized public void stop() {
-			this.stop = true;
-			if (this.runningThread != null) {
-				this.runningThread.interrupt();
-			}
-		}
-
-		synchronized private Boolean wasStopped() {
-			return this.stop;
-		}
-
-		private void runIteration() {
-			onTimer.run();
-			try { Thread.sleep(period); }
-			catch (InterruptedException exc) { System.out.println("zhopa s jajcami"); }
-			if (!wasStopped()) {
-				// i think, just saying him, how much iterations it will take in constructor would be MUUUUUCH better...
-				runIteration();
-			}
-		}
+	private long getTimerPeriod() {
+		Fraction step = ImageStorage.getSmallestPossibleNotaLength().divide(3); // 3 - cuz triplet
+		return toMillis(step);
 	}
 }

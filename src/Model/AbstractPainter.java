@@ -8,7 +8,7 @@ import Stuff.OverridingDefaultClasses.Pnt;
 
 import java.awt.*;
 
-abstract public class AbstractPainter {
+abstract public class AbstractPainter { // like Picasso!
 
 	final protected MidianaComponent context;
 	final private Graphics g;

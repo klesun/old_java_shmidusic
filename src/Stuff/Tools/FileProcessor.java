@@ -101,8 +101,7 @@ public class FileProcessor {
 
 	private static void openModel(File f, IModel model, String legacy) {
 		try {
-			byte[] encoded = Files.readAllBytes(f.toPath());
-			String js = new String(encoded, StandardCharsets.UTF_8);
+			String js = new String(Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8);
 			try {
 				JSONObject jsObject = new JSONObject(js);
 				if (js.contains(model.getClass().getSimpleName())) {

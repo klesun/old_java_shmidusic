@@ -18,56 +18,46 @@ public class Playback {
 	@Deprecated // instance MAZAFAKA
 	public static Thread diminendoThread = null;
 
-	final Staff staff;
+	final private Staff staff;
+	private PlaybackTimer runningProcess = null;
 
 	public Playback(Staff staff) {
 		this.staff = staff;
 	}
 
-	// just an alias to shorten call in action manager
-	public static ActionResult<PlaybackTimer> playStaff(Staff staff) {
-		return new Playback(staff).play();
+	public void trigger() {
+		if (this.runningProcess != null) { interrupt(); }
+		else { play(); }
 	}
 
-	public ActionResult<PlaybackTimer> play() {
+	public void interrupt() {
+		if (this.runningProcess != null) {
+			this.runningProcess.interrupt();
+			this.runningProcess = null;
+		}
+	}
+
+	private ActionResult<PlaybackTimer> play() {
 		if (!staff.getAccordList().isEmpty()) {
-			PlaybackTimer timer = new PlaybackTimer(getTimerPeriod());
-			long currentAccordIteration = 0;
-			int startFrom = staff.getFocusedIndex() == -1 ? 0 : staff.getFocusedIndex();
+			if (runningProcess != null) { interrupt(); }
+			runningProcess = new PlaybackTimer(staff.getConfig());
+			Fraction sumFraction = new Fraction(0);
+
+			staff.moveFocus(-1);
+			int startFrom = staff.getFocusedIndex() + 1;
 			for (Accord accord : staff.getAccordList().subList(startFrom, staff.getAccordList().size())) {
-				timer.addTask(currentAccordIteration, () -> {
-					staff.getHandler().handleKey(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT));
-					// i dunno why, but image lags
-//					staff.moveFocusWithPlayback(1, false);
-//					staff.getParentSheet().repaint();
+				runningProcess.addTask(sumFraction, () -> {
+					staff.moveFocusWithPlayback(1, false);
+					staff.getParentSheet().checkCam();
 				});
-				currentAccordIteration += toTimerIterations(accord.getShortestFraction());
+				sumFraction = sumFraction.add(accord.getShortestFraction());
 			}
-			timer.start();
-			return new ActionResult<>(timer); // returning it so it could be interrupted from another action
+			runningProcess.addTask(sumFraction.add(1), this::interrupt);
+			runningProcess.start();
+			return new ActionResult<>(runningProcess); // returning it so it could be interrupted from another action
 		} else {
 			return new ActionResult<>("Staff is empty");
 		}
-	}
-
-	// TODO: Maybe one day we could also put Nota closing into timer too
-	private int getTimerPeriod() {
-		int tempo = staff.getConfig().getTempo();
-		return Nota.getTimeMilliseconds(getTimerStepFraction(), tempo); // 1/16
-	}
-
-	private static int toTimerIterations(Fraction fraction) {
-		Fraction result = fraction.divide(getTimerStepFraction());
-		if (result.getDenominator() != 1) {
-			Logger.fatal("got Nota length that cant be divided to our smallest measure unit [" + fraction + "] NOW WAI!");
-			return -100;
-		} else {
-			return result.intValue();
-		}
-	}
-
-	private static Fraction getTimerStepFraction() {
-		return ImageStorage.getSmallestPossibleNotaLength().divide(3); // 3 - cuz triplet
 	}
 
 	@Deprecated // instance MAZAFAKA

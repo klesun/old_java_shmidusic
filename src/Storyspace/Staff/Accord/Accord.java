@@ -1,10 +1,10 @@
 package Storyspace.Staff.Accord;
 
-import java.awt.Graphics;
+import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.util.*;
+import java.util.function.Consumer;
 
-import Model.Action;
-import Model.Combo;
 import Model.Field.Arr;
 import Model.Field.Field;
 import Model.SimpleAction;
@@ -17,8 +17,8 @@ import org.json.JSONObject;
 
 public class Accord extends MidianaComponent {
 
-	private Field<Boolean> isDiminendo = new Field<>("isDiminendo", false, this);
-	public Field<String> slog = new Field<>("slog", "", this);
+	private Field<Boolean> isDiminendo = new Field<>("isDiminendo", false, this).setPaintingLambda(Accord::diminendoPainting);
+	public Field<String> slog = new Field<>("slog", "", this).setPaintingLambda(Accord::slogPainting);
 	public Arr<Nota> notaList = new Arr<>("notaList", new TreeSet<>(), this, Nota.class);
 
 	private Boolean surfaceChanged = true;
@@ -39,6 +39,34 @@ public class Accord extends MidianaComponent {
 			new AccordPainter(this, surface, x, y).draw();
 			surfaceChanged = false;
 		}
+	}
+
+	// я передумал, я снова люблю джаву
+	private static Consumer<Graphics> diminendoPainting(Rectangle r, Boolean value) {
+		return g -> {
+			g.setColor(Color.BLACK);
+			g.drawLine(0, 0, r.width, r.height / 2);
+			g.drawLine(0, r.height, r.width, r.height / 2);
+		};
+	}
+
+	private static Consumer<Graphics> slogPainting(Rectangle r, String value) {
+		return g -> {
+			if (g.getFontMetrics(g.getFont()).stringWidth(value) > 0) {
+				g.setColor(Color.BLACK);
+				g.setFont(scaleFont(value, r, g));
+				g.drawString(value, 0, 0);
+			}
+		};
+	}
+
+	private static Font scaleFont(String text, Rectangle rect, Graphics g) {
+		float fontSize = 20.0f;
+
+		Font font = g.getFont().deriveFont(fontSize);
+		int width = g.getFontMetrics(font).stringWidth(text);
+		fontSize = (rect.width / width ) * fontSize;
+		return g.getFont().deriveFont(fontSize);
 	}
 
 	// responses to events (actions)

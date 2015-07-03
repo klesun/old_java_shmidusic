@@ -51,14 +51,16 @@ public class Helper {
 
 	public void getJsonRepresentation(JSONObject dict) {
 		for (Field field : fieldStorage) {
-			dict.put(field.getName(), field.getJsonValue());
+			if (field.get().getClass() != Boolean.class || field != field.defaultValue) { // Issue[69]
+				dict.put(field.getName(), field.getJsonValue());
+			}
 		}
 	}
 
 	public IModel reconstructFromJson(JSONObject jsObject) {
 		for (Field field : fieldStorage) {
 			if (jsObject.has(field.getName())) { field.setValueFromJsObject(jsObject); }
-			else { Logger.warning("Source does not have field [" + field.getName() + "] for class {" + getClass().getSimpleName() + "}"); }
+			else { Logger.warning("Source does not have field [" + field.getName() + "] for class {" + model.getClass().getSimpleName() + "}"); }
 		}
 		return model;
 	}
