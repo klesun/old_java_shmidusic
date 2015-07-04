@@ -37,15 +37,4 @@ public abstract class AbstractModel implements IModel {
 	// field getters
 
 	public IComponentModel getModelParent() { return this.parent; }
-
-	// from static context
-
-	final public int dx() { return Settings.getStepWidth(); }
-	final public int dy() { return Settings.getStepHeight(); }
-	final protected static int limit(int value, int min, int max) { return Math.min(Math.max(value, min), max); }
-	final protected static Fraction limit(Fraction value, Fraction min, Fraction max) {
-		value = value.compareTo(min) < 0 ? min : value;
-		value = value.compareTo(max) > 0 ? max : value;
-		return value;
-	}
 }

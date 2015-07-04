@@ -116,6 +116,4 @@ public class Helper {
 			return new ArrayList<>();
 		}
 	}
-
-	final public static int limit(int value, int min, int max) { return Math.min(Math.max(value, min), max); }
 }

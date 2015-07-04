@@ -16,10 +16,11 @@ import javax.swing.border.Border;
 @SuppressWarnings("serial")
 public class StoryspaceScroll extends Scroll implements IComponentModel {
 	
-	IStoryspacePanel content = null;
-	Storyspace parent;
-	AbstractHandler handler = null;
-	private Helper modelHelper = new Helper(this);
+	final public IStoryspacePanel content;
+
+	final private Storyspace parent;
+	final private AbstractHandler handler;
+	final private Helper modelHelper = new Helper(this);
 
 	final private static int TITLE_HEIGHT = 20;
 	final private static int BORDER_WIDTH = 4;
@@ -136,6 +137,7 @@ public class StoryspaceScroll extends Scroll implements IComponentModel {
 		int dh = TITLE_HEIGHT + BORDER_WIDTH;
 
 		setLocation(-BORDER_WIDTH, -TITLE_HEIGHT);
+		// TODO: does not take into account decreasing size - undoable scrollbars appear
 		setSize(getModelParent().getWidth() + dw, getModelParent().getHeight() + dh);
 	}
 

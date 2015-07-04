@@ -53,13 +53,13 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	// <editor-fold desc="implementing abstract model">
 
-	public void drawOn(Graphics surface, int x, int y) {
+	public void drawOn(Graphics surface, int x, int y, Boolean completeRepaint) {
 		surface.setColor(Color.BLACK);
 		surface.drawImage(getEbonySignImage(), x + dx() / 2, y + 3 * dy() + 2, null);
 
 		BufferedImage tmpImg = getIsMuted() || isPause()
-				? ImageStorage.inst().getNotaImg(getCleanLength(), 9)
-				: ImageStorage.inst().getNotaImg(getCleanLength(), getChannel());
+				? getImageStorage().getNotaImg(getCleanLength(), 9)
+				: getImageStorage().getNotaImg(getCleanLength(), getChannel());
 
 		if (getIsLinkedToNext()) {
 			Fp.drawParabola((Graphics2D) surface, new Rectangle(x + dx() * 3 / 2, y + dy() * 7, dx() * 2, dy() * 2));
@@ -143,8 +143,8 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	private BufferedImage getEbonySignImage() {
 		return  !this.isEbony() ? null :
-				getIsSharp() ? ImageStorage.inst().getSharpImage() :
-				ImageStorage.inst().getFlatImage();
+				getIsSharp() ? getImageStorage().getSharpImage() :
+				getImageStorage().getFlatImage();
 	}
 
 
@@ -212,14 +212,14 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	public int getAbsoluteAcademicIndex() { return isPause() ? PAUSE_POSITION : getAcademicIndex() + getOctave() * 7; }
 	public int getOctave() { return this.tune.get() /12; }
 	@Deprecated
-	public List<Integer> getAncorPointDeprecated() { return Arrays.asList(getWidth()*16/25, Settings.getStepHeight() * 7); }
-	public Pnt getAncorPoint() { return new Pnt(getWidth()*16/25, Settings.getStepHeight() * 7); }
+	public List<Integer> getAncorPointDeprecated() { return Arrays.asList(getWidth()*16/25, getHeight() - dy()); }
+	public Pnt getAncorPoint() { return new Pnt(getWidth()*16/25, getHeight() - dy()); }
 	public int getNotaImgRelX() { return this.getWidth() / 2; } // bad name
 	public int getStickX() { return this.getNotaImgRelX() + dx() / 2; }
 
-	public int getHeight() { return Settings.getNotaHeight(); }
+	public int getHeight() { return getSettings().getNotaHeight(); }
 	// TODO: use it in Accord.getWidth()
-	public int getWidth() { return Settings.getNotaWidth() * 2; }
+	public int getWidth() { return dx() * 2; }
 
 	private Boolean isPause() { return tune.get() == 0; }
 

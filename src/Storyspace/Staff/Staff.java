@@ -1,32 +1,23 @@
-// TODO: мэрджить ноты, типа целая+(половинная+четвёртая=половинная с точкой) = целая с двумя точками
-// потому что делать точки плюсиком - это убого!
-
 package Storyspace.Staff;
 
 import Gui.ImageStorage;
-import Main.MajesticWindow;
-import Model.AbstractModel;
 import Model.ActionResult;
-import Model.Combo;
 import Model.SimpleAction;
 import Storyspace.Staff.Accord.AccordHandler;
 import Storyspace.Staff.StaffConfig.StaffConfig;
-import Gui.Settings;
+
+import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import Storyspace.Staff.Accord.Accord;
 import Stuff.Midi.DeviceEbun;
 import Stuff.Midi.Playback;
 import Stuff.Musica.PlayMusThread;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.util.Map;
+
 import java.util.concurrent.TimeUnit;
 
 
-import Stuff.OverridingDefaultClasses.TruHashMap;
 import com.google.common.util.concurrent.Uninterruptibles;
 import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONArray;
@@ -76,6 +67,9 @@ public class Staff extends MidianaComponent {
 		getHandler().performAction(new SimpleAction()
 			.setRedo(() -> getAccordList().add(index, accord))
 			.setUndo(() -> getAccordList().remove(accord)));
+
+		accordListChanged(index);
+
 		return accord;
 	}
 
@@ -85,17 +79,32 @@ public class Staff extends MidianaComponent {
 		getHandler().performAction(new SimpleAction()
 			.setRedo(() -> getAccordList().remove(accord))
 			.setUndo(() -> getAccordList().add(index, accord)));
+
+		accordListChanged(index);
 	}
 
+	private void accordListChanged(int repaintAllFromIndex) {
+		int width = getParentSheet().getScroll().getWidth();
+		getParentSheet().setPreferredSize(new Dimension(width - 25, getHeightIf(width)));	//	Needed for the scrollBar bars to appear
+		getParentSheet().revalidate();	//	Needed to recalc the scrollBar bars
+
+		getAccordList().subList(repaintAllFromIndex, getAccordList().size()).forEach(Accord::surfaceChanged);
+	}
+
+    @Override
+    public void drawOn(Graphics g, int x, int y, Boolean completeRepaint) {
+        drawOn(g, completeRepaint);
+    }
+
 	// TODO: move into some StaffPainter class
-	public synchronized void drawOn(Graphics g, @Deprecated Boolean completeRepaintRequired) {
+	public synchronized void drawOn(Graphics g, Boolean completeRepaintRequired) {
 
 		int baseX = getMarginX() + 2 * dx();  // 2вч - violin/bass keys
 		int baseY = getMarginY(); // highest line y
 
 		TactMeasurer tactMeasurer = new TactMeasurer(this);
 
-		getConfig().drawOn(g, baseX, baseY);
+		getConfig().drawOn(g, baseX, baseY, completeRepaintRequired);
 		baseX += dx();
 
 		int i = 0;
@@ -103,8 +112,8 @@ public class Staff extends MidianaComponent {
 			int y = baseY + i * SISDISPLACE * dy(); // bottommest y nota may be drawn on
 
 			if (completeRepaintRequired) {
-				g.drawImage(ImageStorage.inst().getViolinKeyImage(), this.dx(), y - 3 * dy(), null);
-				g.drawImage(ImageStorage.inst().getBassKeyImage(), this.dx(), 11 * dy() + y, null);
+				g.drawImage(getImageStorage().getViolinKeyImage(), this.dx(), y - 3 * dy(), null);
+				g.drawImage(getImageStorage().getBassKeyImage(), this.dx(), 11 * dy() + y, null);
 			}
 
 			int j = 0;
@@ -209,7 +218,7 @@ public class Staff extends MidianaComponent {
 	}
 
 	public int getAccordInRowCount() {
-		int result = this.getWidth() / (Settings.getNotaWidth() * 2) - 3; // - 3 because violin key and phantom
+		int result = this.getWidth() / (dx() * 2) - 3; // - 3 because violin key and phantom
 		return Math.max(result, 1);
 	}
 
@@ -242,13 +251,10 @@ public class Staff extends MidianaComponent {
         this.playback.trigger();
     }
 
-	public void changeMode(Combo combo) {
-		mode = combo.getPressedNumber() > 0 ? aMode.insert : aMode.passive;
-	}
-
 	public ActionResult moveFocusWithPlayback(int sign, Boolean interruptSounding) {
 		ActionResult result = moveFocus(sign);
 		if (getFocusedAccord() != null && result.isSuccess()) {
+
 			if (interruptSounding) {
 				PlayMusThread.shutTheFuckUp();
 				playback.interrupt();

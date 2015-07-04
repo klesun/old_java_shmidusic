@@ -2,6 +2,7 @@ package Gui;
 
 import Storyspace.Staff.StaffConfig.Channel;
 import Storyspace.Staff.StaffConfig.StaffConfig;
+import Storyspace.Storyspace;
 import Stuff.Tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 import org.apache.commons.math3.fraction.FractionFormat;
@@ -18,7 +19,7 @@ public class ImageStorage {
 
 	final private static String DEFAULT_IMAGE_FOLDER = "imgs/";
 
-	private static ImageStorage instance = null;
+	final private Storyspace parentStoryspace;
 
 	private Map<Fraction, BufferedImage>[] coloredNotas = new Map[Channel.CHANNEL_COUNT];
 
@@ -26,20 +27,12 @@ public class ImageStorage {
 	private Map<File, BufferedImage> sizedDefaultImageMap = new HashMap<>();
 	private Map<File, BufferedImage> randomImageMap = new HashMap<>();
 
-	public ImageStorage() {
+	public ImageStorage(Storyspace parentStoryspace) {
+		this.parentStoryspace = parentStoryspace;
 		for (int i = 0; i < Channel.CHANNEL_COUNT; ++i) {
 			coloredNotas[i] = new HashMap<>();
 		}
 		refreshImageSizes();
-		instance = this;
-	}
-
-	// TODO: make some fields final when calling it from Main
-	public static ImageStorage inst() {
-		if (ImageStorage.instance == null) {
-			Logger.fatal("tried to access ImageStorage instance before it was inited from Main.java");
-		}
-		return ImageStorage.instance;
 	}
 
 	// TODO: rename to openRandomImage()
@@ -64,7 +57,8 @@ public class ImageStorage {
 	public void refreshNotaSizes() {
 
 		int w1, h1; Graphics2D g;
-		w1 = Settings.getNotaWidth(); h1 = Settings.getNotaHeight();
+		w1 = parentStoryspace.getSettings().getNotaWidth();
+		h1 = parentStoryspace.getSettings().getNotaHeight();
 
 		// resizing first base color nota
 		for (Fraction length: getAvailableNotaLengthList()) {
@@ -77,7 +71,7 @@ public class ImageStorage {
 				coloredNotas[chan].put(length, new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB));
 				g = (Graphics2D)coloredNotas[chan].get(length).getGraphics();
 				g.setColor(getColorByChannel(chan));
-				g.fillRect(0, 0, Settings.getNotaWidth(), Settings.getNotaHeight());
+				g.fillRect(0, 0, parentStoryspace.getSettings().getNotaWidth(), parentStoryspace.getSettings().getNotaHeight());
 				g.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN, 1.0f));
 				g.drawImage(coloredNotas[0].get(length), 0, 0, w1, h1, null); // not sure that need
 			}
@@ -182,9 +176,9 @@ public class ImageStorage {
 		return imageMap.get(file);
 	}
 
-	private static BufferedImage changeSize(BufferedImage originalImage) {
-		int w1 = originalImage.getWidth() * Settings.getNotaWidth() / Constants.NORMAL_NOTA_WIDTH;
-		int h1 = originalImage.getHeight() * Settings.getNotaHeight() / Constants.NORMAL_NOTA_HEIGHT;
+	private BufferedImage changeSize(BufferedImage originalImage) {
+		int w1 = originalImage.getWidth() * parentStoryspace.getSettings().getNotaWidth() / Constants.NORMAL_NOTA_WIDTH;
+		int h1 = originalImage.getHeight() * parentStoryspace.getSettings().getNotaHeight() / Constants.NORMAL_NOTA_HEIGHT;
 
 		Image tmpImage = originalImage.getScaledInstance(w1, h1, Image.SCALE_SMOOTH);
 		BufferedImage newImage = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);

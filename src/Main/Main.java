@@ -10,29 +10,17 @@ public class Main {
 
 	public static void main(String[] args){
 
+		// TODO: it would probably load faster if window was hidden
 		window = new MajesticWindow();
 
-		// TODO: show these opening status messages in window while user is waiting to entertain him
-
 		/** @debug */
-		Logger.resetTimer("Starting program");
-
-		/** @debug */
-		Logger.resetTimer("Loading images from disk");
-
-		new ImageStorage();
-
-		/** @debug */
-		Logger.resetTimer("Refreshed image sizes");
+		Logger.resetTimer("Opening Midi devices");
 
 		DeviceEbun.openMidiDevices();
 
 		/** @debug */
-		Logger.resetTimer("Opened Midi devices");
+		Logger.resetTimer("\nDone\n\nInitializing window");
 
 		window.init();
-
-		/** @debug */
-		Logger.resetTimer("Created window");
 	}
 }

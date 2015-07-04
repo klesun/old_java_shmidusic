@@ -4,7 +4,6 @@ import Model.*;
 import Storyspace.IStoryspacePanel;
 import Storyspace.StoryspaceScroll;
 import Storyspace.Storyspace;
-import com.google.common.collect.Lists;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -87,8 +86,8 @@ public class Article extends JPanel implements IStoryspacePanel {
 
 		// cuz this is wrapper of focused elements unlike ImagePanel and StaffPanel and can't be focused itself
 		par.addFocusListener(new FocusAdapter() {
-			public void focusGained(FocusEvent e) { getStoryspaceScroll().gotFocus(); }
-			public void focusLost(FocusEvent e) { getStoryspaceScroll().lostFocus(); }
+			public void focusGained(FocusEvent e) { getScroll().gotFocus(); }
+			public void focusLost(FocusEvent e) { getScroll().lostFocus(); }
 		});
 
 		if (index > -1) { parList.add(index, par); }
@@ -117,7 +116,7 @@ public class Article extends JPanel implements IStoryspacePanel {
 	public List<Paragraph> getParList() { return parList; }
 
 	@Override
-	public StoryspaceScroll getStoryspaceScroll() { return scroll; }
+	public StoryspaceScroll getScroll() { return scroll; }
 	@Override
 	public Paragraph getFocusedChild() {
 		Component focused = getModelParent().getModelParent().getWindow().getFocusOwner();
@@ -126,7 +125,7 @@ public class Article extends JPanel implements IStoryspacePanel {
 				: null;
 	}
 	@Override
-	public StoryspaceScroll getModelParent() { return getStoryspaceScroll(); }
+	public StoryspaceScroll getModelParent() { return getScroll(); }
 	@Override
 	public AbstractHandler getHandler() { return this.handler; }
 	@Override
@@ -191,6 +190,4 @@ public class Article extends JPanel implements IStoryspacePanel {
 			});
 		}
 	}
-
-	final protected static int limit(int value, int min, int max) { return Math.min(Math.max(value, min), max); }
 }

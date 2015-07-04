@@ -50,12 +50,12 @@ public class NotaHandler extends AbstractHandler {
 		for (Combo combo: Combo.getNumberComboList(0)) {
 			actionMap.p(combo, mkAction(nota -> {
 				changeChannel(nota, combo.getPressedNumber());
-				Settings.inst().setDefaultChannel(combo.getPressedNumber());
+				nota.getSettings().setDefaultChannel(combo.getPressedNumber());
 			}));
 		}
 
 		for (Map.Entry<Combo, Integer> entry: Combo.getComboTuneMap().entrySet()) {
-			actionMap.p(entry.getKey(), mkAction(nota -> nota.getParentAccord().addNewNota(entry.getValue(), Settings.inst().getDefaultChannel())));
+			actionMap.p(entry.getKey(), mkAction(nota -> nota.getParentAccord().addNewNota(entry.getValue(), nota.getSettings().getDefaultChannel())));
 		}
 
 		return actionMap;

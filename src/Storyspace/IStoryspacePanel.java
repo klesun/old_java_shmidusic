@@ -6,6 +6,6 @@ import Model.IModel;
 
 public interface IStoryspacePanel extends IComponentModel {
 
-	StoryspaceScroll getStoryspaceScroll();
+	StoryspaceScroll getScroll();
 
 }

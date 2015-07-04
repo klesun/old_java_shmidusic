@@ -7,7 +7,6 @@ import Main.MajesticWindow;
 import Storyspace.IStoryspacePanel;
 import Storyspace.StoryspaceScroll;
 import Storyspace.Storyspace;
-import Stuff.OverridingDefaultClasses.Scroll;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -18,31 +17,24 @@ import javax.swing.*;
 import java.awt.event.*;
 
 
-// TODO: maybe it will be good for performance if it was not JPanel, but Canvas, cuz all we do with it - just painting...
 final public class StaffPanel extends JPanel implements IStoryspacePanel {
 
 	public static int MARGIN_V = 15; // Сколько отступов сделать сверху перед рисованием полосочек // TODO: move it into Constants class maybe? // eliminate it nahuj maybe?
 	public static int MARGIN_H = 1; // TODO: move it into Constants class maybe?
 
-	public MajesticWindow parentWindow = null; // deprecated
-
-	private StoryspaceScroll storyspaceScroll = null;
-	public AbstractHandler handler = null;
-	private Helper modelHelper = new Helper(this);
-	private Helper h = modelHelper;
-	private Staff staff = null;
-
-	private StaffPanel storyspaceRepresentative = this;
+	final private StoryspaceScroll scroll;
+	final private AbstractHandler handler;
+	final private Helper modelHelper = new Helper(this);
+	final private Staff staff;
 
 	private JSONObject staffJson;
 	private Boolean loadJsonOnFocus = false;
-	@Deprecated // we should not have cases when complete repaint is required in future
-	private Boolean completeRepaintRequired = true;
+	private Boolean simpleRepaint = false;
+	private Boolean surfaceCompletelyChanged = false;
 
 	public StaffPanel(Storyspace parentStoryspace) {
-		this.parentWindow = parentStoryspace.getWindow();
-
 		this.staff = new Staff(this);
+		this.scroll = parentStoryspace.addModelChild(this);
 
 		this.addKeyListener(handler = makeHandler());
 		this.addMouseListener(handler);
@@ -67,21 +59,25 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 		this.requestFocus();
 
 		this.setBackground(Color.WHITE);
-
-		repaint(); // needed ?
-
-		storyspaceScroll = parentStoryspace.addModelChild(this);
 	}
 
-	@Override
+	private void iThinkItInterruptsPreviousPaintingThreadsSoTheyDidntSlowCurrent() {
+		getScroll().getModelParent().getWindow().terminal.append("suka");
+	}
 
 	// TODO: maybe make it synchronized or so...
-
+	@Override
 	public void paintComponent(Graphics g) {
 		if (!loadJsonOnFocus) {
-			if (simpleRapint) {
-				simpleRapint = false;
+			if (simpleRepaint) {
+
+				// i don't know, who is stupider: linuxes, awt or me, but it forces it to repaint JUST the time it's requested to repaint
+				// on windows issues does not occur
+				iThinkItInterruptsPreviousPaintingThreadsSoTheyDidntSlowCurrent();
+
+				simpleRepaint = false;
 				getStaff().drawOn(g, false);
+
 			} else {
 				super.paintComponent(g);
 				getStaff().drawOn(g, true);
@@ -89,10 +85,9 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 		}
 	}
 
-	private Boolean simpleRapint = false;
-
-	public void repaintNow() {
-		getStaff().drawOn(getGraphics(), false);
+	public void surfaceCompletelyChanged() {
+		System.out.println("zhopahujpizfavagina");
+		this.surfaceCompletelyChanged = true;
 	}
 
 	public int getFocusedSystemY() {
@@ -100,23 +95,19 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 	}
 	
 	public void checkCam() {
-		simpleRapint = true;
-		int width = getScrollPane().getWidth();
-		JScrollBar vertical = getScrollPane().getVerticalScrollBar();
-		// does not work for some reason
-		if (vertical.getValue() + getScrollPane().getHeight() < getFocusedSystemY() + Staff.SISDISPLACE * dy() ||
+		simpleRepaint = surfaceCompletelyChanged;
+		surfaceCompletelyChanged = false;
+
+		JScrollBar vertical = getScroll().getVerticalScrollBar();
+		if (vertical.getValue() + getScroll().getHeight() < getFocusedSystemY() + Staff.SISDISPLACE * dy() ||
 			vertical.getValue() > getFocusedSystemY()) {
 			vertical.setValue(getFocusedSystemY());
-			simpleRapint = false;
+			simpleRepaint = false;
 		}
-		this.setPreferredSize(new Dimension(width - 25, getStaff().getHeightIf(width)));	//	Needed for the scrollBar bars to appear
-		this.revalidate();	//	Needed to recalc the scrollBar bars
 
 		repaint();
 	}
-	public Scroll getScrollPane() { return Scroll.class.cast(getParent().getParent()); } // -_-
-	@Override
-	public StoryspaceScroll getStoryspaceScroll() { return storyspaceRepresentative.storyspaceScroll; }
+	public StoryspaceScroll getScroll() { return scroll; }
 
 	// IModel implementation
 
@@ -124,9 +115,7 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 	public Staff getFocusedChild() { return getStaff(); }
 	@Override
 	public StoryspaceScroll getModelParent() {
-		return getScrollPane() instanceof StoryspaceScroll
-			? StoryspaceScroll.class.cast(getScrollPane())
-			: null;
+		return getScroll();
 	}
 	@Override
 	public AbstractHandler getHandler() { return this.handler; }
@@ -146,17 +135,22 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 	// getters/setters
 
 	public Staff getStaff() { return this.staff; }
+	public Settings getSettings() {
+		StoryspaceScroll scroll = getScroll();
+		Storyspace storyspace = scroll.getModelParent();
+		return storyspace.getSettings();
+	}
 
 	// maybe put it into AbstractModel?
-	private static int dy() { return Settings.getStepHeight(); }
+	private int dy() { return getSettings().getStepHeight(); }
 
 	// Until here
 
 	// event handles
 
 	public void page(Combo combo) {
-		JScrollBar vertical = getScrollPane().getVerticalScrollBar();
-		vertical.setValue(h.limit(vertical.getValue() + combo.getSign() * Staff.SISDISPLACE * this.dy(), 0, vertical.getMaximum()));
+		JScrollBar vertical = getScroll().getVerticalScrollBar();
+		vertical.setValue(limit(vertical.getValue() + combo.getSign() * Staff.SISDISPLACE * this.dy(), 0, vertical.getMaximum()));
 		repaint();
 	}
 
@@ -165,9 +159,12 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 	private AbstractHandler makeHandler() {
 		return new AbstractHandler(this) {
 			protected void initActionMap() {
-//				addCombo(ctrl, k.VK_F).setDo(getContext()::switchFullscreen);
 				addCombo(0, k.VK_PAGE_DOWN).setDo(getContext()::page);
 				addCombo(0, k.VK_PAGE_UP).setDo(getContext()::page);
+
+				addCombo(ctrl, k.VK_MINUS).setDo(() -> getSettings().scale(-1));
+				addCombo(ctrl, k.VK_EQUALS).setDo(() -> getSettings().scale(+1));
+				addCombo(ctrl, k.VK_F).setDo(() -> getSettings().scale(getScroll().isFullscreen() ? -1 : 1).isSuccess());
 			}
 			public Boolean mousePressedFinal(ComboMouse mouse) {
 				if (mouse.leftButton) {

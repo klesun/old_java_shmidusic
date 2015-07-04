@@ -79,7 +79,7 @@ public class StaffHandler extends AbstractHandler {
 //		addCombo(ctrl, k.VK_E).setDo(makeSaveFileDialog(FileProcessor::savePNG, pngChooser, "png"));
 //
 //		addCombo(ctrl, k.VK_F).setDo(() -> {
-//			return Settings.inst().scale(getContext().getParentSheet().getStoryspaceScroll().isFullscreen() ? -1 : 1);  // we don't want to interrupt parent's action, just do something before
+//			return Settings.inst().scale(getContext().getParentSheet().getScroll().isFullscreen() ? -1 : 1);  // we don't want to interrupt parent's action, just do something before
 //		});
 //
 //		// TODO: save should use same chooser as open one day
@@ -175,8 +175,6 @@ public class StaffHandler extends AbstractHandler {
 		actionMap
 			.p(new Combo(ctrl, k.VK_P), mkAction(Staff::triggerPlayback))
 			.p(new Combo(ctrl, k.VK_D), mkFailableAction(s -> DeviceEbun.changeOutDevice(s.getConfig())))
-			.p(new Combo(ctrl, k.VK_MINUS), mkFailableAction(s -> Settings.inst().scale(-1)))
-			.p(new Combo(ctrl, k.VK_EQUALS), mkFailableAction(s -> Settings.inst().scale(+1)))
 			.p(new Combo(ctrl, k.VK_0), mkAction(s -> s.mode = Staff.aMode.passive))
 			.p(new Combo(ctrl, k.VK_9), mkAction(s -> s.mode = Staff.aMode.insert))
 			.p(new Combo(0, k.VK_ESCAPE), mkAction(s -> s.getConfig().getDialog().showMenuDialog(StaffConfig::syncSyntChannels)))
@@ -188,7 +186,6 @@ public class StaffHandler extends AbstractHandler {
 			.p(new Combo(0, k.VK_END), mkAction(s -> s.setFocusedIndex(s.getAccordList().size() - 1)))
 			.p(new Combo(ctrl, k.VK_UP), mkFailableAction(s -> s.moveFocusRow(-1)))
 			.p(new Combo(ctrl, k.VK_DOWN), mkFailableAction(s -> s.moveFocusRow(1)))
-			.p(new Combo(ctrl, k.VK_F), mkFailableAction(s -> Settings.inst().scale(s.getParentSheet().getStoryspaceScroll().isFullscreen() ? -1 : 1)))
 			.p(new Combo(ctrl, k.VK_E), mkFailableAction(FileProcessor::savePNG))
 			.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel))
 			.p(new Combo(ctrl, k.VK_O), mkFailableAction(FileProcessor::openStaff))
@@ -199,7 +196,7 @@ public class StaffHandler extends AbstractHandler {
 		// MIDI-key press
 		for (Map.Entry<Combo, Integer> entry: Combo.getComboTuneMap().entrySet()) {
 			ContextAction<Staff> action = new ContextAction<>();
-			actionMap.p(entry.getKey(), action.setRedo(s -> { s.addNewAccord().addNewNota(entry.getValue(), Settings.inst().getDefaultChannel()); }));
+			actionMap.p(entry.getKey(), action.setRedo(s -> { s.addNewAccord().addNewNota(entry.getValue(), s.getSettings().getDefaultChannel()); }));
 		}
 
 		return actionMap;

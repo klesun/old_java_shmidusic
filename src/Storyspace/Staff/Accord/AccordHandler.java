@@ -59,7 +59,7 @@ public class AccordHandler extends AbstractHandler {
 		for (Map.Entry<Combo, Integer> entry: Combo.getComboTuneMap().entrySet()) {
 			ContextAction<Accord> action = new ContextAction<>();
 			actionMap.p(entry.getKey(), action.setRedo(accord -> System.currentTimeMillis() - accord.getEarliestKeydown() < ACCORD_EPSILON
-					? new ActionResult(accord.addNewNota(entry.getValue(), Settings.inst().getDefaultChannel()))
+					? new ActionResult(accord.addNewNota(entry.getValue(), accord.getSettings().getDefaultChannel()))
 					: new ActionResult("too slow. to collect Nota-s into single accord, they have to be pressed in " + ACCORD_EPSILON + " milliseconds")));
 		}
 

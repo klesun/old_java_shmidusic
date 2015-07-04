@@ -1,11 +1,12 @@
 package Storyspace;
 
+import Gui.ImageStorage;
+import Gui.Settings;
 import Main.MajesticWindow;
 import Model.*;
 import Storyspace.Image.ImagePanel;
 import Storyspace.Staff.StaffPanel;
 import Storyspace.Article.Article;
-import Stuff.OverridingDefaultClasses.Scroll;
 import Stuff.Tools.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,11 +22,12 @@ public class Storyspace extends JPanel implements IComponentModel {
 
 	private MajesticWindow window = null;
 
-	@Deprecated // no need to have direct access to them and makes confusion
-	private ArrayList<IStoryspacePanel> modelChildList = new ArrayList<>();
+	private List<StoryspaceScroll> childScrollList = new ArrayList<>();
 
-	private AbstractHandler handler = null;
-	private Helper modelHelper = new Helper(this);
+	final private AbstractHandler handler;
+	final private Helper modelHelper = new Helper(this);
+	final private Settings settings = new Settings(this);
+	final private ImageStorage imageStorage = new ImageStorage(this);
 
 	public Storyspace(MajesticWindow window) {
 		this.window = window;
@@ -41,23 +43,26 @@ public class Storyspace extends JPanel implements IComponentModel {
 	}
 
 	public StoryspaceScroll addModelChild(IStoryspacePanel child) {
-		modelChildList.add(child);
 		StoryspaceScroll scroll = new StoryspaceScroll(child, this);
+		childScrollList.add(scroll);
 		this.add(scroll);
-		this.validate();
+
+		/** @ommented for debug */
+//		this.validate();
 		child.requestFocus();
+
 		return scroll;
 	}
 
 	public void removeModelChild(IStoryspacePanel child) {
-		this.remove(child.getStoryspaceScroll());
-		modelChildList.remove(child);
+		this.remove(child.getScroll());
+		childScrollList.remove(child.getScroll());
 		repaint();
 	}
 
 	private void clearChildList() {
 		this.removeAll();
-		this.modelChildList.clear();
+		this.childScrollList.clear();
 	}
 
 	// getters
@@ -74,8 +79,8 @@ public class Storyspace extends JPanel implements IComponentModel {
 		if (focused instanceof IModel) {
 			IModel model = (IModel)focused;
 			while (model != null) {
-				if (modelChildList.contains(model)) {
-					return IStoryspacePanel.class.cast(model).getStoryspaceScroll();
+				if (childScrollList.contains(model)) {
+					return (StoryspaceScroll)model;
 				}
 				model = model.getModelParent();
 			}
@@ -90,12 +95,15 @@ public class Storyspace extends JPanel implements IComponentModel {
 		return modelHelper;
 	}
 
+	public Settings getSettings() { return this.settings; }
+	public ImageStorage getImageStorage() { return this.imageStorage; }
+
 	@Override
 	public void getJsonRepresentation(JSONObject dict) {
-		dict.put("childBlockList", new JSONArray(modelChildList.stream().map(child -> {
-			JSONObject childJs = Helper.getJsonRepresentation((IModel) child);
-			childJs.put("scroll", Helper.getJsonRepresentation(IStoryspacePanel.class.cast(child).getStoryspaceScroll()));
-			childJs.put("className", child.getClass().getSimpleName());
+		dict.put("childBlockList", new JSONArray(childScrollList.stream().map(child -> {
+			JSONObject childJs = Helper.getJsonRepresentation(child.content);
+			childJs.put("scroll", Helper.getJsonRepresentation(child));
+			childJs.put("className", child.content.getClass().getSimpleName());
 			return childJs;
 		}).toArray()));
 	}
@@ -106,11 +114,11 @@ public class Storyspace extends JPanel implements IComponentModel {
 		for (int i = 0; i < childBlockList.length(); ++i) {
 			JSONObject childJs = childBlockList.getJSONObject(i);
 			IStoryspacePanel child = makeChildByClassName(childJs.getString("className"));
-			child.getStoryspaceScroll().reconstructFromJson(childJs.getJSONObject("scroll"));
+			child.getScroll().reconstructFromJson(childJs.getJSONObject("scroll"));
 			child.reconstructFromJson(childJs);
 
 			// StaffPanels take ~10 mib; Articles - ~1 mib
-//			Logger.logMemory("reconstructed " + child.getClass().getSimpleName() + " [" + child.getStoryspaceScroll().toString() + "]");
+//			Logger.logMemory("reconstructed " + child.getClass().getSimpleName() + " [" + child.getScroll().toString() + "]");
 		}
 		return this;
 	}
@@ -136,10 +144,15 @@ public class Storyspace extends JPanel implements IComponentModel {
 		return null;
 	}
 
+	public List<StoryspaceScroll> getChildScrollList() {
+		return childScrollList;
+	}
+
+	/** @unused kinda */
 	public List<Article> getArticles() {
-		return modelChildList.stream()
-				.filter(child -> child instanceof Article)
-				.map(child -> Article.class.cast(child))
+		return getChildScrollList().stream()
+				.filter(scroll -> scroll.content instanceof Article)
+				.map(scroll -> Article.class.cast(scroll.content))
 				.collect(Collectors.toList());
 	}
 
@@ -153,9 +166,7 @@ public class Storyspace extends JPanel implements IComponentModel {
 	public void scale(Combo combo) {
 		int sign = combo.getSign();
 		double factor = sign == -1 ? 0.75 : 1 / 0.75;
-		for (IStoryspacePanel child: modelChildList) {
-			StoryspaceScroll scroll = child.getStoryspaceScroll();
-//			Scroll scroll = Scroll.class.cast(child.getParent().getParent()); // =D
+		for (StoryspaceScroll scroll: childScrollList) {
 
 			int width = (int) (scroll.getWidth() * factor);
 			int height = (int) (scroll.getHeight() * factor);
@@ -170,7 +181,11 @@ public class Storyspace extends JPanel implements IComponentModel {
 		}
 	}
 
-	public StaffPanel addMusicBlock(Combo combo) { return new StaffPanel(this); }
-	public void addTextBlock(Combo combo) { new Article(this); }
-	public void addImageBlock(Combo combo) { new ImagePanel(this); }
+	public StaffPanel addMusicBlock() {
+		StaffPanel obj = new StaffPanel(this);
+		this.revalidate();
+		return obj;
+	}
+	public void addTextBlock() { new Article(this); }
+	public void addImageBlock() { new ImagePanel(this); }
 }

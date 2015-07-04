@@ -1,5 +1,7 @@
 package Storyspace.Staff;
 
+import Gui.ImageStorage;
+import Gui.Settings;
 import Model.AbstractHandler;
 import Model.AbstractModel;
 import Model.IComponentModel;
@@ -14,7 +16,7 @@ abstract public class MidianaComponent extends AbstractModel implements ICompone
 
 	abstract public MidianaComponent getFocusedChild();
 	abstract protected AbstractHandler makeHandler();
-//	public abstract void drawOn(Graphics surface, int x, int y); // TODO: renmae to paintComponent() for compatibility with AWT components
+	abstract  public void drawOn(Graphics surface, int x, int y, Boolean completeRepaint); // TODO: renmae to paintComponent() for compatibility with AWT components
 
 	public MidianaComponent(IComponentModel parent) {
 		super(parent);
@@ -44,5 +46,12 @@ abstract public class MidianaComponent extends AbstractModel implements ICompone
 		}
 		return (StaffPanel)context;
 	}
+
+	final public Settings getSettings() {
+		return getFirstPanelParent().getSettings();
+	}
+	final public ImageStorage getImageStorage() { return getFirstPanelParent().getScroll().getModelParent().getImageStorage(); }
+	final public int dx() { return getSettings().getStepWidth(); }
+	final public int dy() { return getSettings().getStepHeight(); }
 
 }

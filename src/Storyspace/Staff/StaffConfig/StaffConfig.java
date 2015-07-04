@@ -89,14 +89,14 @@ public class StaffConfig extends MidianaComponent {
 
 	public static void syncSyntChannels(AbstractModel c) { ((StaffConfig)c).syncSyntChannels(); }
 
-	public void drawOn(Graphics g, int xIndent, int yIndent) {
-		int dX = Settings.getNotaWidth()/5, dY = Settings.getNotaHeight()*2;
+	public void drawOn(Graphics g, int xIndent, int yIndent, Boolean completeRepaint) {
+		int dX = dx()/5, dY = getSettings().getNotaHeight() * 2;
 		g.drawImage(this.getImage(), xIndent - dX, yIndent - dY, null);
 	}
 
 	public BufferedImage getImage() {
-		int w = Settings.getNotaWidth() * 5;
-		int h = Settings.getNotaHeight() * 6;
+		int w = dx() * 5;
+		int h = getSettings().getNotaHeight() * 6;
 		BufferedImage rez = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 		Graphics g = rez.getGraphics();
 		g.setColor(Color.black);
@@ -106,17 +106,17 @@ public class StaffConfig extends MidianaComponent {
 			tz /= 2;
 			tc /= 2;
 		}
-		int inches = Settings.getNotaHeight()*5/8, taktX= 0, taktY=Settings.getNotaHeight()*2; // 25, 80
+		int inches = getSettings().getNotaHeight()*5/8, taktX= 0, taktY = getSettings().getNotaHeight()*2; // 25, 80
 		g.setFont(new Font(Font.MONOSPACED, Font.BOLD, inches)); // 12 - 7px width
 		g.drawString(tc+"", 0 + taktX, inches*4/5 + taktY);
 		int delta = 0 + (tc>9 && tz<10? inches*7/12/2: 0) + ( tc>99 && tz<100?inches*7/12/2:0 );
 		g.drawString(tz+"", delta + taktX, 2*inches*4/5 + taktY);
 
 		int tpx = 0, tpy = 0;
-		g.drawImage(ImageStorage.inst().getQuarterImage(), tpx, tpy, null);
-		inches = Settings.getNotaHeight()*9/20;
+		g.drawImage(getImageStorage().getQuarterImage(), tpx, tpy, null);
+		inches = getSettings().getNotaHeight() * 9/20;
 		g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, inches)); // 12 - 7px width
-		g.drawString(" = " + getTempo() , tpx + Settings.getNotaWidth()*4/5, tpy + inches*4/5 + Settings.getNotaHeight()*13/20);
+		g.drawString(" = " + getTempo() , tpx + dx() * 4/5, tpy + inches*4/5 + getSettings().getNotaHeight()*13/20);
 
 		return rez;
 	}

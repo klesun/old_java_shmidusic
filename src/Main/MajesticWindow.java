@@ -4,16 +4,13 @@ import Gui.Constants;
 import Model.ActionFactory;
 import Model.Combo;
 import Model.IComponentModel;
-import Model.IModel;
 import Storyspace.Staff.StaffPanel;
 import Storyspace.Storyspace;
-import Stuff.OverridingDefaultClasses.Scroll;
+import Stuff.Tools.Logger;
 
 import javax.swing.*;
 
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.util.HashMap;
 import java.util.Map;
 
 public class MajesticWindow extends JFrame {
@@ -55,8 +52,9 @@ public class MajesticWindow extends JFrame {
 //		addMenuBar();
 
 		switchTo(cardEnum.CARDS_STORYSPACE);
+
 		// for user-friendship there will be one initial staff
-		storyspace.addMusicBlock(Combo.makeFake()).getStoryspaceScroll().switchFullscreen();
+		storyspace.addMusicBlock().getScroll().switchFullscreen();
 
 	}
 

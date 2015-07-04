@@ -1,7 +1,6 @@
 package Stuff.Tools;
 
 import Model.ActionResult;
-import Model.Combo;
 import Model.Helper;
 import Main.Main;
 import Storyspace.Staff.Staff;
@@ -74,7 +73,7 @@ public class FileProcessor {
 		if (explain.isSuccess()) {
 			File f = explain.getData();
 			saveModel(f, staff); // TODO: use messages when fail
-			staff.getParentSheet().getStoryspaceScroll().setTitle(f.getName());
+			staff.getParentSheet().getScroll().setTitle(f.getName());
 			return new ActionResult(true);
 		} else { return explain; }
 	}
@@ -92,7 +91,7 @@ public class FileProcessor {
 		if (fileChooser.showOpenDialog(Main.window) == JFileChooser.APPROVE_OPTION) {
 			File f = fileChooser.getSelectedFile();
 			openModel(f, staff, "stanExternalRepresentation");
-			staff.getParentSheet().getStoryspaceScroll().setTitle(f.getName());
+			staff.getParentSheet().getScroll().setTitle(f.getName());
 			return new ActionResult(true);
 		} else {
 			return new ActionResult("you changed your mind, why?");

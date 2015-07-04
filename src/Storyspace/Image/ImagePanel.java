@@ -1,6 +1,5 @@
 package Storyspace.Image;
 
-import Gui.ImageStorage;
 import Model.*;
 import Storyspace.Storyspace;
 import Storyspace.IStoryspacePanel;
@@ -54,7 +53,7 @@ public class ImagePanel extends JPanel implements IStoryspacePanel {
 	}
 
 	@Override
-	public StoryspaceScroll getStoryspaceScroll() { return scroll; }
+	public StoryspaceScroll getScroll() { return scroll; }
 	@Override
 	public IComponentModel getFocusedChild() { return null; }
 	@Override
@@ -78,7 +77,7 @@ public class ImagePanel extends JPanel implements IStoryspacePanel {
 
 	private void loadImage(File file) {
 		this.imagePath = file.getAbsolutePath();
-		this.image = ImageStorage.inst().openImage(file);
+		this.image = getScroll().getModelParent().getImageStorage().openImage(file);
 
 		scroll.setTitle(file.getName());
 

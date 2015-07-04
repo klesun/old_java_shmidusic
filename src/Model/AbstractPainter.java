@@ -2,11 +2,12 @@ package Model;
 
 // this will be helper class for MidianaComponent-s
 
-import Gui.Settings;
+import Model.Field.Field;
 import Storyspace.Staff.MidianaComponent;
 import Stuff.OverridingDefaultClasses.Pnt;
 
 import java.awt.*;
+import java.util.stream.Collectors;
 
 abstract public class AbstractPainter { // like Picasso!
 
@@ -35,12 +36,23 @@ abstract public class AbstractPainter { // like Picasso!
 	final protected void drawString(String str, int x0, int y0, Color c) {
 		performWithColor(c, () -> g.drawString(str, x + x0, y + y0));
 	}
-	// TODO: uncomment once all models have same params for drawOn
-//	final protected void drawModel(MidianaComponent model, int x0, int y0) {
-//		model.drawOn(g, x + x0, y + y0);
-//	}
+	final protected void drawModel(MidianaComponent model, int x0, int y0, Boolean completeRepaint) {
+		model.drawOn(g, x + x0, y + y0, completeRepaint);
+	}
 	final protected void drawImage(Image image, int x0, int y0) {
 		g.drawImage(image, x + x0, y + y0, null);
+	}
+
+	protected void drawFields() {
+		java.util.List<Field> drawableList = context.getModelHelper().getFieldStorage().stream().filter(f -> f.hasPaintingLambda()).collect(Collectors.toList());
+
+		int w = dx() * 2;
+		int dy = dy(); // TODO: it should be TOTAL_SPACE_FOR_THEM / THEIR_COUNT one day
+
+		for (int i = 0; i < drawableList.size(); ++i) {
+			Rectangle r = new Rectangle(x, y + dy, w, dy);
+			drawableList.get(i).repaintIfNeeded(g, r);
+		}
 	}
 
 	private void performWithColor(Color c, Runnable lambda) {
@@ -50,8 +62,8 @@ abstract public class AbstractPainter { // like Picasso!
 		g.setColor(tmp);
 	}
 
-	final protected int dx() { return Settings.getStepWidth(); }
-	final protected int dy() { return Settings.getStepHeight(); }
+	final protected int dx() { return context.getSettings().getStepWidth(); }
+	final protected int dy() { return context.getSettings().getStepHeight(); }
 
 	final protected class Straight {
 		final public Pnt p1;

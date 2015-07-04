@@ -33,7 +33,7 @@ public class StoryspaceScrollHandler extends AbstractHandler {
 
 		context.getModelParent().addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent e) {
-				if (context.isFullscreen()) { context.fitToScreen(); } // throws suka null-pointer exception
+				if (context.isFullscreen()) { context.fitToScreen(); }
 			}
 		});
 
@@ -48,6 +48,10 @@ public class StoryspaceScrollHandler extends AbstractHandler {
 		addCombo(ctrl, k.VK_DELETE).setDo(c -> { getContext().getModelParent().removeModelChild(getContext().content); }); // TODO: it would be not bad to make it undoable
 		addCombo(0, k.VK_F2).setDo(() -> getContext().setTitle(JOptionPane.showInputDialog(getContext(), "Type new name for panel: ", getContext().getTitle())));
 		addCombo(ctrl, k.VK_F).setDo(getContext()::switchFullscreen);
+
+		// blocking actions for parent when fullscreen - issue[62]
+		addCombo(ctrl, k.VK_MINUS).setDo(() -> getContext().isFullscreen());
+		addCombo(ctrl, k.VK_EQUALS).setDo(() -> getContext().isFullscreen());
 	}
 
 	@Override
