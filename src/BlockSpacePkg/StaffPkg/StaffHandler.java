@@ -1,10 +1,10 @@
 
-package Storyspace.Staff;
+package BlockSpacePkg.StaffPkg;
 import Model.*;
-import Storyspace.Staff.StaffConfig.StaffConfig;
+import BlockSpacePkg.StaffPkg.StaffConfig.StaffConfig;
 import Stuff.Midi.DeviceEbun;
-import Storyspace.Staff.Accord.Accord;
-import Storyspace.Staff.Accord.Nota.Nota;
+import BlockSpacePkg.StaffPkg.Accord.Accord;
+import BlockSpacePkg.StaffPkg.Accord.Nota.Nota;
 import Stuff.OverridingDefaultClasses.TruMap;
 import Stuff.Tools.FileProcessor;
 
@@ -73,8 +73,11 @@ public class StaffHandler extends AbstractHandler {
 
 		actionMap
 			.p(new Combo(ctrl, k.VK_P), mkAction(Staff::triggerPlayback).setCaption("Play/Stop"))
-			.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel).setCaption("Save Staff"))
-			.p(new Combo(ctrl, k.VK_O), mkFailableAction(FileProcessor::openStaff).setCaption("Open Staff"))
+
+			// TODO: maybe move these two into Scroll
+			.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel).setCaption("Save StaffPkg"))
+			.p(new Combo(ctrl, k.VK_O), mkFailableAction(FileProcessor::openStaff).setCaption("Open StaffPkg"))
+
 			.p(new Combo(0, k.VK_ESCAPE), mkAction(s -> s.getConfig().getDialog().showMenuDialog(StaffConfig::syncSyntChannels))
 				.setCaption("Settings"))
 			.p(new Combo(0, k.VK_HOME), mkAction(s -> s.setFocusedIndex(-1)).setCaption("To Start"))

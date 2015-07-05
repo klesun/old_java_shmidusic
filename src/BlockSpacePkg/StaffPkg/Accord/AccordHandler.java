@@ -1,9 +1,9 @@
 
-package Storyspace.Staff.Accord;
+package BlockSpacePkg.StaffPkg.Accord;
 
 import Model.*;
-import Storyspace.Staff.Accord.Nota.Nota;
-import Storyspace.Staff.Accord.Nota.NotaHandler;
+import BlockSpacePkg.StaffPkg.Accord.Nota.Nota;
+import BlockSpacePkg.StaffPkg.Accord.Nota.NotaHandler;
 import Stuff.OverridingDefaultClasses.TruMap;
 import org.apache.commons.math3.fraction.Fraction;
 

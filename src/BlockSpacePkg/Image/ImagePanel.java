@@ -1,9 +1,9 @@
-package Storyspace.Image;
+package BlockSpacePkg.Image;
 
 import Model.*;
-import Storyspace.Storyspace;
-import Storyspace.IStoryspacePanel;
-import Storyspace.StoryspaceScroll;
+import BlockSpacePkg.BlockSpace;
+import BlockSpacePkg.IStoryspacePanel;
+import BlockSpacePkg.StoryspaceScroll;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -24,7 +24,7 @@ public class ImagePanel extends JPanel implements IStoryspacePanel {
 	private AbstractHandler handler = null;
 	private Helper modelHelper = new Helper(this);
 
-	public ImagePanel(Storyspace parentStoryspace) {
+	public ImagePanel(BlockSpace parentBlockSpace) {
 		setFocusable(true);
 		this.add(imageLabel = new JLabel("Image not loaded"));
 
@@ -49,7 +49,7 @@ public class ImagePanel extends JPanel implements IStoryspacePanel {
 		this.addMouseListener(handler);
 		this.addMouseMotionListener(handler);
 
-		this.scroll = parentStoryspace.addModelChild(this);
+		this.scroll = parentBlockSpace.addModelChild(this);
 	}
 
 	@Override

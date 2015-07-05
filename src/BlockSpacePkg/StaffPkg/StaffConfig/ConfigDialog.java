@@ -1,4 +1,4 @@
-package Storyspace.Staff.StaffConfig;
+package BlockSpacePkg.StaffPkg.StaffConfig;
 
 
 import Gui.ImageStorage;

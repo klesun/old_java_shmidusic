@@ -1,8 +1,7 @@
-package Storyspace;
+package BlockSpacePkg;
 import Model.AbstractHandler;
 import Model.Helper;
 import Model.IComponentModel;
-import Stuff.OverridingDefaultClasses.Pnt;
 import Stuff.OverridingDefaultClasses.Scroll;
 import Stuff.OverridingDefaultClasses.TruLabel;
 import org.json.JSONException;
@@ -14,11 +13,11 @@ import javax.swing.*;
 import javax.swing.border.Border;
 
 @SuppressWarnings("serial")
-public class StoryspaceScroll extends Scroll implements IComponentModel {
+public class Block extends Scroll implements IComponentModel {
 	
 	final public IStoryspacePanel content;
 
-	final private Storyspace parent;
+	final private BlockSpace parent;
 	final private AbstractHandler handler;
 	final private Helper modelHelper = new Helper(this);
 
@@ -39,7 +38,7 @@ public class StoryspaceScroll extends Scroll implements IComponentModel {
 	private Point lastPosition = new Point(DEFAULT_X, DEFAULT_Y);
 	private Boolean isFullscreen = false;
 
-	public StoryspaceScroll(IStoryspacePanel content, Storyspace parent) {
+	public Block(IStoryspacePanel content, BlockSpace parent) {
 		super((Component)content);
 		this.content = content;
 		this.parent = parent;
@@ -66,7 +65,7 @@ public class StoryspaceScroll extends Scroll implements IComponentModel {
 	@Override
 	public IComponentModel getFocusedChild() { return IComponentModel.class.cast(content); }
 	@Override
-	public Storyspace getModelParent() { return this.parent; }
+	public BlockSpace getModelParent() { return this.parent; }
 	@Override
 	public AbstractHandler getHandler() { return this.handler; }
 	@Override
@@ -83,7 +82,7 @@ public class StoryspaceScroll extends Scroll implements IComponentModel {
 		dict.put("title", getTitle());
 	}
 	@Override
-	public StoryspaceScroll reconstructFromJson(JSONObject jsObject) throws JSONException {
+	public Block reconstructFromJson(JSONObject jsObject) throws JSONException {
 		this.setLocation(jsObject.getInt("x"), jsObject.getInt("y"));
 		this.setSize(new Dimension(jsObject.getInt("width"), jsObject.getInt("height")));
 		this.setTitle(jsObject.getString("title"));
@@ -96,7 +95,7 @@ public class StoryspaceScroll extends Scroll implements IComponentModel {
 
 	// event handles
 
-	public StoryspaceScroll setTitle(String title) {
+	public Block setTitle(String title) {
 		this.titlePanel.removeAll();
 		this.titlePanel.add(new TruLabel(title));
 		this.titlePanel.validate();
@@ -108,12 +107,12 @@ public class StoryspaceScroll extends Scroll implements IComponentModel {
 	public void gotFocus() {
 		getModelParent().pushToFront(this);
 
-		setBorder(StoryspaceScroll.focusedBorder);
+		setBorder(Block.focusedBorder);
 		titlePanel.setBackground(new Color(200, 200, 200));
 	}
 
 	public void lostFocus() {
-		setBorder(StoryspaceScroll.unfocusedBorder);
+		setBorder(Block.unfocusedBorder);
 		titlePanel.setBackground(new Color(238, 238, 238));
 	}
 

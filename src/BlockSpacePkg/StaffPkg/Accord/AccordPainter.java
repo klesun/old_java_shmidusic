@@ -1,10 +1,7 @@
-package Storyspace.Staff.Accord;
+package BlockSpacePkg.StaffPkg.Accord;
 
-import Gui.Constants;
-import Gui.ImageStorage;
-import Gui.Settings;
 import Model.AbstractPainter;
-import Storyspace.Staff.Accord.Nota.Nota;
+import BlockSpacePkg.StaffPkg.Accord.Nota.Nota;
 
 import java.awt.*;
 

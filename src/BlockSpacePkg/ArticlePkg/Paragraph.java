@@ -1,4 +1,4 @@
-package Storyspace.Article;
+package BlockSpacePkg.ArticlePkg;
 
 import Gui.Constants;
 import Gui.ImageStorage;
@@ -16,8 +16,6 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter.HighlightPainter;
 import java.awt.*;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;

@@ -1,4 +1,4 @@
-package Storyspace.Article;
+package BlockSpacePkg.ArticlePkg;
 
 import Gui.ImageStorage;
 import Model.AbstractModel;

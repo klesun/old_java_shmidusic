@@ -1,6 +1,6 @@
-package Storyspace.Staff;
+package BlockSpacePkg.StaffPkg;
 
-import Storyspace.Staff.Accord.Accord;
+import BlockSpacePkg.StaffPkg.Accord.Accord;
 import org.apache.commons.math3.fraction.Fraction;
 
 public class TactMeasurer {

@@ -1,6 +1,5 @@
-package Storyspace.Staff.StaffConfig;
+package BlockSpacePkg.StaffPkg.StaffConfig;
 
-import Gui.ImageStorage;
 import Model.AbstractModel;
 import Model.Field.Field;
 

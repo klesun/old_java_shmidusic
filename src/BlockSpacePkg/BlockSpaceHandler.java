@@ -1,22 +1,20 @@
-package Storyspace;
+package BlockSpacePkg;
 
-import Main.MajesticWindow;
 import Model.*;
 import Stuff.Tools.FileProcessor;
 import Stuff.Tools.Logger;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.File;
 import java.util.Arrays;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public class StoryspaceHandler extends AbstractHandler {
+public class BlockSpaceHandler extends AbstractHandler {
 
-	public StoryspaceHandler(Storyspace context) { super(context); }
+	public BlockSpaceHandler(BlockSpace context) { super(context); }
 
 	@Override
 	protected void initActionMap() {
@@ -28,7 +26,7 @@ public class StoryspaceHandler extends AbstractHandler {
 			}
 
 			public String getDescription() {
-				return "Json Storyspace data";
+				return "Json BlockSpace data";
 			}
 		});
 
@@ -77,7 +75,7 @@ public class StoryspaceHandler extends AbstractHandler {
 	}
 
 	@Override
-	public Storyspace getContext() { return (Storyspace)super.getContext(); }
+	public BlockSpace getContext() { return (BlockSpace)super.getContext(); }
 
 	private static Component getFirstParentComponent(IModel model) {
 		while (!(model instanceof Component)) {
@@ -87,7 +85,7 @@ public class StoryspaceHandler extends AbstractHandler {
 		return Component.class.cast(model);
 	}
 
-	final private Consumer<Combo> makeSaveFileDialog(BiConsumer<File, Storyspace> lambda, JFileChooser chooser, String ext) {
+	final private Consumer<Combo> makeSaveFileDialog(BiConsumer<File, BlockSpace> lambda, JFileChooser chooser, String ext) {
 		return combo -> {
 			int rVal = chooser.showSaveDialog(getContext());
 			if (rVal == JFileChooser.APPROVE_OPTION) {

@@ -1,9 +1,9 @@
-package Storyspace.Article;
+package BlockSpacePkg.ArticlePkg;
 
 import Model.*;
-import Storyspace.IStoryspacePanel;
-import Storyspace.StoryspaceScroll;
-import Storyspace.Storyspace;
+import BlockSpacePkg.BlockSpace;
+import BlockSpacePkg.IBlockSpacePanel;
+import BlockSpacePkg.Block;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,9 +17,9 @@ import java.awt.event.FocusEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Article extends JPanel implements IStoryspacePanel {
+public class Article extends JPanel implements IBlockSpacePanel {
 
-	private StoryspaceScroll scroll = null;
+	private Block scroll = null;
 	private AbstractHandler handler = null;
 
 	private Helper modelHelper = new Helper(this);
@@ -28,7 +28,7 @@ public class Article extends JPanel implements IStoryspacePanel {
 
 	final private static int SCROLL_BAR_WIDTH = /*25*/ 26;
 
-	public Article(Storyspace parentStoryspace) {
+	public Article(BlockSpace parentBlockSpace) {
 		super();
         this.setBackground(Color.DARK_GRAY);
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -57,7 +57,7 @@ public class Article extends JPanel implements IStoryspacePanel {
 			}
 		});
 
-		scroll = parentStoryspace.addModelChild(this);
+		scroll = parentBlockSpace.addModelChild(this);
 
 		this.addNewParagraph();
 	}
@@ -116,7 +116,7 @@ public class Article extends JPanel implements IStoryspacePanel {
 	public List<Paragraph> getParList() { return parList; }
 
 	@Override
-	public StoryspaceScroll getScroll() { return scroll; }
+	public Block getScroll() { return scroll; }
 	@Override
 	public Paragraph getFocusedChild() {
 		Component focused = getModelParent().getModelParent().getWindow().getFocusOwner();
@@ -125,7 +125,7 @@ public class Article extends JPanel implements IStoryspacePanel {
 				: null;
 	}
 	@Override
-	public StoryspaceScroll getModelParent() { return getScroll(); }
+	public Block getModelParent() { return getScroll(); }
 	@Override
 	public AbstractHandler getHandler() { return this.handler; }
 	@Override

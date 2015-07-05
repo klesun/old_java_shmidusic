@@ -1,12 +1,12 @@
-package Storyspace;
+package BlockSpacePkg;
 
 import Gui.ImageStorage;
 import Gui.Settings;
 import Main.MajesticWindow;
 import Model.*;
-import Storyspace.Image.ImagePanel;
-import Storyspace.Staff.StaffPanel;
-import Storyspace.Article.Article;
+import BlockSpacePkg.Image.ImagePanel;
+import BlockSpacePkg.Staff.StaffPanel;
+import BlockSpacePkg.Article.Article;
 import Stuff.Tools.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Storyspace extends JPanel implements IComponentModel {
+public class BlockSpace extends JPanel implements IComponentModel {
 
 	private MajesticWindow window = null;
 
@@ -29,7 +29,7 @@ public class Storyspace extends JPanel implements IComponentModel {
 	final private Settings settings = new Settings(this);
 	final private ImageStorage imageStorage = new ImageStorage(this);
 
-	public Storyspace(MajesticWindow window) {
+	public BlockSpace(MajesticWindow window) {
 		this.window = window;
 		setLayout(null);
 		setFocusable(true);
@@ -54,9 +54,9 @@ public class Storyspace extends JPanel implements IComponentModel {
 		return scroll;
 	}
 
-	public void removeModelChild(IStoryspacePanel child) {
-		this.remove(child.getScroll());
-		childScrollList.remove(child.getScroll());
+	public void removeModelChild(StoryspaceScroll child) {
+		this.remove(child);
+		childScrollList.remove(child);
 		repaint();
 	}
 
@@ -72,7 +72,7 @@ public class Storyspace extends JPanel implements IComponentModel {
 	// overriding IModel
 
 	@Override
-	public IComponentModel getModelParent() { return null; } // Storyspace is root parent
+	public IComponentModel getModelParent() { return null; } // BlockSpace is root parent
 	@Override
 	public StoryspaceScroll getFocusedChild() { // i think, i don't get awt philosophy...
 		return getFocusedChild(window.getFocusOwner());
@@ -111,7 +111,7 @@ public class Storyspace extends JPanel implements IComponentModel {
 		}).toArray()));
 	}
 	@Override
-	public Storyspace reconstructFromJson(JSONObject jsObject) throws JSONException {
+	public BlockSpace reconstructFromJson(JSONObject jsObject) throws JSONException {
 		clearChildList();
 		JSONArray childBlockList = jsObject.getJSONArray("childBlockList");
 		for (int i = 0; i < childBlockList.length(); ++i) {
@@ -143,7 +143,7 @@ public class Storyspace extends JPanel implements IComponentModel {
 			}
 		}
 
-		Logger.fatal("Invalid className, Storyspace denies this child [" + className + "]");
+		Logger.fatal("Invalid className, BlockSpace denies this child [" + className + "]");
 		return null;
 	}
 

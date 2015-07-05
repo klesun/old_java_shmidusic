@@ -1,7 +1,6 @@
-package Storyspace.Staff.Accord;
+package BlockSpacePkg.StaffPkg.Accord;
 
 import java.awt.*;
-import java.awt.geom.AffineTransform;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -9,11 +8,11 @@ import Model.ActionResult;
 import Model.Field.Arr;
 import Model.Field.Field;
 import Model.SimpleAction;
-import Storyspace.Staff.MidianaComponent;
+import BlockSpacePkg.StaffPkg.MidianaComponent;
 import org.apache.commons.math3.fraction.Fraction;
 
-import Storyspace.Staff.Accord.Nota.Nota;
-import Storyspace.Staff.Staff;
+import BlockSpacePkg.StaffPkg.Accord.Nota.Nota;
+import BlockSpacePkg.StaffPkg.Staff;
 import org.json.JSONObject;
 
 public class Accord extends MidianaComponent {
