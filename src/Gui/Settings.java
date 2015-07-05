@@ -22,15 +22,13 @@ public class Settings {
 	public void setDefaultChannel(int value) { this.defaultChannel = value; }
 	public int getDefaultChannel() { return this.defaultChannel; }
 
-	public ActionResult scale(int sign) {
+	public void scale(int sign) {
 		this.scaleKoefficient = sign == 1 ? -1 : -3;
 		storyspace.getImageStorage().refreshImageSizes();
 
 		storyspace.getChildScrollList().stream()
 				.filter(s -> s.content instanceof StaffPanel)
 				.forEach(s -> ((StaffPanel)s.content).surfaceCompletelyChanged());
-
-		return new ActionResult("defaultly passed to parent");
 	}
 
 	public int getStepWidth() { return getNotaWidth(); } // nota image width (the one OS would display when you click on fil->properties)

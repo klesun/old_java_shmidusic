@@ -30,11 +30,12 @@ public class Playback {
 		else { play(); }
 	}
 
-	public void interrupt() {
+	public Boolean interrupt() {
 		if (this.runningProcess != null) {
 			this.runningProcess.interrupt();
 			this.runningProcess = null;
 		}
+		return true;
 	}
 
 	private ActionResult<PlaybackTimer> play() {

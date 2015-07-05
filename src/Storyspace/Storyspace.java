@@ -75,9 +75,12 @@ public class Storyspace extends JPanel implements IComponentModel {
 	public IComponentModel getModelParent() { return null; } // Storyspace is root parent
 	@Override
 	public StoryspaceScroll getFocusedChild() { // i think, i don't get awt philosophy...
-		Component focused = window.getFocusOwner();
-		if (focused instanceof IModel) {
-			IModel model = (IModel)focused;
+		return getFocusedChild(window.getFocusOwner());
+	}
+
+	public StoryspaceScroll getFocusedChild(Component awtFocus) {
+		if (awtFocus instanceof IModel) {
+			IModel model = (IModel)awtFocus;
 			while (model != null) {
 				if (childScrollList.contains(model)) {
 					return (StoryspaceScroll)model;

@@ -1,16 +1,13 @@
 package Model;
 
-import Stuff.OverridingDefaultClasses.TruHashMap;
+import Stuff.OverridingDefaultClasses.TruMap;
 import Stuff.Tools.Logger;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import javafx.scene.input.KeyCode;
 
+import javax.swing.*;
 import java.awt.event.KeyEvent;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 public class Combo {
@@ -28,10 +25,6 @@ public class Combo {
 	public Combo(int mod, int keyCode) {
 		this.mod = mod;
 		this.keyCode = keyCode;
-	}
-
-	public static Combo makeFake() {
-		return new Combo(0,0);
 	}
 
 	public Combo changeSign() {
@@ -119,14 +112,17 @@ public class Combo {
 		return (this.mod > 0 ? this.getModName() + "+" : "") + this.getKeyName();
 	}
 
+	public KeyStroke toKeystroke() {
+		return KeyStroke.getKeyStroke(getKeyCode(), mod);
+	}
+
 	private String getModName() {
-		Map<Integer, String> modMap = new TruHashMap<>().p(KeyEvent.SHIFT_MASK, "Shift").p(KeyEvent.CTRL_MASK, "Ctrl").p(KeyEvent.ALT_MASK, "Alt");
+		Map<Integer, String> modMap = new TruMap<>().p(KeyEvent.SHIFT_MASK, "Shift").p(KeyEvent.CTRL_MASK, "Ctrl").p(KeyEvent.ALT_MASK, "Alt");
 		return modMap.get(this.mod);
 	}
 
 	private String getKeyName() {
 		return Character.toString((char)getKeyCode());
-//		return Character.getName(getKeyCode());
 	}
 
 	@Override

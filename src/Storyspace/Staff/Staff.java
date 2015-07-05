@@ -85,7 +85,7 @@ public class Staff extends MidianaComponent {
 
 	private void accordListChanged(int repaintAllFromIndex) {
 		int width = getParentSheet().getScroll().getWidth();
-		getParentSheet().setPreferredSize(new Dimension(width - 25, getHeightIf(width)));	//	Needed for the scrollBar bars to appear
+		getParentSheet().setPreferredSize(new Dimension(10/*width - 25*/, getHeightIf(width)));	//	Needed for the scrollBar bars to appear
 		getParentSheet().revalidate();	//	Needed to recalc the scrollBar bars
 
 		getAccordList().subList(repaintAllFromIndex, getAccordList().size()).forEach(Accord::surfaceChanged);
@@ -230,6 +230,7 @@ public class Staff extends MidianaComponent {
 	public StaffPanel getParentSheet() { // ???
 		return this.blockPanel;
 	}
+	public Playback getPlayback() { return this.playback; }
 	@Override
 	public StaffPanel getModelParent() { return getParentSheet(); }
 	public int getFocusedIndex() {

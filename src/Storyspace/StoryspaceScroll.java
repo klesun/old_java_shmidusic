@@ -118,15 +118,21 @@ public class StoryspaceScroll extends Scroll implements IComponentModel {
 	}
 
 	public void switchFullscreen() {
+
 		if (!isFullscreen) {
 			lastPosition = getLocation();
 			lastSize = getSize();
 			fitToScreen();
 			getModelParent().getWindow().setTitle(getTitle());
+
+			getModelParent().getSettings().scale(1);
 		} else {
 			setLocation(lastPosition);
 			setSize(lastSize);
+
+			getModelParent().getSettings().scale(-1);
 		}
+		validate();
 
 		content.requestFocus();
 		isFullscreen = !isFullscreen;

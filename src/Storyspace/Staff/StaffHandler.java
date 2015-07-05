@@ -1,20 +1,15 @@
 
 package Storyspace.Staff;
-import Gui.Settings;
 import Model.*;
 import Storyspace.Staff.StaffConfig.StaffConfig;
 import Stuff.Midi.DeviceEbun;
 import Storyspace.Staff.Accord.Accord;
 import Storyspace.Staff.Accord.Nota.Nota;
-import Stuff.Midi.Playback;
-import Stuff.Musica.PlayMusThread;
-import Stuff.OverridingDefaultClasses.TruHashMap;
+import Stuff.OverridingDefaultClasses.TruMap;
 import Stuff.Tools.FileProcessor;
 
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.swing.*;
@@ -45,158 +40,64 @@ public class StaffHandler extends AbstractHandler {
 
 	@Override
 	protected void initActionMap() {
-
 		for (Map.Entry<Combo, ContextAction<Staff>> entry: makeStaticActionMap().entrySet()) {
 			new ActionFactory(entry.getKey()).addTo(this.actionMap).setDo(() -> entry.getValue().redo(getContext()).isSuccess());
 		}
-
-//		JFileChooser chooser = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/");
-//		jsonChooser.setFileFilter(new FileFilter() {
-//			public boolean accept(File f) { 	return f.getAbsolutePath().endsWith(".midi.json") || f.isDirectory(); }
-//			public String getDescription() { return "Json Midi-music data"; }
-//		});
-//
-//		JFileChooser pngChooser = new JFileChooser();
-//		pngChooser.setFileFilter(new FileNameExtensionFilter("PNG images", "png"));
-//
-//		Staff s = this.getContext();
-//
-//		addCombo(ctrl, k.VK_P).setDo(s::triggerPlayer);
-//		addCombo(ctrl, k.VK_D).setDo(() -> {
-//			DeviceEbun.changeOutDevice(getContext().getConfig());
-//
-//		});
-//		addCombos(ctrl, Arrays.asList(k.VK_0, k.VK_9)).stream().forEach(factory -> factory.setDo(s::changeMode));
-//		addCombo(ctrl, k.VK_RIGHT).setDo(s::moveFocusUsingCombo).setUndoChangeSign();
-//
-//		addCombo(ctrl, k.VK_UP).setDo(s::moveFocusRow).setUndoChangeSign();
-//		addCombo(ctrl, k.VK_DOWN).setDo(s::moveFocusRow).setUndoChangeSign();
-//
-//		// teared from StaffPanel
-//		addCombo(ctrl, k.VK_EQUALS).setDo(() -> Settings.inst().scale(+1));
-//		addCombo(ctrl, k.VK_MINUS).setDo(() -> Settings.inst().scale(-1));
-//
-//		addCombo(ctrl, k.VK_E).setDo(makeSaveFileDialog(FileProcessor::savePNG, pngChooser, "png"));
-//
-//		addCombo(ctrl, k.VK_F).setDo(() -> {
-//			return Settings.inst().scale(getContext().getParentSheet().getScroll().isFullscreen() ? -1 : 1);  // we don't want to interrupt parent's action, just do something before
-//		});
-//
-//		// TODO: save should use same chooser as open one day
-//		addCombo(ctrl, k.VK_S).setDo(makeSaveFileDialog(FileProcessor::saveMusicPanel, jsonChooser, "midi.json"));
-//		addCombo(ctrl, k.VK_O).setDo(combo -> {
-//			int sVal = jsonChooser.showOpenDialog(getContext().getParentSheet());
-//			if (sVal == JFileChooser.APPROVE_OPTION) {
-//				FileProcessor.openStaff(jsonChooser.getSelectedFile(), getContext());
-//			}
-//		});
-//
-//		addCombo(ctrl, k.VK_W).setDo(() -> updateDeprecatedPauses(s));
-//
-//
-//		for (Integer i: Arrays.asList(k.VK_LEFT, k.VK_RIGHT)) {
-//			addCombo(0, i).setDo((event) -> {
-//				PlayMusThread.shutTheFuckUp();
-//				s.moveFocusUsingCombo(event);
-//			}).setUndoChangeSign();
-//		}
-//
-//		addCombo(0, k.VK_HOME).setDo2((event) -> {
-//			PlayMusThread.shutTheFuckUp();
-//			Integer lastIndex = s.getFocusedIndex();
-//			s.setFocusedIndex(-1);
-//			return new HashMap<String, Object>() {{
-//				put("lastIndex", lastIndex);
-//			}};
-//		}).setUndo((combo, paramsForUndo) -> {
-//			s.setFocusedIndex((Integer) paramsForUndo.get("lastIndex"));
-//		});
-//
-//		addCombo(0, k.VK_END).setDo2((event) -> {
-//			PlayMusThread.shutTheFuckUp();
-//			Integer lastIndex = s.getFocusedIndex();
-//			s.setFocusedIndex(s.getAccordList().size() - 1);
-//			return new HashMap<String, Object>() {{
-//				put("lastIndex", lastIndex);
-//			}};
-//		}).setUndo((combo, paramsForUndo) -> {
-//			s.setFocusedIndex((Integer) paramsForUndo.get("lastIndex"));
-//		});
-//
-//		addCombo(0, k.VK_DELETE).setDo((event) -> {
-//			Accord accord = s.getFocusedAccord();
-//			if (accord != null) {
-//				deletedAccordQueue.add(accord);
-//				s.getAccordList().remove(s.focusedIndex--);
-//				return true;
-//			} else {
-//				handleKey(new Combo(0, k.VK_RIGHT));
-//				return false;
-//			}
-//		}).setUndo((combo) -> {
-//			s.add(deletedAccordQueue.pollLast());
-//			s.moveFocus(1);
-//		});
-//
-//		addCombo(0, k.VK_ESCAPE).setDo((event) -> {
-//			getContext().getConfig().getDialog().showMenuDialog(StaffConfig::syncSyntChannels);
-//		});
-//
-//		for (Integer i: Combo.getAsciTuneMap().keySet()) {
-//			addCombo(Combo.getAsciiTuneMods(), i).setOmitMenuBar(true).setDo((combo) -> { // 11 - alt+shif+ctrl
-//
-//				// TODO: lets have a mode, that would change on "Insert" button instead of ctrl-shift-alt combination, please. thanx
-//
-//				if (s.mode == Staff.aMode.passive) {
-//					return false;
-//				} else {
-//					s.addNewAccord().addNewNota(combo.asciiToTune(), getDefaultChannel());
-//					handleKey(new Combo(0, k.VK_RIGHT));
-//					return true;
-//				}
-//			});
-//		}
 	}
 
-	public static Map<Combo, ContextAction<Staff>> makeStaticActionMap() {
+	@Override
+	public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
+		LinkedHashMap<Combo, ContextAction> huj = new LinkedHashMap<>();
+		huj.putAll(makeStaticActionMap()); // no, java is retarded after all
+		return huj;
+	}
 
-		TruHashMap<Combo, ContextAction<Staff>> actionMap = new TruHashMap<>();
+	public static LinkedHashMap<Combo, ContextAction<Staff>> makeStaticActionMap() {
+
+		TruMap<Combo, ContextAction<Staff>> actionMap = new TruMap<>();
 
 		// TODO: make folder of project default path
 		JFileChooser jsonChooser = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/");
 		jsonChooser.setFileFilter(new FileFilter() {
-			public boolean accept(File f) { 	return f.getAbsolutePath().endsWith(".midi.json") || f.isDirectory(); }
-			public String getDescription() { return "Json Midi-music data"; }
+			public boolean accept(File f) {
+				return f.getAbsolutePath().endsWith(".midi.json") || f.isDirectory();
+			}
+
+			public String getDescription() {
+				return "Json Midi-music data";
+			}
 		});
 
 		JFileChooser pngChooser = new JFileChooser();
 		pngChooser.setFileFilter(new FileNameExtensionFilter("PNG images", "png"));
 
 		actionMap
-			.p(new Combo(ctrl, k.VK_P), mkAction(Staff::triggerPlayback))
-			.p(new Combo(ctrl, k.VK_D), mkFailableAction(s -> DeviceEbun.changeOutDevice(s.getConfig())))
-			.p(new Combo(ctrl, k.VK_0), mkAction(s -> s.mode = Staff.aMode.passive))
-			.p(new Combo(ctrl, k.VK_9), mkAction(s -> s.mode = Staff.aMode.insert))
-			.p(new Combo(0, k.VK_ESCAPE), mkAction(s -> s.getConfig().getDialog().showMenuDialog(StaffConfig::syncSyntChannels)))
-			.p(new Combo(0, k.VK_LEFT), mkFailableAction(s -> s.moveFocusWithPlayback(-1)))
-			.p(new Combo(0, k.VK_RIGHT), mkFailableAction(s -> s.moveFocusWithPlayback(1)))
-			.p(new Combo(0, k.VK_UP), mkFailableAction(s -> s.moveFocusRow(-1)))
-			.p(new Combo(0, k.VK_DOWN), mkFailableAction(s -> s.moveFocusRow(1)))
-			.p(new Combo(0, k.VK_HOME), mkAction(s -> s.setFocusedIndex(-1)))
-			.p(new Combo(0, k.VK_END), mkAction(s -> s.setFocusedIndex(s.getAccordList().size() - 1)))
-			.p(new Combo(ctrl, k.VK_UP), mkFailableAction(s -> s.moveFocusRow(-1)))
-			.p(new Combo(ctrl, k.VK_DOWN), mkFailableAction(s -> s.moveFocusRow(1)))
-			.p(new Combo(ctrl, k.VK_E), mkFailableAction(FileProcessor::savePNG))
-			.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel))
-			.p(new Combo(ctrl, k.VK_O), mkFailableAction(FileProcessor::openStaff))
+			.p(new Combo(ctrl, k.VK_P), mkAction(Staff::triggerPlayback).setCaption("Play/Stop"))
+			.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel).setCaption("Save Staff"))
+			.p(new Combo(ctrl, k.VK_O), mkFailableAction(FileProcessor::openStaff).setCaption("Open Staff"))
+			.p(new Combo(0, k.VK_ESCAPE), mkAction(s -> s.getConfig().getDialog().showMenuDialog(StaffConfig::syncSyntChannels))
+				.setCaption("Settings"))
+			.p(new Combo(0, k.VK_HOME), mkAction(s -> s.setFocusedIndex(-1)).setCaption("To Start"))
+			.p(new Combo(0, k.VK_END), mkAction(s -> s.setFocusedIndex(s.getAccordList().size() - 1)).setCaption("To End"))
+			.p(new Combo(0, k.VK_LEFT), mkFailableAction(s -> s.moveFocusWithPlayback(-1)).setCaption("Left"))
+			.p(new Combo(0, k.VK_RIGHT), mkFailableAction(s -> s.moveFocusWithPlayback(1)).setCaption("Right"))
+			.p(new Combo(0, k.VK_UP), mkFailableAction(s -> s.moveFocusRow(-1)).setCaption("Up"))
+			.p(new Combo(0, k.VK_DOWN), mkFailableAction(s -> s.moveFocusRow(1)).setCaption("Down"))
+			.p(new Combo(ctrl, k.VK_D), mkFailableAction(s -> DeviceEbun.changeOutDevice(s.getConfig()))
+				.setCaption("Change Playback Device"))
+			.p(new Combo(ctrl, k.VK_0), mkAction(s -> s.mode = Staff.aMode.passive).setCaption("Disable Input From MIDI Device"))
+			.p(new Combo(ctrl, k.VK_9), mkAction(s -> s.mode = Staff.aMode.insert).setCaption("Enable Input From MIDI Device"))
+			.p(new Combo(ctrl, k.VK_E), mkFailableAction(FileProcessor::savePNG).setCaption("Export png"))
 			/** @legacy */
-			.p(new Combo(ctrl, k.VK_W), mkAction(StaffHandler::updateDeprecatedPauses))
+			.p(new Combo(ctrl, k.VK_W), mkAction(StaffHandler::updateDeprecatedPauses).setCaption("Convert Deprecated Pauses"))
 			;
 
 		// MIDI-key press
 		for (Map.Entry<Combo, Integer> entry: Combo.getComboTuneMap().entrySet()) {
 			ContextAction<Staff> action = new ContextAction<>();
-			actionMap.p(entry.getKey(), action.setRedo(s -> { s.addNewAccord().addNewNota(entry.getValue(), s.getSettings().getDefaultChannel()); }));
+			actionMap.p(entry.getKey(), action
+					.setRedo(s -> { s.addNewAccord().addNewNota(entry.getValue(), s.getSettings().getDefaultChannel()); })
+					.setOmitMenuBar(true));
 		}
 
 		return actionMap;
@@ -213,7 +114,6 @@ public class StaffHandler extends AbstractHandler {
 		}
 	}
 
-	// stupid java, stupid lambdas don't see stupid generics! that's why i was forced to create separate method to do it in one line
 	private static ContextAction<Staff> mkAction(Consumer<Staff> lambda) {
 		ContextAction<Staff> action = new ContextAction<>();
 		return action.setRedo(lambda);

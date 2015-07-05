@@ -23,8 +23,13 @@ public class StoryspaceHandler extends AbstractHandler {
 
 		JFileChooser jsonChooser = new JFileChooser("/home/klesun/yuzefa_git/storyspaceContent/");
 		jsonChooser.setFileFilter(new FileFilter() {
-			public boolean accept(File f) { 	return f.getAbsolutePath().endsWith(".stsp.json") || f.isDirectory(); }
-			public String getDescription() { return "Json Storyspace data"; }
+			public boolean accept(File f) {
+				return f.getAbsolutePath().endsWith(".stsp.json") || f.isDirectory();
+			}
+
+			public String getDescription() {
+				return "Json Storyspace data";
+			}
 		});
 
 		addCombo(ctrl, k.VK_M).setDo((this.getContext())::addMusicBlock);
@@ -42,9 +47,10 @@ public class StoryspaceHandler extends AbstractHandler {
 
 		addCombo(ctrl, k.VK_EQUALS).setDo((this.getContext())::scale);
 		addCombo(ctrl, k.VK_MINUS).setDo((this.getContext())::scale);
+		addCombo(ctrl, k.VK_MINUS).setDo(() -> this.getContext().getSettings().scale(-1));
+		addCombo(ctrl, k.VK_EQUALS).setDo(() -> this.getContext().getSettings().scale(+1));
 
-
-		addCombo(ctrl, k.VK_K).setDo(() -> { Logger.fatal("Artificial fatal was generated (sorry if you pressed this shortcut occasionally D= )"); });
+//		addCombo(ctrl, k.VK_K).setDo(() -> { Logger.fatal("Artificial fatal was generated (sorry if you pressed this shortcut occasionally D= )"); });
 	}
 	@Override
 	public Boolean mousePressedFinal(ComboMouse mouse) {
@@ -66,7 +72,6 @@ public class StoryspaceHandler extends AbstractHandler {
 	@Override
 	public Boolean mouseReleasedFinal(ComboMouse mouse) {
 		IComponentModel eventOrigin = (IComponentModel)getFirstParentComponent(mouse.getOrigin());
-		// TODO: commented just for 5 minutes!
 		eventOrigin.setCursor(eventOrigin.getModelHelper().getDefaultCursor());
 		return true;
 	}

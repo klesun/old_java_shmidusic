@@ -62,16 +62,15 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 	}
 
 	private void iThinkItInterruptsPreviousPaintingThreadsSoTheyDidntSlowCurrent() {
-		getScroll().getModelParent().getWindow().terminal.append("suka");
+		getScroll().getModelParent().getWindow().terminal.append("_");
 	}
 
-	// TODO: maybe make it synchronized or so...
 	@Override
 	public void paintComponent(Graphics g) {
 		if (!loadJsonOnFocus) {
 			if (simpleRepaint) {
 
-				// i don't know, who is stupider: linuxes, awt or me, but it forces it to repaint JUST the time it's requested to repaint
+				// i don't know, who is stupider: linuxes, awt or me, but need it cuz it forces to repaint JUST the time it's requested to repaint
 				// on windows issues does not occur
 				iThinkItInterruptsPreviousPaintingThreadsSoTheyDidntSlowCurrent();
 
@@ -86,7 +85,6 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 	}
 
 	public void surfaceCompletelyChanged() {
-		System.out.println("zhopahujpizfavagina");
 		this.surfaceCompletelyChanged = true;
 	}
 
@@ -161,10 +159,6 @@ final public class StaffPanel extends JPanel implements IStoryspacePanel {
 			protected void initActionMap() {
 				addCombo(0, k.VK_PAGE_DOWN).setDo(getContext()::page);
 				addCombo(0, k.VK_PAGE_UP).setDo(getContext()::page);
-
-				addCombo(ctrl, k.VK_MINUS).setDo(() -> getSettings().scale(-1));
-				addCombo(ctrl, k.VK_EQUALS).setDo(() -> getSettings().scale(+1));
-				addCombo(ctrl, k.VK_F).setDo(() -> getSettings().scale(getScroll().isFullscreen() ? -1 : 1).isSuccess());
 			}
 			public Boolean mousePressedFinal(ComboMouse mouse) {
 				if (mouse.leftButton) {

@@ -1,14 +1,14 @@
 package Storyspace.Staff.Accord.Nota;
 
-import Gui.Settings;
 import Model.*;
-import Storyspace.Staff.Accord.Accord;
+import Storyspace.Staff.Staff;
 import Storyspace.Staff.StaffHandler;
 import Stuff.Musica.PlayMusThread;
-import Stuff.OverridingDefaultClasses.TruHashMap;
+import Stuff.OverridingDefaultClasses.TruMap;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -32,30 +32,39 @@ public class NotaHandler extends AbstractHandler {
 		}
 	}
 
-	public static Map<Combo, ContextAction<Nota>> makeStaticActionMap() {
-		TruHashMap<Combo, ContextAction<Nota>> actionMap = new TruHashMap<>();
-		actionMap.p(new Combo(k.CTRL_MASK, k.VK_3), mkAction(Nota::triggerTupletDenominator))
-			.p(new Combo(k.CTRL_MASK, k.VK_H), mkAction(Nota::triggerIsMuted))
-			.p(new Combo(k.SHIFT_MASK, k.VK_3), mkAction(Nota::triggerIsSharp))
-			.p(new Combo(k.SHIFT_MASK, k.VK_BACK_QUOTE), mkAction(Nota::triggerIsLinkedToNext))
+	@Override
+	public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
+		LinkedHashMap<Combo, ContextAction> huj = new LinkedHashMap<>();
+		huj.putAll(makeStaticActionMap()); // no, java is retarded after all
+		return huj;
+	}
 
-			.p(new Combo(0, k.VK_OPEN_BRACKET), mkAction(Nota::decLen))
-			.p(new Combo(0, k.VK_CLOSE_BRACKET), mkAction(Nota::incLen))
-			.p(new Combo(0, k.VK_PERIOD), mkAction(Nota::putDot))
-			.p(new Combo(0, k.VK_COMMA), mkAction(Nota::removeDot))
-			.p(new Combo(0, k.VK_DELETE), mkAction(nota -> nota.getParentAccord().remove(nota)))
+	public static LinkedHashMap<Combo, ContextAction<Nota>> makeStaticActionMap() {
+		TruMap<Combo, ContextAction<Nota>> actionMap = new TruMap<>();
+		actionMap
+			.p(new Combo(0, k.VK_OPEN_BRACKET), mkAction(Nota::decLen).setCaption("Decrease Length"))
+			.p(new Combo(0, k.VK_CLOSE_BRACKET), mkAction(Nota::incLen).setCaption("Increase Length"))
+			.p(new Combo(0, k.VK_PERIOD), mkAction(Nota::putDot).setCaption("Dot"))
+			.p(new Combo(0, k.VK_COMMA), mkAction(Nota::removeDot).setCaption("Undot"))
+			.p(new Combo(0, k.VK_DELETE), mkAction(nota -> nota.getParentAccord().remove(nota)).setCaption("Delete"))
+			.p(new Combo(0, k.VK_ENTER), mkAction(nota -> PlayMusThread.playNotu(nota)).setCaption("Play"))
 
-			.p(new Combo(0, k.VK_ENTER), mkAction(nota -> PlayMusThread.playNotu(nota)));
+			.p(new Combo(k.CTRL_MASK, k.VK_3), mkAction(Nota::triggerTupletDenominator).setCaption("Switch Triplet/Normal"))
+			.p(new Combo(k.CTRL_MASK, k.VK_H), mkAction(Nota::triggerIsMuted).setCaption("Mute/Unmute"))
+			.p(new Combo(k.SHIFT_MASK, k.VK_3), mkAction(Nota::triggerIsSharp).setCaption("Switch Sharp/Flat"))
+			.p(new Combo(k.SHIFT_MASK, k.VK_BACK_QUOTE), mkAction(Nota::triggerIsLinkedToNext).setCaption("Link/Unlink with next"))
+			;
 
 		for (Combo combo: Combo.getNumberComboList(0)) {
 			actionMap.p(combo, mkAction(nota -> {
 				changeChannel(nota, combo.getPressedNumber());
 				nota.getSettings().setDefaultChannel(combo.getPressedNumber());
-			}));
+			}).setOmitMenuBar(true));
 		}
 
 		for (Map.Entry<Combo, Integer> entry: Combo.getComboTuneMap().entrySet()) {
-			actionMap.p(entry.getKey(), mkAction(nota -> nota.getParentAccord().addNewNota(entry.getValue(), nota.getSettings().getDefaultChannel())));
+			actionMap.p(entry.getKey(), mkAction(nota -> nota.getParentAccord().addNewNota(entry.getValue(), nota.getSettings().getDefaultChannel()))
+					.setOmitMenuBar(true));
 		}
 
 		return actionMap;
@@ -72,9 +81,5 @@ public class NotaHandler extends AbstractHandler {
 		nota.getParentAccord().remove(nota);
 		js.put(nota.channel.getName(), channel);
 		nota.getParentAccord().addNewNota(js);
-	}
-
-	private static StaffHandler getStaffHandler(Nota n) {
-		return n.getParentAccord().getParentStaff().getHandler();
 	}
 }

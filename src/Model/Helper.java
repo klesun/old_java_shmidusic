@@ -51,7 +51,7 @@ public class Helper {
 
 	public void getJsonRepresentation(JSONObject dict) {
 		for (Field field : fieldStorage) {
-			if (field.get().getClass() != Boolean.class || field != field.defaultValue) { // Issue[69]
+			if (field.get().getClass() != Boolean.class || field.get() != field.defaultValue) { // Issue[69]
 				dict.put(field.getName(), field.getJsonValue());
 			}
 		}

@@ -6,10 +6,8 @@ import Storyspace.Staff.StaffPanel;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 abstract public class AbstractHandler implements KeyListener, MouseListener, MouseMotionListener {
@@ -64,6 +62,11 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 
 	// override me, please!
 	protected void initActionMap() {}
+	// override me, please!
+	public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
+		return new LinkedHashMap<>();
+	}
+
 	// implemented methods
 	final public void keyPressed(KeyEvent e) {
 		getRootHandler().handleKey(new Combo(e));

@@ -5,6 +5,7 @@ import java.awt.geom.AffineTransform;
 import java.util.*;
 import java.util.function.Consumer;
 
+import Model.ActionResult;
 import Model.Field.Arr;
 import Model.Field.Field;
 import Model.SimpleAction;
@@ -71,18 +72,19 @@ public class Accord extends MidianaComponent {
 
 	// responses to events (actions)
 
-	public Boolean moveFocus(int n) {
+	public ActionResult<Boolean> moveFocus(int n) {
 
-		int wasIndex = getFocusedIndex();
-		if (this.getFocusedIndex() + n > this.getNotaList().size() - 1) {
+		if (getFocusedIndex() + n > this.getNotaList().size() - 1 || getFocusedIndex() + n < 0) {
 			this.setFocusedIndex(-1);
-		} else if (this.getFocusedIndex() + n < -1) {
-			this.setFocusedIndex(this.getNotaList().size() - 1);
+			return new ActionResult<>("End Of Accord");
 		} else {
-			this.setFocusedIndex(this.getFocusedIndex() + n);
+			if (this.getFocusedIndex() + n < -1) {
+				this.setFocusedIndex(this.getNotaList().size() - 1);
+			} else {
+				this.setFocusedIndex(this.getFocusedIndex() + n);
+			}
+			return new ActionResult<>(true);
 		}
-
-		return wasIndex != getFocusedIndex();
 	}
 
 	public void deleteFocused() {

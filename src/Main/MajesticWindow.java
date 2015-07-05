@@ -1,17 +1,21 @@
 package Main;
 
 import Gui.Constants;
-import Model.ActionFactory;
-import Model.Combo;
-import Model.IComponentModel;
+import Model.*;
 import Storyspace.Staff.StaffPanel;
 import Storyspace.Storyspace;
+import Stuff.OverridingDefaultClasses.TruMenuItem;
 import Stuff.Tools.Logger;
 
 import javax.swing.*;
+import javax.swing.Action;
 
 import java.awt.*;
-import java.util.Map;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class MajesticWindow extends JFrame {
 
@@ -20,6 +24,8 @@ public class MajesticWindow extends JFrame {
 
 	public JPanel cards = new JPanel();
 	private JMenuBar menuBar;
+
+	private Component lastFocusedBeforeMenu = null;
 
 	public enum cardEnum {
 		CARDS_STORYSPACE,
@@ -31,8 +37,9 @@ public class MajesticWindow extends JFrame {
 
 	public MajesticWindow() {
 		super("Да будет такая музыка!"); //Заголовок окна
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		this.setSize(XP_MINWIDTH, XP_MINHEIGHT);
+		this.addWindowListener(new MajesticListener());
 
 		// TODO: maybe just make window have CardLayout ? why having leak container ????
 		cards.setLayout(new CardLayout());
@@ -48,11 +55,8 @@ public class MajesticWindow extends JFrame {
 	// this method should be called only once
 	public void init() {
 		cards.add(storyspace = new Storyspace(this), cardEnum.CARDS_STORYSPACE.name());
-
-//		addMenuBar();
-
+		addMenuBar();
 		switchTo(cardEnum.CARDS_STORYSPACE);
-
 		// for user-friendship there will be one initial staff
 		storyspace.addMusicBlock().getScroll().switchFullscreen();
 
@@ -62,23 +66,40 @@ public class MajesticWindow extends JFrame {
 		this.menuBar = new JMenuBar();
 		addMenuItems(new Storyspace(this));
 		setJMenuBar(menuBar);
+		getRootPane().addFocusListener(new FocusAdapter() {
+			public void focusGained(FocusEvent e) {
+				lastFocusedBeforeMenu = e.getOppositeComponent();
+			}
+		});
 	}
 
 	private void addMenuItems(IComponentModel fakeModelForClassMethods) {
 
 		JMenu modelMenu = new JMenu(fakeModelForClassMethods.getClass().getSimpleName());
 
-		for (Map.Entry<Combo, ActionFactory> entry: fakeModelForClassMethods.getHandler().getActionMap().entrySet()) {
+		LinkedHashMap<Combo, ContextAction> actionMap = fakeModelForClassMethods.getHandler().getStaticActionMap();
+		for (Combo key: actionMap.keySet()) {
+			ContextAction action = actionMap.get(key);
 
-			if (entry.getValue().omitMenuBar()) {
+			if (action.omitMenuBar()) {
 				continue;
 			}
 
-			JMenuItem eMenuItem = new JMenuItem("Do Action: " + entry.getKey().toString());
-			eMenuItem.setFont(Constants.PROJECT_FONT);
-			eMenuItem.setMnemonic(entry.getKey().getKeyCode());
+			String caption = action.getCaption() != null ? action.getCaption() : "Do Action:";
+			JMenuItem eMenuItem = new TruMenuItem(caption);
+//			eMenuItem.setFont(Constants.PROJECT_FONT);
 			eMenuItem.setToolTipText("No description");
-			eMenuItem.addActionListener(event -> entry.getValue().createAction().doDo());
+			eMenuItem.setAccelerator(key.toKeystroke());
+
+			eMenuItem.addActionListener(event -> {
+				Class<? extends IComponentModel> cls = fakeModelForClassMethods.getClass();
+				IComponentModel context = findeFocusedByClass(cls);
+				if (context != null) {
+					action.redo(context);
+				} else {
+					Logger.warning("Cant perform action, " + cls.getSimpleName() + " class instance not focused!");
+				}
+			});
 
 			modelMenu.add(eMenuItem);
 		}
@@ -86,6 +107,22 @@ public class MajesticWindow extends JFrame {
 
 		for (IComponentModel child: fakeModelForClassMethods.getModelHelper().makeFakePossibleChildListForClassMethods()) {
 			addMenuItems(child);
+		}
+	}
+
+	private IComponentModel findeFocusedByClass(Class<? extends IComponentModel> cls) {
+		if (cls == Storyspace.class) {
+			return storyspace;
+		} else {
+			IComponentModel result = storyspace.getFocusedChild(lastFocusedBeforeMenu);
+			while (result != null) {
+				if (result.getClass() == cls) {
+					break;
+				} else {
+					result = result.getFocusedChild();
+				}
+			}
+			return result;
 		}
 	}
 

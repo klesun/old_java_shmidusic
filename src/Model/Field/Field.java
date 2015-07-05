@@ -1,7 +1,7 @@
 package Model.Field;
 
 import Model.IModel;
-import Stuff.OverridingDefaultClasses.TruHashMap;
+import Stuff.OverridingDefaultClasses.TruMap;
 import Stuff.Tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 import org.apache.commons.math3.fraction.FractionFormat;
@@ -112,7 +112,7 @@ public class Field<E> {
 	}
 
 	private static Map<Class, Function<String, Object>> getParserMap() {
-		TruHashMap<Class, Function<String, Object>> map = new TruHashMap<>();
+		TruMap<Class, Function<String, Object>> map = new TruMap<>();
 		map.p(Integer.class, Integer::parseInt)
 			.p(Boolean.class, Boolean::parseBoolean)
 			.p(Fraction.class, new FractionFormat()::parse)

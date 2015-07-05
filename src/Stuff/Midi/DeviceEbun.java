@@ -2,9 +2,12 @@ package Stuff.Midi;
 
 import javax.sound.midi.*;
 
+import Main.Main;
 import Model.ActionResult;
 import Storyspace.Staff.Accord.Nota.Nota;
 import Storyspace.Staff.StaffConfig.StaffConfig;
+import Storyspace.Staff.StaffPanel;
+import Stuff.Musica.PlayMusThread;
 import Stuff.Tools.Logger;
 
 
@@ -25,13 +28,14 @@ public class DeviceEbun {
 
 	static DeviceEbun instance = null;
 
-	public static Receiver theirReceiver = null;
+	private static MidiDevice device;
+	private static MidiDevice gervill;
 
 	private static Receiver hardwareReceiver = null;
 	private static Receiver softwareReceiver;
 	private static Boolean isPlaybackSoftware;
 	static {
-		try {	MidiDevice gervill = MidiSystem.getMidiDevice(MidiCommon.getMidiDeviceInfo("Gervill", true));
+		try {	gervill = MidiSystem.getMidiDevice(MidiCommon.getMidiDeviceInfo("Gervill", true));
 				gervill.open();
 				softwareReceiver = gervill.getReceiver();
 				isPlaybackSoftware = true;
@@ -52,13 +56,13 @@ public class DeviceEbun {
 	private static void openHardwareDevice() {
 		Logger.logForUser("Opening input device...");
 		int count = MidiCommon.listDevicesAndExit(true, false);
-		MidiCommon.listDevicesAndExit(false,true,false);
+		MidiCommon.listDevicesAndExit(false, true, false);
 		MidiDevice.Info	info;
 		if ( count > 1 ) { // if 1 - software real-time-sequencer; if 2 - + real midi device
 			info = MidiCommon.getMidiDeviceInfo(1, false); // 99% cases it is the midi-port we need
 			Logger.logForUser("Selected port: " + info.getName() + " " + info.getDescription() + " " + info.toString());
 			try {
-				MidiDevice device = MidiSystem.getMidiDevice(info);
+				device = MidiSystem.getMidiDevice(info);
 				device.open();
 				device.getTransmitter().setReceiver(new DumpReceiver());
 
@@ -75,6 +79,18 @@ public class DeviceEbun {
 		} else {
 			Logger.logForUser(MORAL_SUPPORT_MESSAGE);
 		}
+	}
+
+	public static void closeMidiDevices() {
+		// close all opent Notas
+		Main.window.storyspace.getChildScrollList().stream()
+				.filter(s -> s.content instanceof StaffPanel)
+				.forEach(s -> ((StaffPanel)s.content).getStaff().getPlayback().interrupt());
+		PlayMusThread.shutTheFuckUp();
+
+		// close devices
+		if (device != null) { device.close(); }
+		gervill.close();
 	}
 
 	public static Boolean isPlaybackSoftware() {
