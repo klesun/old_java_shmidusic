@@ -1,6 +1,5 @@
 package Model;
 
-import BlockSpacePkg.BlockSpace;
 import BlockSpacePkg.BlockSpaceHandler;
 import BlockSpacePkg.StaffPkg.MidianaComponent;
 
@@ -8,17 +7,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
-import java.util.List;
-import java.util.function.Consumer;
 
 abstract public class AbstractHandler implements KeyListener, MouseListener, MouseMotionListener {
 
 	private IComponentModel context = null;
 	protected LinkedHashMap<Combo, ActionFactory> actionMap = new LinkedHashMap<>();
-	@Deprecated
-	protected static LinkedList<Action> handledEventQueue = new LinkedList<>(); // for ctrl-z
-	@Deprecated
-	protected static LinkedList<Action> unhandledEventQueue = new LinkedList<>(); // for ctrl-y
 
 	private LinkedList<SimpleAction> simpleActionQueue = new LinkedList<>();
 	private int simpleActionIterator = 0;
@@ -38,27 +31,6 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 	public AbstractHandler(IComponentModel context) {
 		this.context = context;
 		this.initActionMap();
-
-		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Z)).addTo(actionMap).setDo((event) -> {
-			Action lastAction;
-			while ((lastAction = handledEventQueue.pollLast()) != null) {
-				if (lastAction.unDo()) {
-					unhandledEventQueue.add(lastAction);
-					return true;
-				}
-			}
-			return false;
-		});
-		new ActionFactory(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Y)).addTo(actionMap).setDo((event) -> {
-			Action lastAction;
-			while ((lastAction = unhandledEventQueue.pollLast()) != null) {
-				if (lastAction.doDo()) {
-					// it adds to handledEventQueue automatically
-					return true;
-				}
-			}
-			return false;
-		});
 	}
 
 	@Deprecated
@@ -68,11 +40,16 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 		}
 	}
 
+	// TODO: rename to getMyClassActionMap
 	abstract public LinkedHashMap<Combo, ContextAction> getStaticActionMap();
 
 	// implemented methods
 	final public void keyPressed(KeyEvent e) {
-		getRootHandler().handleKey(new Combo(e));
+		BlockSpaceHandler bsh = getRootHandler();
+		Explain result = bsh.handleKey(new Combo(e));
+		if (!result.isSuccess() && !result.isImplicit()) {
+			JOptionPane.showMessageDialog(getContext().getFirstAwtParent(), result.getExplanation());
+		}
 	}
 	final public void keyTyped(KeyEvent e) {}
 	final public void keyReleased(KeyEvent e) {}
@@ -86,39 +63,23 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 		return (BlockSpaceHandler)rootContext.getHandler();
 	}
 
-	final public Boolean handleKey(Combo combo) {
-		Boolean result = false;
-		if (getContext().getFocusedChild() != null &&
-			getContext().getFocusedChild().getHandler().handleKey(combo)) {
-			result = true;
-		} else {
-			if (getActionMap().containsKey(combo)) {
-				return getActionMap().get(combo).createAction().doDo();
-			}
+	final public Explain handleKey(Combo combo) {
+		Explain result = null;
+
+		if (getContext().getFocusedChild() != null) {
+			result = getContext().getFocusedChild().getHandler().handleKey(combo);
 		}
+
+		if ((result == null || !result.isSuccess()) && getStaticActionMap().containsKey(combo)) {
+			result = getStaticActionMap().get(combo).redo(getContext());
+		}
+
 		if (getContext() instanceof MidianaComponent) { // i don't like this
-			MidianaComponent.class.cast(getContext()).getFirstPanelParent().checkCam();
+			MidianaComponent.class.cast(getContext()).getPanel().checkCam();
 		}
 		getRootHandler().getContext().getWindow().updateMenuBar();
-		return result;
-	}
 
-	final protected ActionFactory addCombo(int keyMods, int keyCode) {
-		return new ActionFactory(new Combo(keyMods, keyCode)).addTo(this.actionMap);
-	}
-
-	final protected void addNumberComboList(int keyMods, Consumer<Integer> lambda) {
-		List<Integer> keyList = Combo.getNumberKeyList();
-		for (int keyCode: keyList) {
-			int number = new Combo(0, keyCode).getPressedNumber();
-			addCombo(keyMods, keyCode).setDo(c -> { lambda.accept(number); });
-		}
-	}
-
-	final public Map<Combo, ActionFactory> getActionMap() { return actionMap; }
-
-	final public static void destroyRedoHistory() {
-		while (unhandledEventQueue.poll() != null);
+		return result != null ? result : new Explain("No Action For This Combination").setImplicit(true);
 	}
 
 	public IComponentModel getContext() {

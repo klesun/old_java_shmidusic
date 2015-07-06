@@ -14,29 +14,4 @@ public class Action {
 	public Action(ActionFactory factory) {
 		this.factory = factory;
 	}
-
-	public Boolean doDo() {
-		Map<String, Object> result = factory.doLambda.apply(factory.combo);
-		if (result != null) {
-			paramsForUndo = result;
-			if (!undone) { // TODO: ctrl-y
-				AbstractHandler.destroyRedoHistory();
-			}
-			done = true;
-			undone = false;
-		}
-		return result != null;
-	}
-
-	public Boolean unDo() {
-		done = false;
-		undone = true;
-		return factory.undoLambda.apply(factory.combo, this.paramsForUndo);
-	}
-
-	// getters
-
-	public Map<String, Object> getParamsForUndo() {
-		return paramsForUndo;
-	}
 }

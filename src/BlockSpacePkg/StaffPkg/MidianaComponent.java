@@ -9,6 +9,7 @@ import Model.IModel;
 
 import java.awt.*;
 import java.awt.event.FocusListener;
+import java.util.function.Function;
 
 abstract public class MidianaComponent extends AbstractModel implements IComponentModel {
 
@@ -28,7 +29,7 @@ abstract public class MidianaComponent extends AbstractModel implements ICompone
 	@Override
 	final public void setCursor(Cursor cursor) {
 		// TODO: make it correct one day, if you need this (it could be the first step to invoke mouse into midiana, like changing cursor when hovering notas...)
-		getFirstPanelParent().setCursor(cursor);
+		getFirstAwtParent().setCursor(cursor);
 	}
 	@Override
 	final public void requestFocus() {
@@ -39,18 +40,14 @@ abstract public class MidianaComponent extends AbstractModel implements ICompone
 		// TODO: soon. something like setFocusedIndex(indexO(this)) { old.focusListener.handleLostFocus(); blablabla; focusListener.handleGainedFocus(); }
 	}
 
-	public StaffPanel getFirstPanelParent() {
-		IModel context = this;
-		while (!(context instanceof StaffPanel) && context != null) { // circular import? yes...
-			context = context.getModelParent();
-		}
-		return (StaffPanel)context;
+	public StaffPanel getPanel() {
+		return (StaffPanel)this.getFirstAwtParent();
 	}
 
 	final public Settings getSettings() {
-		return getFirstPanelParent().getSettings();
+		return getPanel().getSettings();
 	}
-	final public ImageStorage getImageStorage() { return getFirstPanelParent().getScroll().getModelParent().getImageStorage(); }
+	final public ImageStorage getImageStorage() { return getPanel().getScroll().getModelParent().getImageStorage(); }
 	final public int dx() { return getSettings().getStepWidth(); }
 	final public int dy() { return getSettings().getStepHeight(); }
 

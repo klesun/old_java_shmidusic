@@ -275,10 +275,10 @@ public class Staff extends MidianaComponent {
 
 	public Explain moveFocus(int n)
 	{
-		Boolean stop = getFocusedIndex() + n < -1 || getFocusedIndex() + n > getAccordList().size() - 1;
+		int wasIndex = getFocusedIndex();
 		setFocusedIndex(getFocusedIndex() + n);
 
-		return !stop ? new Explain(true) : new Explain("dead end");
+		return getFocusedIndex() != wasIndex ? new Explain(true) : new Explain("dead end").setImplicit(true);
 	}
 }
 
