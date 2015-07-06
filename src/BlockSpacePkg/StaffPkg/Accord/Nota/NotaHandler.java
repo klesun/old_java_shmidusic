@@ -14,19 +14,8 @@ public class NotaHandler extends AbstractHandler {
 	public NotaHandler(Nota context) {
 		super(context);
 	}
-
-	@Override
-	public Nota getContext() {
-		return (Nota)super.getContext();
-	}
-
-	@Override
-	public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
-		return new LinkedHashMap<>(makeStaticActionMap());
-	}
-
-	public static LinkedHashMap<Combo, ContextAction<Nota>> makeStaticActionMap() {
-		TruMap<Combo, ContextAction<Nota>> actionMap = new TruMap<>();
+	private static TruMap<Combo, ContextAction<Nota>> actionMap = new TruMap<>();
+	static {
 		actionMap
 			.p(new Combo(0, k.VK_OPEN_BRACKET), mkAction(Nota::decLen).setCaption("Decrease Length"))
 			.p(new Combo(0, k.VK_CLOSE_BRACKET), mkAction(Nota::incLen).setCaption("Increase Length"))
@@ -39,7 +28,7 @@ public class NotaHandler extends AbstractHandler {
 			.p(new Combo(k.CTRL_MASK, k.VK_H), mkAction(Nota::triggerIsMuted).setCaption("Mute/Unmute"))
 			.p(new Combo(k.SHIFT_MASK, k.VK_3), mkAction(Nota::triggerIsSharp).setCaption("Switch Sharp/Flat"))
 			.p(new Combo(k.SHIFT_MASK, k.VK_BACK_QUOTE), mkAction(Nota::triggerIsLinkedToNext).setCaption("Link/Unlink with next"))
-			;
+		;
 
 		for (Combo combo: Combo.getNumberComboList(0)) {
 			actionMap.p(combo, mkAction(nota -> {
@@ -50,9 +39,19 @@ public class NotaHandler extends AbstractHandler {
 
 		for (Map.Entry<Combo, Integer> entry: Combo.getComboTuneMap().entrySet()) {
 			actionMap.p(entry.getKey(), mkAction(nota -> nota.getParentAccord().addNewNota(entry.getValue(), nota.getSettings().getDefaultChannel()))
-					.setOmitMenuBar(true));
+				.setOmitMenuBar(true));
 		}
+	}
 
+	@Override
+	public Nota getContext() {
+		return (Nota)super.getContext();
+	}
+
+	@Override
+	public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() { return actionMap; }
+
+	public static LinkedHashMap<Combo, ContextAction<Nota>> getClassActionMap() {
 		return actionMap;
 	}
 

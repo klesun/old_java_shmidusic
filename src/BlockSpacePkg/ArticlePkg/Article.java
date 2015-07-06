@@ -28,15 +28,25 @@ public class Article extends JPanel implements IBlockSpacePanel {
 
 	final private static int SCROLL_BAR_WIDTH = /*25*/ 26;
 
+	private static TruMap<Combo, ContextAction<Article>> actionMap = new TruMap<>();
+	static {
+		actionMap
+			.p(new Combo(0, KeyEvent.VK_DOWN), mkAction(Article::focusNext).setCaption("Next Paragraph"))
+			.p(new Combo(0, KeyEvent.VK_UP), mkAction(Article::focusBack).setCaption("Back Paragraph"))
+			.p(new Combo(0, KeyEvent.VK_RIGHT), mkAction(Article::focusNext).setOmitMenuBar(true))
+			.p(new Combo(0, KeyEvent.VK_DELETE), mkAction(Article::mergeNext).setCaption("Merge Next"))
+			.p(new Combo(0, KeyEvent.VK_LEFT), mkAction(Article::focusBack).setOmitMenuBar(true))
+			.p(new Combo(0, KeyEvent.VK_BACK_SPACE), mkAction(Article::mergeBack).setCaption("Merge Back"))
+		;
+	}
+
 	public Article(BlockSpace parentBlockSpace) {
 		super();
         this.setBackground(Color.DARK_GRAY);
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
 		handler = new AbstractHandler(this) {
-			public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
-				return new LinkedHashMap<>(makeStaticActionMap());
-			}
+			public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() { return actionMap; }
 		};
 
         addComponentListener(new ComponentAdapter() {
@@ -52,19 +62,6 @@ public class Article extends JPanel implements IBlockSpacePanel {
 		scroll = parentBlockSpace.addModelChild(this);
 
 		this.addNewParagraph();
-	}
-
-
-	private static LinkedHashMap<Combo, ContextAction<Paragraph>> makeStaticActionMap() {
-
-		return new TruMap<>()
-			.p(new Combo(0, KeyEvent.VK_DOWN), mkAction(Article::focusNext).setCaption("Next Paragraph"))
-			.p(new Combo(0, KeyEvent.VK_UP), mkAction(Article::focusBack).setCaption("Back Paragraph"))
-			.p(new Combo(0, KeyEvent.VK_RIGHT), mkAction(Article::focusNext).setOmitMenuBar(true))
-			.p(new Combo(0, KeyEvent.VK_DELETE), mkAction(Article::mergeNext).setCaption("Merge Next"))
-			.p(new Combo(0, KeyEvent.VK_LEFT), mkAction(Article::focusBack).setOmitMenuBar(true))
-			.p(new Combo(0, KeyEvent.VK_BACK_SPACE), mkAction(Article::mergeBack).setCaption("Merge Back"))
-			;
 	}
 
 	private static ContextAction<Article> mkAction(Consumer<Article> lambda) {

@@ -11,7 +11,6 @@ import java.util.*;
 abstract public class AbstractHandler implements KeyListener, MouseListener, MouseMotionListener {
 
 	private IComponentModel context = null;
-	protected LinkedHashMap<Combo, ActionFactory> actionMap = new LinkedHashMap<>();
 
 	private LinkedList<SimpleAction> simpleActionQueue = new LinkedList<>();
 	private int simpleActionIterator = 0;
@@ -30,18 +29,9 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 
 	public AbstractHandler(IComponentModel context) {
 		this.context = context;
-		this.initActionMap();
 	}
 
-	@Deprecated
-	final protected void initActionMap() {
-		for (Map.Entry<Combo, ContextAction> entry: getStaticActionMap().entrySet()) {
-			new ActionFactory(entry.getKey()).addTo(this.actionMap).setDo(() -> entry.getValue().redo(getContext()).isSuccess());
-		}
-	}
-
-	// TODO: rename to getMyClassActionMap
-	abstract public LinkedHashMap<Combo, ContextAction> getStaticActionMap();
+	abstract public LinkedHashMap<Combo, ContextAction> getMyClassActionMap();
 
 	// implemented methods
 	final public void keyPressed(KeyEvent e) {
@@ -70,14 +60,15 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 			result = getContext().getFocusedChild().getHandler().handleKey(combo);
 		}
 
-		if ((result == null || !result.isSuccess()) && getStaticActionMap().containsKey(combo)) {
-			result = getStaticActionMap().get(combo).redo(getContext());
-		}
+		if ((result == null || !result.isSuccess()) && getMyClassActionMap().containsKey(combo)) {
 
-		if (getContext() instanceof MidianaComponent) { // i don't like this
-			MidianaComponent.class.cast(getContext()).getPanel().checkCam();
+			result = getMyClassActionMap().get(combo).redo(getContext());
+
+			if (getContext() instanceof MidianaComponent) { // i don't like this
+				MidianaComponent.class.cast(getContext()).getPanel().checkCam();
+			}
+			getRootHandler().getContext().getWindow().updateMenuBar();
 		}
-		getRootHandler().getContext().getWindow().updateMenuBar();
 
 		return result != null ? result : new Explain("No Action For This Combination").setImplicit(true);
 	}

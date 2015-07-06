@@ -1,4 +1,5 @@
 package BlockSpacePkg;
+import BlockSpacePkg.StaffPkg.Staff;
 import Model.AbstractHandler;
 import Model.Helper;
 import Model.IComponentModel;
@@ -146,8 +147,13 @@ public class Block extends Scroll implements IComponentModel {
 		int dh = TITLE_HEIGHT + BORDER_WIDTH;
 
 		setLocation(-BORDER_WIDTH, -TITLE_HEIGHT);
-		// TODO: does not take into account decreasing size - undoable scrollbars appear
 		setSize(getModelParent().getWidth() + dw, getModelParent().getHeight() + dh);
+	}
+
+	public void page(int sign) {
+		JScrollBar vertical = getVerticalScrollBar();
+		vertical.setValue(limit(vertical.getValue() + sign * Staff.SISDISPLACE * getModelParent().getSettings().getStepHeight(), 0, vertical.getMaximum()));
+		repaint();
 	}
 
 	@Override

@@ -16,6 +16,16 @@ public class BlockHandler extends AbstractHandler {
 	final private static int MIN_WIDTH = 50;
 	final private static int MIN_HEIGHT = 50;
 
+	private static TruMap<Combo, ContextAction<Block>> actionMap = new TruMap<>();
+	static {
+		actionMap
+			.p(new Combo(ctrl, k.VK_F), mkAction(Block::switchFullscreen).setCaption("Switch Fullscreen"))
+			.p(new Combo(ctrl, k.VK_F2), mkAction(c -> c.setTitle(JOptionPane.showInputDialog(c, "Type new name for container: ", c.getTitle()))).setCaption("Rename"))
+			.p(new Combo(ctrl, k.VK_DELETE), mkAction(c -> c.getModelParent().removeModelChild(c)).setCaption("Delete"))
+			.p(new Combo(0, KeyEvent.VK_PAGE_DOWN), mkAction(b -> b.page(1)))
+			.p(new Combo(0, KeyEvent.VK_PAGE_UP), mkAction(b -> b.page(-1)));
+	}
+
 	public BlockHandler(Block context) {
 		super(context);
 		context.addKeyListener(this);
@@ -48,26 +58,7 @@ public class BlockHandler extends AbstractHandler {
 	}
 
 	@Override
-	public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
-		return new LinkedHashMap<>(makeStaticActionMap());
-	}
-
-	public static LinkedHashMap<Combo, ContextAction<Block>> makeStaticActionMap() {
-
-		TruMap<Combo, ContextAction<Block>> actionMap = new TruMap<>();
-
-		actionMap
-			.p(new Combo(ctrl, k.VK_F), mkAction(Block::switchFullscreen).setCaption("Switch Fullscreen"))
-			.p(new Combo(ctrl, k.VK_F2), mkAction(c -> c.setTitle(JOptionPane.showInputDialog(c, "Type new name for container: ", c.getTitle()))).setCaption("Rename"))
-			.p(new Combo(ctrl, k.VK_DELETE), mkAction(c -> c.getModelParent().removeModelChild(c)).setCaption("Delete"))
-
-			// blocking actions for parent when fullscreen - issue[62]
-//			.p(new Combo(ctrl, k.VK_MINUS), mkFailableAction(c -> c.isFullscreen() ? new Explain(true) : new Explain("You shall pass"))
-//					.setOmitMenuBar(true))
-//			.p(new Combo(ctrl, k.VK_EQUALS), mkFailableAction(c -> c.isFullscreen() ? new Explain(true) : new Explain("You shall pass"))
-//					.setOmitMenuBar(true))
-			;
-
+	public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() {
 		return actionMap;
 	}
 

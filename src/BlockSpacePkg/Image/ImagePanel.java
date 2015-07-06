@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -29,6 +30,12 @@ public class ImagePanel extends JPanel implements IBlockSpacePanel {
 	private AbstractHandler handler = null;
 	private Helper modelHelper = new Helper(this);
 
+	private static TruMap<Combo, ContextAction<ImagePanel>> actionMap = new TruMap<>();
+	static {
+		ContextAction<ImagePanel> openImage = new ContextAction<>();
+		actionMap.p(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_O), openImage.setRedo(ImagePanel::makeOpenFileDialog));
+	}
+
 	public ImagePanel(BlockSpace parentBlockSpace) {
 		setFocusable(true);
 		this.add(imageLabel = new JLabel("Image not loaded"));
@@ -36,10 +43,7 @@ public class ImagePanel extends JPanel implements IBlockSpacePanel {
 		handler = new AbstractHandler(this) {
 
 			@Override
-			public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
-				ContextAction<ImagePanel> openImage = new ContextAction<>();
-				return new TruMap<>().p(new Combo(ctrl, k.VK_O), openImage.setRedo(ImagePanel::makeOpenFileDialog));
-			}
+			public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() { return actionMap; }
 
 			@Override
 			public Boolean mousePressedFinal(ComboMouse mouse) {

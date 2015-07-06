@@ -117,33 +117,26 @@ public class FileProcessor {
 
 				return new Explain(true);
 			} catch (JSONException exc) {
-				String msg = "У нас тут жорпа с открытием жсона - " + exc.getMessage();
+				String msg = "Failed to parse json - [" + exc.getMessage() + "]";
 				Logger.error(msg);
 				return new Explain(msg);
 			}
 		} catch (IOException exc) {
-			String msg = "Жопа при открытии жс файла " + exc.getClass().getSimpleName() + " - " + exc.getMessage();
+			String msg = "Failed to read file [" + exc.getClass().getSimpleName() + "] - {" + exc.getMessage() + "}";
 			Logger.error(msg);
 			return new Explain(msg);
 		}
 	}
 
 	private static Explain saveModel(File f, IModel model) {
+		JSONObject js = new JSONObject("{}").put(model.getClass().getSimpleName(), model.getJsonRepresentation()); // it hope it didnt broke
 		try {
-			JSONObject js = new JSONObject("{}");
-			js.put(model.getClass().getSimpleName(), Helper.getJsonRepresentation(model));
-			try {
-				PrintWriter out = new PrintWriter(f);
-				out.println(js.toString(2));
-				out.close();
-				return new Explain(true);
-			} catch (IOException exc) {
-				String msg = "У нас тут жорпа с файлом " + exc.getClass().getSimpleName() + " - " + exc.getMessage();
-				Logger.error(msg);
-				return new Explain(msg);
-			}
-		} catch (JSONException exc) {
-			String msg = "У нас тут жорпа с жсоном - " + exc.getMessage();
+			PrintWriter out = new PrintWriter(f);
+			out.println(js.toString(2));
+			out.close();
+			return new Explain(true);
+		} catch (IOException exc) {
+			String msg = "Failed to write to file [" + exc.getClass().getSimpleName() + "] - {" + exc.getMessage() + "}";
 			Logger.error(msg);
 			return new Explain(msg);
 		}

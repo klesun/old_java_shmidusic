@@ -153,19 +153,11 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 
 	// Until here
 
-	// event handles
-
-	public void page(int sign) {
-		JScrollBar vertical = getScroll().getVerticalScrollBar();
-		vertical.setValue(limit(vertical.getValue() + sign * Staff.SISDISPLACE * this.dy(), 0, vertical.getMaximum()));
-		repaint();
-	}
-
 	// private methods
 
 	private AbstractHandler makeHandler() {
 		return new AbstractHandler(this) {
-			public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
+			public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() {
 				return new LinkedHashMap<>(makeStaticActionMap());
 			}
 			public Boolean mousePressedFinal(ComboMouse mouse) {
@@ -179,9 +171,7 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 	}
 
 	private static LinkedHashMap<Combo, ContextAction<StaffPanel>> makeStaticActionMap() {
-		return new TruMap<>()
-				.p(new Combo(0, KeyEvent.VK_PAGE_DOWN), mkAction(sp -> sp.page(1)))
-				.p(new Combo(0, KeyEvent.VK_PAGE_UP), mkAction(sp -> sp.page(-1)));
+		return new TruMap<>();
 	}
 
 	private static ContextAction<StaffPanel> mkAction(Consumer<StaffPanel> lambda) {

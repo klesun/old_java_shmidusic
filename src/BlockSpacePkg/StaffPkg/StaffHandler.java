@@ -29,24 +29,8 @@ public class StaffHandler extends AbstractHandler {
 	@Deprecated
 	private int defaultChannel = 0; // default channel for new Nota-s
 
-	public void handleMidiEvent(Integer tune, int forca, int timestamp) {
-		if (forca > 0) {
-			// BEWARE: we get sometimes double messages when my synt has "LAYER/AUTO HARMONIZE" button on. That is button, that makes one key press sound with two instruments
-			this.handleKey(new Combo(Combo.getAsciiTuneMods(), Combo.tuneToAscii(tune))); // (11 -ctrl+shift+alt)+someKey
-		} else {
-			// keyup event
-		}
-	}
-
-	@Override
-	public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
-		return new LinkedHashMap<>(makeStaticActionMap());
-	}
-
-	public static LinkedHashMap<Combo, ContextAction<Staff>> makeStaticActionMap() {
-
-		TruMap<Combo, ContextAction<Staff>> actionMap = new TruMap<>();
-
+	private static TruMap<Combo, ContextAction<Staff>> actionMap = new TruMap<>();
+	static {
 		// TODO: make folder of project default path
 		JFileChooser jsonChooser = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/");
 		jsonChooser.setFileFilter(new FileFilter() {
@@ -65,7 +49,7 @@ public class StaffHandler extends AbstractHandler {
 		actionMap
 			.p(new Combo(ctrl, k.VK_P), mkAction(Staff::triggerPlayback).setCaption("Play/Stop"))
 
-			// TODO: maybe move these two into Scroll
+				// TODO: maybe move these two into Scroll
 			.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel).setCaption("Save"))
 			.p(new Combo(ctrl, k.VK_O), mkFailableAction(FileProcessor::openStaff).setCaption("Open"))
 
@@ -82,20 +66,30 @@ public class StaffHandler extends AbstractHandler {
 			.p(new Combo(ctrl, k.VK_0), mkAction(s -> s.mode = Staff.aMode.passive).setCaption("Disable Input From MIDI Device"))
 			.p(new Combo(ctrl, k.VK_9), mkAction(s -> s.mode = Staff.aMode.insert).setCaption("Enable Input From MIDI Device"))
 			.p(new Combo(ctrl, k.VK_E), mkFailableAction(FileProcessor::savePNG).setCaption("Export png"))
-			/** @legacy */
+				/** @legacy */
 			.p(new Combo(ctrl, k.VK_W), mkAction(StaffHandler::updateDeprecatedPauses).setCaption("Convert Deprecated Pauses"))
-			;
+		;
 
 		// MIDI-key press
 		for (Map.Entry<Combo, Integer> entry: Combo.getComboTuneMap().entrySet()) {
 			ContextAction<Staff> action = new ContextAction<>();
 			actionMap.p(entry.getKey(), action
-					.setRedo(s -> { s.addNewAccord().addNewNota(entry.getValue(), s.getSettings().getDefaultChannel()); })
-					.setOmitMenuBar(true));
+				.setRedo(s -> { s.addNewAccord().addNewNota(entry.getValue(), s.getSettings().getDefaultChannel()); })
+				.setOmitMenuBar(true));
 		}
-
-		return actionMap;
 	}
+
+	public void handleMidiEvent(Integer tune, int forca, int timestamp) {
+		if (forca > 0) {
+			// BEWARE: we get sometimes double messages when my synt has "LAYER/AUTO HARMONIZE" button on. That is button, that makes one key press sound with two instruments
+			this.handleKey(new Combo(Combo.getAsciiTuneMods(), Combo.tuneToAscii(tune))); // (11 -ctrl+shift+alt)+someKey
+		} else {
+			// keyup event
+		}
+	}
+
+	@Override
+	public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() { return actionMap; }
 
 	/** @legacy */
 	private static void updateDeprecatedPauses(Staff staff) {

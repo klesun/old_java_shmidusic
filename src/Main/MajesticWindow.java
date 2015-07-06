@@ -75,7 +75,7 @@ public class MajesticWindow extends JFrame {
 
 	private void addMenuItems(IComponentModel fakeModelForClassMethods) {
 
-		LinkedHashMap<Combo, ContextAction> actionMap = fakeModelForClassMethods.getHandler().getStaticActionMap();
+		LinkedHashMap<Combo, ContextAction> actionMap = fakeModelForClassMethods.getHandler().getMyClassActionMap();
 		if (actionMap.values().stream().anyMatch(a -> !a.omitMenuBar())) {
 
 			JMenu modelMenu = new JMenu(fakeModelForClassMethods.getClass().getSimpleName());

@@ -25,17 +25,11 @@ public class AccordHandler extends AbstractHandler {
 		return (Accord)super.getContext();
 	}
 
-	@Override
-	public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
-		return new LinkedHashMap<>(makeStaticActionMap());
-	}
-
-	public static LinkedHashMap<Combo, ContextAction<Accord>> makeStaticActionMap() {
-
-		TruMap<Combo, ContextAction<Accord>> actionMap = new TruMap<>();
-		for (Map.Entry<Combo, ContextAction<Nota>> entry: NotaHandler.makeStaticActionMap().entrySet()) {
+	private static TruMap<Combo, ContextAction<Accord>> actionMap = new TruMap<>();
+	static {
+		for (Map.Entry<Combo, ContextAction<Nota>> entry: NotaHandler.getClassActionMap().entrySet()) {
 			actionMap.p(entry.getKey(), mkAction(accord -> accord.getNotaList().forEach(entry.getValue()::redo))
-					.setCaption("Notas: " + entry.getValue().getCaption()));
+				.setCaption("Notas: " + entry.getValue().getCaption()));
 		}
 
 		// overwrites putDot() action of child Nota-s
@@ -43,7 +37,7 @@ public class AccordHandler extends AbstractHandler {
 			.p(new Combo(0, k.VK_UP), mkFailableAction(a -> a.moveFocus(-1)).setCaption("Up"))
 			.p(new Combo(0, k.VK_DOWN), mkFailableAction(a -> a.moveFocus(1)).setCaption("Down"))
 			.p(new Combo(0, k.VK_DELETE), mkAction(accord -> accord.getParentStaff().remove(accord)).setCaption("Delete"))
-			;
+		;
 
 		for (Combo combo: Combo.getNumberComboList(0)) {
 			actionMap.p(combo, mkAction(a -> a.setFocusedIndex(combo.getPressedNumber()))
@@ -55,13 +49,16 @@ public class AccordHandler extends AbstractHandler {
 		for (Map.Entry<Combo, Integer> entry: Combo.getComboTuneMap().entrySet()) {
 			ContextAction<Accord> action = new ContextAction<>();
 			actionMap.p(entry.getKey(), action
-				.setRedo(accord -> System.currentTimeMillis() - accord.getEarliestKeydown() < ACCORD_EPSILON
-					? new Explain(accord.addNewNota(entry.getValue(), accord.getSettings().getDefaultChannel()))
-					: new Explain("too slow. to collect Nota-s into single accord, they have to be pressed in " + ACCORD_EPSILON + " milliseconds"))
-				.setOmitMenuBar(true)
+					.setRedo(accord -> System.currentTimeMillis() - accord.getEarliestKeydown() < ACCORD_EPSILON
+						? new Explain(accord.addNewNota(entry.getValue(), accord.getSettings().getDefaultChannel()))
+						: new Explain("too slow. to collect Nota-s into single accord, they have to be pressed in " + ACCORD_EPSILON + " milliseconds"))
+					.setOmitMenuBar(true)
 			);
 		}
+	}
 
+	@Override
+	public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() {
 		return actionMap;
 	}
 

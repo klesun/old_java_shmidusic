@@ -34,6 +34,21 @@ public class Paragraph extends JTextArea implements IComponentModel {
 	private Field<Integer> score = modelHelper.addField("score", 0);
 	private Map<String, CatchPhrase> catchPhrases = new HashMap<>();
 
+	private static TruMap<Combo, ContextAction<Paragraph>> actionMap = new TruMap<>();
+	static {
+
+		Combo.getNumberComboList(KeyEvent.CTRL_MASK).forEach(c -> actionMap.p(c, mkAction(p -> p.setSelectedScore(c.getPressedNumber())).setOmitMenuBar(true)));
+
+		actionMap
+			.p(new Combo(0, KeyEvent.VK_DOWN), mkFailableAction(p -> new Explain(p.getRowIndex() < p.getRowCount() - 1, "No more rows")).setOmitMenuBar(true))
+			.p(new Combo(0, KeyEvent.VK_UP), mkFailableAction(p -> new Explain(p.getRowIndex() > 0, "First row")).setOmitMenuBar(true))
+			.p(new Combo(0, KeyEvent.VK_LEFT), mkFailableAction(p -> new Explain(p.getCaretPosition() > 0, "Start of text")).setOmitMenuBar(true))
+			.p(new Combo(0, KeyEvent.VK_BACK_SPACE), mkFailableAction(p -> new Explain(p.getCaretPosition() > 0, "Start of text")).setOmitMenuBar(true))
+			.p(new Combo(0, KeyEvent.VK_RIGHT), mkFailableAction(p -> new Explain(p.getCaretPosition() < p.getText().length(), "End of text")).setOmitMenuBar(true))
+			.p(new Combo(0, KeyEvent.VK_DELETE), mkFailableAction(p -> new Explain(p.getCaretPosition() < p.getText().length(), "End of text")).setOmitMenuBar(true))
+		;
+	}
+
 	public Paragraph(Article parent) {
 		setLineWrap(true);
 		setWrapStyleWord(true);
@@ -44,9 +59,7 @@ public class Paragraph extends JTextArea implements IComponentModel {
 			public Boolean mousePressedFinal(ComboMouse combo) { return combo.leftButton; }
 			public Boolean mouseDraggedFinal(ComboMouse combo) { return combo.leftButton; }
 
-			public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
-				return new LinkedHashMap<>(makeStaticActionMap());
-			}
+			public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() { return actionMap; }
 
 			public Paragraph getContext() { return (Paragraph)super.getContext(); }
 		};
@@ -75,23 +88,6 @@ public class Paragraph extends JTextArea implements IComponentModel {
 		});
 
 		this.parent = parent;
-	}
-
-
-	private static LinkedHashMap<Combo, ContextAction<Paragraph>> makeStaticActionMap() {
-
-		TruMap<Combo, ContextAction<Paragraph>> map = new TruMap<>();
-
-		Combo.getNumberComboList(KeyEvent.CTRL_MASK).forEach(c -> map.p(c, mkAction(p -> p.setSelectedScore(c.getPressedNumber())).setOmitMenuBar(true)));
-
-		return map
-			.p(new Combo(0, KeyEvent.VK_DOWN), mkFailableAction(p -> new Explain(p.getRowIndex() < p.getRowCount() - 1, "No more rows")).setOmitMenuBar(true))
-			.p(new Combo(0, KeyEvent.VK_UP), mkFailableAction(p -> new Explain(p.getRowIndex() > 0, "First row")).setOmitMenuBar(true))
-			.p(new Combo(0, KeyEvent.VK_LEFT), mkFailableAction(p -> new Explain(p.getCaretPosition() > 0, "Start of text")).setOmitMenuBar(true))
-			.p(new Combo(0, KeyEvent.VK_BACK_SPACE), mkFailableAction(p -> new Explain(p.getCaretPosition() > 0, "Start of text")).setOmitMenuBar(true))
-			.p(new Combo(0, KeyEvent.VK_RIGHT), mkFailableAction(p -> new Explain(p.getCaretPosition() < p.getText().length(), "End of text")).setOmitMenuBar(true))
-			.p(new Combo(0, KeyEvent.VK_DELETE), mkFailableAction(p -> new Explain(p.getCaretPosition() < p.getText().length(), "End of text")).setOmitMenuBar(true))
-			;
 	}
 
 	private static ContextAction<Paragraph> mkAction(Consumer<Paragraph> lambda) {

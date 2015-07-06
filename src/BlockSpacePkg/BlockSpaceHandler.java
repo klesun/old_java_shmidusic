@@ -20,13 +20,8 @@ public class BlockSpaceHandler extends AbstractHandler {
 
 	public BlockSpaceHandler(BlockSpace context) { super(context); }
 
-	@Override
-	public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
-		return new LinkedHashMap<>(makeStaticActionMap());
-	}
-
-	public static LinkedHashMap<Combo, ContextAction<BlockSpace>> makeStaticActionMap() {
-
+	private static TruMap<Combo, ContextAction<BlockSpace>> actionMap = new TruMap<>();
+	static {
 		JFileChooser jsonChooser = new JFileChooser("/home/klesun/yuzefa_git/storyspaceContent/");
 		jsonChooser.setFileFilter(new FileFilter() {
 			public boolean accept(File f) {
@@ -38,8 +33,6 @@ public class BlockSpaceHandler extends AbstractHandler {
 			}
 		});
 
-		TruMap<Combo, ContextAction<BlockSpace>> actionMap = new TruMap<>();
-
 		actionMap
 			.p(new Combo(ctrl, k.VK_M), mkAction(BlockSpace::addMusicBlock).setCaption("Create Staff Block"))
 			.p(new Combo(ctrl, k.VK_T), mkAction(BlockSpace::addTextBlock).setCaption("Create Article Block"))
@@ -47,13 +40,16 @@ public class BlockSpaceHandler extends AbstractHandler {
 
 			.p(new Combo(ctrl, k.VK_G), mkFailableAction(FileProcessor::saveStoryspace).setCaption("Save Whole Project"))
 			.p(new Combo(ctrl, k.VK_R), mkFailableAction(bs -> jsonChooser.showOpenDialog(bs.getWindow()) == JFileChooser.APPROVE_OPTION
-					? FileProcessor.openStoryspace(jsonChooser.getSelectedFile(), bs)
-					: new Explain("You changed your mind. Why?")).setCaption("Reconstruct From a Project File"))
+				? FileProcessor.openStoryspace(jsonChooser.getSelectedFile(), bs)
+				: new Explain("You changed your mind. Why?")).setCaption("Reconstruct From a Project File"))
 
 			.p(new Combo(ctrl, k.VK_EQUALS), mkAction(bs -> bs.scale(1)).setCaption("Scale Up"))
 			.p(new Combo(ctrl, k.VK_MINUS), mkAction(bs -> bs.scale(-1)).setCaption("Scale Down"))
 			;
+	}
 
+	@Override
+	public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() {
 		return actionMap;
 	}
 

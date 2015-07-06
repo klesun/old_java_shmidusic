@@ -48,11 +48,11 @@ public class Staff extends MidianaComponent {
 		this.playback = new Playback(this);
 	}
 
-	public Accord addNewAccord() {
+	public synchronized Accord addNewAccord() {
 		return addNewAccord(true);
 	}
 
-	public Accord addNewAccord(Boolean withPlayback) {
+	public synchronized Accord addNewAccord(Boolean withPlayback) {
 		Accord accord = new Accord(this);
 		if (DeviceEbun.isPlaybackSoftware() && withPlayback) { // i.e. when playback is not done with piano - no need to play pressed accord, user hears it anyways
 			new Thread(() -> { Uninterruptibles.sleepUninterruptibly(AccordHandler.ACCORD_EPSILON, TimeUnit.MILLISECONDS); PlayMusThread.playAccord(accord); }).start();

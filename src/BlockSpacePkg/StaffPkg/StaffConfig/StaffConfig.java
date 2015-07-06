@@ -130,7 +130,7 @@ public class StaffConfig extends MidianaComponent {
 	@Override
 	protected AbstractHandler makeHandler() {
 		return new AbstractHandler(this) {
-			public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
+			public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() {
 				return new TruMap<>();
 			}
 		};
