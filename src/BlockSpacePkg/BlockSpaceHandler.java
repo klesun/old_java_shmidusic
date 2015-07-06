@@ -1,6 +1,7 @@
 package BlockSpacePkg;
 
 import Model.*;
+import Stuff.OverridingDefaultClasses.TruMap;
 import Stuff.Tools.FileProcessor;
 import Stuff.Tools.Logger;
 
@@ -9,15 +10,22 @@ import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.io.File;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class BlockSpaceHandler extends AbstractHandler {
 
 	public BlockSpaceHandler(BlockSpace context) { super(context); }
 
 	@Override
-	protected void initActionMap() {
+	public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
+		return new LinkedHashMap<>(makeStaticActionMap());
+	}
+
+	public static LinkedHashMap<Combo, ContextAction<BlockSpace>> makeStaticActionMap() {
 
 		JFileChooser jsonChooser = new JFileChooser("/home/klesun/yuzefa_git/storyspaceContent/");
 		jsonChooser.setFileFilter(new FileFilter() {
@@ -30,26 +38,35 @@ public class BlockSpaceHandler extends AbstractHandler {
 			}
 		});
 
-		addCombo(ctrl, k.VK_M).setDo((this.getContext())::addMusicBlock);
-		addCombo(ctrl, k.VK_T).setDo((this.getContext())::addTextBlock);
-		addCombo(ctrl, k.VK_I).setDo((this.getContext())::addImageBlock);
+		TruMap<Combo, ContextAction<BlockSpace>> actionMap = new TruMap<>();
 
-		addCombo(ctrl, k.VK_G).setDo(makeSaveFileDialog(FileProcessor::saveStoryspace, jsonChooser, "stsp.json"));
-		addCombo(ctrl, k.VK_R).setDo(combo -> {
-			int sVal = jsonChooser.showOpenDialog(getContext().getWindow());
-			if (sVal == JFileChooser.APPROVE_OPTION) {
-				FileProcessor.openStoryspace(jsonChooser.getSelectedFile(), getContext());
-			}
-			makeSaveFileDialog(FileProcessor::saveStoryspace, jsonChooser, "stsp.json");
-		});
+		actionMap
+			.p(new Combo(ctrl, k.VK_M), mkAction(BlockSpace::addMusicBlock).setCaption("Create Staff Block"))
+			.p(new Combo(ctrl, k.VK_T), mkAction(BlockSpace::addTextBlock).setCaption("Create Article Block"))
+			.p(new Combo(ctrl, k.VK_I), mkAction(BlockSpace::addImageBlock).setCaption("Create Image Block"))
 
-		addCombo(ctrl, k.VK_EQUALS).setDo((this.getContext())::scale);
-		addCombo(ctrl, k.VK_MINUS).setDo((this.getContext())::scale);
-		addCombo(ctrl, k.VK_MINUS).setDo(() -> this.getContext().getSettings().scale(-1));
-		addCombo(ctrl, k.VK_EQUALS).setDo(() -> this.getContext().getSettings().scale(+1));
+			.p(new Combo(ctrl, k.VK_G), mkFailableAction(FileProcessor::saveStoryspace).setCaption("Save Whole Project"))
+			.p(new Combo(ctrl, k.VK_R), mkFailableAction(bs -> jsonChooser.showOpenDialog(bs.getWindow()) == JFileChooser.APPROVE_OPTION
+					? FileProcessor.openStoryspace(jsonChooser.getSelectedFile(), bs)
+					: new Explain("You changed your mind. Why?")).setCaption("Reconstruct From a Project File"))
 
-//		addCombo(ctrl, k.VK_K).setDo(() -> { Logger.fatal("Artificial fatal was generated (sorry if you pressed this shortcut occasionally D= )"); });
+			.p(new Combo(ctrl, k.VK_EQUALS), mkAction(bs -> bs.scale(1)).setCaption("Scale Up"))
+			.p(new Combo(ctrl, k.VK_MINUS), mkAction(bs -> bs.scale(-1)).setCaption("Scale Down"))
+			;
+
+		return actionMap;
 	}
+
+	private static ContextAction<BlockSpace> mkAction(Consumer<BlockSpace> lambda) {
+		ContextAction<BlockSpace> action = new ContextAction<>();
+		return action.setRedo(lambda);
+	}
+
+	private static ContextAction<BlockSpace> mkFailableAction(Function<BlockSpace, Explain> lambda) {
+		ContextAction<BlockSpace> action = new ContextAction<>();
+		return action.setRedo(lambda);
+	}
+
 	@Override
 	public Boolean mousePressedFinal(ComboMouse mouse) {
 		if (mouse.leftButton) {
@@ -83,17 +100,5 @@ public class BlockSpaceHandler extends AbstractHandler {
 			model = model.getModelParent();
 		}
 		return Component.class.cast(model);
-	}
-
-	final private Consumer<Combo> makeSaveFileDialog(BiConsumer<File, BlockSpace> lambda, JFileChooser chooser, String ext) {
-		return combo -> {
-			int rVal = chooser.showSaveDialog(getContext());
-			if (rVal == JFileChooser.APPROVE_OPTION) {
-				File fn = chooser.getSelectedFile();
-				if (!chooser.getFileFilter().accept(fn)) { fn = new File(fn + "." + ext); }
-				// TODO: prompt on overwrite
-				lambda.accept(fn, getContext());
-			}
-		};
 	}
 }

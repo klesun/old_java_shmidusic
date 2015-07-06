@@ -1,16 +1,15 @@
 package BlockSpacePkg;
 
-import Model.AbstractHandler;
-import Model.Combo;
-import Model.ComboMouse;
-import Model.ContextAction;
+import Model.*;
 import Stuff.OverridingDefaultClasses.TruMap;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class BlockHandler extends AbstractHandler {
 
@@ -49,16 +48,8 @@ public class BlockHandler extends AbstractHandler {
 	}
 
 	@Override
-	protected void initActionMap() {
-		addCombo(ctrl, k.VK_DELETE).setDo(() ->
-			getContext().getModelParent().removeModelChild(getContext())
-		); // TODO: it would be not bad to make it undoable
-		addCombo(0, k.VK_F2).setDo(() -> getContext().setTitle(JOptionPane.showInputDialog(getContext(), "Type new name for panel: ", getContext().getTitle())));
-		addCombo(ctrl, k.VK_F).setDo(getContext()::switchFullscreen);
-
-		// blocking actions for parent when fullscreen - issue[62]
-		addCombo(ctrl, k.VK_MINUS).setDo(() -> getContext().isFullscreen());
-		addCombo(ctrl, k.VK_EQUALS).setDo(() -> getContext().isFullscreen());
+	public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
+		return new LinkedHashMap<>(makeStaticActionMap());
 	}
 
 	public static LinkedHashMap<Combo, ContextAction<Block>> makeStaticActionMap() {
@@ -66,19 +57,26 @@ public class BlockHandler extends AbstractHandler {
 		TruMap<Combo, ContextAction<Block>> actionMap = new TruMap<>();
 
 		actionMap
-			.p(new Combo(ctrl, k.VK_DELETE), mkAction(c -> c.getModelParent().removeModelChild(c)).setCaption("Delete"))
-			.p(new Combo(ctrl, k.VK_F2), mkAction(c -> c.setTitle(JOptionPane.showInputDialog(c, "Type new name for container: ", c.getTitle()))).setCaption("Rename"))
 			.p(new Combo(ctrl, k.VK_F), mkAction(Block::switchFullscreen).setCaption("Switch Fullscreen"))
+			.p(new Combo(ctrl, k.VK_F2), mkAction(c -> c.setTitle(JOptionPane.showInputDialog(c, "Type new name for container: ", c.getTitle()))).setCaption("Rename"))
+			.p(new Combo(ctrl, k.VK_DELETE), mkAction(c -> c.getModelParent().removeModelChild(c)).setCaption("Delete"))
 
 			// blocking actions for parent when fullscreen - issue[62]
-			.p(new Combo(ctrl, k.VK_MINUS), mkAction(Block::isFullscreen).setOmitMenuBar(true))
-			.p(new Combo(ctrl, k.VK_EQUALS), mkAction(Block::isFullscreen).setOmitMenuBar(true))
+//			.p(new Combo(ctrl, k.VK_MINUS), mkFailableAction(c -> c.isFullscreen() ? new Explain(true) : new Explain("You shall pass"))
+//					.setOmitMenuBar(true))
+//			.p(new Combo(ctrl, k.VK_EQUALS), mkFailableAction(c -> c.isFullscreen() ? new Explain(true) : new Explain("You shall pass"))
+//					.setOmitMenuBar(true))
 			;
 
 		return actionMap;
 	}
 
 	private static ContextAction<Block> mkAction(Consumer<Block> lambda) {
+		ContextAction<Block> action = new ContextAction<>();
+		return action.setRedo(lambda);
+	}
+
+	private static ContextAction<Block> mkFailableAction(Function<Block, Explain> lambda) {
 		ContextAction<Block> action = new ContextAction<>();
 		return action.setRedo(lambda);
 	}

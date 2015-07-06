@@ -5,8 +5,8 @@ import Gui.Settings;
 import Main.MajesticWindow;
 import Model.*;
 import BlockSpacePkg.Image.ImagePanel;
-import BlockSpacePkg.Staff.StaffPanel;
-import BlockSpacePkg.Article.Article;
+import BlockSpacePkg.StaffPkg.StaffPanel;
+import BlockSpacePkg.ArticlePkg.Article;
 import Stuff.Tools.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,7 +22,7 @@ public class BlockSpace extends JPanel implements IComponentModel {
 
 	private MajesticWindow window = null;
 
-	private List<StoryspaceScroll> childScrollList = new ArrayList<>();
+	private List<Block> childScrollList = new ArrayList<>();
 
 	final private AbstractHandler handler;
 	final private Helper modelHelper = new Helper(this);
@@ -34,7 +34,7 @@ public class BlockSpace extends JPanel implements IComponentModel {
 		setLayout(null);
 		setFocusable(true);
 
-		handler = new StoryspaceHandler(this);
+		handler = new BlockSpaceHandler(this);
 		addKeyListener(handler);
 		addMouseMotionListener(handler);
 		addMouseListener(handler);
@@ -42,8 +42,8 @@ public class BlockSpace extends JPanel implements IComponentModel {
 		this.setBackground(Color.DARK_GRAY);
 	}
 
-	public StoryspaceScroll addModelChild(IStoryspacePanel child) {
-		StoryspaceScroll scroll = new StoryspaceScroll(child, this);
+	public Block addModelChild(IBlockSpacePanel child) {
+		Block scroll = new Block(child, this);
 		childScrollList.add(scroll);
 		this.add(scroll);
 
@@ -54,7 +54,7 @@ public class BlockSpace extends JPanel implements IComponentModel {
 		return scroll;
 	}
 
-	public void removeModelChild(StoryspaceScroll child) {
+	public void removeModelChild(Block child) {
 		this.remove(child);
 		childScrollList.remove(child);
 		repaint();
@@ -74,16 +74,16 @@ public class BlockSpace extends JPanel implements IComponentModel {
 	@Override
 	public IComponentModel getModelParent() { return null; } // BlockSpace is root parent
 	@Override
-	public StoryspaceScroll getFocusedChild() { // i think, i don't get awt philosophy...
+	public Block getFocusedChild() { // i think, i don't get awt philosophy...
 		return getFocusedChild(window.getFocusOwner());
 	}
 
-	public StoryspaceScroll getFocusedChild(Component awtFocus) {
+	public Block getFocusedChild(Component awtFocus) {
 		if (awtFocus instanceof IModel) {
 			IModel model = (IModel)awtFocus;
 			while (model != null) {
 				if (childScrollList.contains(model)) {
-					return (StoryspaceScroll)model;
+					return (Block)model;
 				}
 				model = model.getModelParent();
 			}
@@ -116,7 +116,7 @@ public class BlockSpace extends JPanel implements IComponentModel {
 		JSONArray childBlockList = jsObject.getJSONArray("childBlockList");
 		for (int i = 0; i < childBlockList.length(); ++i) {
 			JSONObject childJs = childBlockList.getJSONObject(i);
-			IStoryspacePanel child = makeChildByClassName(childJs.getString("className"));
+			IBlockSpacePanel child = makeChildByClassName(childJs.getString("className"));
 			child.getScroll().reconstructFromJson(childJs.getJSONObject("scroll"));
 			child.reconstructFromJson(childJs);
 
@@ -128,9 +128,9 @@ public class BlockSpace extends JPanel implements IComponentModel {
 
 	// private methods
 
-	private static Class<?extends IStoryspacePanel>[] childClasses = new Class[]{Article.class, ImagePanel.class, StaffPanel.class};
+	private static Class<?extends IBlockSpacePanel>[] childClasses = new Class[]{Article.class, ImagePanel.class, StaffPanel.class};
 
-	private IStoryspacePanel makeChildByClassName(String className) {
+	private IBlockSpacePanel makeChildByClassName(String className) {
 		for (int i = 0; i < childClasses.length; ++i) {
 			if (childClasses[i].getSimpleName().equals(className)) {
 				try {
@@ -147,7 +147,7 @@ public class BlockSpace extends JPanel implements IComponentModel {
 		return null;
 	}
 
-	public List<StoryspaceScroll> getChildScrollList() {
+	public List<Block> getChildScrollList() {
 		return childScrollList;
 	}
 
@@ -161,27 +161,27 @@ public class BlockSpace extends JPanel implements IComponentModel {
 
 	// event handles
 
-	public void pushToFront(StoryspaceScroll scroll) {
+	public void pushToFront(Block scroll) {
 		setComponentZOrder(scroll, 0);
 		repaint();
 	}
 
-	public void scale(Combo combo) {
-		int sign = combo.getSign();
+	public void scale(int sign) {
 		double factor = sign == -1 ? 0.75 : 1 / 0.75;
-		for (StoryspaceScroll scroll: childScrollList) {
+		if (getChildScrollList().stream().noneMatch(Block::isFullscreen)) {
+			for (Block scroll: childScrollList) {
 
-			int width = (int) (scroll.getWidth() * factor);
-			int height = (int) (scroll.getHeight() * factor);
-			int x = (int) (scroll.getX() * factor);
-			int y = (int) (scroll.getY() * factor);
+				int width = (int) (scroll.getWidth() * factor);
+				int height = (int) (scroll.getHeight() * factor);
+				int x = (int) (scroll.getX() * factor);
+				int y = (int) (scroll.getY() * factor);
 
-			scroll.setSize(width, height);
-			scroll.setLocation(x, y);
-			scroll.validate();
-
-			// TODO: child.scale(combo)
+				scroll.setSize(width, height);
+				scroll.setLocation(x, y);
+				scroll.validate();
+			}
 		}
+		getSettings().scale(sign);
 	}
 
 	public StaffPanel addMusicBlock() {
@@ -189,6 +189,14 @@ public class BlockSpace extends JPanel implements IComponentModel {
 		this.revalidate();
 		return obj;
 	}
-	public void addTextBlock() { new Article(this); }
-	public void addImageBlock() { new ImagePanel(this); }
+	public Article addTextBlock() {
+		Article obj = new Article(this);
+		this.revalidate();
+		return obj;
+	}
+	public ImagePanel addImageBlock() {
+		ImagePanel obj = new ImagePanel(this);
+		this.revalidate();
+		return obj;
+	}
 }

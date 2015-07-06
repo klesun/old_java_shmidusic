@@ -4,7 +4,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.function.Consumer;
 
-import Model.ActionResult;
+import Model.Explain;
 import Model.Field.Arr;
 import Model.Field.Field;
 import Model.SimpleAction;
@@ -36,7 +36,7 @@ public class Accord extends MidianaComponent {
 
 	public void drawOn(Graphics surface, int x, int y, Boolean completeRepaintRequired) {
 		if (completeRepaintRequired || surfaceChanged) {
-			new AccordPainter(this, surface, x, y).draw();
+			new AccordPainter(this, surface, x, y).draw(true); // TODO: make it be not needed
 			surfaceChanged = false;
 		}
 	}
@@ -44,9 +44,13 @@ public class Accord extends MidianaComponent {
 	// я передумал, я снова люблю джаву
 	private static Consumer<Graphics> diminendoPainting(Rectangle r, Boolean value) {
 		return g -> {
-			g.setColor(Color.BLACK);
-			g.drawLine(0, 0, r.width, r.height / 2);
-			g.drawLine(0, r.height, r.width, r.height / 2);
+			double stretch = 0.5;
+			g.setColor(value ? Color.BLACK : Color.white);
+			int x1 = (int)(r.x + r.width * stretch / 2);
+			int x2 = (int)(r.x - r.width * stretch / 2) + r.width;
+
+			g.drawLine(x1, r.y, x2, r.y + r.height / 2);
+			g.drawLine(x1, r.y + r.height, x2, r.y + r.height / 2);
 		};
 	}
 
@@ -71,18 +75,18 @@ public class Accord extends MidianaComponent {
 
 	// responses to events (actions)
 
-	public ActionResult<Boolean> moveFocus(int n) {
+	public Explain<Boolean> moveFocus(int n) {
 
 		if (getFocusedIndex() + n > this.getNotaList().size() - 1 || getFocusedIndex() + n < 0) {
 			this.setFocusedIndex(-1);
-			return new ActionResult<>("End Of Accord");
+			return new Explain<>("End Of Accord");
 		} else {
 			if (this.getFocusedIndex() + n < -1) {
 				this.setFocusedIndex(this.getNotaList().size() - 1);
 			} else {
 				this.setFocusedIndex(this.getFocusedIndex() + n);
 			}
-			return new ActionResult<>(true);
+			return new Explain<>(true);
 		}
 	}
 

@@ -1,29 +1,17 @@
 package Stuff.Musica;
 
-import Gui.ImageStorage;
-import Model.ActionResult;
 import Model.Combo;
-import Storyspace.Staff.Accord.AccordHandler;
-import Storyspace.Staff.Staff;
-import Storyspace.Staff.Accord.Nota.Nota;
-import Storyspace.Staff.Accord.Accord;
-import Storyspace.Staff.StaffConfig.StaffConfig;
+import BlockSpacePkg.StaffPkg.Staff;
+import BlockSpacePkg.StaffPkg.Accord.Nota.Nota;
+import BlockSpacePkg.StaffPkg.Accord.Accord;
 import Stuff.Midi.DeviceEbun;
 import Stuff.Midi.Playback;
-import Stuff.OverridingDefaultClasses.SynchronizedHashMap;
-import Stuff.Tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 
-import javax.swing.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 public class PlayMusThread extends Thread {
 

@@ -28,7 +28,7 @@ public class Field<E> {
 	@Deprecated // i used it to repaint, but now we have separate repinting lambda
 	private Runnable onChange = null;
 	private BiFunction<Rectangle, E, Consumer<Graphics>> paintingLambda = null;
-	private Boolean changedSinceLastRepaint = true;
+	public Boolean changedSinceLastRepaint = true;
 
     public Field(String name, E value, IModel owner) { this(name, value, owner, null); }
 
@@ -85,8 +85,8 @@ public class Field<E> {
 		return this.paintingLambda != null;
 	}
 
-	public void repaintIfNeeded(Graphics g, Rectangle r) {
-		if (hasPaintingLambda() && changedSinceLastRepaint) {
+	public void repaint(Graphics g, Rectangle r) {
+		if (hasPaintingLambda()) {
 			this.paintingLambda.apply(r, get()).accept(g);
 			this.changedSinceLastRepaint = false;
 		}

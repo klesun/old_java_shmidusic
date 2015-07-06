@@ -1,9 +1,12 @@
 package BlockSpacePkg.Image;
 
+import BlockSpacePkg.StaffPkg.StaffPanel;
+import Main.Main;
 import Model.*;
 import BlockSpacePkg.BlockSpace;
-import BlockSpacePkg.IStoryspacePanel;
-import BlockSpacePkg.StoryspaceScroll;
+import BlockSpacePkg.IBlockSpacePanel;
+import BlockSpacePkg.Block;
+import Stuff.OverridingDefaultClasses.TruMap;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -12,15 +15,17 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.LinkedHashMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
-public class ImagePanel extends JPanel implements IStoryspacePanel {
+public class ImagePanel extends JPanel implements IBlockSpacePanel {
 
 	private BufferedImage image = null;
 	private JLabel imageLabel = null;
 	private String imagePath = "";
 
-	private StoryspaceScroll scroll = null;
+	private Block scroll = null;
 	private AbstractHandler handler = null;
 	private Helper modelHelper = new Helper(this);
 
@@ -29,10 +34,13 @@ public class ImagePanel extends JPanel implements IStoryspacePanel {
 		this.add(imageLabel = new JLabel("Image not loaded"));
 
 		handler = new AbstractHandler(this) {
+
 			@Override
-			protected void initActionMap() {
-				addCombo(ctrl, k.VK_O).setDo(makeOpenFileDialog(getContext()::loadImage));
+			public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
+				ContextAction<ImagePanel> openImage = new ContextAction<>();
+				return new TruMap<>().p(new Combo(ctrl, k.VK_O), openImage.setRedo(ImagePanel::makeOpenFileDialog));
 			}
+
 			@Override
 			public Boolean mousePressedFinal(ComboMouse mouse) {
 				if (mouse.leftButton) {
@@ -53,11 +61,11 @@ public class ImagePanel extends JPanel implements IStoryspacePanel {
 	}
 
 	@Override
-	public StoryspaceScroll getScroll() { return scroll; }
+	public Block getScroll() { return scroll; }
 	@Override
 	public IComponentModel getFocusedChild() { return null; }
 	@Override
-	public StoryspaceScroll getModelParent() { return StoryspaceScroll.class.cast(getParent().getParent()); } // =D
+	public Block getModelParent() { return Block.class.cast(getParent().getParent()); } // =D
 	@Override
 	public AbstractHandler getHandler() { return this.handler; }
 	@Override
@@ -86,13 +94,13 @@ public class ImagePanel extends JPanel implements IStoryspacePanel {
 		this.validate();
 	}
 
-	final private Consumer<Combo> makeOpenFileDialog(Consumer<File> lambda) {
+	private static Explain makeOpenFileDialog(ImagePanel ip) {
 		JFileChooser chooser = new JFileChooser();
 		chooser.setFileFilter(new FileNameExtensionFilter("Image Files", ImageIO.getReaderFileSuffixes()));
-		return combo -> {
-			if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-				lambda.accept(chooser.getSelectedFile());
-			}
-		};
+
+		if (chooser.showOpenDialog(ip) == JFileChooser.APPROVE_OPTION) {
+			ip.loadImage(chooser.getSelectedFile());
+		}
+		return new Explain(true);
 	}
 }

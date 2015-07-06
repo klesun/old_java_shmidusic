@@ -15,7 +15,7 @@ import javax.swing.border.Border;
 @SuppressWarnings("serial")
 public class Block extends Scroll implements IComponentModel {
 	
-	final public IStoryspacePanel content;
+	final public IBlockSpacePanel content;
 
 	final private BlockSpace parent;
 	final private AbstractHandler handler;
@@ -38,7 +38,7 @@ public class Block extends Scroll implements IComponentModel {
 	private Point lastPosition = new Point(DEFAULT_X, DEFAULT_Y);
 	private Boolean isFullscreen = false;
 
-	public Block(IStoryspacePanel content, BlockSpace parent) {
+	public Block(IBlockSpacePanel content, BlockSpace parent) {
 		super((Component)content);
 		this.content = content;
 		this.parent = parent;
@@ -47,7 +47,7 @@ public class Block extends Scroll implements IComponentModel {
 		this.setLocation(DEFAULT_X, DEFAULT_Y);
 		this.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
-		handler = new StoryspaceScrollHandler(this);
+		handler = new BlockHandler(this);
 
 		titlePanel.setSize(getWidth(), TITLE_HEIGHT);
 		titlePanel.add(new TruLabel("Unsaved " + content.getClass().getSimpleName()));
@@ -109,11 +109,15 @@ public class Block extends Scroll implements IComponentModel {
 
 		setBorder(Block.focusedBorder);
 		titlePanel.setBackground(new Color(200, 200, 200));
+
+		getModelParent().getWindow().updateMenuBar();
 	}
 
 	public void lostFocus() {
 		setBorder(Block.unfocusedBorder);
 		titlePanel.setBackground(new Color(238, 238, 238));
+
+//		getModelParent().getWindow().updateMenuBar();
 	}
 
 	public void switchFullscreen() {

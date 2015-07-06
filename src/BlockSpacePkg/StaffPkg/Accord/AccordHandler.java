@@ -26,17 +26,8 @@ public class AccordHandler extends AbstractHandler {
 	}
 
 	@Override
-	protected void initActionMap() {
-		for (Map.Entry<Combo, ContextAction<Accord>> entry: makeStaticActionMap().entrySet()) {
-			new ActionFactory(entry.getKey()).addTo(this.actionMap).setDo(() -> entry.getValue().redo(getContext()).isSuccess());
-		}
-	}
-
-	@Override
 	public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
-		LinkedHashMap<Combo, ContextAction> huj = new LinkedHashMap<>();
-		huj.putAll(makeStaticActionMap()); // no, java is retarded after all
-		return huj;
+		return new LinkedHashMap<>(makeStaticActionMap());
 	}
 
 	public static LinkedHashMap<Combo, ContextAction<Accord>> makeStaticActionMap() {
@@ -65,8 +56,8 @@ public class AccordHandler extends AbstractHandler {
 			ContextAction<Accord> action = new ContextAction<>();
 			actionMap.p(entry.getKey(), action
 				.setRedo(accord -> System.currentTimeMillis() - accord.getEarliestKeydown() < ACCORD_EPSILON
-					? new ActionResult(accord.addNewNota(entry.getValue(), accord.getSettings().getDefaultChannel()))
-					: new ActionResult("too slow. to collect Nota-s into single accord, they have to be pressed in " + ACCORD_EPSILON + " milliseconds"))
+					? new Explain(accord.addNewNota(entry.getValue(), accord.getSettings().getDefaultChannel()))
+					: new Explain("too slow. to collect Nota-s into single accord, they have to be pressed in " + ACCORD_EPSILON + " milliseconds"))
 				.setOmitMenuBar(true)
 			);
 		}
@@ -74,13 +65,12 @@ public class AccordHandler extends AbstractHandler {
 		return actionMap;
 	}
 
-	// stupid java, stupid lambdas don't see stupid generics! that's why i was forced to create separate method to do it in one line
 	private static ContextAction<Accord> mkAction(Consumer<Accord> lambda) {
 		ContextAction<Accord> action = new ContextAction<>();
 		return action.setRedo(lambda);
 	}
 
-	private static ContextAction<Accord> mkFailableAction(Function<Accord, ActionResult> lambda) {
+	private static ContextAction<Accord> mkFailableAction(Function<Accord, Explain> lambda) {
 		ContextAction<Accord> action = new ContextAction<>();
 		return action.setRedo(lambda);
 	}

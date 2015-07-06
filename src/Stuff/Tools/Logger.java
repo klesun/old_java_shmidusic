@@ -32,7 +32,7 @@ public class Logger {
 		// TODO: if we don't have permissions - let user manually selected where to save
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
 		new File(PRE_FATAL_BACKUP_FOLDER).mkdirs();
-		FileProcessor.saveStoryspace(new File(PRE_FATAL_BACKUP_FOLDER + "fatal_backup_" + dateFormat.format(new Date()) + ".midiana.json"), Main.window.storyspace);
+		FileProcessor.saveStoryspace(new File(PRE_FATAL_BACKUP_FOLDER + "fatal_backup_" + dateFormat.format(new Date()) + ".bs.json"), Main.window.blockSpace);
 
 		Runtime.getRuntime().exit(666);
 	}
@@ -43,6 +43,10 @@ public class Logger {
 
 		System.out.println("Warning: " + msg);
 		return 555;
+	}
+
+	public static void error(String msg) {
+		warning("Error: " + msg); // =D
 	}
 
 	public static int FYI(String msg) {

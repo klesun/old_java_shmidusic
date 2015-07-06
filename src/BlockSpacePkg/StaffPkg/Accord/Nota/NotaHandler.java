@@ -21,18 +21,8 @@ public class NotaHandler extends AbstractHandler {
 	}
 
 	@Override
-	protected void initActionMap() {
-
-		for (Map.Entry<Combo, ContextAction<Nota>> entry: makeStaticActionMap().entrySet()) {
-			new ActionFactory(entry.getKey()).addTo(this.actionMap).setDo(() -> entry.getValue().redo(getContext()));
-		}
-	}
-
-	@Override
 	public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
-		LinkedHashMap<Combo, ContextAction> huj = new LinkedHashMap<>();
-		huj.putAll(makeStaticActionMap()); // no, java is retarded after all
-		return huj;
+		return new LinkedHashMap<>(makeStaticActionMap());
 	}
 
 	public static LinkedHashMap<Combo, ContextAction<Nota>> makeStaticActionMap() {

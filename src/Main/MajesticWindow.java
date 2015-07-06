@@ -1,21 +1,18 @@
 package Main;
 
-import Gui.Constants;
+import BlockSpacePkg.Block;
 import Model.*;
-import Storyspace.Staff.StaffPanel;
-import Storyspace.Storyspace;
+import BlockSpacePkg.BlockSpace;
 import Stuff.OverridingDefaultClasses.TruMenuItem;
 import Stuff.Tools.Logger;
 
 import javax.swing.*;
-import javax.swing.Action;
 
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.KeyEvent;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class MajesticWindow extends JFrame {
 
@@ -24,6 +21,8 @@ public class MajesticWindow extends JFrame {
 
 	public JPanel cards = new JPanel();
 	private JMenuBar menuBar;
+	private Map<Class<? extends IComponentModel>, JMenu> menus = new HashMap<>();
+	private JMenuItem fullscreenMenuItem = null;
 
 	private Component lastFocusedBeforeMenu = null;
 
@@ -32,7 +31,7 @@ public class MajesticWindow extends JFrame {
 		CARDS_TERMINAL,
 	}
 
-	public Storyspace storyspace;
+	public BlockSpace blockSpace;
 	public JTextArea terminal;
 
 	public MajesticWindow() {
@@ -54,17 +53,18 @@ public class MajesticWindow extends JFrame {
 
 	// this method should be called only once
 	public void init() {
-		cards.add(storyspace = new Storyspace(this), cardEnum.CARDS_STORYSPACE.name());
+		cards.add(blockSpace = new BlockSpace(this), cardEnum.CARDS_STORYSPACE.name());
 		addMenuBar();
 		switchTo(cardEnum.CARDS_STORYSPACE);
 		// for user-friendship there will be one initial staff
-		storyspace.addMusicBlock().getScroll().switchFullscreen();
+		blockSpace.addMusicBlock().getScroll().switchFullscreen();
 
+		updateMenuBar();
 	}
 
 	private void addMenuBar() {
 		this.menuBar = new JMenuBar();
-		addMenuItems(new Storyspace(this));
+		addMenuItems(new BlockSpace(this));
 		setJMenuBar(menuBar);
 		getRootPane().addFocusListener(new FocusAdapter() {
 			public void focusGained(FocusEvent e) {
@@ -75,35 +75,47 @@ public class MajesticWindow extends JFrame {
 
 	private void addMenuItems(IComponentModel fakeModelForClassMethods) {
 
-		JMenu modelMenu = new JMenu(fakeModelForClassMethods.getClass().getSimpleName());
-
 		LinkedHashMap<Combo, ContextAction> actionMap = fakeModelForClassMethods.getHandler().getStaticActionMap();
-		for (Combo key: actionMap.keySet()) {
-			ContextAction action = actionMap.get(key);
+		if (actionMap.values().stream().anyMatch(a -> !a.omitMenuBar())) {
 
-			if (action.omitMenuBar()) {
-				continue;
-			}
+			JMenu modelMenu = new JMenu(fakeModelForClassMethods.getClass().getSimpleName());
+			modelMenu.setToolTipText("Enabled");
 
-			String caption = action.getCaption() != null ? action.getCaption() : "Do Action:";
-			JMenuItem eMenuItem = new TruMenuItem(caption);
-//			eMenuItem.setFont(Constants.PROJECT_FONT);
-			eMenuItem.setToolTipText("No description");
-			eMenuItem.setAccelerator(key.toKeystroke());
+			for (Combo key : actionMap.keySet()) {
+				ContextAction action = actionMap.get(key);
 
-			eMenuItem.addActionListener(event -> {
-				Class<? extends IComponentModel> cls = fakeModelForClassMethods.getClass();
-				IComponentModel context = findeFocusedByClass(cls);
-				if (context != null) {
-					action.redo(context);
-				} else {
-					Logger.warning("Cant perform action, " + cls.getSimpleName() + " class instance not focused!");
+				if (action.omitMenuBar()) {
+					continue;
 				}
-			});
 
-			modelMenu.add(eMenuItem);
+				String caption = action.getCaption() != null ? action.getCaption() : "Do Action:";
+				JMenuItem eMenuItem = new TruMenuItem(caption);
+				eMenuItem.setToolTipText("No description");
+				eMenuItem.setAccelerator(key.toKeystroke());
+
+				eMenuItem.addActionListener(event -> {
+					Class<? extends IComponentModel> cls = fakeModelForClassMethods.getClass();
+					IComponentModel context = findeFocusedByClass(cls);
+					if (context != null) {
+						Explain explain = action.redo(context);
+						if (explain.isSuccess()) {
+							updateMenuBar();
+						} else {
+							JOptionPane.showMessageDialog(this, explain.getExplanation());
+						}
+					} else {
+						Logger.warning("Cant perform action, " + cls.getSimpleName() + " class instance not focused!");
+					}
+				});
+
+				modelMenu.add(eMenuItem);
+				if (key.equals(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_F))) {
+					this.fullscreenMenuItem = eMenuItem;
+				}
+			}
+			menuBar.add(modelMenu);
+			menus.put(fakeModelForClassMethods.getClass(), modelMenu);
 		}
-		menuBar.add(modelMenu);
 
 		for (IComponentModel child: fakeModelForClassMethods.getModelHelper().makeFakePossibleChildListForClassMethods()) {
 			addMenuItems(child);
@@ -111,10 +123,10 @@ public class MajesticWindow extends JFrame {
 	}
 
 	private IComponentModel findeFocusedByClass(Class<? extends IComponentModel> cls) {
-		if (cls == Storyspace.class) {
-			return storyspace;
+		if (cls == BlockSpace.class) {
+			return blockSpace;
 		} else {
-			IComponentModel result = storyspace.getFocusedChild(lastFocusedBeforeMenu);
+			IComponentModel result = blockSpace.getFocusedChild(lastFocusedBeforeMenu);
 			while (result != null) {
 				if (result.getClass() == cls) {
 					break;
@@ -127,42 +139,39 @@ public class MajesticWindow extends JFrame {
 	}
 
 	// the Great idea behind this is to refresh menu bar each time we change focus
-	// i.e. when we're pointing Nota we have Menus: [Storyspace, Scroll, Staff, Accord, Nota], when Paragraph - [Storyspace, Scroll, Article, Paragraph] etc
+	// i.e. when we're pointing Nota we have Menus: [BlockSpace, Scroll, StaffPkg, Accord, Nota], when Paragraph - [BlockSpace, Scroll, ArticlePkg, Paragraph] etc
 	public void updateMenuBar() {
 
-		// it was actually a bad idea to reconstruct this menu each time we move focus
-		// since now i think, it should statically have all possible models, just not main route models should be greyed out
+		menus.values().forEach(m -> {
+			m.setEnabled(false);
+			m.setToolTipText("Instance Not Focused");
+		});
 
-//		menuBar.removeAll();
-//		int mnemonic = 1;
-//
-//		IComponentModel model = storyspace;
-//		while (model != null) {
-//
-//			JMenu modelMenu = new JMenu(model.getClass().getSimpleName());
-//			if (mnemonic <= 9) { modelMenu.setMnemonic(KeyEvent.VK_0 + mnemonic++); }
-//
-//			for (Map.Entry<Combo, ActionFactory> entry: model.getHandler().getActionMap().entrySet()) {
-//
-//				if (entry.getValue().omitMenuBar()) {
-//					continue;
-//				}
-//
-//				JMenuItem eMenuItem = new JMenuItem("Do Action: " + entry.getKey().toString());
-//				eMenuItem.setFont(Constants.PROJECT_FONT);
-//				eMenuItem.setMnemonic(entry.getKey().getKeyCode());
-//				eMenuItem.setToolTipText("No description");
-//				eMenuItem.addActionListener(event -> entry.getValue().createAction().doDo());
-//
-//				modelMenu.add(eMenuItem);
-//			}
-//			menuBar.add(modelMenu);
-//
-//			model = model.getFocusedChild();
-//		}
-//
-//		menuBar.validate();
-//		menuBar.repaint();
+		IComponentModel model = blockSpace;
+		while (model != null) {
+			if (menus.containsKey(model.getClass())) { // will be false for StaffPanel cuz i dont like it
+				menus.get(model.getClass()).setEnabled(true);
+				menus.get(model.getClass()).setToolTipText(null);
+			}
+			model = model.getFocusedChild();
+		}
+
+		if (blockSpace.getChildScrollList().stream().anyMatch(Block::isFullscreen)) {
+			menus.get(BlockSpace.class).setEnabled(false);
+			menus.get(BlockSpace.class).setToolTipText("Disabled In Fullscreen Mode");
+
+			Arrays.stream(menus.get(Block.class).getMenuComponents()).forEach(e -> {
+				e.setEnabled(false);
+				((JMenuItem) e).setToolTipText("Disabled In Fullscreen Mode");
+			});
+			fullscreenMenuItem.setEnabled(true);
+			fullscreenMenuItem.setToolTipText(null);
+		} else {
+			Arrays.stream(menus.get(Block.class).getMenuComponents()).forEach(e -> {
+				e.setEnabled(true);
+				((JMenuItem) e).setToolTipText(null);
+			});
+		}
 	}
 
 	public void switchTo(cardEnum card) {

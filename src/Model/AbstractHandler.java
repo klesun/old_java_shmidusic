@@ -1,7 +1,8 @@
 package Model;
 
-import Storyspace.Staff.MidianaComponent;
-import Storyspace.Staff.StaffPanel;
+import BlockSpacePkg.BlockSpace;
+import BlockSpacePkg.BlockSpaceHandler;
+import BlockSpacePkg.StaffPkg.MidianaComponent;
 
 import javax.swing.*;
 import java.awt.*;
@@ -60,12 +61,14 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 		});
 	}
 
-	// override me, please!
-	protected void initActionMap() {}
-	// override me, please!
-	public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
-		return new LinkedHashMap<>();
+	@Deprecated
+	final protected void initActionMap() {
+		for (Map.Entry<Combo, ContextAction> entry: getStaticActionMap().entrySet()) {
+			new ActionFactory(entry.getKey()).addTo(this.actionMap).setDo(() -> entry.getValue().redo(getContext()).isSuccess());
+		}
 	}
+
+	abstract public LinkedHashMap<Combo, ContextAction> getStaticActionMap();
 
 	// implemented methods
 	final public void keyPressed(KeyEvent e) {
@@ -74,13 +77,13 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 	final public void keyTyped(KeyEvent e) {}
 	final public void keyReleased(KeyEvent e) {}
 
-	public AbstractHandler getRootHandler() {
+	public BlockSpaceHandler getRootHandler() {
 		IComponentModel rootContext = getContext();
 		while (rootContext.getModelParent() != null) {
 			rootContext = rootContext.getModelParent();
 		}
 
-		return rootContext.getHandler();
+		return (BlockSpaceHandler)rootContext.getHandler();
 	}
 
 	final public Boolean handleKey(Combo combo) {
@@ -90,16 +93,13 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 			result = true;
 		} else {
 			if (getActionMap().containsKey(combo)) {
-				Action action = getActionMap().get(combo).createAction();
-				if (action.doDo()) {
-					this.handledEventQueue.add(action);
-					result = true;
-				}
+				return getActionMap().get(combo).createAction().doDo();
 			}
 		}
 		if (getContext() instanceof MidianaComponent) { // i don't like this
 			MidianaComponent.class.cast(getContext()).getFirstPanelParent().checkCam();
 		}
+		getRootHandler().getContext().getWindow().updateMenuBar();
 		return result;
 	}
 

@@ -1,10 +1,10 @@
 package Stuff.Tools;
 
-import Model.ActionResult;
+import Model.Explain;
 import Model.Helper;
 import Main.Main;
-import Storyspace.Staff.Staff;
-import Storyspace.Storyspace;
+import BlockSpacePkg.StaffPkg.Staff;
+import BlockSpacePkg.BlockSpace;
 import Model.IModel;
 
 import javax.imageio.ImageIO;
@@ -26,9 +26,9 @@ public class FileProcessor {
 
 	private static JFileChooser fileChooser = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/");
 	
-	public static ActionResult savePNG (Staff staff) {
+	public static Explain savePNG (Staff staff) {
 
-		ActionResult<File> explain = makeSaveFileDialog("png", "PNG images");
+		Explain<File> explain = makeSaveFileDialog("png", "PNG images");
 		if (explain.isSuccess()) {
 			File f = explain.getData();
 
@@ -40,15 +40,15 @@ public class FileProcessor {
 
 			try {
 				ImageIO.write(img, "png", f);
-				return new ActionResult(true);
+				return new Explain(true);
 			} catch (IOException e) {
-				return new ActionResult("Image writing exception: " + e.getMessage());
+				return new Explain("Image writing exception: " + e.getMessage());
 			}
 		} else { return explain; }
 	}
 
 
-	private static ActionResult<File> makeSaveFileDialog(String ext, String description) {
+	private static Explain<File> makeSaveFileDialog(String ext, String description) {
 		fileChooser.setFileFilter(new FileFilter() {
 			public boolean accept(File f) { return f.getAbsolutePath().endsWith("." + ext) || f.isDirectory(); }
 			public String getDescription() { return description; }
@@ -58,61 +58,77 @@ public class FileProcessor {
 		if (rVal == JFileChooser.APPROVE_OPTION) {
 			File fn = fileChooser.getSelectedFile();
 			if (!fileChooser.getFileFilter().accept(fn)) { fn = new File(fn + "." + ext); }
-			return new ActionResult<>(fn);
-		} else { return new ActionResult<>("you changed your mind, why?"); }
+			return new Explain<>(fn);
+		} else { return new Explain<>("you changed your mind, why?"); }
 	}
 
-	public static void saveStoryspace(File f, Storyspace storyspace) {
-		saveModel(f, storyspace);
-		Main.window.setTitle(f.getAbsolutePath());
-	}
-
-	public static ActionResult saveMusicPanel(Staff staff) {
-		ActionResult<File> explain = makeSaveFileDialog("midi.json", "Json Midi-music data");
+	public static Explain<File> saveStoryspace(BlockSpace blockSpace) {
+		Explain<File> explain = makeSaveFileDialog("bs.json", "BlockSpace Project Json Data");
 
 		if (explain.isSuccess()) {
-			File f = explain.getData();
-			saveModel(f, staff); // TODO: use messages when fail
-			staff.getParentSheet().getScroll().setTitle(f.getName());
-			return new ActionResult(true);
+			return saveStoryspace(explain.getData(), blockSpace);
 		} else { return explain; }
 	}
 
-	public static void openStoryspace(File f, Storyspace storyspace) {
-		openModel(f, storyspace, "");
+	public static Explain<File> saveStoryspace(File f, BlockSpace blockSpace) {
 		Main.window.setTitle(f.getAbsolutePath());
+		return saveModel(f, blockSpace);
 	}
 
-	public static ActionResult openStaff(Staff staff) {
+	public static Explain saveMusicPanel(Staff staff) {
+		Explain<File> explain = makeSaveFileDialog("midi.json", "Json Midi-music data");
+
+		if (explain.isSuccess()) {
+			File f = explain.getData();
+			staff.getParentSheet().getScroll().setTitle(f.getName());
+
+			return saveModel(f, staff); // TODO: use messages when fail
+		} else { return explain; }
+	}
+
+	public static Explain openStoryspace(File f, BlockSpace blockSpace) {
+		Main.window.setTitle(f.getAbsolutePath());
+		return openModel(f, blockSpace);
+	}
+
+	public static Explain openStaff(Staff staff) {
 		fileChooser.setFileFilter(new FileFilter() {
 			public boolean accept(File f) { return f.getAbsolutePath().endsWith(".midi.json") || f.isDirectory(); }
 			public String getDescription() { return "Json Midi-music data"; }
 		});
 		if (fileChooser.showOpenDialog(Main.window) == JFileChooser.APPROVE_OPTION) {
 			File f = fileChooser.getSelectedFile();
-			openModel(f, staff, "stanExternalRepresentation");
 			staff.getParentSheet().getScroll().setTitle(f.getName());
-			return new ActionResult(true);
+
+			return openModel(f, staff);
 		} else {
-			return new ActionResult("you changed your mind, why?");
+			return new Explain("you changed your mind, why?");
 		}
 	}
 
-	private static void openModel(File f, IModel model, String legacy) {
+	private static Explain openModel(File f, IModel model) {
 		try {
 			String js = new String(Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8);
 			try {
 				JSONObject jsObject = new JSONObject(js);
 				if (js.contains(model.getClass().getSimpleName())) {
 					model.reconstructFromJson(jsObject.getJSONObject(model.getClass().getSimpleName()));
-				} else { // legacy
-					model.reconstructFromJson(jsObject.getJSONObject(legacy));
 				}
-			} catch (Exception exc) { System.out.println("У нас тут жорпа с открытием жсона " ); exc.printStackTrace(); }
-		} catch (IOException exc) { System.out.println("Жопа при открытии жс файла"); exc.printStackTrace(); }
+
+				return new Explain(true);
+			} catch (JSONException exc) {
+				String msg = "У нас тут жорпа с открытием жсона - " + exc.getMessage();
+				Logger.error(msg);
+				return new Explain(msg);
+			}
+		} catch (IOException exc) {
+			String msg = "Жопа при открытии жс файла " + exc.getClass().getSimpleName() + " - " + exc.getMessage();
+			Logger.error(msg);
+			return new Explain(msg);
+		}
 	}
 
-	private static void saveModel(File f, IModel model) {
+	private static Explain saveModel(File f, IModel model) {
 		try {
 			JSONObject js = new JSONObject("{}");
 			js.put(model.getClass().getSimpleName(), Helper.getJsonRepresentation(model));
@@ -120,7 +136,16 @@ public class FileProcessor {
 				PrintWriter out = new PrintWriter(f);
 				out.println(js.toString(2));
 				out.close();
-			} catch (IOException exc) { System.out.println("У нас тут жорпа с файлом " ); exc.printStackTrace(); }
-		} catch (JSONException exc) { System.out.println("У нас тут жорпа с жсоном " ); exc.printStackTrace(); }
+				return new Explain(true);
+			} catch (IOException exc) {
+				String msg = "У нас тут жорпа с файлом " + exc.getClass().getSimpleName() + " - " + exc.getMessage();
+				Logger.error(msg);
+				return new Explain(msg);
+			}
+		} catch (JSONException exc) {
+			String msg = "У нас тут жорпа с жсоном - " + exc.getMessage();
+			Logger.error(msg);
+			return new Explain(msg);
+		}
 	}
 }

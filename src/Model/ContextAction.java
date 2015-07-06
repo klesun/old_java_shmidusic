@@ -11,12 +11,12 @@ public class ContextAction<C> {
 	private String description = "No description";
 	private Boolean omitMenuBar = false;
 
-	private Function<C, ActionResult> redo;
+	private Function<C, Explain> redo;
 	private Runnable undo = null;
 
 	public ContextAction() {}
 
-	public ContextAction<C> setRedo(Function<C, ActionResult> lambda) {
+	public ContextAction<C> setRedo(Function<C, Explain> lambda) {
 		this.redo = lambda;
 		return this;
 	}
@@ -33,7 +33,7 @@ public class ContextAction<C> {
 	public ContextAction<C> setRedo(Consumer<C> lambda) {
 		return setRedo(context -> {
 			lambda.accept(context);
-			return new ActionResult(true);
+			return new Explain(true);
 		});
 	}
 
@@ -51,11 +51,11 @@ public class ContextAction<C> {
 		return this.caption;
 	}
 
-	public ActionResult redo(C context) {
+	public Explain redo(C context) {
 		return this.redo.apply(context);
 	}
 
-	public Function<C, ActionResult> getRedo() {
+	public Function<C, Explain> getRedo() {
 		return this.redo;
 	}
 }

@@ -6,6 +6,8 @@ import BlockSpacePkg.BlockSpace;
 import Stuff.Midi.DumpReceiver;
 import BlockSpacePkg.IBlockSpacePanel;
 import BlockSpacePkg.Block;
+import Stuff.OverridingDefaultClasses.TruMap;
+import Stuff.Tools.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -14,6 +16,9 @@ import java.awt.*;
 import javax.swing.*;
 
 import java.awt.event.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.Consumer;
 
 
 final public class StaffPanel extends JPanel implements IBlockSpacePanel {
@@ -61,7 +66,12 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 	}
 
 	private void iThinkItInterruptsPreviousPaintingThreadsSoTheyDidntSlowCurrent() {
-		getScroll().getModelParent().getWindow().terminal.append("_");
+
+		// i don't know, who is stupider: linuxes, awt or me, but need it cuz it forces to repaint JUST the time it's requested to repaint
+		// on windows issues does not occur
+		// i aproximetely know, what's happening, it's calling something like revalidate(), but i amnt not sure
+		getScroll().getModelParent().getWindow().terminal.append("\n");
+		// TODO: discover, whats this append() calling that makes repainting instant and use here instead of the hack
 	}
 
 	@Override
@@ -69,14 +79,13 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 		if (!loadJsonOnFocus) {
 			if (simpleRepaint) {
 
-				// i don't know, who is stupider: linuxes, awt or me, but need it cuz it forces to repaint JUST the time it's requested to repaint
-				// on windows issues does not occur
 				iThinkItInterruptsPreviousPaintingThreadsSoTheyDidntSlowCurrent();
 
 				simpleRepaint = false;
 				getStaff().drawOn(g, false);
 
 			} else {
+
 				super.paintComponent(g);
 				getStaff().drawOn(g, true);
 			}
@@ -85,6 +94,7 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 
 	public void surfaceCompletelyChanged() {
 		this.surfaceCompletelyChanged = true;
+		this.checkCam();
 	}
 
 	public int getFocusedSystemY() {
@@ -92,7 +102,7 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 	}
 	
 	public void checkCam() {
-		simpleRepaint = surfaceCompletelyChanged;
+		simpleRepaint = !surfaceCompletelyChanged;
 		surfaceCompletelyChanged = false;
 
 		JScrollBar vertical = getScroll().getVerticalScrollBar();
@@ -145,9 +155,9 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 
 	// event handles
 
-	public void page(Combo combo) {
+	public void page(int sign) {
 		JScrollBar vertical = getScroll().getVerticalScrollBar();
-		vertical.setValue(limit(vertical.getValue() + combo.getSign() * Staff.SISDISPLACE * this.dy(), 0, vertical.getMaximum()));
+		vertical.setValue(limit(vertical.getValue() + sign * Staff.SISDISPLACE * this.dy(), 0, vertical.getMaximum()));
 		repaint();
 	}
 
@@ -155,9 +165,8 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 
 	private AbstractHandler makeHandler() {
 		return new AbstractHandler(this) {
-			protected void initActionMap() {
-				addCombo(0, k.VK_PAGE_DOWN).setDo(getContext()::page);
-				addCombo(0, k.VK_PAGE_UP).setDo(getContext()::page);
+			public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
+				return new LinkedHashMap<>(makeStaticActionMap());
 			}
 			public Boolean mousePressedFinal(ComboMouse mouse) {
 				if (mouse.leftButton) {
@@ -167,6 +176,17 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 			}
 			public StaffPanel getContext() { return StaffPanel.class.cast(super.getContext()); }
 		};
+	}
+
+	private static LinkedHashMap<Combo, ContextAction<StaffPanel>> makeStaticActionMap() {
+		return new TruMap<>()
+				.p(new Combo(0, KeyEvent.VK_PAGE_DOWN), mkAction(sp -> sp.page(1)))
+				.p(new Combo(0, KeyEvent.VK_PAGE_UP), mkAction(sp -> sp.page(-1)));
+	}
+
+	private static ContextAction<StaffPanel> mkAction(Consumer<StaffPanel> lambda) {
+		ContextAction<StaffPanel> action = new ContextAction<>();
+		return action.setRedo(lambda);
 	}
 }
 

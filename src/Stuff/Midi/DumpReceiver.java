@@ -1,6 +1,6 @@
 package Stuff.Midi;
 
-import Storyspace.Staff.StaffHandler;
+import BlockSpacePkg.StaffPkg.StaffHandler;
 import Stuff.Tools.Logger;
 
 import	javax.sound.midi.MidiMessage;

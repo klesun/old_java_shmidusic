@@ -2,6 +2,8 @@ package BlockSpacePkg.StaffPkg.StaffConfig;
 
 import Model.AbstractHandler;
 import Model.AbstractModel;
+import Model.Combo;
+import Model.ContextAction;
 import Model.Field.Arr;
 import Model.Field.Field;
 import BlockSpacePkg.StaffPkg.MidianaComponent;
@@ -11,11 +13,13 @@ import BlockSpacePkg.StaffPkg.Staff;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.ShortMessage;
 
+import Stuff.OverridingDefaultClasses.TruMap;
 import org.apache.commons.math3.fraction.Fraction;
 
 import org.json.JSONException;
@@ -124,7 +128,13 @@ public class StaffConfig extends MidianaComponent {
 		return null;
 	}
 	@Override
-	protected AbstractHandler makeHandler() { return new AbstractHandler(this) {}; }
+	protected AbstractHandler makeHandler() {
+		return new AbstractHandler(this) {
+			public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
+				return new TruMap<>();
+			}
+		};
+	}
 
 	// field getters
 	

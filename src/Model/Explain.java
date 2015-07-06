@@ -1,22 +1,27 @@
 package Model;
 
-// TODO: rename to "Explain"
-public class ActionResult<C> {
+public class Explain<C> {
 
 	final private Boolean success;
 	final private String explanation;
 	final private C data;
 
-	public ActionResult(C data) { // it will be funny if C is String =D
+	public Explain(C data) { // it will be funny if C is String =D
 		this.data = data;
 		this.success = true;
 		this.explanation = null;
 	}
 
-	public ActionResult(String explanation) {
+	public Explain(String explanation) {
 		this.data = null;
 		this.success = false;
 		this.explanation = explanation;
+	}
+
+	public Explain(Boolean success, String explanationIfFail) {
+		this.data = null;
+		this.success = success;
+		this.explanation = success ? null : explanationIfFail;
 	}
 
 	public Boolean isSuccess() {
@@ -25,6 +30,10 @@ public class ActionResult<C> {
 
 	public C getData() {
 		return this.data;
+	}
+
+	public String getExplanation() {
+		return explanation;
 	}
 }
 

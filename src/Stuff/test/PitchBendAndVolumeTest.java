@@ -1,7 +1,7 @@
 
 package Stuff.test;
 
-import Storyspace.Staff.Accord.Nota.Nota;
+import BlockSpacePkg.StaffPkg.Accord.Nota.Nota;
 import Stuff.Midi.MidiCommon;
 import Stuff.Tools.Logger;
 

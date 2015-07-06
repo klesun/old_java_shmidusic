@@ -39,17 +39,8 @@ public class StaffHandler extends AbstractHandler {
 	}
 
 	@Override
-	protected void initActionMap() {
-		for (Map.Entry<Combo, ContextAction<Staff>> entry: makeStaticActionMap().entrySet()) {
-			new ActionFactory(entry.getKey()).addTo(this.actionMap).setDo(() -> entry.getValue().redo(getContext()).isSuccess());
-		}
-	}
-
-	@Override
 	public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
-		LinkedHashMap<Combo, ContextAction> huj = new LinkedHashMap<>();
-		huj.putAll(makeStaticActionMap()); // no, java is retarded after all
-		return huj;
+		return new LinkedHashMap<>(makeStaticActionMap());
 	}
 
 	public static LinkedHashMap<Combo, ContextAction<Staff>> makeStaticActionMap() {
@@ -75,8 +66,8 @@ public class StaffHandler extends AbstractHandler {
 			.p(new Combo(ctrl, k.VK_P), mkAction(Staff::triggerPlayback).setCaption("Play/Stop"))
 
 			// TODO: maybe move these two into Scroll
-			.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel).setCaption("Save StaffPkg"))
-			.p(new Combo(ctrl, k.VK_O), mkFailableAction(FileProcessor::openStaff).setCaption("Open StaffPkg"))
+			.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel).setCaption("Save"))
+			.p(new Combo(ctrl, k.VK_O), mkFailableAction(FileProcessor::openStaff).setCaption("Open"))
 
 			.p(new Combo(0, k.VK_ESCAPE), mkAction(s -> s.getConfig().getDialog().showMenuDialog(StaffConfig::syncSyntChannels))
 				.setCaption("Settings"))
@@ -122,7 +113,7 @@ public class StaffHandler extends AbstractHandler {
 		return action.setRedo(lambda);
 	}
 
-	private static ContextAction<Staff> mkFailableAction(Function<Staff, ActionResult> lambda) {
+	private static ContextAction<Staff> mkFailableAction(Function<Staff, Explain> lambda) {
 		ContextAction<Staff> action = new ContextAction<>();
 		return action.setRedo(lambda);
 	}

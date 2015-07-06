@@ -4,6 +4,7 @@ import Gui.Constants;
 import Gui.ImageStorage;
 import Model.*;
 import Model.Field.Field;
+import Stuff.OverridingDefaultClasses.TruMap;
 import Stuff.Tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONException;
@@ -16,9 +17,12 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter.HighlightPainter;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 
 public class Paragraph extends JTextArea implements IComponentModel {
@@ -39,16 +43,11 @@ public class Paragraph extends JTextArea implements IComponentModel {
 		handler = new AbstractHandler(this) {
 			public Boolean mousePressedFinal(ComboMouse combo) { return combo.leftButton; }
 			public Boolean mouseDraggedFinal(ComboMouse combo) { return combo.leftButton; }
-			@Override
-			protected void initActionMap() {
-				addNumberComboList(ctrl, getContext()::setSelectedScore);
-				addCombo(0, k.VK_DOWN).setDo(c -> getRowIndex() < getRowCount() - 1);
-				addCombo(0, k.VK_UP).setDo(c -> getRowIndex() > 0);
-				addCombo(0, k.VK_LEFT).setDo(c -> getCaretPosition() > 0);
-				addCombo(0, k.VK_BACK_SPACE).setDo(c -> getCaretPosition() > 0);
-				addCombo(0, k.VK_RIGHT).setDo(c -> getCaretPosition() < getText().length());
-				addCombo(0, k.VK_DELETE).setDo(c -> getCaretPosition() < getText().length());
+
+			public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
+				return new LinkedHashMap<>(makeStaticActionMap());
 			}
+
 			public Paragraph getContext() { return (Paragraph)super.getContext(); }
 		};
 		this.addMouseListener(handler);
@@ -76,6 +75,33 @@ public class Paragraph extends JTextArea implements IComponentModel {
 		});
 
 		this.parent = parent;
+	}
+
+
+	private static LinkedHashMap<Combo, ContextAction<Paragraph>> makeStaticActionMap() {
+
+		TruMap<Combo, ContextAction<Paragraph>> map = new TruMap<>();
+
+		Combo.getNumberComboList(KeyEvent.CTRL_MASK).forEach(c -> map.p(c, mkAction(p -> p.setSelectedScore(c.getPressedNumber())).setOmitMenuBar(true)));
+
+		return map
+			.p(new Combo(0, KeyEvent.VK_DOWN), mkFailableAction(p -> new Explain(p.getRowIndex() < p.getRowCount() - 1, "No more rows")).setOmitMenuBar(true))
+			.p(new Combo(0, KeyEvent.VK_UP), mkFailableAction(p -> new Explain(p.getRowIndex() > 0, "First row")).setOmitMenuBar(true))
+			.p(new Combo(0, KeyEvent.VK_LEFT), mkFailableAction(p -> new Explain(p.getCaretPosition() > 0, "Start of text")).setOmitMenuBar(true))
+			.p(new Combo(0, KeyEvent.VK_BACK_SPACE), mkFailableAction(p -> new Explain(p.getCaretPosition() > 0, "Start of text")).setOmitMenuBar(true))
+			.p(new Combo(0, KeyEvent.VK_RIGHT), mkFailableAction(p -> new Explain(p.getCaretPosition() < p.getText().length(), "End of text")).setOmitMenuBar(true))
+			.p(new Combo(0, KeyEvent.VK_DELETE), mkFailableAction(p -> new Explain(p.getCaretPosition() < p.getText().length(), "End of text")).setOmitMenuBar(true))
+			;
+	}
+
+	private static ContextAction<Paragraph> mkAction(Consumer<Paragraph> lambda) {
+		ContextAction<Paragraph> action = new ContextAction<>();
+		return action.setRedo(lambda);
+	}
+
+	private static ContextAction<Paragraph> mkFailableAction(Function<Paragraph, Explain> lambda) {
+		ContextAction<Paragraph> action = new ContextAction<>();
+		return action.setRedo(lambda);
 	}
 
 	public int getRowIndex() {

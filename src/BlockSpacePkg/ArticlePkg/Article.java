@@ -4,18 +4,18 @@ import Model.*;
 import BlockSpacePkg.BlockSpace;
 import BlockSpacePkg.IBlockSpacePanel;
 import BlockSpacePkg.Block;
+import Stuff.OverridingDefaultClasses.TruMap;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
+import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class Article extends JPanel implements IBlockSpacePanel {
 
@@ -34,16 +34,8 @@ public class Article extends JPanel implements IBlockSpacePanel {
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
 		handler = new AbstractHandler(this) {
-			protected void initActionMap() {
-				addCombo(0, k.VK_DOWN).setDo(getContext()::focusNext);
-				addCombo(0, k.VK_RIGHT).setDo(getContext()::focusNext);
-				addCombo(0, k.VK_UP).setDo(getContext()::focusBack);
-				addCombo(0, k.VK_LEFT).setDo(getContext()::focusBack);
-				addCombo(0, k.VK_BACK_SPACE).setDo(getContext()::mergeBack);
-				addCombo(0, k.VK_DELETE).setDo(getContext()::mergeNext);
-			}
-			public Article getContext() {
-				return (Article)super.getContext();
+			public LinkedHashMap<Combo, ContextAction> getStaticActionMap() {
+				return new LinkedHashMap<>(makeStaticActionMap());
 			}
 		};
 
@@ -60,6 +52,24 @@ public class Article extends JPanel implements IBlockSpacePanel {
 		scroll = parentBlockSpace.addModelChild(this);
 
 		this.addNewParagraph();
+	}
+
+
+	private static LinkedHashMap<Combo, ContextAction<Paragraph>> makeStaticActionMap() {
+
+		return new TruMap<>()
+			.p(new Combo(0, KeyEvent.VK_DOWN), mkAction(Article::focusNext).setCaption("Next Paragraph"))
+			.p(new Combo(0, KeyEvent.VK_UP), mkAction(Article::focusBack).setCaption("Back Paragraph"))
+			.p(new Combo(0, KeyEvent.VK_RIGHT), mkAction(Article::focusNext).setOmitMenuBar(true))
+			.p(new Combo(0, KeyEvent.VK_DELETE), mkAction(Article::mergeNext).setCaption("Merge Next"))
+			.p(new Combo(0, KeyEvent.VK_LEFT), mkAction(Article::focusBack).setOmitMenuBar(true))
+			.p(new Combo(0, KeyEvent.VK_BACK_SPACE), mkAction(Article::mergeBack).setCaption("Merge Back"))
+			;
+	}
+
+	private static ContextAction<Article> mkAction(Consumer<Article> lambda) {
+		ContextAction<Article> action = new ContextAction<>();
+		return action.setRedo(lambda);
 	}
 
 	/** @forbidden - you don't want change that method!!! these lines worth DOZENS OF HOURS */
@@ -168,10 +178,10 @@ public class Article extends JPanel implements IBlockSpacePanel {
 
 	// event handles
 
-	public void focusNext(Combo c) { this.setFocusedIndex(this.getFocusedIndex() + 1); }
-	public void focusBack(Combo c) { this.setFocusedIndex(this.getFocusedIndex() - 1); }
+	public void focusNext() { this.setFocusedIndex(this.getFocusedIndex() + 1); }
+	public void focusBack() { this.setFocusedIndex(this.getFocusedIndex() - 1); }
 
-	public void mergeBack(Combo c) {
+	public void mergeBack() {
 		if (getFocusedIndex() > 0) {
 			Paragraph back = getParList().get(getFocusedIndex() - 1);
 			int caretPos = back.getText().length();
@@ -180,7 +190,7 @@ public class Article extends JPanel implements IBlockSpacePanel {
 			back.setCaretPosition(caretPos);
 		}
 	}
-	public void mergeNext(Combo c) {
+	public void mergeNext() {
 		if (getFocusedIndex() < getParList().size() - 1 && getFocusedIndex() > -1) {
 			SwingUtilities.invokeLater(() -> {
 				int caretPos = getFocusedChild().getText().length();

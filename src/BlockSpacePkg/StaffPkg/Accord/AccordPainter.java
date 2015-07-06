@@ -12,7 +12,7 @@ public class AccordPainter extends AbstractPainter {
 	}
 
 	@Override
-	public void draw() {
+	public void draw(Boolean completeRepaint) {
 
 		Accord a = (Accord)context;
 
@@ -46,7 +46,7 @@ public class AccordPainter extends AbstractPainter {
 			drawImage(a.getImageStorage().getPointerImage(), dx(), 0);
 		}
 
-		drawFields();
+		drawFields(completeRepaint);
 
 		// gonna use Field::painting instead
 

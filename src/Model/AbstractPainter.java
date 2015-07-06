@@ -3,7 +3,7 @@ package Model;
 // this will be helper class for MidianaComponent-s
 
 import Model.Field.Field;
-import Storyspace.Staff.MidianaComponent;
+import BlockSpacePkg.StaffPkg.MidianaComponent;
 import Stuff.OverridingDefaultClasses.Pnt;
 
 import java.awt.*;
@@ -22,7 +22,7 @@ abstract public class AbstractPainter { // like Picasso!
 		this.y = y;
 	}
 
-	abstract public void draw();
+	abstract public void draw(Boolean completeRepaint);
 
 	final protected void fillRect(Rectangle r, Color c) {
 		performWithColor(c, () -> g.fillRect(this.x + r.x, this.y + r.y, r.width, r.height));
@@ -43,16 +43,19 @@ abstract public class AbstractPainter { // like Picasso!
 		g.drawImage(image, x + x0, y + y0, null);
 	}
 
-	protected void drawFields() {
-		java.util.List<Field> drawableList = context.getModelHelper().getFieldStorage().stream().filter(f -> f.hasPaintingLambda()).collect(Collectors.toList());
-
-		int w = dx() * 2;
-		int dy = dy(); // TODO: it should be TOTAL_SPACE_FOR_THEM / THEIR_COUNT one day
-
-		for (int i = 0; i < drawableList.size(); ++i) {
-			Rectangle r = new Rectangle(x, y + dy, w, dy);
-			drawableList.get(i).repaintIfNeeded(g, r);
-		}
+	protected void drawFields(Boolean completeRepaint) {
+//		java.util.List<Field> drawableList = context.getModelHelper().getFieldStorage().stream()
+//				.filter(f -> f.hasPaintingLambda()).collect(Collectors.toList());
+//
+//		int w = dx() * 2;
+//		int dy = dy(); // TODO: it should be TOTAL_SPACE_FOR_THEM / THEIR_COUNT one day
+//
+//		for (int i = 0; i < drawableList.size(); ++i) {
+//			Rectangle r = new Rectangle(x, y + dy, w, dy);
+//			if (drawableList.get(i).changedSinceLastRepaint || completeRepaint) {
+//				drawableList.get(i).repaint(g, r);
+//			}
+//		}
 	}
 
 	private void performWithColor(Color c, Runnable lambda) {

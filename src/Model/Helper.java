@@ -2,15 +2,15 @@ package Model;
 
 import Model.Field.Arr;
 import Model.Field.Field;
-import Storyspace.Article.Article;
-import Storyspace.Article.Paragraph;
-import Storyspace.Image.ImagePanel;
-import Storyspace.Staff.Accord.Accord;
-import Storyspace.Staff.Accord.Nota.Nota;
-import Storyspace.Staff.Staff;
-import Storyspace.Staff.StaffPanel;
-import Storyspace.Storyspace;
-import Storyspace.StoryspaceScroll;
+import BlockSpacePkg.ArticlePkg.Article;
+import BlockSpacePkg.ArticlePkg.Paragraph;
+import BlockSpacePkg.BlockSpace;
+import BlockSpacePkg.Image.ImagePanel;
+import BlockSpacePkg.StaffPkg.Accord.Accord;
+import BlockSpacePkg.StaffPkg.Accord.Nota.Nota;
+import BlockSpacePkg.StaffPkg.Staff;
+import BlockSpacePkg.StaffPkg.StaffPanel;
+import BlockSpacePkg.Block;
 import Stuff.Tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONObject;
@@ -99,10 +99,10 @@ public class Helper {
 
 	// retarded language
 	public List<IComponentModel> makeFakePossibleChildListForClassMethods() {
-		if (model.getClass() == Storyspace.class) {
-			return Arrays.asList(new StoryspaceScroll(new ImagePanel((Storyspace)model), (Storyspace)model));
-		} else if (model.getClass() == StoryspaceScroll.class) {
-			StoryspaceScroll scroll = (StoryspaceScroll)model;
+		if (model.getClass() == BlockSpace.class) {
+			return Arrays.asList(new Block(new ImagePanel((BlockSpace)model), (BlockSpace)model));
+		} else if (model.getClass() == Block.class) {
+			Block scroll = (Block)model;
 			return Arrays.asList(new StaffPanel(scroll.getModelParent()), new Article(scroll.getModelParent()), new ImagePanel(scroll.getModelParent()));
 		} else if (model.getClass() == Article.class) {
 			return Arrays.asList(new Paragraph((Article)model));

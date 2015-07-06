@@ -1,17 +1,9 @@
 package Stuff.Midi;
 
-import Gui.ImageStorage;
-import Model.ActionResult;
-import Model.Combo;
-import Storyspace.Staff.Accord.Accord;
-import Storyspace.Staff.Accord.Nota.Nota;
-import Storyspace.Staff.Staff;
-import Storyspace.Staff.StaffConfig.StaffConfig;
-import Stuff.Musica.PlayMusThread;
-import Stuff.Tools.Logger;
+import Model.Explain;
+import BlockSpacePkg.StaffPkg.Accord.Accord;
+import BlockSpacePkg.StaffPkg.Staff;
 import org.apache.commons.math3.fraction.Fraction;
-
-import java.awt.event.KeyEvent;
 
 public class Playback {
 
@@ -38,7 +30,7 @@ public class Playback {
 		return true;
 	}
 
-	private ActionResult<PlaybackTimer> play() {
+	private Explain<PlaybackTimer> play() {
 		if (!staff.getAccordList().isEmpty()) {
 			if (runningProcess != null) { interrupt(); }
 			runningProcess = new PlaybackTimer(staff.getConfig());
@@ -55,9 +47,9 @@ public class Playback {
 			}
 			runningProcess.addTask(sumFraction.add(1), this::interrupt);
 			runningProcess.start();
-			return new ActionResult<>(runningProcess); // returning it so it could be interrupted from another action
+			return new Explain<>(runningProcess); // returning it so it could be interrupted from another action
 		} else {
-			return new ActionResult<>("Staff is empty");
+			return new Explain<>("StaffPkg is empty");
 		}
 	}
 

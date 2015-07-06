@@ -3,10 +3,10 @@ package Stuff.Midi;
 import javax.sound.midi.*;
 
 import Main.Main;
-import Model.ActionResult;
-import Storyspace.Staff.Accord.Nota.Nota;
-import Storyspace.Staff.StaffConfig.StaffConfig;
-import Storyspace.Staff.StaffPanel;
+import Model.Explain;
+import BlockSpacePkg.StaffPkg.Accord.Nota.Nota;
+import BlockSpacePkg.StaffPkg.StaffConfig.StaffConfig;
+import BlockSpacePkg.StaffPkg.StaffPanel;
 import Stuff.Musica.PlayMusThread;
 import Stuff.Tools.Logger;
 
@@ -83,9 +83,9 @@ public class DeviceEbun {
 
 	public static void closeMidiDevices() {
 		// close all opent Notas
-		Main.window.storyspace.getChildScrollList().stream()
+		Main.window.blockSpace.getChildScrollList().stream()
 				.filter(s -> s.content instanceof StaffPanel)
-				.forEach(s -> ((StaffPanel)s.content).getStaff().getPlayback().interrupt());
+				.forEach(s -> ((StaffPanel) s.content).getStaff().getPlayback().interrupt());
 		PlayMusThread.shutTheFuckUp();
 
 		// close devices
@@ -97,10 +97,10 @@ public class DeviceEbun {
 		return isPlaybackSoftware;
 	}
 
-	private static ActionResult changeOutDevice() {
+	private static Explain changeOutDevice() {
 		return hardwareReceiver != null
-				? new ActionResult((isPlaybackSoftware = !isPlaybackSoftware) || true)
-				: new ActionResult("Sorry. I wish i could change output device, but you have only software playback now, cuz hardware midi output device failed to load at the start of program.");
+				? new Explain((isPlaybackSoftware = !isPlaybackSoftware) || true)
+				: new Explain("Sorry. I wish i could change output device, but you have only software playback now, cuz hardware midi output device failed to load at the start of program.");
 	}
 
 	public static Receiver getPlaybackReceiver() {
@@ -111,8 +111,8 @@ public class DeviceEbun {
 
 	// event handles
 
-	public static ActionResult changeOutDevice(StaffConfig config) {
-		ActionResult success = changeOutDevice();
+	public static Explain changeOutDevice(StaffConfig config) {
+		Explain success = changeOutDevice();
 		config.syncSyntChannels();
 		return success;
 	}

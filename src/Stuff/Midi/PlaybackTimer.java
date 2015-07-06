@@ -1,17 +1,12 @@
 package Stuff.Midi;
 
 import Gui.ImageStorage;
-import Storyspace.Staff.Accord.Nota.Nota;
-import Storyspace.Staff.StaffConfig.StaffConfig;
+import BlockSpacePkg.StaffPkg.Accord.Nota.Nota;
+import BlockSpacePkg.StaffPkg.StaffConfig.StaffConfig;
 import Stuff.Tools.Logger;
-import com.google.common.util.concurrent.Uninterruptibles;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.commons.math3.fraction.Fraction;
 
-import javax.swing.*;
-import java.awt.event.ActionEvent;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;

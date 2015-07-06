@@ -1,6 +1,6 @@
 package BlockSpacePkg.StaffPkg;
 
-import Model.ActionResult;
+import Model.Explain;
 import Model.SimpleAction;
 import BlockSpacePkg.StaffPkg.Accord.AccordHandler;
 import BlockSpacePkg.StaffPkg.StaffConfig.StaffConfig;
@@ -251,8 +251,8 @@ public class Staff extends MidianaComponent {
         this.playback.trigger();
     }
 
-	public ActionResult moveFocusWithPlayback(int sign, Boolean interruptSounding) {
-		ActionResult result = moveFocus(sign);
+	public Explain moveFocusWithPlayback(int sign, Boolean interruptSounding) {
+		Explain result = moveFocus(sign);
 		if (getFocusedAccord() != null && result.isSuccess()) {
 
 			if (interruptSounding) {
@@ -264,21 +264,21 @@ public class Staff extends MidianaComponent {
 		return result;
 	}
 
-	public ActionResult moveFocusWithPlayback(int sign) {
+	public Explain moveFocusWithPlayback(int sign) {
 		return moveFocusWithPlayback(sign, true);
 	}
 
-	public ActionResult moveFocusRow(int sign) {
+	public Explain moveFocusRow(int sign) {
 		int n = sign * getAccordInRowCount();
 		return moveFocusWithPlayback(n);
 	}
 
-	public ActionResult moveFocus(int n)
+	public Explain moveFocus(int n)
 	{
 		Boolean stop = getFocusedIndex() + n < -1 || getFocusedIndex() + n > getAccordList().size() - 1;
 		setFocusedIndex(getFocusedIndex() + n);
 
-		return !stop ? new ActionResult(true) : new ActionResult("dead end");
+		return !stop ? new Explain(true) : new Explain("dead end");
 	}
 }
 
