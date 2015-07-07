@@ -21,14 +21,13 @@ To create music you'll have to have some midi-piano plugged into your midi-port 
 | shortcut | action |
  -------- | ------ |
 | // GLOBAL OPERATIONS | . |
-| ctrl-o | Open a .json-extension file. Some of them you can find at https://drive.google.com/folderview?id=0B_PiTxsew2JrV3prNFR6QUdZQ2M&usp=sharing |
-| ctrl-s | Save to .json file |
+| ctrl-o | Open a midi.json-extension file. Some of them you can find at https://drive.google.com/folderview?id=0B_PiTxsew2JrV3prNFR6QUdZQ2M&usp=sharing |
+| ctrl-s | Save sheet music to midi.json file |
 | ctrl-p | Play/Stop music |
-| ctrl-0 | Disable/Enable midi-input |
+| ctrl-0 | Disable midi-input |
+| ctrl-9 | Enable midi-input |
 | ctrl-(+ or =) | scale + |
 | ctrl-(- or _) | scale - |
-| ctrl-z | ctrl-z |
-| ctrl-y | ctrl-y |
 | Esc | configurations dialog (instruments and volumes for channels) |
 | . | . |
 | // FOCUSED ACCORD OPERATIONS | . |
