@@ -77,23 +77,16 @@ public class Accord extends MidianaComponent {
 
 	public Explain<Boolean> moveFocus(int n) {
 
-		if (getFocusedIndex() + n > this.getNotaList().size() - 1 || getFocusedIndex() + n < 0) {
+		if (getFocusedIndex() + n > this.getNotaSet().size() - 1 || getFocusedIndex() + n < 0) {
 			this.setFocusedIndex(-1);
 			return new Explain<>("End Of Accord");
 		} else {
 			if (this.getFocusedIndex() + n < -1) {
-				this.setFocusedIndex(this.getNotaList().size() - 1);
+				this.setFocusedIndex(this.getNotaSet().size() - 1);
 			} else {
 				this.setFocusedIndex(this.getFocusedIndex() + n);
 			}
 			return new Explain<>(true);
-		}
-	}
-
-	public void deleteFocused() {
-		if (getFocusedNota() != null) {
-			remove(getFocusedNota());
-			setFocusedIndex(getFocusedIndex() - 1);
 		}
 	}
 
@@ -103,22 +96,22 @@ public class Accord extends MidianaComponent {
 		return this.getLowestPossibleNotaY();
 	}
 
-	public Collection<Nota> getNotaList() {
+	public TreeSet<Nota> getNotaSet() {
 		return (TreeSet)notaList.get();
 	}
 
 	public long getEarliestKeydown() {
-		Nota nota = this.getNotaList().stream().reduce(null, (a, b) -> a != null && a.keydownTimestamp < b.keydownTimestamp ? a : b);
+		Nota nota = this.getNotaSet().stream().reduce(null, (a, b) -> a != null && a.keydownTimestamp < b.keydownTimestamp ? a : b);
 		return nota != null ? nota.keydownTimestamp : 0;
 	}
 
 	public Boolean isHighestBotommedToFitSystem() {
-		Nota nota = this.getNotaList().stream().reduce(null, (a, b) -> a != null && a.tune.get() > b.tune.get() ? a : b);
+		Nota nota = this.getNotaSet().stream().reduce(null, (a, b) -> a != null && a.tune.get() > b.tune.get() ? a : b);
 		return nota != null ? nota.isBotommedToFitSystem() : false;
 	}
 
 	public Nota findByTuneAndChannel(int tune, int channel) {
-		return this.getNotaList().stream().filter(n -> n.tune.get() == tune && n.getChannel() == channel).findFirst().orElse(null);
+		return this.getNotaSet().stream().filter(n -> n.tune.get() == tune && n.getChannel() == channel).findFirst().orElse(null);
 	}
 
 	public int getShortestTime() {
@@ -126,7 +119,7 @@ public class Accord extends MidianaComponent {
 	}
 
 	public Fraction getShortestFraction() {
-		Nota nota = this.getNotaList().stream().reduce(null, (a, b) -> a != null && !a.isLongerThan(b) && !a.getIsMuted() ? a : b);
+		Nota nota = this.getNotaSet().stream().reduce(null, (a, b) -> a != null && !a.isLongerThan(b) && !a.getIsMuted() ? a : b);
 		return nota != null ? nota.getRealLength() : new Fraction(0);
 	}
 
@@ -164,7 +157,7 @@ public class Accord extends MidianaComponent {
 	}
 
 	public Accord setFocusedIndex(int value) {
-		value = value >= this.getNotaList().size() ? this.getNotaList().size() - 1 : value;
+		value = value >= this.getNotaSet().size() ? this.getNotaSet().size() - 1 : value;
 		value = value < -1 ? -1 : value;
 		this.focusedIndex = value;
 		return this;
@@ -191,17 +184,19 @@ public class Accord extends MidianaComponent {
 			.setKeydownTimestamp(System.currentTimeMillis()));
 	}
 
-	public Nota add(Nota nota) {
+	synchronized public Nota add(Nota nota) {
 		getHandler().performAction(new SimpleAction()
-			.setRedo(() -> getNotaList().add(nota))
-			.setUndo(() -> getNotaList().remove(nota)));
+			.setRedo(() -> notaList.add(nota))
+			.setUndo(() -> notaList.remove(nota)));
 		return nota;
 	}
 
-	public void remove(Nota nota) {
+	synchronized public void remove(Nota nota) {
+		int index = getNotaSet().headSet(nota).size();
+		if (index <= getFocusedIndex()) { setFocusedIndex(getFocusedIndex() - 1); }
 		getHandler().performAction(new SimpleAction()
-			.setRedo(() -> getNotaList().remove(nota))
-			.setUndo(() -> getNotaList().add(nota)));
+			.setRedo(() -> notaList.remove(nota))
+			.setUndo(() -> notaList.add(nota)));
 	}
 
 }

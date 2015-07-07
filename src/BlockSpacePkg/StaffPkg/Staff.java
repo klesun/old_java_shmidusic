@@ -33,6 +33,7 @@ public class Staff extends MidianaComponent {
 
 	public StaffConfig staffConfig = null;
 
+	// TODO: MUAAAAH, USE FIELD CLASS MAZAFAKA AAAAAA!
 	private ArrayList<Accord> accordList = new ArrayList<>();
 	public int focusedIndex = -1;
 

@@ -77,18 +77,21 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 	@Override
 	public void paintComponent(Graphics g) {
 		if (!loadJsonOnFocus) {
-			if (simpleRepaint) {
 
-				iThinkItInterruptsPreviousPaintingThreadsSoTheyDidntSlowCurrent();
+			super.paintComponent(g);
 
-				simpleRepaint = false;
-				getStaff().drawOn(g, false);
+			iThinkItInterruptsPreviousPaintingThreadsSoTheyDidntSlowCurrent();
 
-			} else {
+			getStaff().drawOn(g, true);
 
-				super.paintComponent(g);
-				getStaff().drawOn(g, true);
-			}
+//			if (simpleRepaint) {
+//				simpleRepaint = false;
+//
+//			} else {
+//
+//				super.paintComponent(g);
+//				getStaff().drawOn(g, true);
+//			}
 		}
 	}
 

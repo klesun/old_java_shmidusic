@@ -28,11 +28,10 @@ public class AccordHandler extends AbstractHandler {
 	private static TruMap<Combo, ContextAction<Accord>> actionMap = new TruMap<>();
 	static {
 		for (Map.Entry<Combo, ContextAction<Nota>> entry: NotaHandler.getClassActionMap().entrySet()) {
-			actionMap.p(entry.getKey(), mkAction(accord -> accord.getNotaList().forEach(entry.getValue()::redo))
+			actionMap.p(entry.getKey(), mkAction(accord -> accord.getNotaSet().forEach(entry.getValue()::redo))
 				.setCaption("Notas: " + entry.getValue().getCaption()));
 		}
 
-		// overwrites putDot() action of child Nota-s
 		actionMap.p(new Combo(ctrl, k.VK_PERIOD), mkAction(Accord::triggerIsDiminendo).setCaption("Diminendo On/Off"))
 			.p(new Combo(0, k.VK_UP), mkFailableAction(a -> a.moveFocus(-1)).setCaption("Up"))
 			.p(new Combo(0, k.VK_DOWN), mkFailableAction(a -> a.moveFocus(1)).setCaption("Down"))

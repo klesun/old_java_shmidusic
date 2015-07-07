@@ -59,7 +59,7 @@ public class PlayMusThread extends Thread {
 	@Deprecated // move it to Playback class
 	public static void playAccord(Accord accord) {
 		Playback.resetDiminendo();
-		accord.getNotaList().forEach(PlayMusThread::playNotu);
+		accord.getNotaSet().forEach(PlayMusThread::playNotu);
 		if (accord.getIsDiminendo()) {
 			runDiminendoThread(accord.getShortestTime(), 127, 0);
 		}

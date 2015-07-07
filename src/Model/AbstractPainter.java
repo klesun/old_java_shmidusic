@@ -44,18 +44,18 @@ abstract public class AbstractPainter { // like Picasso!
 	}
 
 	protected void drawFields(Boolean completeRepaint) {
-//		java.util.List<Field> drawableList = context.getModelHelper().getFieldStorage().stream()
-//				.filter(f -> f.hasPaintingLambda()).collect(Collectors.toList());
-//
-//		int w = dx() * 2;
-//		int dy = dy(); // TODO: it should be TOTAL_SPACE_FOR_THEM / THEIR_COUNT one day
-//
-//		for (int i = 0; i < drawableList.size(); ++i) {
-//			Rectangle r = new Rectangle(x, y + dy, w, dy);
-//			if (drawableList.get(i).changedSinceLastRepaint || completeRepaint) {
-//				drawableList.get(i).repaint(g, r);
-//			}
-//		}
+		java.util.List<Field> drawableList = context.getModelHelper().getFieldStorage().stream()
+				.filter(f -> f.hasPaintingLambda()).collect(Collectors.toList());
+
+		int w = dx() * 2;
+		int dy = dy(); // TODO: it should be TOTAL_SPACE_FOR_THEM / THEIR_COUNT one day
+
+		for (int i = 0; i < drawableList.size(); ++i) {
+			Rectangle r = new Rectangle(x, y + dy, w, dy);
+			if (drawableList.get(i).changedSinceLastRepaint || completeRepaint) {
+				drawableList.get(i).repaint(g, r);
+			}
+		}
 	}
 
 	private void performWithColor(Color c, Runnable lambda) {

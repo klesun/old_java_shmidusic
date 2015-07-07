@@ -51,6 +51,7 @@ public class Arr<ELEM_CLASS extends AbstractModel> extends Field<Collection<ELEM
 	public ELEM_CLASS get(int index) {
 		return elemClass.cast(get().toArray()[index]);
 	}
+
 	public ELEM_CLASS add(ELEM_CLASS elem) {
 		get().add(elem);
 		set(get()); // problem? ... it's for onChange() lambda to be called
@@ -63,8 +64,13 @@ public class Arr<ELEM_CLASS extends AbstractModel> extends Field<Collection<ELEM
 		catch (NoSuchMethodException exc) { Logger.fatal(exc, "I dont believe you! What is it a Collection, that cannot be created from another Collection?"); }
 		catch (InstantiationException exc) { Logger.fatal(exc, "Abstract class? NO WAI!"); }
 		catch (InvocationTargetException exc) { Logger.fatal(exc, "Bet it wont occur evar? I dont even know what this exception means"); }
-		catch (IllegalAccessException exc) { Logger.fatal(exc, "Shouldn't private method work only on compilation time, like generics?"); } // heretic
+		catch (IllegalAccessException exc) { Logger.fatal(exc, "Shouldn't private methods be private only on compilation time, like generics?"); } // heretic
 		return elem;
+	}
+
+	public void remove(ELEM_CLASS elem) {
+		get().remove(elem);
+		set(get()); // problem? ... it's for onChange() lambda to be called
 	}
 
 	@Override

@@ -21,12 +21,13 @@ public class AccordPainter extends AbstractPainter {
 			drawString("8va", 0, 4 * dy(), Color.BLUE);
 		}
 
-//		int eraseToY = getNotaY(a.getNotaList().stream().max((n1, n2) -> n1.compareTo(n2)).get(), oneOctaveLower) + context.getSettings().getNotaHeight();
-		int eraseToY = a.getLowestPossibleNotaY() - 7 * dy();
+		// it's slower a bit to rely just on awt painter, but it gives us some nice abilities like drawing line linking two notas in separate accords
+//		int eraseToY = getNotaY(a.getNotaSet().stream().max((n1, n2) -> n1.compareTo(n2)).get(), oneOctaveLower) + context.getSettings().getNotaHeight();
+//		int eraseToY = a.getLowestPossibleNotaY() - 7 * dy();
+//
+//		fillRect(new Rectangle(0, 0, dx() * 2, eraseToY), Color.WHITE);
 
-		fillRect(new Rectangle(0, 0, dx() * 2, eraseToY), Color.WHITE);
-
-		for (int i = 0; i < a.getNotaList().size(); ++i) {
+		for (int i = 0; i < a.getNotaSet().size(); ++i) {
 			Nota nota = a.notaList.get(i);
 			int notaY = getNotaY(nota, oneOctaveLower);
 			int notaX = i > 0 && a.notaList.get(i - 1).getAbsoluteAcademicIndex() == nota.getAbsoluteAcademicIndex()
