@@ -11,6 +11,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 import java.util.List;
 
@@ -22,9 +23,9 @@ public class ImageStorage {
 
 	private Map<Fraction, BufferedImage>[] coloredNotas = new Map[Channel.CHANNEL_COUNT];
 
-	private Map<File, BufferedImage> defaultImageMap = new HashMap<>();
-	private Map<File, BufferedImage> sizedDefaultImageMap = new HashMap<>();
-	private Map<File, BufferedImage> randomImageMap = new HashMap<>();
+	private Map<URL, BufferedImage> defaultImageMap = new HashMap<>();
+	private Map<URL, BufferedImage> sizedDefaultImageMap = new HashMap<>();
+	private Map<URL, BufferedImage> randomImageMap = new HashMap<>();
 
 	public ImageStorage(BlockSpace parentBlockSpace) {
 		this.parentBlockSpace = parentBlockSpace;
@@ -35,7 +36,7 @@ public class ImageStorage {
 	}
 
 	// TODO: rename to openRandomImage()
-	public BufferedImage openImage(File file) {
+	public BufferedImage openImage(URL file) {
 		return openImage(file, randomImageMap);
 	}
 
@@ -100,11 +101,11 @@ public class ImageStorage {
 		return result;
 	}
 
-	private File getNotaImageFile(Fraction length) {
-		new FractionFormat().parse(123 + "");
+	private URL getNotaImageFile(Fraction length) {
 		int fileStupidIndex = length.equals(new Fraction(2)) ? 0 : length.getDenominator();
 		String fileName = fileStupidIndex + "_sized.png";
-		return new File(DEFAULT_IMAGE_FOLDER + fileName);
+
+		return getClass().getResource(DEFAULT_IMAGE_FOLDER + fileName);
 	}
 
 	public BufferedImage getQuarterImage() { return coloredNotas[0].get(new Fraction(1, 4)); }
@@ -149,12 +150,12 @@ public class ImageStorage {
 	// private methods
 
 
-	private BufferedImage openDefaultImage(File file) {
+	private BufferedImage openDefaultImage(URL file) {
 		return openImage(file, defaultImageMap);
 	}
 
 	private BufferedImage openSizedDefaultImage(String fileName) {
-		File file = new File(DEFAULT_IMAGE_FOLDER + fileName);
+		URL file = getClass().getResource(DEFAULT_IMAGE_FOLDER + fileName);
 		if (!sizedDefaultImageMap.containsKey(file)) {
 			sizedDefaultImageMap.put(file, changeSize(openDefaultImage(file)));
 		}
@@ -162,12 +163,12 @@ public class ImageStorage {
 		return sizedDefaultImageMap.get(file);
 	}
 
-	private BufferedImage openImage(File file, Map<File, BufferedImage> imageMap) {
+	private BufferedImage openImage(URL file, Map<URL, BufferedImage> imageMap) {
 		if (!imageMap.containsKey(file)) {
 			try {
 				imageMap.put(file, ImageIO.read(file));
 			} catch (IOException e) {
-				String msg = "Failed to load image file! " + file.getAbsolutePath() + " " + e.getMessage();
+				String msg = "Failed to load image file! " + file.getRef() + " " + e.getMessage();
 				Logger.warning(msg);
 				imageMap.put(file, strToImg(msg));
 			}

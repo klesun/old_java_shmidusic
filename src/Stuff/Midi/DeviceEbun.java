@@ -90,7 +90,7 @@ public class DeviceEbun {
 
 		// close devices
 		if (device != null) { device.close(); }
-		gervill.close();
+		if (gervill != null) { gervill.close(); }
 	}
 
 	public static Boolean isPlaybackSoftware() {

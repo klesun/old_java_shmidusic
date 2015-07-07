@@ -22,8 +22,8 @@ public class BlockHandler extends AbstractHandler {
 			.p(new Combo(ctrl, k.VK_F), mkAction(Block::switchFullscreen).setCaption("Switch Fullscreen"))
 			.p(new Combo(ctrl, k.VK_F2), mkAction(c -> c.setTitle(JOptionPane.showInputDialog(c, "Type new name for container: ", c.getTitle()))).setCaption("Rename"))
 			.p(new Combo(ctrl, k.VK_DELETE), mkAction(c -> c.getModelParent().removeModelChild(c)).setCaption("Delete"))
-			.p(new Combo(0, KeyEvent.VK_PAGE_DOWN), mkAction(b -> b.page(1)))
-			.p(new Combo(0, KeyEvent.VK_PAGE_UP), mkAction(b -> b.page(-1)));
+			.p(new Combo(0, KeyEvent.VK_PAGE_DOWN), mkAction(b -> b.page(1)).setCaption("Scroll Up"))
+			.p(new Combo(0, KeyEvent.VK_PAGE_UP), mkAction(b -> b.page(-1)).setCaption("Scroll Up"));
 	}
 
 	public BlockHandler(Block context) {

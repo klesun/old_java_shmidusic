@@ -1,8 +1,13 @@
 package Stuff.Tools;
 
 import Main.Main;
+import Model.Explain;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -10,7 +15,7 @@ public class Logger {
 
 	private static Long time = null;
 
-	final private static String PRE_FATAL_BACKUP_FOLDER = "./savedJustBeforeFatal/";
+	final private static String PRE_FATAL_BACKUP_FOLDER = "savedJustBeforeFatal/";
 
 	public static int getFatal(String msg) {
 		fatal(msg);
@@ -29,10 +34,33 @@ public class Logger {
 		System.out.println(msg);
 		traceProvider.printStackTrace();
 
+		StringWriter sw = new StringWriter();
+		traceProvider.printStackTrace(new PrintWriter(sw));
+		String traceString = sw.toString();
+
 		// TODO: if we don't have permissions - let user manually selected where to save
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
 		new File(PRE_FATAL_BACKUP_FOLDER).mkdirs();
-		FileProcessor.saveStoryspace(new File(PRE_FATAL_BACKUP_FOLDER + "fatal_backup_" + dateFormat.format(new Date()) + ".bs.json"), Main.window.blockSpace);
+		File file = new File(PRE_FATAL_BACKUP_FOLDER + "fatal_backup_" + dateFormat.format(new Date()) + ".bs.json");
+
+		Explain result = FileProcessor.saveStoryspace(file, Main.window.blockSpace);
+
+		JTextArea text = new JTextArea();
+		text.setEditable(false);
+		text.setLineWrap(true);
+		JScrollPane scroll = new JScrollPane(text, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scroll.setPreferredSize(new Dimension(800, 600));
+
+		if (result.isSuccess()) {
+			text.setText("midiana crashed with message [" + msg + "] \nbut i successed saving backup of your project into file \n[" + file.getAbsolutePath() + "]\n" +
+				"stack trace: \n\n" + traceString);
+		} else {
+			text.setText("Im really sorry, midiana crashed and backup of your project could not be saved to file because: {" + result.getExplanation() + "}\n" +
+				"But you can copypaste your project dump below to a json file manually: \n\n" + Main.window.blockSpace.getJsonRepresentation().toString());
+		}
+
+		text.setCaretPosition(0);
+		JOptionPane.showMessageDialog(Main.window, scroll);
 
 		Runtime.getRuntime().exit(666);
 	}

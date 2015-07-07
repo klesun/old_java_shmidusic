@@ -7,6 +7,7 @@ import BlockSpacePkg.BlockSpace;
 import BlockSpacePkg.IBlockSpacePanel;
 import BlockSpacePkg.Block;
 import Stuff.OverridingDefaultClasses.TruMap;
+import Stuff.Tools.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -16,6 +17,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.LinkedHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -89,7 +91,9 @@ public class ImagePanel extends JPanel implements IBlockSpacePanel {
 
 	private void loadImage(File file) {
 		this.imagePath = file.getAbsolutePath();
-		this.image = getScroll().getModelParent().getImageStorage().openImage(file);
+		try {
+			this.image = getScroll().getModelParent().getImageStorage().openImage(file.toURI().toURL());
+		} catch (MalformedURLException exc) { Logger.fatal(exc, "No WAI"); }
 
 		scroll.setTitle(file.getName());
 

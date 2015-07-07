@@ -1,7 +1,6 @@
 package Main;
 
 import Stuff.Midi.DeviceEbun;
-import sun.awt.WindowClosingListener;
 
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;

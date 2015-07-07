@@ -202,7 +202,7 @@ public class Staff extends MidianaComponent {
 	}
 
 	public int getHeightIf(int width) {
-		return getAccordRowList().size() * SISDISPLACE * dy();
+		return getAccordRowList().size() * SISDISPLACE * dy() + getMarginY();
 	}
 
 

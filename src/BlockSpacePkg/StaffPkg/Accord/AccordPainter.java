@@ -21,7 +21,8 @@ public class AccordPainter extends AbstractPainter {
 			drawString("8va", 0, 4 * dy(), Color.BLUE);
 		}
 
-		int eraseToY = getNotaY(a.getNotaList().stream().max((n1, n2) -> n1.compareTo(n2)).get(), oneOctaveLower) + context.getSettings().getNotaHeight();
+//		int eraseToY = getNotaY(a.getNotaList().stream().max((n1, n2) -> n1.compareTo(n2)).get(), oneOctaveLower) + context.getSettings().getNotaHeight();
+		int eraseToY = a.getLowestPossibleNotaY() - 7 * dy();
 
 		fillRect(new Rectangle(0, 0, dx() * 2, eraseToY), Color.WHITE);
 
