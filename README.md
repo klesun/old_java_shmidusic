@@ -15,7 +15,7 @@ $ java -jar midiana.jar
 <br />
 List of available midi devices will be printed into console.<br />
 <br />
-To create music you'll have to have some midi-piano plugged into your midi-port (if you have one).<br />
+To create music you'll have to have some midi-piano plugged into your midi-port or usb (not sure 'bout usb, did not test).<br />
 <br />
 
 | shortcut | action |
