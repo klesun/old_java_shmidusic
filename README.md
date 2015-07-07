@@ -5,11 +5,13 @@ I love lambdas, therefore you have to have Java 8 or higher!<br />
 <br />
 To build and run you can do: <br />
 ```sh
-/usr/java/jdk1.8.*/bin/javac -sourcepath "./src" -d "./bin" "./src/Main.Main.java -cp libs/*.jar"
-cd bin
-/usr/java/jdk1.8.*/bin/java -cp ../libs/guava-18.0.jar:. Main.Main
+$ ./build.sh
+$ ./run.sh
 ```
-(or just ./run.sh)<br />
+(or you can also find some jar in project root. it will be a bit outdated: )<br />
+```sh
+$ java -jar midiana.jar
+```
 <br />
 List of available midi devices will be printed into console.<br />
 <br />
@@ -45,3 +47,7 @@ To create music you'll have to have some midi-piano plugged into your midi-port 
 | . | . |
 | . | . |
 *If you (for some reason) want to use my program, please contact me at arturklesun@gmail.com, i'll give you love and support. I feel lonely being the only person using this program =( <br />
+
+<br />
+![Alt text](/midiana.jpg?raw=true "Optional Title")
+<br />
