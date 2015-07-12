@@ -2,7 +2,7 @@ package Stuff.Midi;
 
 import javax.sound.midi.*;
 
-import Main.Main;
+import main.Main;
 import Model.Explain;
 import BlockSpacePkg.StaffPkg.Accord.Nota.Nota;
 import BlockSpacePkg.StaffPkg.StaffConfig.StaffConfig;

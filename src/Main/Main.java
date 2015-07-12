@@ -1,10 +1,7 @@
-package Main;
+package main;
 
-import Gui.ImageStorage;
 import Stuff.Midi.DeviceEbun;
 import Stuff.Tools.Logger;
-
-import java.util.function.Consumer;
 
 public class Main {
 

@@ -17,7 +17,7 @@ public class TactMeasurer {
 
 	/** @returns true if accord finished the tact */
 	public Boolean inject(Accord accord) {
-		sumFraction = sumFraction.add(accord.getShortestFraction());
+		sumFraction = sumFraction.add(accord.getFraction());
 
 		Boolean finishedTact = false;
 		while (sumFraction.compareTo(parent.getConfig().getTactSize()) >= 0) {

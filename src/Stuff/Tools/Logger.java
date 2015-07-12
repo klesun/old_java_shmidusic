@@ -1,6 +1,6 @@
 package Stuff.Tools;
 
-import Main.Main;
+import main.Main;
 import Model.Explain;
 
 import javax.swing.*;

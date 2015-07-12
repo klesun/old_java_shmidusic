@@ -1,5 +1,6 @@
 package BlockSpacePkg.StaffPkg;
 
+import BlockSpacePkg.StaffPkg.Accord.Nota.Nota;
 import Model.Explain;
 import Model.SimpleAction;
 import BlockSpacePkg.StaffPkg.Accord.AccordHandler;
@@ -17,7 +18,9 @@ import Stuff.Musica.PlayMusThread;
 import java.util.concurrent.TimeUnit;
 
 
+import Stuff.Tools.jmusicIntegration.INota;
 import com.google.common.util.concurrent.Uninterruptibles;
+import org.apache.commons.math3.exception.MathArithmeticException;
 import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -63,7 +66,8 @@ public class Staff extends MidianaComponent {
 		return accord;
 	}
 
-	private synchronized Accord add(Accord accord, int index) {
+	/** TODO: public is temporary */
+	public synchronized Accord add(Accord accord, int index) {
 		getHandler().performAction(new SimpleAction()
 			.setRedo(() -> getAccordList().add(index, accord))
 			.setUndo(() -> getAccordList().remove(accord)));
@@ -168,9 +172,11 @@ public class Staff extends MidianaComponent {
 	@Override
 	public StaffHandler getHandler() { return (StaffHandler)super.getHandler(); }
 
-	private void clearStan() {
+	public Staff clearStan() {
 		this.getAccordList().clear();
 		this.focusedIndex = -1;
+
+		return this;
 	}
 
 	@Override
@@ -280,6 +286,62 @@ public class Staff extends MidianaComponent {
 		setFocusedIndex(getFocusedIndex() + n);
 
 		return getFocusedIndex() != wasIndex ? new Explain(true) : new Explain("dead end").setImplicit(true);
+	}
+
+	/** @return - Nota that we just put */
+	public Nota putAt(Fraction desiredPos, INota nota) {
+
+		Fraction curPos = new Fraction(0);
+		for (int i = 0; i < getAccordList().size(); ++i) {
+
+			if (curPos.equals(desiredPos)) {
+				Accord accord = getAccordList().get(i);
+
+				Fraction wasAccordLength = accord.getFraction();
+				Nota newNota = accord.addNewNota(nota);
+
+				if (!wasAccordLength.equals(accord.getFraction())) {
+					// putting filler in case when accord length became smaller to preserve timing
+					Fraction dl = wasAccordLength.subtract(accord.getFraction());
+					this.add(new Accord(this), i + 1).addNewNota(0, 0).setLength(dl);
+				}
+				return newNota;
+			} else if (curPos.compareTo(desiredPos) > 0) {
+
+				Accord accord = getAccordList().get(i - 1);
+				Fraction offset = curPos.subtract(desiredPos);
+				Fraction onset = accord.getFraction().subtract(offset);
+
+				accord.addNewNota(0, 0).setLength(onset);
+
+				Accord newAccord = this.add(new Accord(this), i);
+				Nota newNota = newAccord.addNewNota(nota);
+				if (newNota.getLength().compareTo(offset) > 0) {
+					// TODO: maybe if last accord in staff then no need
+					// put Nota with onset length into newNota's accord to preserve timing
+					newAccord.addNewNota(0, 0).setLength(offset);
+				} else if (newNota.getLength().compareTo(offset) < 0) {
+					// TODO: maybe if last accord in staff then no need
+					// put an empty Nota after and set it's length(onset - newNota.getLength())
+					this.add(new Accord(this), i + 1).addNewNota(0, 0).setLength(offset.subtract(newNota.getLength()));
+				}
+
+				return newNota;
+			}
+
+			Fraction accordFraction = getAccordList().get(i).getFraction();
+
+			try {
+				curPos.add(getAccordList().get(i).getFraction());
+			} catch (MathArithmeticException exc) {
+
+				curPos = new Fraction(Math.round(curPos.doubleValue() * accordFraction.getDenominator()) / accordFraction.getDenominator());
+			}
+			curPos = curPos.add(accordFraction);
+		}
+
+		// if not returned already
+		return this.add(new Accord(this), getAccordList().size()).addNewNota(nota);
 	}
 }
 

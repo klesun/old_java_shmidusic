@@ -11,9 +11,11 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 
+import Model.Helper;
 import Stuff.OverridingDefaultClasses.Pnt;
 import Stuff.Tools.Bin;
 import Stuff.Tools.Logger;
+import Stuff.Tools.jmusicIntegration.INota;
 import org.apache.commons.math3.fraction.Fraction;
 
 import BlockSpacePkg.StaffPkg.StaffConfig.StaffConfig;
@@ -22,7 +24,7 @@ import org.json.JSONObject;
 
 import java.util.List;
 
-public class Nota extends MidianaComponent implements Comparable<Nota> {
+public class Nota extends MidianaComponent implements INota {
 
 	// <editor-fold desc="model field declaration">
 
@@ -30,8 +32,8 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	public Field<Integer> tune = new Field<>("tune", Integer.class, true, this);
 	protected Field<Integer> channel = new Field<>("channel", Integer.class, true, this);
 
-	public Field<Fraction> length = new Field<>("length", new Fraction(1, 4), this);
-	private Field<Boolean> isTriplet = new Field<>("isTriplet", false, this);
+	public Field<Fraction> length = new Field<>("length", new Fraction(1, 4), this, INota::legnthNorm);
+	public Field<Boolean> isTriplet = new Field<>("isTriplet", false, this);
 	private Field<Boolean> isSharp = new Field<>("isSharp", false, this);
 	private Field<Boolean> isMuted = new Field<>("isMuted", false, this);
 	private Field<Boolean> isLinkedToNext = new Field<>("isLinkedToNext", false, this);
@@ -66,8 +68,8 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 		surface.drawImage(tmpImg, x + getNotaImgRelX(), y, null);
 
-		if (getTupletDenominator() != 1) {
-			for (int i = 0; i < getTupletDenominator(); ++i) {
+		if (isTriplet.get()) {
+			for (int i = 0; i < 3; ++i) {
 				surface.drawLine(x + getStickX(), y + i * 2 + 1, x + getStickX() - 6, y + i * 2 + 1);
 			}
 		}
@@ -81,8 +83,6 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 	public MidianaComponent getFocusedChild() { return null; }
 	@Override
 	protected NotaHandler makeHandler() { return new NotaHandler(this); }
-	@Override
-	public int compareTo(Nota n) { return ((n.tune.get() - this.tune.get()) << 4) + (n.channel.get() - this.channel.get()); }
 
 	@Override
 	public int hashCode() {
@@ -146,31 +146,6 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 				getImageStorage().getFlatImage();
 	}
 
-
-	// 1/256 + 1/128 + 1/64 + 1/32 + 1/16 + 1/8 + 1/4 + 1/2 = 1111 1111
-
-	// 0000 0111 - true
-
-	// 0001 1111 - true
-
-	// 0011 1111 - true
-
-	// 0010 0110 - false
-
-	/** @return true if length can be expressed through sum 2 + 1 + 1/2 + 1/4 + 1/8 + ... 1/2^n */
-	private static Boolean isDotable(Fraction length) {
-		length = length.divide(ImageStorage.getGreatestPossibleNotaLength().multiply(2)); // to make sure, that the length is less than 1
-		if (length.compareTo(new Fraction(1)) >= 0) {
-			Logger.fatal("Providen fraction is greater than 1 even after deviding it to gretest possible Nota length! We'll all die!!!" + length);
-		}
-
-		if (Bin.isPowerOf2(length.getDenominator())) { // will be false for triols
-			return Bin.isPowerOf2(length.getNumerator() + 1); // not sure... but, ok, kinda sure
-		} else {
-			return false;
-		}
-	}
-
 	private int getDotCount() {
 
 		Fraction length = this.length.get().divide(ImageStorage.getGreatestPossibleNotaLength().multiply(2)); // to make sure, that the length is less than 1
@@ -210,8 +185,6 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	public int getAbsoluteAcademicIndex() { return isPause() ? PAUSE_POSITION : getAcademicIndex() + getOctave() * 7; }
 	public int getOctave() { return this.tune.get() /12; }
-	@Deprecated
-	public List<Integer> getAncorPointDeprecated() { return Arrays.asList(getWidth()*16/25, getHeight() - dy()); }
 	public Pnt getAncorPoint() { return new Pnt(getWidth()*16/25, getHeight() - dy()); }
 	public int getNotaImgRelX() { return this.getWidth() / 2; } // bad name
 	public int getStickX() { return this.getNotaImgRelX() + dx() / 2; }
@@ -228,8 +201,10 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 
 	// TODO: we can use this.{field}.get instead of manually creating separate getters
 	// model getters
+	public Integer getTune() { return tune.get(); }
 	public Integer getChannel() { return channel.get(); }
-	public Integer getTupletDenominator() { return isTriplet.get() ? 3 : 1; }
+	public Fraction getLength() { return length.get(); }
+	public Boolean isTriplet() { return isTriplet.get(); }
 	public Boolean getIsSharp() { return isSharp.get(); }
 	public Boolean getIsMuted() { return isMuted.get(); }
 	public Boolean getIsLinkedToNext() { return isLinkedToNext.get(); }
@@ -238,10 +213,9 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 		this.tune.set(value);
 		return this;
 	}
-	public Nota setLength(Fraction value){ this.length.set(limit(value, new Fraction(1, 16), new Fraction(2))); return this; }
+	public Nota setLength(Fraction value){ this.length.set(value); return this; }
 	/** @Bug - nota is immutable, this will blow with fatal !!! */
 	public Nota setChannel(int value) { this.channel.set(value); return this; }
-	public Nota setTupletDenominator(int value) { this.isTriplet.set(value == 3 ? true : false); return this; }
 	public Nota setIsSharp(Boolean value) { this.isSharp.set(value); return this; }
 	public Nota setIsMuted(Boolean value) { this.isMuted.set(value); return this; }
 	public Nota setIsLinkedToNext(Boolean value) { this.isLinkedToNext.set(value); return this; }
@@ -265,7 +239,10 @@ public class Nota extends MidianaComponent implements Comparable<Nota> {
 			return false;
 		}
 	}
-	public Nota triggerTupletDenominator() { setTupletDenominator(getTupletDenominator() == 3 ? 1 : 3); return this; }
+	public Nota triggerTupletDenominator() {
+		isTriplet.set(!isTriplet.get());
+		return this;
+	}
 
 	public Nota linkedTo() {
 		return this.getIsLinkedToNext() ? this.getNext() : null;

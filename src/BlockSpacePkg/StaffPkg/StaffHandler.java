@@ -17,32 +17,14 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class StaffHandler extends AbstractHandler {
-	// TODO: may be no need for this queue, cause we whatever can pass needed Nota to undo with paramsForUndo
-	@Deprecated
-	private LinkedList<Accord> deletedAccordQueue = new LinkedList<>();
 
 	public StaffHandler(Staff context) { super(context); }
 	public Staff getContext() {
 		return Staff.class.cast(super.getContext());
 	}
 
-	@Deprecated
-	private int defaultChannel = 0; // default channel for new Nota-s
-
 	private static TruMap<Combo, ContextAction<Staff>> actionMap = new TruMap<>();
 	static {
-		// TODO: make folder of project default path
-		JFileChooser jsonChooser = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/");
-		jsonChooser.setFileFilter(new FileFilter() {
-			public boolean accept(File f) {
-				return f.getAbsolutePath().endsWith(".midi.json") || f.isDirectory();
-			}
-
-			public String getDescription() {
-				return "Json Midi-music data";
-			}
-		});
-
 		JFileChooser pngChooser = new JFileChooser();
 		pngChooser.setFileFilter(new FileNameExtensionFilter("PNG images", "png"));
 
@@ -52,6 +34,7 @@ public class StaffHandler extends AbstractHandler {
 				// TODO: maybe move these two into Scroll
 			.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel).setCaption("Save"))
 			.p(new Combo(ctrl, k.VK_O), mkFailableAction(FileProcessor::openStaff).setCaption("Open"))
+			.p(new Combo(ctrl, k.VK_M), mkFailableAction(FileProcessor::openJMusic).setCaption("Open JMusic project"))
 
 			.p(new Combo(0, k.VK_ESCAPE), mkAction(s -> s.getConfig().getDialog().showMenuDialog(StaffConfig::syncSyntChannels))
 				.setCaption("Settings"))
@@ -97,7 +80,7 @@ public class StaffHandler extends AbstractHandler {
 			Nota oldPause = accord.findByTuneAndChannel(36, 0);
 			if (oldPause != null) {
 				accord.remove(oldPause);
-				accord.addNewNota(0, 0).setLength(oldPause.length.get()).setTupletDenominator(oldPause.getTupletDenominator());
+				accord.addNewNota(0, 0).setLength(oldPause.length.get()).isTriplet.set(oldPause.isTriplet.get());
 			}
 		}
 	}

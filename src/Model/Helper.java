@@ -116,4 +116,10 @@ public class Helper {
 			return new ArrayList<>();
 		}
 	}
+
+	public static Fraction limit(Fraction value, Fraction min, Fraction max) {
+		value = value.compareTo(min) < 0 ? min : value;
+		value = value.compareTo(max) > 0 ? max : value;
+		return value;
+	}
 }

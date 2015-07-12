@@ -95,7 +95,7 @@ public class ImageStorage {
 	}
 
 	// from 2/1 downto 1/16
-	private static List<Fraction> getAvailableNotaLengthList() {
+	public static List<Fraction> getAvailableNotaLengthList() {
 		List<Fraction> result = new ArrayList<>();
 		for (int idx = 0; idx < 6; ++idx) { result.add(new Fraction(2, pow2(idx))); }
 		return result;

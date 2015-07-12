@@ -1,8 +1,7 @@
 package Stuff.Tools;
 
 import Model.Explain;
-import Model.Helper;
-import Main.Main;
+import main.Main;
 import BlockSpacePkg.StaffPkg.Staff;
 import BlockSpacePkg.BlockSpace;
 import Model.IModel;
@@ -11,6 +10,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 
+import Stuff.Tools.jmusicIntegration.JMusicIntegration;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -21,9 +21,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Arrays;
 
 public class FileProcessor {
 
+	// TODO: make folder of project default path
 	private static JFileChooser fileChooser = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/");
 	
 	public static Explain savePNG (Staff staff) {
@@ -50,8 +52,13 @@ public class FileProcessor {
 
 	private static Explain<File> makeSaveFileDialog(String ext, String description) {
 		fileChooser.setFileFilter(new FileFilter() {
-			public boolean accept(File f) { return f.getAbsolutePath().endsWith("." + ext) || f.isDirectory(); }
-			public String getDescription() { return description; }
+			public boolean accept(File f) {
+				return f.getAbsolutePath().endsWith("." + ext) || f.isDirectory();
+			}
+
+			public String getDescription() {
+				return description;
+			}
 		});
 
 		int rVal = fileChooser.showSaveDialog(Main.window);
@@ -93,8 +100,13 @@ public class FileProcessor {
 
 	public static Explain openStaff(Staff staff) {
 		fileChooser.setFileFilter(new FileFilter() {
-			public boolean accept(File f) { return f.getAbsolutePath().endsWith(".midi.json") || f.isDirectory(); }
-			public String getDescription() { return "Json Midi-music data"; }
+			public boolean accept(File f) {
+				return f.getAbsolutePath().endsWith(".midi.json") || f.isDirectory();
+			}
+
+			public String getDescription() {
+				return "Json Midi-music data";
+			}
 		});
 		if (fileChooser.showOpenDialog(Main.window) == JFileChooser.APPROVE_OPTION) {
 			File f = fileChooser.getSelectedFile();
@@ -106,17 +118,54 @@ public class FileProcessor {
 		}
 	}
 
+	// TODO: we'll need this just untill i get opening MIDI into MIDIana
+	public static Explain openJMusic(Staff staff) {
+		fileChooser.setFileFilter(new FileFilter() {
+			public boolean accept(File f) { return f.getAbsolutePath().endsWith(".jm.json") || f.isDirectory(); }
+			public String getDescription() { return "Json JMusic data"; }
+		});
+		if (fileChooser.showOpenDialog(Main.window) == JFileChooser.APPROVE_OPTION) {
+			File f = fileChooser.getSelectedFile();
+			staff.getParentSheet().getScroll().setTitle(f.getName());
+
+			JMusicIntegration helper = new JMusicIntegration(staff.clearStan());
+
+			Explain<JSONObject> jsExplain = openJsonFile(f);
+			return jsExplain.isSuccess() ? helper.fillFromJm(jsExplain.getData()) : jsExplain;
+		} else {
+			return new Explain("you changed your mind, why?");
+		}
+	}
+
 	private static Explain openModel(File f, IModel model) {
-		try {
-			String js = new String(Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8);
-			try {
-				JSONObject jsObject = new JSONObject(js);
-				if (js.contains(model.getClass().getSimpleName())) {
-					model.reconstructFromJson(jsObject.getJSONObject(model.getClass().getSimpleName()));
-				}
+		Explain<JSONObject> jsExplain = openJsonFile(f);
+		if (jsExplain.isSuccess()) {
+
+			// TODO: handle some exceptions like yu-no, data structure mismatch
+			// or yu-no, js may not have key model.getClass().getSimpleName()
+
+			if (jsExplain.getData().has(model.getClass().getSimpleName())) {
+				JSONObject modelJs = jsExplain.getData().getJSONObject(model.getClass().getSimpleName());
+				model.reconstructFromJson(modelJs);
 
 				return new Explain(true);
+			} else {
+				return new Explain("File you provided does not have [" + model.getClass().getSimpleName() + "] key in main body, " + "" +
+					"only " + Arrays.toString(JSONObject.getNames(jsExplain.getData())) + "]");
+			}
+
+		} else {
+			return jsExplain;
+		}
+	}
+
+	private static Explain<JSONObject> openJsonFile(File f) {
+		try {
+			String jsString = new String(Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8);
+			try {
+				return new Explain(new JSONObject(jsString));
 			} catch (JSONException exc) {
+
 				String msg = "Failed to parse json - [" + exc.getMessage() + "]";
 				Logger.error(msg);
 				return new Explain(msg);

@@ -1,10 +1,9 @@
-package Main;
+package main;
 
 import BlockSpacePkg.Block;
 import Model.*;
 import BlockSpacePkg.BlockSpace;
 import Stuff.OverridingDefaultClasses.TruMenuItem;
-import Stuff.Tools.Logger;
 
 import javax.swing.*;
 
@@ -104,7 +103,7 @@ public class MajesticWindow extends JFrame {
 							JOptionPane.showMessageDialog(this, explain.getExplanation());
 						}
 					} else {
-						Logger.warning("Cant perform action, " + cls.getSimpleName() + " class instance not focused!");
+						JOptionPane.showMessageDialog(this, "Cant perform action, " + cls.getSimpleName() + " class instance not focused!");
 					}
 				});
 

@@ -15,6 +15,11 @@ abstract public class MidianaComponent extends AbstractModel implements ICompone
 
 	private AbstractHandler eventHandler = null;
 
+	@Override
+	public String toString() {
+		return this.getJsonRepresentation().toString();
+	}
+
 	abstract public MidianaComponent getFocusedChild();
 	abstract protected AbstractHandler makeHandler();
 	abstract  public void drawOn(Graphics surface, int x, int y, Boolean completeRepaint); // TODO: renmae to paintComponent() for compatibility with AWT components

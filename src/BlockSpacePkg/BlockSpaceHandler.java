@@ -25,7 +25,7 @@ public class BlockSpaceHandler extends AbstractHandler {
 		JFileChooser jsonChooser = new JFileChooser("/home/klesun/yuzefa_git/storyspaceContent/");
 		jsonChooser.setFileFilter(new FileFilter() {
 			public boolean accept(File f) {
-				return f.getAbsolutePath().endsWith(".stsp.json") || f.isDirectory();
+				return f.getAbsolutePath().endsWith(".bs.json") || f.isDirectory();
 			}
 
 			public String getDescription() {

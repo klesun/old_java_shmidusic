@@ -1,7 +1,5 @@
 package BlockSpacePkg.Image;
 
-import BlockSpacePkg.StaffPkg.StaffPanel;
-import Main.Main;
 import Model.*;
 import BlockSpacePkg.BlockSpace;
 import BlockSpacePkg.IBlockSpacePanel;
@@ -19,8 +17,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.LinkedHashMap;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class ImagePanel extends JPanel implements IBlockSpacePanel {
 

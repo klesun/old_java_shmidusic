@@ -43,7 +43,7 @@ public class Playback {
 					staff.moveFocusWithPlayback(1, false);
 					staff.getParentSheet().checkCam();
 				});
-				sumFraction = sumFraction.add(accord.getShortestFraction());
+				sumFraction = sumFraction.add(accord.getFraction());
 			}
 			runningProcess.addTask(sumFraction.add(1), this::interrupt);
 			runningProcess.start();

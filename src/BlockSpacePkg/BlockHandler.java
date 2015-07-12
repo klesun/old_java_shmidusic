@@ -55,6 +55,8 @@ public class BlockHandler extends AbstractHandler {
 		InputMap im = context.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		im.put(KeyStroke.getKeyStroke("UP"), "none");
 		im.put(KeyStroke.getKeyStroke("DOWN"), "none");
+		im.put(KeyStroke.getKeyStroke("PAGE_UP"), "none");
+		im.put(KeyStroke.getKeyStroke("PAGE_DOWN"), "none");
 	}
 
 	@Override

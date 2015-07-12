@@ -2,7 +2,7 @@ package BlockSpacePkg;
 
 import Gui.ImageStorage;
 import Gui.Settings;
-import Main.MajesticWindow;
+import main.MajesticWindow;
 import Model.*;
 import BlockSpacePkg.Image.ImagePanel;
 import BlockSpacePkg.StaffPkg.StaffPanel;

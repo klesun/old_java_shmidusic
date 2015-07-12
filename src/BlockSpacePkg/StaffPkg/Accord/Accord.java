@@ -9,6 +9,7 @@ import Model.Field.Arr;
 import Model.Field.Field;
 import Model.SimpleAction;
 import BlockSpacePkg.StaffPkg.MidianaComponent;
+import Stuff.Tools.jmusicIntegration.INota;
 import org.apache.commons.math3.fraction.Fraction;
 
 import BlockSpacePkg.StaffPkg.Accord.Nota.Nota;
@@ -115,10 +116,10 @@ public class Accord extends MidianaComponent {
 	}
 
 	public int getShortestTime() {
-		return Nota.getTimeMilliseconds(getShortestFraction(), getParentStaff().getConfig().getTempo());
+		return Nota.getTimeMilliseconds(getFraction(), getParentStaff().getConfig().getTempo());
 	}
 
-	public Fraction getShortestFraction() {
+	public Fraction getFraction() {
 		Nota nota = this.getNotaSet().stream().reduce(null, (a, b) -> a != null && !a.isLongerThan(b) && !a.getIsMuted() ? a : b);
 		return nota != null ? nota.getRealLength() : new Fraction(0);
 	}
@@ -173,6 +174,12 @@ public class Accord extends MidianaComponent {
 	}
 
 	// event handles
+
+	public Nota addNewNota(INota source) {
+		Nota newNota = addNewNota(source.getTune(), source.getChannel()).setLength(source.getLength());
+		newNota.isTriplet.set(source.isTriplet());
+		return newNota;
+	}
 
 	public Nota addNewNota(int tune, int channel) {
 		return add(new Nota(this).setTune(tune).setChannel(channel)
