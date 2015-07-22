@@ -27,6 +27,7 @@ public class Field<E> {
 	Function<E, E> normalize = null;
 	@Deprecated // i used it to repaint, but now we have separate repinting lambda
 	private Runnable onChange = null;
+	private Boolean omitDefaultFromJson = false;
 	private BiFunction<Rectangle, E, Consumer<Graphics>> paintingLambda = null;
 	public Boolean changedSinceLastRepaint = true;
 
@@ -50,6 +51,15 @@ public class Field<E> {
 	}
 
 	// field getters/setters
+
+	public Field setOmitDefaultFromJson(Boolean value) {
+		this.omitDefaultFromJson = value;
+		return this;
+	}
+
+	public Boolean omitDefaultFromJson() {
+		return this.omitDefaultFromJson;
+	}
 
 	public E get() { return value; }
 
@@ -102,6 +112,7 @@ public class Field<E> {
 
 	// override me please!
 	public void setValueFromJsObject(JSONObject jsObject) {
+
 		this.setValueFromString(jsObject.get(getName()).toString());
 	}
 

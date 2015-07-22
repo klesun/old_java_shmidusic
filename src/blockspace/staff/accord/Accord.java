@@ -3,6 +3,9 @@ package blockspace.staff.accord;
 import java.awt.*;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import model.Explain;
 import model.field.Arr;
@@ -99,6 +102,10 @@ public class Accord extends MidianaComponent {
 
 	public TreeSet<Nota> getNotaSet() {
 		return (TreeSet)notaList.get();
+	}
+
+	public Stream<Nota> notaStream(Predicate<Nota> filterLambda) {
+		return getNotaSet().stream().filter(filterLambda);
 	}
 
 	public long getEarliestKeydown() {

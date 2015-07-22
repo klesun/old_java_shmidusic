@@ -11,6 +11,9 @@ public class ModelFieldInput extends JTextField {
 	public ModelFieldInput(Field owner) {
 		super(owner.get().toString());
 		this.owner = owner;
+		if (owner.isFinal) {
+			this.setEditable(false);
+		}
 	}
 
 	public Field getOwner() { return this.owner; }

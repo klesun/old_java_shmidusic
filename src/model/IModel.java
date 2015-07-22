@@ -18,7 +18,8 @@ public interface IModel {
 		JSONObject dict = new JSONObject();
 
 		getModelHelper().getFieldStorage().stream()
-			.filter(field -> field.get().getClass() != Boolean.class || field.get() != field.defaultValue) // Issue[69]
+			.filter(f -> f.get().getClass() != Boolean.class || f.get() != f.defaultValue) // Issue[69]
+			.filter(f -> !f.omitDefaultFromJson() || f.get() != f.defaultValue)
 			.forEach(field -> dict.put(field.getName(), field.getJsonValue()));
 
 		return dict;

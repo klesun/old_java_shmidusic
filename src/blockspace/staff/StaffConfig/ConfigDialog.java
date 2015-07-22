@@ -11,6 +11,7 @@ import stuff.OverridingDefaultClasses.TruLabel;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -43,24 +44,21 @@ public class ConfigDialog extends JPanel {
 
 	private void addChannelSetupGrid() {
 
-		List<String> fieldList = parent.getChannelList().get(0).getFieldList();
+		List<String> fieldList = parent.channelList.get(0).getFieldList();
 
-		JPanel channelGridPanel = new JPanel(new GridLayout(Channel.CHANNEL_COUNT + 1, fieldList.size() + 1, 4, 4));
+		JPanel channelGridPanel = new JPanel(new GridLayout(Channel.CHANNEL_COUNT + 1, fieldList.size(), 4, 4));
 		channelGridPanel.setPreferredSize(new Dimension(fieldList.size() * CELL_WIDTH, (Channel.CHANNEL_COUNT + 1) * CELL_HEIGHT));
 		channelGridPanel.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.DARK_GRAY));
 		this.add(channelGridPanel);
 
 		// header grid row
-		channelGridPanel.add(new JLabel(""));
 		for (String header: fieldList) { channelGridPanel.add(new TruLabel(header)); }
 
 		parent.getModelHelper().getFieldStorage().stream().filter(field -> field instanceof Arr).forEach(field -> {
-			List<AbstractModel> modelList = (List<AbstractModel>)field.get();
-			for (int i = 0; i < modelList.size(); ++i) {
+			Arr arr = (Arr)field;
+			for (int i = 0; i < arr.size(); ++i) {
 
-				channelGridPanel.add(new TruLabel(i + "", SwingConstants.RIGHT));
-
-				AbstractModel model = modelList.get(i);
+				AbstractModel model = arr.get(i);
 				for (Field channelField: model.getModelHelper().getFieldStorage()) {
 					JTextField textField = checkEm(new ModelFieldInput(channelField));
 					textField.setForeground(ImageStorage.getColorByChannel(i));
@@ -91,7 +89,9 @@ public class ConfigDialog extends JPanel {
 
 	private void confirmChanges() {
 		for (ModelFieldInput input: inputList) {
-			input.getOwner().setValueFromString(input.getText());
+			if (!input.getOwner().isFinal) {
+				input.getOwner().setValueFromString(input.getText());
+			}
 		}
 	}
 

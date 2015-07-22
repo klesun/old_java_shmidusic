@@ -28,6 +28,7 @@ public class NotaHandler extends AbstractHandler {
 			.p(new Combo(k.CTRL_MASK, k.VK_3), mkAction(Nota::triggerTupletDenominator).setCaption("Switch Triplet/Normal"))
 			.p(new Combo(k.CTRL_MASK, k.VK_H), mkAction(Nota::triggerIsMuted).setCaption("Mute/Unmute"))
 			.p(new Combo(k.SHIFT_MASK, k.VK_3), mkAction(Nota::triggerIsSharp).setCaption("Switch Sharp/Flat"))
+			.p(new Combo(k.SHIFT_MASK, k.VK_BACK_QUOTE), mkAction(Nota::triggerIsLinkedToNext).setCaption("Link/Unlink with next"))
 			.p(new Combo(k.CTRL_MASK, k.VK_I), mkAction(n -> JOptionPane.showMessageDialog(n.getFirstAwtParent(), n.toString())).setCaption("Info"))
 		;
 

@@ -1,5 +1,7 @@
 package stuff.tools;
 
+import jm.midi.MidiParser;
+import jm.midi.SMF;
 import model.Explain;
 import main.Main;
 import blockspace.staff.Staff;
@@ -13,12 +15,12 @@ import javax.swing.filechooser.FileFilter;
 import stuff.tools.jmusic_integration.JMusicIntegration;
 import org.json.JSONException;
 import org.json.JSONObject;
+import stuff.tools.jmusic_integration.JmModel.JmScoreMaker;
+import stuff.tools.jmusic_integration.SimpleMidiParser;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -52,6 +54,7 @@ public class FileProcessor {
 
 
 	private static Explain<File> makeSaveFileDialog(String ext, String description) {
+		fileChooser.resetChoosableFileFilters();
 		fileChooser.setFileFilter(new FileFilter() {
 			public boolean accept(File f) {
 				return f.getAbsolutePath().endsWith("." + ext) || f.isDirectory();
@@ -71,27 +74,35 @@ public class FileProcessor {
 	}
 
 	public static Explain<File> saveStoryspace(BlockSpace blockSpace) {
-		Explain<File> explain = makeSaveFileDialog("bs.json", "BlockSpace Project Json Data");
-
-		if (explain.isSuccess()) {
-			return saveStoryspace(explain.getData(), blockSpace);
-		} else { return explain; }
-	}
-
-	public static Explain<File> saveStoryspace(File f, BlockSpace blockSpace) {
-		Main.window.setTitle(f.getAbsolutePath());
-		return saveModel(f, blockSpace);
+		return makeSaveFileDialog("bs.json", "BlockSpace Project Json Data")
+				.ifSuccess(f -> saveModel(f, blockSpace));
 	}
 
 	public static Explain saveMusicPanel(Staff staff) {
-		Explain<File> explain = makeSaveFileDialog("midi.json", "Json Midi-music data");
 
-		if (explain.isSuccess()) {
-			File f = explain.getData();
+		return makeSaveFileDialog("midi.json", "Json Midi-music data").ifSuccess(f -> {
 			staff.getParentSheet().getScroll().setTitle(f.getName());
-
 			return saveModel(f, staff); // TODO: use messages when fail
-		} else { return explain; }
+		});
+	}
+
+	public static Explain saveMidi(Staff staff) {
+
+		return makeSaveFileDialog("mid", "MIDI binary data file").ifSuccess(f -> {
+
+			// TODO: i believe most of code in jm.midi package is actually useless. maybe clean it one day
+
+			SMF smf = SimpleMidiParser.staffToSmf(staff);
+
+			try {
+				OutputStream os = new FileOutputStream(f);
+				smf.write(os);
+			} catch (IOException exc) {
+				Logger.fatal(exc, "one day i'll make it not fatal...");
+			}
+
+			return new Explain(true);
+		});
 	}
 
 	public static Explain openStoryspace(File f, BlockSpace blockSpace) {
@@ -100,11 +111,11 @@ public class FileProcessor {
 	}
 
 	public static Explain openStaff(Staff staff) {
+		fileChooser.resetChoosableFileFilters();
 		fileChooser.setFileFilter(new FileFilter() {
 			public boolean accept(File f) {
 				return f.getAbsolutePath().endsWith(".midi.json") || f.isDirectory();
 			}
-
 			public String getDescription() {
 				return "Json Midi-music data";
 			}
@@ -130,6 +141,7 @@ public class FileProcessor {
 	}
 
 	private static Explain openJMusicAndPerform(Staff staff, Function<JSONObject, Explain> fillStaffLambda) {
+		fileChooser.resetChoosableFileFilters();
 		fileChooser.setFileFilter(new FileFilter() {
 			public boolean accept(File f) { return f.getAbsolutePath().endsWith(".jm.json") || f.isDirectory(); }
 			public String getDescription() { return "Json JMusic data"; }
@@ -185,12 +197,14 @@ public class FileProcessor {
 		}
 	}
 
-	private static Explain saveModel(File f, IModel model) {
+	// i made it public only for Logger.fatal()
+	public static Explain saveModel(File f, IModel model) {
 		JSONObject js = new JSONObject("{}").put(model.getClass().getSimpleName(), model.getJsonRepresentation()); // it hope it didnt broke
 		try {
 			PrintWriter out = new PrintWriter(f);
 			out.println(js.toString(2));
 			out.close();
+			Main.window.setTitle(f.getAbsolutePath());
 			return new Explain(true);
 		} catch (IOException exc) {
 			String msg = "Failed to write to file [" + exc.getClass().getSimpleName() + "] - {" + exc.getMessage() + "}";

@@ -31,6 +31,7 @@ public class StaffHandler extends AbstractHandler {
 
 				// TODO: maybe move these two into Scroll
 			.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel).setCaption("Save"))
+			.p(new Combo(ctrl, k.VK_U), mkFailableAction(FileProcessor::saveMidi).setCaption("Save midi (not ready)"))
 			.p(new Combo(ctrl, k.VK_O), mkFailableAction(FileProcessor::openStaff).setCaption("Open"))
 			.p(new Combo(ctrl, k.VK_M), mkFailableAction(FileProcessor::openJMusic).setCaption("Open JMusic project"))
 			.p(new Combo(ctrl, k.VK_K), mkFailableAction(FileProcessor::openJMusic2).setCaption("Open JMusic project (with rounding)"))
@@ -45,7 +46,10 @@ public class StaffHandler extends AbstractHandler {
 			.p(new Combo(0, k.VK_DOWN), mkFailableAction(s -> s.moveFocusRow(1)).setCaption("Down"))
 			.p(new Combo(ctrl, k.VK_D), mkFailableAction(s -> DeviceEbun.changeOutDevice(s.getConfig()))
 				.setCaption("Change Playback Device"))
-			.p(new Combo(ctrl, k.VK_0), mkAction(s -> s.mode = Staff.aMode.passive).setCaption("Disable Input From MIDI Device"))
+			.p(new Combo(ctrl, k.VK_0), mkAction(s -> {
+				/** @debug */
+				s.mode = Staff.aMode.passive;
+			}).setCaption("Disable Input From MIDI Device"))
 			.p(new Combo(ctrl, k.VK_9), mkAction(s -> s.mode = Staff.aMode.insert).setCaption("Enable Input From MIDI Device"))
 			.p(new Combo(ctrl, k.VK_E), mkFailableAction(FileProcessor::savePNG).setCaption("Export png"))
 				/** @legacy */
@@ -56,8 +60,14 @@ public class StaffHandler extends AbstractHandler {
 		for (Map.Entry<Combo, Integer> entry: Combo.getComboTuneMap().entrySet()) {
 			ContextAction<Staff> action = new ContextAction<>();
 			actionMap.p(entry.getKey(), action
-				.setRedo(s -> { s.addNewAccord().addNewNota(entry.getValue(), s.getSettings().getDefaultChannel()); })
-				.setOmitMenuBar(true));
+				.setRedo(s -> {
+					if (s.mode != Staff.aMode.passive) {
+						s.addNewAccord().addNewNota(entry.getValue(), s.getSettings().getDefaultChannel());
+						return new Explain(true);
+					} else {
+						return new Explain("Cant do, passive mode is on!");
+					}
+				}).setOmitMenuBar(true));
 		}
 	}
 

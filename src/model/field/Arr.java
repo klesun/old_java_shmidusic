@@ -27,7 +27,9 @@ public class Arr<ELEM_CLASS extends AbstractModel> extends Field<Collection<ELEM
 	public JSONArray getJsonValue() {
 		JSONArray arr = new JSONArray("[]");
 		for (AbstractModel el: get()) {
-			arr.put(el.getJsonRepresentation());
+			if (el.getJsonRepresentation().keySet().size() != 0 || !omitDefaultFromJson()) {
+				arr.put(el.getJsonRepresentation());
+			}
 		}
 		return arr;
 	}
@@ -69,6 +71,15 @@ public class Arr<ELEM_CLASS extends AbstractModel> extends Field<Collection<ELEM
 	public void remove(ELEM_CLASS elem) {
 		get().remove(elem);
 		set(get()); // problem? ... it's for onChange() lambda to be called
+	}
+
+	public int size() {
+		return get().size();
+	}
+
+	@Override
+	public Arr<ELEM_CLASS> setOmitDefaultFromJson(Boolean value) {
+		return (Arr<ELEM_CLASS>)super.setOmitDefaultFromJson(value);
 	}
 
 	@Override

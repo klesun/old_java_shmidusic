@@ -1,5 +1,10 @@
 package model;
 
+import stuff.tools.Logger;
+
+import java.util.concurrent.Callable;
+import java.util.function.Function;
+
 public class Explain<C> {
 
 	final private Boolean success;
@@ -46,6 +51,10 @@ public class Explain<C> {
 
 	public String getExplanation() {
 		return explanation;
+	}
+
+	public Explain ifSuccess(Function<C, Explain> lambda) {
+		return this.isSuccess() 	? lambda.apply(this.getData()) : this;
 	}
 }
 

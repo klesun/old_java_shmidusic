@@ -15,6 +15,11 @@ public abstract class AbstractModel implements IModel {
 	}
 
 	@Override
+	public String toString() {
+		return this.getJsonRepresentation().toString();
+	}
+
+	@Override
 	final public Helper getModelHelper() { return h; }
 	public IComponentModel getModelParent() { return this.parent; }
 

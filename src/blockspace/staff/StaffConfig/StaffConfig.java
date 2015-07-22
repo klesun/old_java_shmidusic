@@ -1,5 +1,6 @@
 package blockspace.staff.StaffConfig;
 
+import gui.ImageStorage;
 import model.AbstractHandler;
 import model.AbstractModel;
 import model.Combo;
@@ -7,14 +8,15 @@ import model.ContextAction;
 import model.field.Arr;
 import model.field.Field;
 import blockspace.staff.MidianaComponent;
+import org.json.JSONArray;
 import stuff.Midi.DeviceEbun;
 import blockspace.staff.Staff;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.ShortMessage;
@@ -38,15 +40,17 @@ public class StaffConfig extends MidianaComponent {
 	private Field<Integer> numerator = new Field<>("numerator", 8, this, n -> limit(n, 1, MAX_TACT_NUMERATOR)); // h.addField("numerator", 8); // because 8x8 = 64; 64/64 = 1; obvious
 	private Field<Integer> tempo = new Field<>("tempo", 120, this, n -> limit(n, MIN_TEMPO, MAX_TEMPO)); // h.addField("tempo", 120);
 
-	private Arr<Channel> channelList = new Arr<>("channelList", makeChannelList(), this, Channel.class);
+	// TODO: make it ordered Set instead of List
+	final public Arr<Channel> channelList = new Arr<>("channelList", makeChannelList(), this, Channel.class).setOmitDefaultFromJson(true);
 
-	private List<Channel> makeChannelList() {
-		List<Channel> list = new ArrayList<>();
-
-		int[] tones = {0, 65, 66, 43, 19, 52, 6, 91, 9, 14, 0, 0, 0, 0, 0, 0};
+	private TreeSet<Channel> makeChannelList() {
+		TreeSet<Channel> list = new TreeSet<>();
 
 		for (int i = 0; i < Channel.CHANNEL_COUNT; ++i) {
-			Channel channel = new Channel(this).setInstrument(tones[i]);
+			JSONObject state = new JSONObject().put("channelNumber", i);
+			Channel channel = new Channel(this);
+			channel.reconstructFromJson(state);
+
 			list.add(channel);
 		}
 
@@ -67,14 +71,29 @@ public class StaffConfig extends MidianaComponent {
 
 	@Override
 	public StaffConfig reconstructFromJson(JSONObject jsObject) throws JSONException {
-		super.reconstructFromJson(jsObject);
-		/** @legacy we used to have 10 channels instead of 16 in past - so we got it in old files */
-		if (channelList.get().size() < Channel.CHANNEL_COUNT) {
-			List<Channel> defaultChannelList = makeChannelList();
-			for (int i = channelList.get().size(); i < Channel.CHANNEL_COUNT; ++i) {
-				channelList.get().add(defaultChannelList.get(i));
+
+		// TODO: temporary hack for compatibility with old files, that does not have this final field
+		if (jsObject.has("channelList")) {
+			JSONArray channelArray = jsObject.getJSONArray("channelList");
+			if (channelArray.length() > 0 && !channelArray.getJSONObject(0).has("channelNumber")) {
+				for (int i = 0; i < channelArray.length(); ++i) {
+					channelArray.put(i, channelArray.getJSONObject(i).put("channelNumber", i));
+				}
 			}
+			jsObject.put("channelList", channelArray);
 		}
+
+		super.reconstructFromJson(jsObject);
+
+		TreeSet<Channel> resultChannelSet = this.makeChannelList();
+		for (Channel channelFromJson: channelList.get()) {
+			resultChannelSet.remove(channelFromJson); // =D
+			resultChannelSet.add(channelFromJson); // =D
+			// cuz i wanna overwrite old key
+		}
+
+		this.channelList.set(resultChannelSet);
+
 		syncSyntChannels();
 		return this;
 	}
@@ -83,7 +102,7 @@ public class StaffConfig extends MidianaComponent {
 		ShortMessage instrMess = new ShortMessage();
 		try {
 			for (int i = 0; i < getChannelList().size(); ++i) {
-				instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, i, this.getChannelList().get(i).getInstrument(), 0);
+				instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, i, channelList.get(i).getInstrument(), 0);
 				DeviceEbun.getPlaybackReceiver().send(instrMess, -1);
 			}
 		} catch (InvalidMidiDataException exc) { System.out.println("Midi error, could not sync channel instruments!"); }
@@ -144,10 +163,10 @@ public class StaffConfig extends MidianaComponent {
 	public StaffConfig setTempo(int value) { this.tempo.set(value); return this; }
 	public Integer getNumerator() { return this.numerator.get(); }
 	public StaffConfig setNumerator(int value) { this.numerator.set(value); return this; }
-	public List<Channel> getChannelList() { return (ArrayList<Channel>)this.channelList.get(); }
+	public TreeSet<Channel> getChannelList() { return (TreeSet<Channel>)this.channelList.get(); }
 
 	public int getVolume(int channel) {
-		Channel chan = getChannelList().get(channel);
+		Channel chan = channelList.get(channel);
 		return chan.getIsMuted() ? 0 : chan.getVolume();
 	}
 }
