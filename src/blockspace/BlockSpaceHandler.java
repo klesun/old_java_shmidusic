@@ -39,7 +39,7 @@ public class BlockSpaceHandler extends AbstractHandler {
 			.p(new Combo(ctrl, k.VK_G), mkFailableAction(FileProcessor::saveStoryspace).setCaption("Save Whole Project"))
 			.p(new Combo(ctrl, k.VK_R), mkFailableAction(bs -> jsonChooser.showOpenDialog(bs.getWindow()) == JFileChooser.APPROVE_OPTION
 				? FileProcessor.openStoryspace(jsonChooser.getSelectedFile(), bs)
-				: new Explain("You changed your mind. Why?")).setCaption("Reconstruct From a Project File"))
+				: new Explain(false, "You changed your mind. Why?")).setCaption("Reconstruct From a Project File"))
 
 			.p(new Combo(ctrl, k.VK_EQUALS), mkAction(bs -> bs.scale(1)).setCaption("Scale Up"))
 			.p(new Combo(ctrl, k.VK_MINUS), mkAction(bs -> bs.scale(-1)).setCaption("Scale Down"))

@@ -9,6 +9,7 @@ import blockspace.staff.StaffConfig.StaffConfig;
 import blockspace.staff.StaffPanel;
 import stuff.Musica.PlayMusThread;
 import stuff.tools.Logger;
+import stuff.tools.jmusic_integration.INota;
 
 
 public class DeviceEbun {
@@ -100,7 +101,7 @@ public class DeviceEbun {
 	private static Explain changeOutDevice() {
 		return hardwareReceiver != null
 				? new Explain((isPlaybackSoftware = !isPlaybackSoftware) || true)
-				: new Explain("Sorry. I wish i could change output device, but you have only software playback now, cuz hardware midi output device failed to load at the start of program.");
+				: new Explain(false, "Sorry. I wish i could change output device, but you have only software playback now, cuz hardware midi output device failed to load at the start of program.");
 	}
 
 	public static Receiver getPlaybackReceiver() {
@@ -121,11 +122,11 @@ public class DeviceEbun {
 		sendMessage(ShortMessage.CONTROL_CHANGE, channel, VOLUME, value);
 	}
 
-	public static void openNota(Nota nota) {
+	public static void openNota(INota nota) {
 		if (nota.getChannel() != DRUM_CHANNEL) {
-			sendMessage(ShortMessage.NOTE_ON, nota.getChannel(), nota.tune.get(), nota.getVolume());
+			sendMessage(ShortMessage.NOTE_ON, nota.getChannel(), nota.getTune(), nota.getVolume());
 		} else {
-			sendMessage(DRUM_NOTE_ON, nota.tune.get(), nota.getVolume());
+			sendMessage(DRUM_NOTE_ON, nota.getTune(), nota.getVolume());
 		}
 	}
 

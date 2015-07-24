@@ -65,6 +65,7 @@ public class PlayMusThread extends Thread {
 		}
 	}
 
+	// TODO: say NO to a thread for each single Nota in Playback
 	public static void playNotu(Nota newNota){
 
 		Nota oldNota = opentNotas.keySet().stream().filter(k -> k.equals(newNota)).findAny().orElse(null);

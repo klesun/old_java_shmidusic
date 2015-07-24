@@ -20,8 +20,10 @@ public class Explain<C> {
 		this.explanation = null;
 	}
 
-	public Explain(String explanation, Exception exc) {
-		this(false, explanation + " " + exc.getClass() + " " + exc.getMessage());
+	public Explain(String explanation) {
+		this.data = null;
+		this.success = false;
+		this.explanation = explanation;
 	}
 
 	public Explain(Boolean success, String explanationIfFail) {
@@ -56,13 +58,16 @@ public class Explain<C> {
 		return this.isSuccess() 	? lambda.apply(this.getData()) : this;
 	}
 
-	// i would love to exactly specify, what kind of exception, but i cant catch a generic (damn java)
-	public static Explain tryException(Callable riskyLambda)
+	public static Explain tryException(Callable<Void> riskyLambda, Class<? extends Exception> cls)
 	{
 		try {
 			riskyLambda.call();
 		} catch (Exception exc) {
-			return new Explain(false, "Failed: " + exc.getClass().getSimpleName() + " " + exc.getMessage());
+			if (cls.isInstance(exc)) {
+				return new Explain("Failed: " + exc.getClass().getSimpleName() + " " + exc.getMessage());
+			} else {
+				Logger.fatal(exc, "Not handled exception, lox");
+			}
 		}
 
 		return new Explain(true);

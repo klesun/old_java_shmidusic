@@ -50,7 +50,7 @@ public class AccordHandler extends AbstractHandler {
 			actionMap.p(entry.getKey(), action
 					.setRedo(accord -> System.currentTimeMillis() - accord.getEarliestKeydown() < ACCORD_EPSILON
 						? new Explain(accord.addNewNota(entry.getValue(), accord.getSettings().getDefaultChannel()))
-						: new Explain("too slow. to collect nota-s into single accord, they have to be pressed in " + ACCORD_EPSILON + " milliseconds"))
+						: new Explain(false, "too slow. to collect nota-s into single accord, they have to be pressed in " + ACCORD_EPSILON + " milliseconds"))
 					.setOmitMenuBar(true)
 			);
 		}

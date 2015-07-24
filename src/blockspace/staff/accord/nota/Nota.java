@@ -127,7 +127,8 @@ public class Nota extends MidianaComponent implements INota {
 	}
 
 	public static int getTimeMilliseconds(Fraction length, int tempo) {
-		int minute = 60 * 1000;
+//		int minute = 60 * 1000;
+		int minute = 60 * 960; /** @debug */
 		int semibreveTime = 4 * minute / tempo;
 		return length.multiply(semibreveTime).intValue();
 	}

@@ -42,6 +42,10 @@ public interface INota extends Comparable<INota> {
 		return isTooShort(getLength());
 	}
 
+	default Integer getVolume() {
+		return 127; // max velocity for a Nota
+	}
+
 	// 1/256 + 1/128 + 1/64 + 1/32 + 1/16 + 1/8 + 1/4 + 1/2 = 1111 1111
 
 	// 0000 0111 - true

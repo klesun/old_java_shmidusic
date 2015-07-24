@@ -70,7 +70,7 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 			getRootHandler().getContext().getWindow().updateMenuBar();
 		}
 
-		return result != null ? result : new Explain("No Action For This Combination").setImplicit(true);
+		return result != null ? result : new Explain(false, "No Action For This Combination").setImplicit(true);
 	}
 
 	public IComponentModel getContext() {

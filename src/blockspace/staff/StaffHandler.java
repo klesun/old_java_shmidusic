@@ -30,8 +30,8 @@ public class StaffHandler extends AbstractHandler {
 			.p(new Combo(ctrl, k.VK_P), mkAction(Staff::triggerPlayback).setCaption("Play/Stop"))
 
 				// TODO: maybe move these two into Scroll
-			.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel).setCaption("Save"))
-			.p(new Combo(ctrl, k.VK_U), mkFailableAction(FileProcessor::saveMidi).setCaption("Save midi (not ready)"))
+			.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel).setCaption("Save midi.json"))
+			.p(new Combo(ctrl, k.VK_U), mkFailableAction(FileProcessor::saveMidi).setCaption("Save midi (alpha)"))
 			.p(new Combo(ctrl, k.VK_O), mkFailableAction(FileProcessor::openStaff).setCaption("Open"))
 			.p(new Combo(ctrl, k.VK_M), mkFailableAction(FileProcessor::openJMusic).setCaption("Open JMusic project"))
 			.p(new Combo(ctrl, k.VK_K), mkFailableAction(FileProcessor::openJMusic2).setCaption("Open JMusic project (with rounding)"))

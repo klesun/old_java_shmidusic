@@ -146,9 +146,22 @@ public class Staff extends MidianaComponent {
 
 	@Override
 	public JSONObject getJsonRepresentation() {
-		return new JSONObject()
-			.put("staffConfig", this.getConfig().getJsonRepresentation())
-			.put("accordList", new JSONArray(this.getAccordList().stream().map(p -> p.getJsonRepresentation()).toArray()));
+		JSONObject dict = new JSONObject()
+			.put("staffConfig", this.getConfig().getJsonRepresentation());
+
+		TactMeasurer tacter = new TactMeasurer(this);
+		JSONArray accordList = new JSONArray();
+
+		for (Accord accord: getAccordList()) {
+			accordList.put(accord.getJsonRepresentation());
+			if (tacter.inject(accord)) {
+				// small hack for great good (to visually separate tacts)
+				accordList.put(new JSONObject().put("tact", tacter.tactCount));
+			}
+		}
+		dict.put("accordList", accordList);
+
+		return dict;
 	}
 
 	// TODO: model, mazafaka!
@@ -162,8 +175,10 @@ public class Staff extends MidianaComponent {
 
 		for (int idx = 0; idx < accordJsonList.length(); ++idx) {
 			JSONObject childJs = accordJsonList.getJSONObject(idx);
-			this.addNewAccord(false).reconstructFromJson(childJs);
-			this.moveFocus(1); // TODO: maybe not ?
+			if (!childJs.has("tact")) { // small hack for great good (i put empty dict after accord when tact ends)
+				this.addNewAccord(false).reconstructFromJson(childJs);
+				this.moveFocus(1); // TODO: maybe not ?
+			}
 		}
 
 		return this;
@@ -285,7 +300,7 @@ public class Staff extends MidianaComponent {
 		int wasIndex = getFocusedIndex();
 		setFocusedIndex(getFocusedIndex() + n);
 
-		return getFocusedIndex() != wasIndex ? new Explain(true) : new Explain("dead end").setImplicit(true);
+		return getFocusedIndex() != wasIndex ? new Explain(true) : new Explain(false, "dead end").setImplicit(true);
 	}
 
 	/** @return - nota that we just put */

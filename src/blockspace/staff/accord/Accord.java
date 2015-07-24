@@ -83,7 +83,7 @@ public class Accord extends MidianaComponent {
 
 		if (getFocusedIndex() + n > this.getNotaSet().size() - 1 || getFocusedIndex() + n < 0) {
 			this.setFocusedIndex(-1);
-			return new Explain<>("End Of accord");
+			return new Explain<>(false, "End Of accord");
 		} else {
 			if (this.getFocusedIndex() + n < -1) {
 				this.setFocusedIndex(this.getNotaSet().size() - 1);
