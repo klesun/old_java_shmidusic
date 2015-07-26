@@ -11,9 +11,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-// this class represents our model field that sores list of AbstractModel-z
-public class Arr<ELEM_CLASS extends AbstractModel> extends Field<Collection<ELEM_CLASS>> {
-
+// this class represents our model field that stores collections of AbstractModel-z
+// TODO: it's not array anymore, it's collection - rename it!
+public class Arr<ELEM_CLASS extends AbstractModel> extends Field<Collection<ELEM_CLASS>>
+{
 	Class<ELEM_CLASS> elemClass;
 	Class<? extends Collection<ELEM_CLASS>> collectionClass;
 

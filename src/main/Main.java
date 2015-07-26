@@ -3,7 +3,13 @@ package main;
 import stuff.Midi.DeviceEbun;
 import stuff.tools.Logger;
 
-public class Main {
+public class Main
+{
+	/* TODO: maybe rename midiana to something like
+	 * SheetMidiMusic,
+	 * SheetMidusic (and portrait of woman with snakes from head on main page)
+	 * ShmiditMusic
+	 */
 
 	public static MajesticWindow window = null;
 

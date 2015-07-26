@@ -27,12 +27,26 @@ abstract public class AbstractPainter { // like Picasso!
 	final protected void fillRect(Rectangle r, Color c) {
 		performWithColor(c, () -> g.fillRect(this.x + r.x, this.y + r.y, r.width, r.height));
 	}
+	final protected void drawRect(Rectangle r, Color c) {
+		performWithColor(c, () -> g.drawRect(this.x + r.x, this.y + r.y, r.width, r.height));
+	}
 	final protected void drawDot(Point p, int r, Color c) {
 		performWithColor(c, () -> g.fillOval(this.x + p.x, this.y + p.y, r * 2, r * 2));
 	}
-	final protected void drawLine(Straight line) { drawLine(line.p1, line.p2); }
-	final protected void drawLine(Point p1, Point p2) { drawLine(p1.x, p1.y, p2.x, p2.y); }
-	final protected void drawLine(int x0, int y0, int x1, int y1) { g.drawLine(x + x0, y + y0, x + x1, y + y1); }
+
+	final protected void drawLine(Straight line) {
+		drawLine(line.p1, line.p2);
+	}
+	final protected void drawLine(Point p1, Point p2) {
+		drawLine(p1.x, p1.y, p2.x, p2.y);
+	}
+	final protected void drawLine(int x0, int y0, int x1, int y1) {
+		drawLine(x + x0, y + y0, x + x1, y + y1, Color.BLACK);
+	}
+	final protected void drawLine(int x0, int y0, int x1, int y1, Color color) {
+		performWithColor(color, () -> g.drawLine(x + x0, y + y0, x + x1, y + y1));
+	}
+
 	final protected void drawString(String str, int x0, int y0, Color c) {
 		performWithColor(c, () -> g.drawString(str, x + x0, y + y0));
 	}
@@ -68,7 +82,7 @@ abstract public class AbstractPainter { // like Picasso!
 	final protected int dx() { return context.getSettings().getStepWidth(); }
 	final protected int dy() { return context.getSettings().getStepHeight(); }
 
-	final protected class Straight {
+	public static class Straight {
 		final public Pnt p1;
 		final public Pnt p2;
 
@@ -79,6 +93,11 @@ abstract public class AbstractPainter { // like Picasso!
 
 		public Straight plus(Point vector) {
 			return new Straight(p1.plus(vector), p2.plus(vector));
+		}
+
+		@Override
+		public String toString() {
+			return "Straight: [" + p1 + ", " + p2 + "]";
 		}
 	}
 }

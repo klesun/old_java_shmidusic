@@ -5,6 +5,8 @@ import stuff.tools.Bin;
 import stuff.tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 
+import java.util.Arrays;
+
 public interface INota extends Comparable<INota> {
 
 	Integer getTune();
@@ -42,9 +44,27 @@ public interface INota extends Comparable<INota> {
 		return isTooShort(getLength());
 	}
 
-	default Integer getVolume() {
+	default byte getVolume() {
 		return 127; // max velocity for a Nota
 	}
+
+	default Fraction getRealLength() { // that includes tuplet denominator
+		return getLength().divide(isTriplet() ? 3 : 1);
+	}
+
+	default Boolean isEbony() { return isEbony(getTune()); }
+
+	default int getOctave() { return getOctave(getTune()); }
+
+	default int ivoryIndex() { return ivoryIndex(getTune()); }
+
+
+	// treating all ebonies as flats
+	static int ivoryMask(int tune) { return Arrays.asList(0,1,1,2,2,3,4,4,5,5,6,6).get(tune % 12); }
+
+	static int ivoryIndex(int tune) { return getOctave(tune) * 7 + ivoryMask(tune); }
+
+	static int getOctave(int tune) { return tune /12; }
 
 	// 1/256 + 1/128 + 1/64 + 1/32 + 1/16 + 1/8 + 1/4 + 1/2 = 1111 1111
 
@@ -82,4 +102,12 @@ public interface INota extends Comparable<INota> {
 	static Boolean isTooShort(Fraction length) {
 		return length.compareTo(ImageStorage.getShortLimit()) < 0;
 	}
+
+	static Boolean isEbony(int tune) {
+		return Arrays.asList(1, 3, 6, 8, 10).contains(tune % 12);
+	}
+
+
+	// TODO: what if i said we could store these instead of numbers in json?
+	static String strIdx(int n){ return Arrays.asList("do","re","mi","fa","so","la","ti").get(n % 12); }
 }

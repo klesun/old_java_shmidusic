@@ -2,6 +2,7 @@ package blockspace.staff.accord.nota;
 
 
 import gui.ImageStorage;
+import model.AbstractPainter;
 import model.Combo;
 import model.field.Field;
 import blockspace.staff.MidianaComponent;
@@ -9,7 +10,6 @@ import blockspace.staff.accord.Accord;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.*;
 
 import stuff.OverridingDefaultClasses.Pnt;
 import stuff.tools.jmusic_integration.INota;
@@ -49,6 +49,7 @@ public class Nota extends MidianaComponent implements INota {
 
 	// <editor-fold desc="implementing abstract model">
 
+	// TODO: AbstractPainter
 	public void drawOn(Graphics surface, int x, int y, Boolean completeRepaint) {
 		surface.setColor(Color.BLACK);
 		surface.drawImage(getEbonySignImage(), x + dx() / 2, y + 3 * dy() + 2, null);
@@ -78,6 +79,17 @@ public class Nota extends MidianaComponent implements INota {
 		for (int i = 0; i < getDotCount(); ++i) {
 			surface.fillOval(x + dx() * 5/3 + dx() * i / getDotCount(), y + dy() * 7, dy(), dy());
 		}
+
+		if (isStriked()) {
+			AbstractPainter.Straight stra = getTraitCoordinates().plus(new Point(x, y));
+			surface.drawLine(stra.p1.x, stra.p1.y, stra.p2.x, stra.p2.y);
+		}
+	}
+
+	// TODO: AbstractPainter
+	private AbstractPainter.Straight getTraitCoordinates() {
+		int r = getSettings().getNotaWidth() * 12 / 25;
+		return new AbstractPainter.Straight(getAncorPoint().plus(-r, 0), getAncorPoint().plus(r, 0));
 	}
 
 	@Override
@@ -111,12 +123,8 @@ public class Nota extends MidianaComponent implements INota {
 
 	public int getAcademicIndex() {
 		return isEbony() && getIsSharp()
-				? Nota.tuneToAcademicIndex(this.tune.get()) - 1
-				: Nota.tuneToAcademicIndex(this.tune.get());
-	}
-
-	public Fraction getRealLength() { // that includes tuplet denominator
-		return length.get().divide(isTriplet.get() ? 3 : 1);
+				? INota.ivoryMask(this.tune.get()) - 1
+				: INota.ivoryMask(this.tune.get());
 	}
 
 	public int getTimeMilliseconds(Boolean includeLinkedTime) {
@@ -181,12 +189,11 @@ public class Nota extends MidianaComponent implements INota {
 	// <editor-fold desc="one-line-getters">
 
 	// 0 - do, 2 - re, 4 - mi, 5 - fa, 7 - so, 9 - la, 10 - ti
-	public Boolean isEbony() { return Arrays.asList(1, 3, 6, 8, 10).contains(this.tune.get() % 12); }
 	public Boolean isBotommedToFitSystem() { return this.getOctave() > 6; } // 8va
-	public Boolean isStriked() { return getAbsoluteAcademicIndex() % 2 == 1; }
+	public Boolean isStriked() { return ivoryIndex() % 2 == 1; }
 
-	public int getAbsoluteAcademicIndex() { return isPause() ? PAUSE_POSITION : getAcademicIndex() + getOctave() * 7; }
-	public int getOctave() { return this.tune.get() /12; }
+	@Override
+	public int ivoryIndex() { return isPause() ? PAUSE_POSITION : INota.super.ivoryIndex(); }
 	public Pnt getAncorPoint() { return new Pnt(getWidth()*16/25, getHeight() - dy()); }
 	public int getNotaImgRelX() { return this.getWidth() / 2; } // bad name
 	public int getStickX() { return this.getNotaImgRelX() + dx() / 2; }
@@ -312,8 +319,4 @@ public class Nota extends MidianaComponent implements INota {
 	final public static int TI = 59;
 
 	// private static methods
-
-	// TODO: what if i said we could store these instead of numbers in json?
-	private static String strIdx(int n){ return Arrays.asList("do","re","mi","fa","so","la","ti").get(n % 12); }
-	private static int tuneToAcademicIndex(int tune) { return Arrays.asList(0,1,1,2,2,3,4,4,5,5,6,6).get(tune % 12); }
 }

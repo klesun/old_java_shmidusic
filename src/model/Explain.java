@@ -14,7 +14,7 @@ public class Explain<C> {
 
 	private Boolean implicit = false;
 
-	public Explain(C data) { // it will be funny if C is String =D
+	public Explain(C data) {
 		this.data = data;
 		this.success = true;
 		this.explanation = null;

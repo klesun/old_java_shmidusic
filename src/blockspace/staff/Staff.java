@@ -100,48 +100,51 @@ public class Staff extends MidianaComponent {
     }
 
 	// TODO: move into some StaffPainter class
-	public synchronized void drawOn(Graphics g, Boolean completeRepaintRequired) {
+	public synchronized void drawOn(Graphics g, Boolean completeRepaintRequired)
+	{
+		new StaffPainter(this, g, 0, 0).draw(completeRepaintRequired);
 
-		int baseX = getMarginX() + 2 * dx();  // 2вч - violin/bass keys
-		int baseY = getMarginY(); // highest line y
-
-		TactMeasurer tactMeasurer = new TactMeasurer(this);
-
-		getConfig().drawOn(g, baseX, baseY, completeRepaintRequired);
-		baseX += dx();
-
-		int i = 0;
-		for (List<Accord> row : getAccordRowList()) {
-			int y = baseY + i * SISDISPLACE * dy(); // bottommest y nota may be drawn on
-
-			if (completeRepaintRequired) {
-				g.drawImage(getImageStorage().getViolinKeyImage(), this.dx(), y - 3 * dy(), null);
-				g.drawImage(getImageStorage().getBassKeyImage(), this.dx(), 11 * dy() + y, null);
-			}
-
-			int j = 0;
-			for (Accord accord : row) {
-				int x = baseX + j * (2 * dx());
-
-				accord.drawOn(g, x, y - 12 * dy(), completeRepaintRequired);
-				if (tactMeasurer.inject(accord)) {
-					g.setColor(tactMeasurer.sumFraction.equals(new Fraction(0)) ? Color.BLACK : new Color(255, 63, 0)); // reddish orange
-					g.drawLine(x + dx() * 2 - 1, y - dy() * 5, x + dx() * 2 - 1, y + dy() * 20); // -1 cuz elsevere next nota will erase it =D
-					g.setColor(new Color(0, 161, 62));
-					g.drawString(tactMeasurer.tactCount + "", x + dx() * 2, y - dy() * 6);
-				}
-
-				++j;
-			}
-
-			g.setColor(Color.BLUE);
-			for (j = 0; j < 11; ++j) {
-				if (j == 5) continue;
-				g.drawLine(getMarginX(), y + j * dy() * 2, getWidth() - getMarginX() * 2, y + j * dy() * 2);
-			}
-
-			++i;
-		}
+		/** @remove once ur sure Painter does well */
+//		int baseX = getMarginX() + 2 * dx();  // 2вч - violin/bass keys
+//		int baseY = getMarginY(); // highest line y
+//
+//		TactMeasurer tactMeasurer = new TactMeasurer(this);
+//
+//		getConfig().drawOn(g, baseX, baseY, completeRepaintRequired);
+//		baseX += dx();
+//
+//		int i = 0;
+//		for (List<Accord> row : getAccordRowList()) {
+//			int y = baseY + i * SISDISPLACE * dy(); // bottommest y nota may be drawn on
+//
+//			if (completeRepaintRequired) {
+//				g.drawImage(getImageStorage().getViolinKeyImage(), this.dx(), y - 3 * dy(), null);
+//				g.drawImage(getImageStorage().getBassKeyImage(), this.dx(), 11 * dy() + y, null);
+//			}
+//
+//			int j = 0;
+//			for (Accord accord : row) {
+//				int x = baseX + j * (2 * dx());
+//
+//				accord.drawOn(g, x, y - 12 * dy(), completeRepaintRequired);
+//				if (tactMeasurer.inject(accord)) {
+//					g.setColor(tactMeasurer.sumFraction.equals(new Fraction(0)) ? Color.BLACK : new Color(255, 63, 0)); // reddish orange
+//					g.drawLine(x + dx() * 2 - 1, y - dy() * 5, x + dx() * 2 - 1, y + dy() * 20); // -1 cuz elsevere next nota will erase it =D
+//					g.setColor(new Color(0, 161, 62));
+//					g.drawString(tactMeasurer.tactCount + "", x + dx() * 2, y - dy() * 6);
+//				}
+//
+//				++j;
+//			}
+//
+//			g.setColor(Color.BLUE);
+//			for (j = 0; j < 11; ++j) {
+//				if (j == 5) continue;
+//				g.drawLine(getMarginX(), y + j * dy() * 2, getWidth() - getMarginX() * 2, y + j * dy() * 2);
+//			}
+//
+//			++i;
+//		}
 	}
 
 	@Override
@@ -304,7 +307,11 @@ public class Staff extends MidianaComponent {
 	}
 
 	/** @return - nota that we just put */
-	public Nota putAt(Fraction desiredPos, INota nota) {
+	public Nota putAt(Fraction desiredPos, INota nota)
+	{
+		// TODO: it's broken somehow. Bakemonogatari can be opent with Noteworthy, but cant with midiana
+		// and yu-no, maybe move this method into some specialized class? it seems to be something serious
+		// what this method does, yes it's definitely should be move into some MidiSheetMusicCalculator or so...
 
 		Fraction curPos = new Fraction(0);
 		for (int i = 0; i < getAccordList().size(); ++i) {
@@ -362,6 +369,37 @@ public class Staff extends MidianaComponent {
 		// TODO: we don't handle here pause prefix! (i.e when desired start is more than end) !!!
 		// if not returned already
 		return this.add(new Accord(this), getAccordList().size()).addNewNota(nota);
+	}
+
+	public static class TactMeasurer {
+
+		private Staff parent = null;
+
+		public Fraction sumFraction = new Fraction(0);
+
+		public int tactCount = 0;
+
+		public TactMeasurer(Staff parent) {
+			this.parent = parent;
+		}
+
+		/** @returns true if accord finished the tact */
+		public Boolean inject(Accord accord) {
+			if (INota.isDotable(accord.getFraction())) {
+				sumFraction = sumFraction.add(accord.getFraction());
+			} else {
+				sumFraction = new Fraction(sumFraction.doubleValue() + accord.getFraction().doubleValue());
+			}
+
+			Boolean finishedTact = false;
+			while (sumFraction.compareTo(parent.getConfig().getTactSize()) >= 0) {
+				sumFraction = sumFraction.subtract(parent.getConfig().getTactSize());
+				++tactCount;
+				finishedTact = true;
+			}
+
+			return finishedTact;
+		}
 	}
 }
 

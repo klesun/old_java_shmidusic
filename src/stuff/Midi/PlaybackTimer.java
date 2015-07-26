@@ -1,36 +1,49 @@
 package stuff.Midi;
 
+import com.google.common.collect.Sets;
 import gui.ImageStorage;
 import blockspace.staff.accord.nota.Nota;
 import blockspace.staff.StaffConfig.StaffConfig;
 import stuff.tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
+import stuff.tools.jmusic_integration.INota;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class PlaybackTimer {
+public class PlaybackTimer implements IMidiScheduler {
 
-	// TODO: запили лучше свой таймер и сверяй не по номеру итерации, а по системному времени !!!
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	//  Понел ёпта ?
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	final private StaffConfig config;
 	private Thread timerThread = null;
 
 	private Boolean stop = false;
 
 	// please, note that with this implementation we may have only one task per iteration. i hope it's exactly what we need
-	private Map<Fraction, Runnable> tasks = new HashMap<>();
+	private Map<Fraction, List<Runnable>> tasks = new HashMap<>();
 
 	public PlaybackTimer(StaffConfig config) {
 		this.config = config;
 	}
 
-	public void addTask(Fraction fraction, Runnable task) {
-		this.tasks.put(fraction, task);
+	public void addNoteOnTask(Fraction when, INota nota) {
+		addTask(when, () -> DeviceEbun.openNota(nota));
+	}
+
+	public void addNoteOffTask(Fraction when, INota nota) {
+		addTask(when, () -> DeviceEbun.closeNota(nota));
+	}
+
+	public void addTask(Fraction fraction, Runnable task)
+	{
+		if (!tasks.containsKey(fraction)) {
+			tasks.put(fraction, new ArrayList<>());
+		}
+		this.tasks.get(fraction).add(task);
+	}
+
+	// adds task right after last with delta gap
+	public void appendTask(Fraction delta, Runnable task) {
+		addTask(Collections.max(tasks.keySet()).add(delta), task);
 	}
 
 	public void start() {
@@ -38,14 +51,27 @@ public class PlaybackTimer {
 			long startTime = System.currentTimeMillis();
 			while (!tasks.isEmpty() && !stop) {
 				long now = System.currentTimeMillis();
+
 				Set<Fraction> keys = tasks.keySet().stream()
 					.filter(f -> startTime + toMillis(f) <= now)
 					.collect(Collectors.toSet());
+
 				for (Fraction key : keys) {
-					new Thread(tasks.remove(key)).start();
+					List<Runnable> taskList = tasks.remove(key);
+					new Thread(() -> taskList.forEach(Runnable::run)).start();
 				}
-				try { Thread.sleep(getTimerPeriod()); }
-				catch (InterruptedException exc) { Logger.FYI("Playback finished"); }
+
+				if (tasks.size() > 0) {
+
+					Fraction nextOn = Collections.min(tasks.keySet());
+
+					long sleepAnother = toMillis(nextOn) - System.currentTimeMillis();
+
+					if (sleepAnother > 0) {
+						try { Thread.sleep(sleepAnother); }
+						catch (InterruptedException exc) { Logger.FYI("Playback finished"); }
+					}
+				}
 			}
 		});
 		this.timerThread.start();

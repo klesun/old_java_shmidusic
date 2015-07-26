@@ -16,10 +16,10 @@ public class AccordPainter extends AbstractPainter {
 
 		Accord a = (Accord)context;
 
-		Boolean oneOctaveLower;
-		if (oneOctaveLower = a.isHighestBotommedToFitSystem()) {
-			drawString("8va", 0, 4 * dy(), Color.BLUE);
-		}
+		Boolean oneOctaveLower = false;
+//		if (oneOctaveLower = a.isHighestBotommedToFitSystem()) {
+//			drawString("8va", 0, 4 * dy(), Color.BLUE);
+//		}
 
 		// it's slower a bit to rely just on awt painter, but it gives us some nice abilities like drawing line linking two notas in separate accords
 //		int eraseToY = getNotaY(a.getNotaSet().stream().max((n1, n2) -> n1.compareTo(n2)).get(), oneOctaveLower) + context.getSettings().getNotaHeight();
@@ -29,8 +29,9 @@ public class AccordPainter extends AbstractPainter {
 
 		for (int i = 0; i < a.getNotaSet().size(); ++i) {
 			Nota nota = a.notaList.get(i);
-			int notaY = getNotaY(nota, oneOctaveLower);
-			int notaX = i > 0 && a.notaList.get(i - 1).getAbsoluteAcademicIndex() == nota.getAbsoluteAcademicIndex()
+			int notaY = a.getLowestPossibleNotaY() - dy() * nota.ivoryIndex();
+//			int notaY = getNotaY(nota, oneOctaveLower);
+			int notaX = i > 0 && a.notaList.get(i - 1).ivoryIndex() == nota.ivoryIndex()
 				? dx() / 3 // TODO: draw them flipped
 				: 0;
 
@@ -39,9 +40,6 @@ public class AccordPainter extends AbstractPainter {
 			}
 
 			drawModel(nota, notaX, notaY, false); // TODO: if it was true, we wouldn't get here, but it kinda sux now i think - pass the flag here from accord!
-			if (nota.isStriked() ^ oneOctaveLower) {
-				drawLine(getTraitCoordinates(nota).plus(new Point(notaX, notaY)));
-			}
 		}
 
 		if (a.getParentStaff().getFocusedAccord() == a) {
@@ -60,13 +58,8 @@ public class AccordPainter extends AbstractPainter {
 //		}
 	}
 
-	private int getNotaY(Nota nota, Boolean oneOctaveLower) {
-		Accord a = (Accord)context;
-		return a.getLowestPossibleNotaY() - dy() * nota.getAbsoluteAcademicIndex() + (oneOctaveLower ? 7 * dy() : 0);
-	}
-
-	private Straight getTraitCoordinates(Nota nota) {
-		int r = context.getSettings().getNotaWidth() * 12 / 25;
-		return new Straight(nota.getAncorPoint().plus(-r, 0), nota.getAncorPoint().plus(r, 0));
-	}
+//	private int getNotaY(Nota nota, Boolean oneOctaveLower) {
+//		Accord a = (Accord)context;
+//		return a.getLowestPossibleNotaY() - dy() * nota.ivoryIndex() + (oneOctaveLower ? 7 * dy() : 0);
+//	}
 }

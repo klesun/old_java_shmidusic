@@ -50,6 +50,7 @@ public class BlockHandler extends AbstractHandler {
 			}
 		});
 
+		// TODO: move to Staff scroll
 		// removing stupid built-ins
 		InputMap im = context.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		im.put(KeyStroke.getKeyStroke("UP"), "none");
@@ -64,11 +65,6 @@ public class BlockHandler extends AbstractHandler {
 	}
 
 	private static ContextAction<Block> mkAction(Consumer<Block> lambda) {
-		ContextAction<Block> action = new ContextAction<>();
-		return action.setRedo(lambda);
-	}
-
-	private static ContextAction<Block> mkFailableAction(Function<Block, Explain> lambda) {
 		ContextAction<Block> action = new ContextAction<>();
 		return action.setRedo(lambda);
 	}

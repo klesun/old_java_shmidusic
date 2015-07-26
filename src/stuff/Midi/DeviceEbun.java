@@ -11,6 +11,9 @@ import stuff.Musica.PlayMusThread;
 import stuff.tools.Logger;
 import stuff.tools.jmusic_integration.INota;
 
+import java.util.TreeSet;
+import java.util.stream.Stream;
+
 
 public class DeviceEbun {
 
@@ -24,10 +27,13 @@ public class DeviceEbun {
 	final private static int DRUM_NOTE_OFF = 0x89;
 
 	final private static int DRUM_CHANNEL = 10; 	// it's not actually really a channel. we can send normal messages to channel 10
-												// and they would sound with grand piano or ororgan, but i disable this channel, cuz
-												// i think it's simpler for user experience, but i may be wrong
+	// and they would sound with grand piano or ororgan, but i disable this channel, cuz
+	// i think it's simpler for user experience, but i may be wrong
 
 	static DeviceEbun instance = null;
+
+	// TODO: It's very bad that we have one set for both devices. Try pressing ctrl-d while something is sounding, it will be fun ^_^.
+	private static TreeSet<INota> openNotaSet = new TreeSet<>();
 
 	private static MidiDevice device;
 	private static MidiDevice gervill;
@@ -37,9 +43,9 @@ public class DeviceEbun {
 	private static Boolean isPlaybackSoftware;
 	static {
 		try {	gervill = MidiSystem.getMidiDevice(MidiCommon.getMidiDeviceInfo("Gervill", true));
-				gervill.open();
-				softwareReceiver = gervill.getReceiver();
-				isPlaybackSoftware = true;
+			gervill.open();
+			softwareReceiver = gervill.getReceiver();
+			isPlaybackSoftware = true;
 		} catch (MidiUnavailableException e) { Logger.fatal(e, "Не отдался нам Gervill "); }
 	}
 
@@ -85,8 +91,8 @@ public class DeviceEbun {
 	public static void closeMidiDevices() {
 		// close all opent Notas
 		Main.window.blockSpace.getChildScrollList().stream()
-				.filter(s -> s.content instanceof StaffPanel)
-				.forEach(s -> ((StaffPanel) s.content).getStaff().getPlayback().interrupt());
+			.filter(s -> s.content instanceof StaffPanel)
+			.forEach(s -> ((StaffPanel) s.content).getStaff().getPlayback().interrupt());
 		PlayMusThread.shutTheFuckUp();
 
 		// close devices
@@ -100,8 +106,8 @@ public class DeviceEbun {
 
 	private static Explain changeOutDevice() {
 		return hardwareReceiver != null
-				? new Explain((isPlaybackSoftware = !isPlaybackSoftware) || true)
-				: new Explain(false, "Sorry. I wish i could change output device, but you have only software playback now, cuz hardware midi output device failed to load at the start of program.");
+			? new Explain((isPlaybackSoftware = !isPlaybackSoftware) || true)
+			: new Explain(false, "Sorry. I wish i could change output device, but you have only software playback now, cuz hardware midi output device failed to load at the start of program.");
 	}
 
 	public static Receiver getPlaybackReceiver() {
@@ -128,14 +134,21 @@ public class DeviceEbun {
 		} else {
 			sendMessage(DRUM_NOTE_ON, nota.getTune(), nota.getVolume());
 		}
+		openNotaSet.add(nota);
 	}
 
-	public static void closeNota(Nota nota) {
+	public static void closeNota(INota nota) {
 		if (nota.getChannel() != DRUM_CHANNEL) {
-			sendMessage(ShortMessage.NOTE_OFF, nota.getChannel(), nota.tune.get(), 0);
+			sendMessage(ShortMessage.NOTE_OFF, nota.getChannel(), nota.getTune(), 0);
 		} else {
-			sendMessage(DRUM_NOTE_OFF, nota.tune.get(), 0);
+			sendMessage(DRUM_NOTE_OFF, nota.getTune(), 0);
 		}
+		openNotaSet.remove(nota);
+	}
+
+	public static void closeAllNotas() {
+		// we do it through new set to avoid concurrent modification
+		new TreeSet<>(openNotaSet).forEach(DeviceEbun::closeNota);
 	}
 
 	private static void sendMessage(int status, int channel, int data1, int data2) {

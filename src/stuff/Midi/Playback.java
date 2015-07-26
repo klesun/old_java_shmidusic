@@ -6,6 +6,8 @@ import blockspace.staff.Staff;
 import org.apache.commons.math3.fraction.Fraction;
 import stuff.tools.jmusic_integration.INota;
 
+import java.util.function.Consumer;
+
 public class Playback {
 
 	@Deprecated // instance MAZAFAKA
@@ -27,6 +29,7 @@ public class Playback {
 		if (this.runningProcess != null) {
 			this.runningProcess.interrupt();
 			this.runningProcess = null;
+			DeviceEbun.closeAllNotas();
 		}
 		return true;
 	}
@@ -35,22 +38,17 @@ public class Playback {
 		if (!staff.getAccordList().isEmpty()) {
 			if (runningProcess != null) { interrupt(); }
 			runningProcess = new PlaybackTimer(staff.getConfig());
-			Fraction sumFraction = new Fraction(0);
 
 			staff.moveFocus(-1);
 			int startFrom = staff.getFocusedIndex() + 1;
-			for (Accord accord : staff.getAccordList().subList(startFrom, staff.getAccordList().size())) {
 
-				playAccord(accord, sumFraction, runningProcess);
+			streamTo(runningProcess, startFrom, now -> runningProcess.addTask(now, () ->
+			{
+				staff.moveFocus(1);
+				staff.getParentSheet().checkCam();
+			}));
 
-				runningProcess.addTask(sumFraction, () -> {
-					staff.moveFocus(1);
-//					staff.moveFocusWithPlayback(1, false);
-					staff.getParentSheet().checkCam();
-				});
-				sumFraction = new Fraction(sumFraction.doubleValue() + accord.getFraction().doubleValue());
-			}
-			runningProcess.addTask(sumFraction.add(1), this::interrupt);
+			runningProcess.appendTask(new Fraction(1), this::interrupt);
 			runningProcess.start();
 			return new Explain(true);
 		} else {
@@ -58,21 +56,27 @@ public class Playback {
 		}
 	}
 
-	private static void playAccord(Accord accord, Fraction start, PlaybackTimer scheduler)
-	{
-		accord.notaStream(n -> true).forEach(n -> playNota(n, start, scheduler));
+	public void streamTo(IMidiScheduler scheduler) {
+		streamTo(scheduler, 0, f -> {}); // TODO: maybe better null
 	}
 
-	private static void playNota(INota nota, Fraction start, PlaybackTimer scheduler)
+	private void streamTo(IMidiScheduler scheduler, int startFrom, Consumer<Fraction> onAccord)
 	{
-		DeviceEbun.openNota(nota);
+		Fraction sumFraction = new Fraction(0);
 
-		try { Thread.sleep(nota.getTimeMilliseconds(true)); }
-		catch (InterruptedException e) {}
+		for (Accord accord: staff.getAccordList().subList(startFrom, staff.getAccordList().size())) {
+			final Fraction finalStart = sumFraction;
 
-		DeviceEbun.closeNota(nota);
+			accord.notaStream(n -> true).forEach(n -> playNota(n, finalStart, scheduler));
+			onAccord.accept(sumFraction);
+			sumFraction = new Fraction(sumFraction.doubleValue() + accord.getFraction().doubleValue());
+		}
+	}
 
-		opentNotas.remove(nota);
+	private static void playNota(INota nota, Fraction start, IMidiScheduler scheduler)
+	{
+		scheduler.addNoteOnTask(start, nota);
+		scheduler.addNoteOffTask(start.add(nota.getRealLength()), nota);
 	}
 
 	@Deprecated // instance MAZAFAKA

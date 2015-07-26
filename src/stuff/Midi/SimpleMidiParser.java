@@ -30,7 +30,6 @@ public class SimpleMidiParser
 		// setting tempo. i suspect TimeSig and KeySig have absolute no influence on how things sound
 		// just facultative information to ease parse for whoever gets this midi file in future
 
-		Function<Fraction, Integer> time = f -> Nota.getTimeMilliseconds(f, staff.getConfig().getTempo());
 		Function<Channel, Event> mapChannel = c -> new PChange(c.getInstrument().shortValue(), c.channelNumber.get().shortValue(), 0);
 
 		smf.getTrackList().add(new Track()
@@ -43,29 +42,10 @@ public class SimpleMidiParser
 
 		Map<Integer, Track> trackDict = new HashMap<>();
 
-		/** @debug - uncomment when done */
-		Fraction now = new Fraction(0); // supposing we have only good fractions, no 12759382/4832012124 and alike
-		for (Accord accord: staff.getAccordList()) {
+		new Playback(staff).streamTo(new SmfScheduler(trackDict, staff.getConfig()));
 
-			for (Nota nota: accord.getNotaSet()) {
+		// TODO: handle our hack with drums (they are not general Nota-s even though they are stored like that with 10 channel)
 
-				if (!trackDict.containsKey(nota.getChannel())) {
-					trackDict.put(nota.getChannel(), new Track());
-				}
-
-				// TODO: handle our hack with drums (they are not general Nota-s even though they are stored like that in 10 channel)
-
-				// TODO: abstractionize this process and merge it with Playback process, so stuff like drums would not appear
-
-				trackDict.get(nota.getChannel()).addEvent(new NoteOn(nota, time.apply(now)));
-				trackDict.get(nota.getChannel()).addEvent(new NoteOff(nota, time.apply(now.add(nota.getRealLength()))));
-			}
-
-			/** @debug */
-			System.out.println("zhopa " + now + " " + time.apply(now));
-
-			now = now.add(accord.getFraction());
-		}
 
 		trackDict.values().forEach(t ->
 		{

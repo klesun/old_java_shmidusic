@@ -1,14 +1,18 @@
 package blockspace.staff;
 
+import blockspace.staff.accord.Accord;
+import blockspace.staff.accord.nota.Nota;
 import gui.Settings;
 import model.*;
 import blockspace.BlockSpace;
 import stuff.Midi.DumpReceiver;
 import blockspace.IBlockSpacePanel;
 import blockspace.Block;
+import stuff.OverridingDefaultClasses.Scroll;
 import stuff.OverridingDefaultClasses.TruMap;
 import org.json.JSONException;
 import org.json.JSONObject;
+import stuff.tools.jmusic_integration.INota;
 
 import java.awt.*;
 
@@ -16,7 +20,10 @@ import javax.swing.*;
 
 import java.awt.event.*;
 import java.util.LinkedHashMap;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 
 final public class StaffPanel extends JPanel implements IBlockSpacePanel {
@@ -33,6 +40,9 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 	private Boolean loadJsonOnFocus = false;
 	private Boolean simpleRepaint = false;
 	private Boolean surfaceCompletelyChanged = false;
+
+	final private RealStaffPanel staffContainer;
+	final private PianoLayoutPanel pianoLayoutPanel;
 
 	public StaffPanel(BlockSpace parentBlockSpace) {
 		this.staff = new Staff(this);
@@ -57,10 +67,15 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 			}
 		});
 
+		this.setLayout(new BorderLayout());
 		this.setFocusable(true);
 		this.requestFocus();
 
-		this.setBackground(Color.WHITE);
+		staffContainer = new RealStaffPanel(staff);
+		Scroll staffScroll = new Scroll(staffContainer);
+		this.add(staffScroll, BorderLayout.CENTER);
+
+		this.add(pianoLayoutPanel = new PianoLayoutPanel(staff), BorderLayout.PAGE_END);
 	}
 
 	private void iThinkItInterruptsPreviousPaintingThreadsSoTheyDidntSlowCurrent() {
@@ -78,18 +93,8 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 
 			super.paintComponent(g);
 
+			// maybe need to move it to RealStaffPanel::paintComponent()
 			iThinkItInterruptsPreviousPaintingThreadsSoTheyDidntSlowCurrent();
-
-			getStaff().drawOn(g, true);
-
-//			if (simpleRepaint) {
-//				simpleRepaint = false;
-//
-//			} else {
-//
-//				super.paintComponent(g);
-//				getStaff().drawOn(g, true);
-//			}
 		}
 	}
 
@@ -179,6 +184,103 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 	private static ContextAction<StaffPanel> mkAction(Consumer<StaffPanel> lambda) {
 		ContextAction<StaffPanel> action = new ContextAction<>();
 		return action.setRedo(lambda);
+	}
+
+	private class RealStaffPanel extends JPanel
+	{
+		final private Staff staff;
+
+		public RealStaffPanel(Staff staff)
+		{
+			this.staff = staff;
+			this.setBackground(Color.WHITE);
+		}
+
+		@Override
+		public void paintComponent(Graphics g)
+		{
+			super.paintComponent(g);
+			staff.drawOn(g, true);
+		}
+	}
+
+	private class PianoLayoutPanel extends JPanel
+	{
+		final private Staff staff;
+
+		public PianoLayoutPanel(Staff staff)
+		{
+			this.staff = staff;
+		}
+
+		@Override
+		public Dimension getPreferredSize()
+		{
+			Dimension base = super.getPreferredSize();
+			return new Dimension(base.width, dy() * 8);
+		};
+
+		@Override
+		public void paintComponent(Graphics g)
+		{
+			super.paintComponent(g);
+
+			Rectangle pianoLayoutRect = new Rectangle(0, 0, this.getWidth(), this.getHeight());
+			drawVanBascoLikePianoLayout(staff.getFocusedAccord(), pianoLayoutRect, g);
+		}
+
+		// draws such piano layout so it fitted to Rectangle r
+		private void drawVanBascoLikePianoLayout(Accord accord, Rectangle baseRect, Graphics g)
+		{
+			// TODO: center
+
+			Set<Integer> highlightEm = new TreeSet<>();
+			if (accord != null) {
+				accord.notaStream(n -> true).map(INota::getTune).forEach(highlightEm::add);
+			}
+
+			// draw base piano layout
+			int firstTune = 0;
+			int tuneCount = 127;
+
+			IntStream ivoryTunes = IntStream.range(firstTune, firstTune + tuneCount).filter(t -> !INota.isEbony(t));
+			IntStream ebonyTunes = IntStream.range(firstTune, firstTune + tuneCount).filter(INota::isEbony);
+
+			int ivoryWidth = (int)Math.ceil(baseRect.width * 1.0 / (INota.ivoryIndex(tuneCount)));
+			int ebonyWidth = ivoryWidth / 2;
+
+			double ebonyLength = baseRect.height / 2;
+
+			ivoryTunes.forEach(tune ->{
+
+				Color color = highlightEm.contains(tune) ? Color.BLUE : Color.WHITE;
+
+				int ivoryIndex = INota.ivoryIndex(tune - firstTune);
+
+				int pos = baseRect.x + ivoryIndex * ivoryWidth;
+
+				Rectangle keyRect = new Rectangle(pos, baseRect.x, ivoryWidth, baseRect.height);
+
+				g.setColor(color);
+				g.fillRect(keyRect.x, keyRect.y, keyRect.width, keyRect.height);
+				g.setColor(Color.BLACK);
+				g.drawRect(keyRect.x, keyRect.y, keyRect.width, keyRect.height);
+			});
+
+			ebonyTunes.forEach(tune -> {
+				Color color = highlightEm.contains(tune) ? Color.BLUE : Color.GRAY;
+
+				int ivoryNeighborIndex = INota.ivoryIndex(tune - firstTune);
+				int pos = baseRect.x + (int) (ivoryNeighborIndex * ivoryWidth - ebonyWidth / 2);
+
+				Rectangle keyRect = new Rectangle(pos, baseRect.x, ebonyWidth, (int) ebonyLength);
+
+				g.setColor(color);
+				g.fillRect(keyRect.x, keyRect.y, keyRect.width, keyRect.height);
+				g.setColor(Color.BLACK);
+				g.drawRect(keyRect.x, keyRect.y, keyRect.width, keyRect.height);
+			});
+		}
 	}
 }
 

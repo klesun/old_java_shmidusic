@@ -45,16 +45,18 @@ public class Accord extends MidianaComponent {
 		}
 	}
 
-	// я передумал, я снова люблю джаву
 	private static Consumer<Graphics> diminendoPainting(Rectangle r, Boolean value) {
 		return g -> {
 			double stretch = 0.5;
-			g.setColor(value ? Color.BLACK : Color.white);
+//			g.setColor(value ? Color.BLACK : Color.white);
+			g.setColor(Color.BLACK);
 			int x1 = (int)(r.x + r.width * stretch / 2);
 			int x2 = (int)(r.x - r.width * stretch / 2) + r.width;
 
-			g.drawLine(x1, r.y, x2, r.y + r.height / 2);
-			g.drawLine(x1, r.y + r.height, x2, r.y + r.height / 2);
+			if (value) {
+				g.drawLine(x1, r.y, x2, r.y + r.height / 2);
+				g.drawLine(x1, r.y + r.height, x2, r.y + r.height / 2);
+			}
 		};
 	}
 
