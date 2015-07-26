@@ -5,6 +5,7 @@ import stuff.tools.Logger;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class Explain<C> {
 
@@ -53,7 +54,17 @@ public class Explain<C> {
 	}
 
 	public Explain ifSuccess(Function<C, Explain> lambda) {
-		return this.isSuccess() 	? lambda.apply(this.getData()) : this;
+		return this.isSuccess() ? lambda.apply(this.getData()) : this;
+	}
+
+	public C dieIfFailure()
+	{
+		if (isSuccess()) {
+			return data;
+		} else {
+			Logger.fatal("You asked for it. " + explanation);
+			return null;
+		}
 	}
 
 	// i would love to exactly specify, what kind of exception, but i cant catch a generic (damn java)
@@ -66,5 +77,12 @@ public class Explain<C> {
 		}
 
 		return new Explain(true);
+	}
+
+	public static <T, R> Function<T, Explain<R>> mkPred(Predicate<T> pred, Function<T, R> func)
+	{
+		return e -> pred.test(e)
+				? new Explain<>(func.apply(e))
+				: new Explain<>(false, "lox");
 	}
 }

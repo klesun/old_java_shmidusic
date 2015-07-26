@@ -56,7 +56,7 @@ public class MajesticWindow extends JFrame {
 		addMenuBar();
 		switchTo(cardEnum.CARDS_STORYSPACE);
 		// for user-friendship there will be one initial staff
-		blockSpace.addMusicBlock().getScroll().switchFullscreen();
+		blockSpace.addMusicBlock().getParentBlock() .switchFullscreen();
 
 		updateMenuBar();
 	}

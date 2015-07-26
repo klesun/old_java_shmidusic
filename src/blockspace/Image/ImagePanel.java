@@ -63,7 +63,7 @@ public class ImagePanel extends JPanel implements IBlockSpacePanel {
 	}
 
 	@Override
-	public Block getScroll() { return scroll; }
+	public Block getParentBlock() { return scroll; }
 	@Override
 	public IComponentModel getFocusedChild() { return null; }
 	@Override
@@ -90,7 +90,7 @@ public class ImagePanel extends JPanel implements IBlockSpacePanel {
 	private void loadImage(File file) {
 		this.imagePath = file.getAbsolutePath();
 		try {
-			this.image = getScroll().getModelParent().getImageStorage().openRandomImage(file.toURI().toURL());
+			this.image = getParentBlock().getModelParent().getImageStorage().openRandomImage(file.toURI().toURL());
 		} catch (MalformedURLException exc) { Logger.fatal(exc, "No WAI"); }
 
 		scroll.setTitle(file.getName());

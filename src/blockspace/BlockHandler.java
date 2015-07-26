@@ -21,8 +21,7 @@ public class BlockHandler extends AbstractHandler {
 			.p(new Combo(ctrl, k.VK_F), mkAction(Block::switchFullscreen).setCaption("Switch Fullscreen"))
 			.p(new Combo(ctrl, k.VK_F2), mkAction(c -> c.setTitle(JOptionPane.showInputDialog(c, "Type new name for container: ", c.getTitle()))).setCaption("Rename"))
 			.p(new Combo(ctrl, k.VK_DELETE), mkAction(c -> c.getModelParent().removeModelChild(c)).setCaption("Delete"))
-			.p(new Combo(0, KeyEvent.VK_PAGE_DOWN), mkAction(b -> b.page(1)).setCaption("Scroll Up"))
-			.p(new Combo(0, KeyEvent.VK_PAGE_UP), mkAction(b -> b.page(-1)).setCaption("Scroll Up"));
+			;
 	}
 
 	public BlockHandler(Block context) {
@@ -38,25 +37,11 @@ public class BlockHandler extends AbstractHandler {
 			public void focusLost(FocusEvent e) { context.lostFocus(); }
 		});
 
-		context.getVerticalScrollBar().addMouseListener(new MouseAdapter() {
-			public void mouseEntered(MouseEvent e) {
-				context.getVerticalScrollBar().setCursor(Cursor.getDefaultCursor());
-			}
-		});
-
 		context.getModelParent().addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent e) {
 				if (context.isFullscreen()) { context.fitToScreen(); }
 			}
 		});
-
-		// TODO: move to Staff scroll
-		// removing stupid built-ins
-		InputMap im = context.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-		im.put(KeyStroke.getKeyStroke("UP"), "none");
-		im.put(KeyStroke.getKeyStroke("DOWN"), "none");
-		im.put(KeyStroke.getKeyStroke("PAGE_UP"), "none");
-		im.put(KeyStroke.getKeyStroke("PAGE_DOWN"), "none");
 	}
 
 	@Override

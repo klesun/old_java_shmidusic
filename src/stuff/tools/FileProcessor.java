@@ -47,7 +47,7 @@ public class FileProcessor {
 	public static Explain saveMusicPanel(Staff staff) {
 
 		return makeSaveFileDialog("midi.json", "Json Midi-music data").ifSuccess(f -> {
-			staff.getParentSheet().getScroll().setTitle(f.getName());
+			staff.getParentSheet().getParentBlock().setTitle(f.getName());
 			return saveModel(f, staff); // TODO: use messages when fail
 		});
 	}
@@ -87,7 +87,7 @@ public class FileProcessor {
 		});
 		if (fileChooser.showOpenDialog(Main.window) == JFileChooser.APPROVE_OPTION) {
 			File f = fileChooser.getSelectedFile();
-			staff.getParentSheet().getScroll().setTitle(f.getName());
+			staff.getParentSheet().getParentBlock().setTitle(f.getName());
 
 			return openModel(f, staff);
 		} else {
@@ -113,7 +113,7 @@ public class FileProcessor {
 		});
 		if (fileChooser.showOpenDialog(Main.window) == JFileChooser.APPROVE_OPTION) {
 			File f = fileChooser.getSelectedFile();
-			staff.clearStan().getParentSheet().getScroll().setTitle(f.getName());
+			staff.clearStan().getParentSheet().getParentBlock().setTitle(f.getName());
 
 			Explain<JSONObject> jsExplain = openJsonFile(f);
 			return jsExplain.isSuccess() ? fillStaffLambda.apply(jsExplain.getData()) : jsExplain;

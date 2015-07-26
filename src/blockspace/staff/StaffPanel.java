@@ -1,7 +1,7 @@
 package blockspace.staff;
 
 import blockspace.staff.accord.Accord;
-import blockspace.staff.accord.nota.Nota;
+import gui.ImageStorage;
 import gui.Settings;
 import model.*;
 import blockspace.BlockSpace;
@@ -19,6 +19,7 @@ import java.awt.*;
 import javax.swing.*;
 
 import java.awt.event.*;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.TreeSet;
@@ -31,7 +32,7 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 	public static int MARGIN_V = 15; // Сколько отступов сделать сверху перед рисованием полосочек // TODO: move it into Constants class maybe? // eliminate it nahuj maybe?
 	public static int MARGIN_H = 1; // TODO: move it into Constants class maybe?
 
-	final private Block scroll;
+	final private Block parentBlock;
 	final private AbstractHandler handler;
 	final private Helper modelHelper = new Helper(this);
 	final private Staff staff;
@@ -41,12 +42,15 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 	private Boolean simpleRepaint = false;
 	private Boolean surfaceCompletelyChanged = false;
 
-	final private RealStaffPanel staffContainer;
+	/** @debug - return private when done */
+	final public RealStaffPanel staffContainer;
+	final private Scroll staffScroll;
 	final private PianoLayoutPanel pianoLayoutPanel;
 
 	public StaffPanel(BlockSpace parentBlockSpace) {
+		super();
 		this.staff = new Staff(this);
-		this.scroll = parentBlockSpace.addModelChild(this);
+		this.parentBlock = parentBlockSpace.addModelChild(this);
 
 		this.addKeyListener(handler = makeHandler());
 		this.addMouseListener(handler);
@@ -72,7 +76,7 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 		this.requestFocus();
 
 		staffContainer = new RealStaffPanel(staff);
-		Scroll staffScroll = new Scroll(staffContainer);
+		staffScroll = new Scroll(staffContainer);
 		this.add(staffScroll, BorderLayout.CENTER);
 
 		this.add(pianoLayoutPanel = new PianoLayoutPanel(staff), BorderLayout.PAGE_END);
@@ -83,7 +87,7 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 		// i don't know, who is stupider: linuxes, awt or me, but need it cuz it forces to repaint JUST the time it's requested to repaint
 		// on windows issues does not occur
 		// i aproximetely know, what's happening, it's calling something like revalidate(), but i amnt not sure
-		getScroll().getModelParent().getWindow().terminal.append("\n");
+		getParentBlock().getModelParent().getWindow().terminal.append("\n");
 		// TODO: discover, whats this append() calling that makes repainting instant and use here instead of the hack
 	}
 
@@ -111,8 +115,8 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 		simpleRepaint = !surfaceCompletelyChanged;
 		surfaceCompletelyChanged = false;
 
-		JScrollBar vertical = getScroll().getVerticalScrollBar();
-		if (vertical.getValue() + getScroll().getHeight() < getFocusedSystemY() + Staff.SISDISPLACE * dy() ||
+		JScrollBar vertical = staffScroll.getVerticalScrollBar();
+		if (vertical.getValue() + staffScroll.getHeight() < getFocusedSystemY() + Staff.SISDISPLACE * dy() ||
 			vertical.getValue() > getFocusedSystemY()) {
 			vertical.setValue(getFocusedSystemY());
 			simpleRepaint = false;
@@ -120,7 +124,7 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 
 		repaint();
 	}
-	public Block getScroll() { return scroll; }
+	public Block getParentBlock() { return parentBlock; }
 
 	// IModel implementation
 
@@ -128,7 +132,7 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 	public Staff getFocusedChild() { return getStaff(); }
 	@Override
 	public Block getModelParent() {
-		return getScroll();
+		return getParentBlock();
 	}
 	@Override
 	public AbstractHandler getHandler() { return this.handler; }
@@ -150,7 +154,7 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 
 	public Staff getStaff() { return this.staff; }
 	public Settings getSettings() {
-		Block scroll = getScroll();
+		Block scroll = getParentBlock();
 		BlockSpace blockSpace = scroll.getModelParent();
 		return blockSpace.getSettings();
 	}
@@ -186,7 +190,7 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 		return action.setRedo(lambda);
 	}
 
-	private class RealStaffPanel extends JPanel
+	public class RealStaffPanel extends JPanel
 	{
 		final private Staff staff;
 
@@ -202,9 +206,32 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 			super.paintComponent(g);
 			staff.drawOn(g, true);
 		}
+
+//		context.getVerticalScrollBar().addMouseListener(new MouseAdapter() {
+//			public void mouseEntered(MouseEvent e) {
+//				context.getVerticalScrollBar().setCursor(Cursor.getDefaultCursor());
+//			}
+//		});
+
+//		.p(new Combo(0, KeyEvent.VK_PAGE_DOWN), mkAction(b -> b.page(1)).setCaption("Scroll Up"))
+//		.p(new Combo(0, KeyEvent.VK_PAGE_UP), mkAction(b -> b.page(-1)).setCaption("Scroll Up"));
+
+//		public void page(int sign) {
+//			JScrollBar vertical = getVerticalScrollBar();
+//			vertical.setValue(limit(vertical.getValue() + sign * Staff.SISDISPLACE * getModelParent().getSettings().getStepHeight(), 0, vertical.getMaximum()));
+//			repaint();
+//		}
+
+		// TODO: move to Staff scroll
+		// removing stupid built-ins
+//		InputMap im = context.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+//		im.put(KeyStroke.getKeyStroke("UP"), "none");
+//		im.put(KeyStroke.getKeyStroke("DOWN"), "none");
+//		im.put(KeyStroke.getKeyStroke("PAGE_UP"), "none");
+//		im.put(KeyStroke.getKeyStroke("PAGE_DOWN"), "none");
 	}
 
-	private class PianoLayoutPanel extends JPanel
+	public class PianoLayoutPanel extends JPanel
 	{
 		final private Staff staff;
 
@@ -232,16 +259,18 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 		// draws such piano layout so it fitted to Rectangle r
 		private void drawVanBascoLikePianoLayout(Accord accord, Rectangle baseRect, Graphics g)
 		{
-			// TODO: center
+			// performance
+			g.setColor(Color.WHITE);
+			g.fillRect(baseRect.x, baseRect.y, baseRect.width, baseRect.height);
 
-			Set<Integer> highlightEm = new TreeSet<>();
+			Set<INota> highlightEm = new TreeSet<>();
 			if (accord != null) {
-				accord.notaStream(n -> true).map(INota::getTune).forEach(highlightEm::add);
+				accord.notaStream(n -> true).forEach(highlightEm::add);
 			}
 
 			// draw base piano layout
-			int firstTune = 0;
-			int tuneCount = 127;
+			int firstTune = 34;
+			int tuneCount = 70;
 
 			IntStream ivoryTunes = IntStream.range(firstTune, firstTune + tuneCount).filter(t -> !INota.isEbony(t));
 			IntStream ebonyTunes = IntStream.range(firstTune, firstTune + tuneCount).filter(INota::isEbony);
@@ -251,30 +280,35 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 
 			double ebonyLength = baseRect.height / 2;
 
-			ivoryTunes.forEach(tune ->{
-
-				Color color = highlightEm.contains(tune) ? Color.BLUE : Color.WHITE;
-
-				int ivoryIndex = INota.ivoryIndex(tune - firstTune);
-
+			ivoryTunes.forEach(tune -> {
+				int ivoryIndex = INota.ivoryIndex(tune) - INota.ivoryIndex(firstTune);
 				int pos = baseRect.x + ivoryIndex * ivoryWidth;
 
 				Rectangle keyRect = new Rectangle(pos, baseRect.x, ivoryWidth, baseRect.height);
 
-				g.setColor(color);
-				g.fillRect(keyRect.x, keyRect.y, keyRect.width, keyRect.height);
+				if (highlightEm.stream().anyMatch(n -> n.getTune() == tune)) {
+					int channel = highlightEm.stream().filter(n -> n.getTune() == tune).findAny().get().getChannel();
+					g.setColor(ImageStorage.getColorByChannel(channel));
+					g.fillRect(keyRect.x, keyRect.y, keyRect.width, keyRect.height);
+				}
 				g.setColor(Color.BLACK);
 				g.drawRect(keyRect.x, keyRect.y, keyRect.width, keyRect.height);
 			});
 
 			ebonyTunes.forEach(tune -> {
-				Color color = highlightEm.contains(tune) ? Color.BLUE : Color.GRAY;
+				Color color;
 
-				int ivoryNeighborIndex = INota.ivoryIndex(tune - firstTune);
+				int ivoryNeighborIndex = INota.ivoryIndex(tune) - INota.ivoryIndex(firstTune);
 				int pos = baseRect.x + (int) (ivoryNeighborIndex * ivoryWidth - ebonyWidth / 2);
 
 				Rectangle keyRect = new Rectangle(pos, baseRect.x, ebonyWidth, (int) ebonyLength);
 
+				if (highlightEm.stream().anyMatch(n -> n.getTune() == tune)) {
+					int channel = highlightEm.stream().filter(n -> n.getTune() == tune).findAny().get().getChannel();
+					color = ImageStorage.getColorByChannel(channel);
+				} else {
+					color = Color.LIGHT_GRAY;
+				}
 				g.setColor(color);
 				g.fillRect(keyRect.x, keyRect.y, keyRect.width, keyRect.height);
 				g.setColor(Color.BLACK);

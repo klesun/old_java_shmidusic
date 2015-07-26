@@ -93,8 +93,8 @@ public class Article extends JPanel implements IBlockSpacePanel {
 
 		// cuz this is wrapper of focused elements unlike ImagePanel and StaffPanel and can't be focused itself
 		par.addFocusListener(new FocusAdapter() {
-			public void focusGained(FocusEvent e) { getScroll().gotFocus(); }
-			public void focusLost(FocusEvent e) { getScroll().lostFocus(); }
+			public void focusGained(FocusEvent e) { getParentBlock().gotFocus(); }
+			public void focusLost(FocusEvent e) { getParentBlock().lostFocus(); }
 		});
 
 		if (index > -1) { parList.add(index, par); }
@@ -123,7 +123,7 @@ public class Article extends JPanel implements IBlockSpacePanel {
 	public List<Paragraph> getParList() { return parList; }
 
 	@Override
-	public Block getScroll() { return scroll; }
+	public Block getParentBlock() { return scroll; }
 	@Override
 	public Paragraph getFocusedChild() {
 		Component focused = getModelParent().getModelParent().getWindow().getFocusOwner();
@@ -132,7 +132,7 @@ public class Article extends JPanel implements IBlockSpacePanel {
 				: null;
 	}
 	@Override
-	public Block getModelParent() { return getScroll(); }
+	public Block getModelParent() { return getParentBlock(); }
 	@Override
 	public AbstractHandler getHandler() { return this.handler; }
 	@Override

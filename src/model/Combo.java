@@ -8,9 +8,14 @@ import com.google.common.collect.HashBiMap;
 import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-public class Combo {
+public class Combo
+{
+	final public static KeyEvent K = new KeyEvent(new JPanel(),0,0,0,0,'h'); // just for constants
 
 	public int mod = 0; // public for debug
 	private int keyCode = 0;
@@ -41,11 +46,22 @@ public class Combo {
 		}
 	}
 
-	public int getPressedNumber() {
-		return (getKeyCode() >= '0' && getKeyCode() <= '9') ? getKeyCode() - '0' :
-			(getKeyCode() >= KeyEvent.VK_NUMPAD0 && getKeyCode() <= KeyEvent.VK_NUMPAD9) ? getKeyCode() - KeyEvent.VK_NUMPAD0 :
-			(getKeyCode() >= KeyEvent.VK_F1 && getKeyCode() <= KeyEvent.VK_F12) ? getKeyCode() - KeyEvent.VK_F1 + 1:
-			Logger.getFatal("You ask me to get pressed number from not number button! You fag. " + getKeyCode());
+	public int getPressedNumber()
+	{
+		return getPressedNumber(getKeyCode()).dieIfFailure();
+	}
+
+	public static Explain<Integer> getPressedNumber(Integer keyCode)
+	{
+		List<Function<Integer, Explain<Integer>>> preds = Arrays.asList(
+			Explain.mkPred(k -> k >= '0' && k <= '9', k -> k - '0'),
+			Explain.mkPred(k -> k >= K.VK_NUMPAD0 && k <= K.VK_NUMPAD9, k -> k - K.VK_NUMPAD0),
+			Explain.mkPred(k -> k >= K.VK_F10 && k <= K.VK_F12, k -> k - K.VK_F1 + 1)
+		);
+
+		return preds.stream().anyMatch(pr -> pr.apply(keyCode).isSuccess())
+				? preds.stream().map(pr -> pr.apply(keyCode)).filter(e -> e.isSuccess()).findAny().get()
+				: new Explain<>(false, "No Number With Such Keycode! " + keyCode);
 	}
 
 	public int asciiToTune() {
@@ -58,25 +74,22 @@ public class Combo {
 
 	// static - public
 
-	public static List<Integer> getNumberKeyList() {
-		List<Integer> keyList = new ArrayList<>();
-		for (Integer i = KeyEvent.VK_0; i <= KeyEvent.VK_9; ++i) { keyList.add(i); }
-		for (Integer i = KeyEvent.VK_NUMPAD0; i <= KeyEvent.VK_NUMPAD9; ++i) { keyList.add(i); }
-		for (Integer i = KeyEvent.VK_F1; i <= KeyEvent.VK_F12; ++i) { keyList.add(i); }
-		return keyList;
+	public static IntStream getNumberKeys()
+	{
+		return IntStream.range(1, 255).filter(k -> getPressedNumber(k).isSuccess());
 	}
 
 	public static List<Combo> getNumberComboList(int mod) {
-		return getNumberKeyList().stream().map(num -> new Combo(mod, num)).collect(Collectors.toList());
+		return getNumberKeys().boxed().map(num -> new Combo(mod, num)).collect(Collectors.toList());
 	}
 
-	public static List<Integer> getCharacterKeycodeList() {
-		List<Integer> keyList = new ArrayList<>();
-		for (Integer i = KeyEvent.VK_COMMA; i <= KeyEvent.VK_DIVIDE; ++i) { keyList.add(i); }
-		keyList.addAll(Arrays.asList(KeyEvent.VK_SPACE, KeyEvent.VK_BACK_QUOTE));
-		keyList.removeAll(getNumberKeyList());
-		return keyList;
-	}
+//	public static List<Integer> getCharacterKeycodeList() {
+//		List<Integer> keyList = new ArrayList<>();
+//		for (Integer i = KeyEvent.VK_COMMA; i <= KeyEvent.VK_DIVIDE; ++i) { keyList.add(i); }
+//		keyList.addAll(Arrays.asList(KeyEvent.VK_SPACE, KeyEvent.VK_BACK_QUOTE));
+//		keyList.removeAll(getNumberKeys());
+//		return keyList;
+//	}
 
 	public static Integer tuneToAscii(Integer tune) {
 		return getAsciTuneMap().inverse().get(tune);
@@ -109,7 +122,7 @@ public class Combo {
 
 	@Override
 	public String toString() {
-		return (this.mod > 0 ? this.getModName() + "+" : "") + this.getKeyName();
+		return (this.mod > 0 ? this.getModName() + "+" : "") + this.getKeyName() + "(" + keyCode + ")";
 	}
 
 	public KeyStroke toKeystroke() {

@@ -10,6 +10,10 @@ import java.util.*;
 
 abstract public class AbstractHandler implements KeyListener, MouseListener, MouseMotionListener {
 
+	// constants
+	final public static int ctrl = KeyEvent.CTRL_MASK;
+	final public static KeyEvent k = new KeyEvent(new JPanel(),0,0,0,0,'h'); // just for constants
+
 	private IComponentModel context = null;
 
 	private LinkedList<SimpleAction> simpleActionQueue = new LinkedList<>();
@@ -76,11 +80,6 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 	public IComponentModel getContext() {
 		return this.context;
 	}
-
-	// constants
-
-	final public static int ctrl = KeyEvent.CTRL_MASK;
-	final public static KeyEvent k = new KeyEvent(new JPanel(),0,0,0,0,'h'); // just for constants
 
 	//---------
 	// mouse

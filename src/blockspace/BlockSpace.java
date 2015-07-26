@@ -118,7 +118,7 @@ public class BlockSpace extends JPanel implements IComponentModel {
 		for (int i = 0; i < childBlockList.length(); ++i) {
 			JSONObject childJs = childBlockList.getJSONObject(i);
 			IBlockSpacePanel child = makeChildByClassName(childJs.getString("className"));
-			child.getScroll().reconstructFromJson(childJs.getJSONObject("scroll"));
+			child.getParentBlock().reconstructFromJson(childJs.getJSONObject("scroll"));
 			child.reconstructFromJson(childJs);
 
 			// StaffPanels take ~10 mib; Articles - ~1 mib

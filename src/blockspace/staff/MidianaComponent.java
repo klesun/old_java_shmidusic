@@ -45,7 +45,7 @@ abstract public class MidianaComponent extends AbstractModel implements ICompone
 	final public Settings getSettings() {
 		return getPanel().getSettings();
 	}
-	final public ImageStorage getImageStorage() { return getPanel().getScroll().getModelParent().getImageStorage(); }
+	final public ImageStorage getImageStorage() { return getPanel().getParentBlock().getModelParent().getImageStorage(); }
 	final public int dx() { return getSettings().getStepWidth(); }
 	final public int dy() { return getSettings().getStepHeight(); }
 

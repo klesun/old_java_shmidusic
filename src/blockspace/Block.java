@@ -14,7 +14,7 @@ import javax.swing.*;
 import javax.swing.border.Border;
 
 @SuppressWarnings("serial")
-public class Block extends Scroll implements IComponentModel {
+public class Block extends JPanel implements IComponentModel {
 	
 	final public IBlockSpacePanel content;
 
@@ -24,8 +24,8 @@ public class Block extends Scroll implements IComponentModel {
 
 	final private static int TITLE_HEIGHT = 20;
 	final private static int BORDER_WIDTH = 4;
-	final private static Border unfocusedBorder = BorderFactory.createMatteBorder(TITLE_HEIGHT, 4, 4, 4, Color.LIGHT_GRAY);
-	final private static Border focusedBorder = BorderFactory.createMatteBorder(TITLE_HEIGHT, 4, 4, 4, Color.GRAY);
+	final private static Border unfocusedBorder = BorderFactory.createMatteBorder(4, 4, 4, 4, Color.LIGHT_GRAY);
+	final private static Border focusedBorder = BorderFactory.createMatteBorder(4, 4, 4, 4, Color.GRAY);
 
 	final private static int DEFAULT_X = 200;
 	final private static int DEFAULT_Y = 150;
@@ -40,7 +40,7 @@ public class Block extends Scroll implements IComponentModel {
 	private Boolean isFullscreen = false;
 
 	public Block(IBlockSpacePanel content, BlockSpace parent) {
-		super((Component)content);
+		super();
 		this.content = content;
 		this.parent = parent;
 
@@ -48,11 +48,14 @@ public class Block extends Scroll implements IComponentModel {
 		this.setLocation(DEFAULT_X, DEFAULT_Y);
 		this.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
+		this.setLayout(new BorderLayout());
+
 		handler = new BlockHandler(this);
 
-		titlePanel.setSize(getWidth(), TITLE_HEIGHT);
+//		titlePanel.setSize(getWidth(), TITLE_HEIGHT);
 		titlePanel.add(new TruLabel("Unsaved " + content.getClass().getSimpleName()));
-		this.add(titlePanel);
+		this.add(titlePanel, BorderLayout.PAGE_START);
+		this.add((Component)content, BorderLayout.CENTER);
 	}
 
 	@Override
@@ -149,12 +152,6 @@ public class Block extends Scroll implements IComponentModel {
 
 		setLocation(-BORDER_WIDTH, -TITLE_HEIGHT);
 		setSize(getModelParent().getWidth() + dw, getModelParent().getHeight() + dh);
-	}
-
-	public void page(int sign) {
-		JScrollBar vertical = getVerticalScrollBar();
-		vertical.setValue(limit(vertical.getValue() + sign * Staff.SISDISPLACE * getModelParent().getSettings().getStepHeight(), 0, vertical.getMaximum()));
-		repaint();
 	}
 
 	@Override
