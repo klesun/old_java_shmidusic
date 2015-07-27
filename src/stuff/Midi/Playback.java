@@ -1,5 +1,6 @@
 package stuff.Midi;
 
+import main.Main;
 import model.Explain;
 import blockspace.staff.accord.Accord;
 import blockspace.staff.Staff;
@@ -75,8 +76,15 @@ public class Playback {
 
 	private static void playNota(INota nota, Fraction start, IMidiScheduler scheduler)
 	{
-		scheduler.addNoteOnTask(start, nota);
-		scheduler.addNoteOffTask(start.add(nota.getRealLength()), nota);
+		if (!Main.isLinux) {
+			scheduler.addNoteOnTask(start, nota);
+			scheduler.addNoteOffTask(start.add(nota.getRealLength()), nota);
+		} else {
+			// making sound lag a bit, so it fitted lagging graphics ^_^
+			// TODO: maybe move this hack into preferences with parameter one day...
+			scheduler.addNoteOnTask(start.add(new Fraction(1, 16)), nota);
+			scheduler.addNoteOffTask(start.add(new Fraction(1, 16)).add(nota.getRealLength()), nota);
+		}
 	}
 
 	@Deprecated // instance MAZAFAKA

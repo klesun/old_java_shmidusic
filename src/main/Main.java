@@ -1,5 +1,6 @@
 package main;
 
+import com.sun.deploy.util.SystemUtils;
 import stuff.Midi.DeviceEbun;
 import stuff.tools.Logger;
 
@@ -11,9 +12,14 @@ public class Main
 	 * ShmiditMusic
 	 */
 
+	public static Boolean isLinux = false;
+
 	public static MajesticWindow window = null;
 
-	public static void main(String[] args){
+	public static void main(String[] args) {
+
+		// linux requires hacks for awt performance (maybe it's not awt's fault, fuck you nvidia)
+		Main.isLinux = (System.getProperty("os.name").equals("Linux"));
 
 		// TODO: it would probably load faster if window was hidden
 		window = new MajesticWindow();

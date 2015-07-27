@@ -1,6 +1,7 @@
 package blockspace.staff;
 
 import blockspace.staff.accord.Accord;
+import gui.Constants;
 import gui.ImageStorage;
 import gui.Settings;
 import model.*;
@@ -229,92 +230,6 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 //		im.put(KeyStroke.getKeyStroke("DOWN"), "none");
 //		im.put(KeyStroke.getKeyStroke("PAGE_UP"), "none");
 //		im.put(KeyStroke.getKeyStroke("PAGE_DOWN"), "none");
-	}
-
-	public class PianoLayoutPanel extends JPanel
-	{
-		final private Staff staff;
-
-		public PianoLayoutPanel(Staff staff)
-		{
-			this.staff = staff;
-		}
-
-		@Override
-		public Dimension getPreferredSize()
-		{
-			Dimension base = super.getPreferredSize();
-			return new Dimension(base.width, dy() * 8);
-		};
-
-		@Override
-		public void paintComponent(Graphics g)
-		{
-			super.paintComponent(g);
-
-			Rectangle pianoLayoutRect = new Rectangle(0, 0, this.getWidth(), this.getHeight());
-			drawVanBascoLikePianoLayout(staff.getFocusedAccord(), pianoLayoutRect, g);
-		}
-
-		// draws such piano layout so it fitted to Rectangle r
-		private void drawVanBascoLikePianoLayout(Accord accord, Rectangle baseRect, Graphics g)
-		{
-			// performance
-			g.setColor(Color.WHITE);
-			g.fillRect(baseRect.x, baseRect.y, baseRect.width, baseRect.height);
-
-			Set<INota> highlightEm = new TreeSet<>();
-			if (accord != null) {
-				accord.notaStream(n -> true).forEach(highlightEm::add);
-			}
-
-			// draw base piano layout
-			int firstTune = 34;
-			int tuneCount = 70;
-
-			IntStream ivoryTunes = IntStream.range(firstTune, firstTune + tuneCount).filter(t -> !INota.isEbony(t));
-			IntStream ebonyTunes = IntStream.range(firstTune, firstTune + tuneCount).filter(INota::isEbony);
-
-			int ivoryWidth = (int)Math.ceil(baseRect.width * 1.0 / (INota.ivoryIndex(tuneCount)));
-			int ebonyWidth = ivoryWidth / 2;
-
-			double ebonyLength = baseRect.height / 2;
-
-			ivoryTunes.forEach(tune -> {
-				int ivoryIndex = INota.ivoryIndex(tune) - INota.ivoryIndex(firstTune);
-				int pos = baseRect.x + ivoryIndex * ivoryWidth;
-
-				Rectangle keyRect = new Rectangle(pos, baseRect.x, ivoryWidth, baseRect.height);
-
-				if (highlightEm.stream().anyMatch(n -> n.getTune() == tune)) {
-					int channel = highlightEm.stream().filter(n -> n.getTune() == tune).findAny().get().getChannel();
-					g.setColor(ImageStorage.getColorByChannel(channel));
-					g.fillRect(keyRect.x, keyRect.y, keyRect.width, keyRect.height);
-				}
-				g.setColor(Color.BLACK);
-				g.drawRect(keyRect.x, keyRect.y, keyRect.width, keyRect.height);
-			});
-
-			ebonyTunes.forEach(tune -> {
-				Color color;
-
-				int ivoryNeighborIndex = INota.ivoryIndex(tune) - INota.ivoryIndex(firstTune);
-				int pos = baseRect.x + (int) (ivoryNeighborIndex * ivoryWidth - ebonyWidth / 2);
-
-				Rectangle keyRect = new Rectangle(pos, baseRect.x, ebonyWidth, (int) ebonyLength);
-
-				if (highlightEm.stream().anyMatch(n -> n.getTune() == tune)) {
-					int channel = highlightEm.stream().filter(n -> n.getTune() == tune).findAny().get().getChannel();
-					color = ImageStorage.getColorByChannel(channel);
-				} else {
-					color = Color.LIGHT_GRAY;
-				}
-				g.setColor(color);
-				g.fillRect(keyRect.x, keyRect.y, keyRect.width, keyRect.height);
-				g.setColor(Color.BLACK);
-				g.drawRect(keyRect.x, keyRect.y, keyRect.width, keyRect.height);
-			});
-		}
 	}
 }
 

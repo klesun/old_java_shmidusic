@@ -12,9 +12,7 @@ import java.util.function.*;
 
 public class AccordHandler extends AbstractHandler {
 
-	final public static int ACCORD_EPSILON = Nota.getTimeMilliseconds(new Fraction(1, 16), 240); // 0.0625 sec
-
-	private LinkedList<Nota> deletedNotaQueue = new LinkedList<>();
+	final public static int ACCORD_EPSILON = Nota.getTimeMilliseconds(new Fraction(1, 16), 120); // 0.125 sec
 
 	public AccordHandler(Accord context) {
 		super(context);

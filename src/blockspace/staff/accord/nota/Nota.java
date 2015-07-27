@@ -121,11 +121,11 @@ public class Nota extends MidianaComponent implements INota {
 
 	// <editor-fold desc="getters">
 
-	public int getAcademicIndex() {
-		return isEbony() && getIsSharp()
-				? INota.ivoryMask(this.tune.get()) - 1
-				: INota.ivoryMask(this.tune.get());
-	}
+//	public int getAcademicIndex() {
+//		return isEbony() && getIsSharp()
+//				? INota.ivoryMask(this.tune.get()) - 1
+//				: INota.ivoryMask(this.tune.get());
+//	}
 
 	public int getTimeMilliseconds(Boolean includeLinkedTime) {
 		StaffConfig config = getParentAccord().getParentStaff().getConfig();
@@ -193,7 +193,9 @@ public class Nota extends MidianaComponent implements INota {
 	public Boolean isStriked() { return ivoryIndex() % 2 == 1; }
 
 	@Override
-	public int ivoryIndex() { return isPause() ? PAUSE_POSITION : INota.super.ivoryIndex(); }
+	public int ivoryIndex() {
+		return isPause() ? PAUSE_POSITION : INota.super.ivoryIndex() - (isEbony() && isSharp.get() ? 1 : 0);
+	}
 	public Pnt getAncorPoint() { return new Pnt(getWidth()*16/25, getHeight() - dy()); }
 	public int getNotaImgRelX() { return this.getWidth() / 2; } // bad name
 	public int getStickX() { return this.getNotaImgRelX() + dx() / 2; }
