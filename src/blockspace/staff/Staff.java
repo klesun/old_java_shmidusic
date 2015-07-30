@@ -1,7 +1,9 @@
 package blockspace.staff;
 
+import blockspace.staff.accord.Tact;
 import blockspace.staff.accord.nota.Nota;
 import model.Explain;
+import model.IModel;
 import model.SimpleAction;
 import blockspace.staff.accord.AccordHandler;
 import blockspace.staff.StaffConfig.StaffConfig;
@@ -16,6 +18,8 @@ import stuff.Midi.Playback;
 import stuff.Musica.PlayMusThread;
 
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 
 import stuff.tools.jmusic_integration.INota;
@@ -51,18 +55,25 @@ public class Staff extends MidianaComponent {
 		this.playback = new Playback(this);
 	}
 
-	public synchronized Accord addNewAccord() {
-		return addNewAccord(true);
-	}
-
-	public synchronized Accord addNewAccord(Boolean withPlayback) {
-		Accord accord = new Accord(this);
-		if (DeviceEbun.isPlaybackSoftware() && withPlayback) { // i.e. when playback is not done with piano - no need to play pressed accord, user hears it anyways
+	public synchronized Accord addNewAccordWithPlayback()
+	{
+		Accord accord = addNewAccord(getFocusedIndex() + 1);
+		this.moveFocus(1);
+		if (DeviceEbun.isPlaybackSoftware()) { // i.e. when playback is not done with piano - no need to play pressed accord, user hears it anyways
 			new Thread(() -> { Uninterruptibles.sleepUninterruptibly(AccordHandler.ACCORD_EPSILON, TimeUnit.MILLISECONDS); PlayMusThread.playAccord(accord); }).start();
 		}
-		this.add(accord, getFocusedIndex() + 1);
-		this.moveFocus(1);
+
 		return accord;
+	}
+
+	public Accord addNewAccord()
+	{
+		return addNewAccord(accordList.size());
+	}
+
+	public Accord addNewAccord(int position)
+	{
+		return add(new Accord(this), position);
 	}
 
 	/** TODO: public is temporary */
@@ -103,48 +114,6 @@ public class Staff extends MidianaComponent {
 	public synchronized void drawOn(Graphics g, Boolean completeRepaintRequired)
 	{
 		new StaffPainter(this, g, 0, 0).draw(completeRepaintRequired);
-
-		/** @remove once ur sure Painter does well */
-//		int baseX = getMarginX() + 2 * dx();  // 2вч - violin/bass keys
-//		int baseY = getMarginY(); // highest line y
-//
-//		TactMeasurer tactMeasurer = new TactMeasurer(this);
-//
-//		getConfig().drawOn(g, baseX, baseY, completeRepaintRequired);
-//		baseX += dx();
-//
-//		int i = 0;
-//		for (List<Accord> row : getAccordRowList()) {
-//			int y = baseY + i * SISDISPLACE * dy(); // bottommest y nota may be drawn on
-//
-//			if (completeRepaintRequired) {
-//				g.drawImage(getImageStorage().getViolinKeyImage(), this.dx(), y - 3 * dy(), null);
-//				g.drawImage(getImageStorage().getBassKeyImage(), this.dx(), 11 * dy() + y, null);
-//			}
-//
-//			int j = 0;
-//			for (Accord accord : row) {
-//				int x = baseX + j * (2 * dx());
-//
-//				accord.drawOn(g, x, y - 12 * dy(), completeRepaintRequired);
-//				if (tactMeasurer.inject(accord)) {
-//					g.setColor(tactMeasurer.sumFraction.equals(new Fraction(0)) ? Color.BLACK : new Color(255, 63, 0)); // reddish orange
-//					g.drawLine(x + dx() * 2 - 1, y - dy() * 5, x + dx() * 2 - 1, y + dy() * 20); // -1 cuz elsevere next nota will erase it =D
-//					g.setColor(new Color(0, 161, 62));
-//					g.drawString(tactMeasurer.tactCount + "", x + dx() * 2, y - dy() * 6);
-//				}
-//
-//				++j;
-//			}
-//
-//			g.setColor(Color.BLUE);
-//			for (j = 0; j < 11; ++j) {
-//				if (j == 5) continue;
-//				g.drawLine(getMarginX(), y + j * dy() * 2, getWidth() - getMarginX() * 2, y + j * dy() * 2);
-//			}
-//
-//			++i;
-//		}
 	}
 
 	@Override
@@ -152,19 +121,30 @@ public class Staff extends MidianaComponent {
 		JSONObject dict = new JSONObject()
 			.put("staffConfig", this.getConfig().getJsonRepresentation());
 
-		TactMeasurer tacter = new TactMeasurer(this);
 		JSONArray accordList = new JSONArray();
 
-		for (Accord accord: getAccordList()) {
-			accordList.put(accord.getJsonRepresentation());
-			if (tacter.inject(accord)) {
-				// small hack for great good (to visually separate tacts)
-				accordList.put(new JSONObject().put("tact", tacter.tactCount));
-			}
-		}
-		dict.put("accordList", accordList);
+		dict.put("tactList", getTactStream().stream().map(IModel::getJsonRepresentation).toArray());
 
 		return dict;
+	}
+
+	public List<Tact> getTactStream()
+	{
+		// TODO: maybe move implementation into Tact or TactMeasurer
+		List<Tact> result = new ArrayList<>();
+
+		TactMeasurer measurer = new TactMeasurer(getConfig().getTactSize());
+
+		Tact currentTact = new Tact(this);
+		for (Accord accord: accordList) {
+			currentTact.accordList.add(accord);
+			if (measurer.inject(accord)) {
+				result.add(currentTact);
+				currentTact = new Tact(this);
+			}
+		}
+
+		return result;
 	}
 
 	// TODO: model, mazafaka!
@@ -178,9 +158,10 @@ public class Staff extends MidianaComponent {
 
 		for (int idx = 0; idx < accordJsonList.length(); ++idx) {
 			JSONObject childJs = accordJsonList.getJSONObject(idx);
-			if (!childJs.has("tact")) { // small hack for great good (i put empty dict after accord when tact ends)
-				this.addNewAccord(false).reconstructFromJson(childJs);
-				this.moveFocus(1); // TODO: maybe not ?
+			if (childJs.has("tact")) { // small hack for great good
+				toList(childJs.getJSONArray("accordList")).forEach(a -> addNewAccord().reconstructFromJson(a));
+			} else {
+				this.addNewAccord().reconstructFromJson(childJs);
 			}
 		}
 
@@ -373,14 +354,14 @@ public class Staff extends MidianaComponent {
 
 	public static class TactMeasurer {
 
-		private Staff parent = null;
+		final private Fraction tactSize;
 
 		public Fraction sumFraction = new Fraction(0);
 
 		public int tactCount = 0;
 
-		public TactMeasurer(Staff parent) {
-			this.parent = parent;
+		public TactMeasurer(Fraction tactSize) {
+			this.tactSize = tactSize;
 		}
 
 		/** @returns true if accord finished the tact */
@@ -392,14 +373,19 @@ public class Staff extends MidianaComponent {
 			}
 
 			Boolean finishedTact = false;
-			while (sumFraction.compareTo(parent.getConfig().getTactSize()) >= 0) {
-				sumFraction = sumFraction.subtract(parent.getConfig().getTactSize());
+			while (sumFraction.compareTo(tactSize) >= 0) {
+				sumFraction = sumFraction.subtract(tactSize);
 				++tactCount;
 				finishedTact = true;
 			}
 
 			return finishedTact;
 		}
+	}
+
+	private Stream<JSONObject> toList(JSONArray jsArray) throws JSONException
+	{
+		return IntStream.range(0, jsArray.length()).boxed().map(i -> jsArray.getJSONObject(i));
 	}
 }
 

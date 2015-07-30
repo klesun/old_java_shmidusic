@@ -22,7 +22,7 @@ import org.json.JSONObject;
 public class Accord extends MidianaComponent {
 
 	private Field<Boolean> isDiminendo = new Field<>("isDiminendo", false, this).setPaintingLambda(Accord::diminendoPainting);
-	public Field<String> slog = new Field<>("slog", "", this).setPaintingLambda(Accord::slogPainting);
+	public Field<String> slog = new Field<>("slog", "", this).setPaintingLambda(Accord::slogPainting).setOmitDefaultFromJson(true);
 	public Arr<Nota> notaList = new Arr<>("notaList", new TreeSet<>(), this, Nota.class);
 
 	private Boolean surfaceChanged = true;

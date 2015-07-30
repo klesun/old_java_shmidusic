@@ -1,6 +1,6 @@
 package main;
 
-import com.sun.deploy.util.SystemUtils;
+//import com.sun.deploy.util.SystemUtils;
 import stuff.Midi.DeviceEbun;
 import stuff.tools.Logger;
 

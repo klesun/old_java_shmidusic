@@ -62,7 +62,7 @@ public class StaffHandler extends AbstractHandler {
 			actionMap.p(entry.getKey(), action
 				.setRedo(s -> {
 					if (s.mode != Staff.aMode.passive) {
-						s.addNewAccord().addNewNota(entry.getValue(), s.getSettings().getDefaultChannel());
+						s.addNewAccordWithPlayback().addNewNota(entry.getValue(), s.getSettings().getDefaultChannel());
 						return new Explain(true);
 					} else {
 						return new Explain("Cant do, passive mode is on!");

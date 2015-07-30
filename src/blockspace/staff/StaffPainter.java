@@ -21,7 +21,7 @@ public class StaffPainter extends AbstractPainter
 	{
 		Staff s = (Staff)context;
 
-		Staff.TactMeasurer tactMeasurer = new Staff.TactMeasurer(s);
+		Staff.TactMeasurer tactMeasurer = new Staff.TactMeasurer(s.getConfig().getTactSize());
 
 		int i = 0;
 		for (java.util.List<Accord> row : s.getAccordRowList()) {
