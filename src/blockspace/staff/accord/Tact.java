@@ -4,6 +4,7 @@ import blockspace.staff.MidianaComponent;
 import blockspace.staff.Staff;
 import model.AbstractHandler;
 import model.field.Arr;
+import model.field.Field;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -13,10 +14,17 @@ import java.util.List;
 public class Tact extends MidianaComponent
 {
 	public Arr<Accord> accordList = new Arr<>("accordList", new ArrayList<>(), this, Accord.class);
+	public Field<Integer> tactNumber = new Field<>("tactNumber", Integer.class, true, this);
 
 	public Tact(Staff parent)
 	{
+		this(parent, -100);
+	}
+
+	public Tact(Staff parent, int tactNumber)
+	{
 		super(parent);
+		this.tactNumber.set(tactNumber);
 	}
 
 	@Override

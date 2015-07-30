@@ -122,26 +122,30 @@ public class FileProcessor {
 		}
 	}
 
-	private static Explain openModel(File f, IModel model) {
-		Explain<JSONObject> jsExplain = openJsonFile(f);
-		if (jsExplain.isSuccess()) {
+	private static Explain openModel(File f, IModel model)
+	{
+		return openJsonFile(f).ifSuccess(js ->
+		{
+			if (js.has(model.getClass().getSimpleName())) {
+				JSONObject modelJs = js.getJSONObject(model.getClass().getSimpleName());
 
-			// TODO: handle some exceptions like yu-no, data structure mismatch
-			// or yu-no, js may not have key model.getClass().getSimpleName()
-
-			if (jsExplain.getData().has(model.getClass().getSimpleName())) {
-				JSONObject modelJs = jsExplain.getData().getJSONObject(model.getClass().getSimpleName());
-				model.reconstructFromJson(modelJs);
-
-				return new Explain(true);
+				try {
+					model.reconstructFromJson(modelJs);
+					return new Explain(true);
+				} catch (JSONException exc) {
+					return new Explain(false, "Failed to Open Model, some Json error: " + describeException(exc));
+				}
 			} else {
 				return new Explain(false, "File you provided does not have [" + model.getClass().getSimpleName() + "] key in main body, " + "" +
-					"only " + Arrays.toString(JSONObject.getNames(jsExplain.getData())) + "]");
+					"only " + Arrays.toString(JSONObject.getNames(js)) + "]");
 			}
+		});
+	}
 
-		} else {
-			return jsExplain;
-		}
+	private static String describeException(Exception exc)
+	{
+		String traceString = Fp.traceDiff(exc, new Throwable());
+		return exc.getClass().getSimpleName() + " " + exc.getMessage() + "\n\n" + traceString;
 	}
 
 	private static Explain<JSONObject> openJsonFile(File f) {

@@ -1,6 +1,8 @@
 package stuff.tools;
 
 import java.awt.*;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,5 +46,33 @@ public class Fp {
 
 		g.setColor(tmpColor);
 		g.setStroke(tmpStroke);
+	}
+
+	// TODO: this method was written on quick hand - don't judge strict, but better - improve!
+	public static String traceDiff(Throwable trace1, Throwable trace2)
+	{
+		StringWriter sw = new StringWriter();
+		trace1.printStackTrace(new PrintWriter(sw));
+		String[] trace1LineList = sw.toString().split("\n");
+
+		sw = new StringWriter();
+		trace2.printStackTrace(new PrintWriter(sw));
+		String[] trace2LineList = sw.toString().split("\n");
+
+		int trace1LineIdx = trace1LineList.length - 1;
+		int trace2LineIdx = trace2LineList.length - 1;
+
+		while (trace1LineIdx > 0 && trace2LineIdx > 0) {
+			if (!trace1LineList[trace1LineIdx--].equals(trace2LineList[trace2LineIdx--])) {
+				break;
+			}
+		}
+
+		String result = "";
+		for (int i = 0; i <= trace1LineIdx + 1; ++i) {
+			result += trace1LineList[i] + "\n";
+		}
+
+		return result;
 	}
 }

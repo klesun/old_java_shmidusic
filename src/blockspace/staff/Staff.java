@@ -118,14 +118,9 @@ public class Staff extends MidianaComponent {
 
 	@Override
 	public JSONObject getJsonRepresentation() {
-		JSONObject dict = new JSONObject()
-			.put("staffConfig", this.getConfig().getJsonRepresentation());
-
-		JSONArray accordList = new JSONArray();
-
-		dict.put("tactList", getTactStream().stream().map(IModel::getJsonRepresentation).toArray());
-
-		return dict;
+		return new JSONObject()
+			.put("staffConfig", this.getConfig().getJsonRepresentation())
+			.put("tactList", getTactStream().stream().map(IModel::getJsonRepresentation).toArray());
 	}
 
 	public List<Tact> getTactStream()
@@ -136,12 +131,16 @@ public class Staff extends MidianaComponent {
 		TactMeasurer measurer = new TactMeasurer(getConfig().getTactSize());
 
 		Tact currentTact = new Tact(this);
+		int i = 0;
 		for (Accord accord: accordList) {
 			currentTact.accordList.add(accord);
 			if (measurer.inject(accord)) {
 				result.add(currentTact);
-				currentTact = new Tact(this);
+				currentTact = new Tact(this, i++);
 			}
+		}
+		if (currentTact.accordList.size() > 0) {
+			result.add(currentTact);
 		}
 
 		return result;
@@ -152,17 +151,19 @@ public class Staff extends MidianaComponent {
 	public Staff reconstructFromJson(JSONObject jsObject) throws JSONException {
 		this.clearStan();
 
-		JSONArray accordJsonList = jsObject.getJSONArray("accordList");
 		JSONObject configJson = jsObject.getJSONObject("staffConfig");
 		this.getConfig().reconstructFromJson(configJson);
 
-		for (int idx = 0; idx < accordJsonList.length(); ++idx) {
-			JSONObject childJs = accordJsonList.getJSONObject(idx);
-			if (childJs.has("tact")) { // small hack for great good
-				toList(childJs.getJSONArray("accordList")).forEach(a -> addNewAccord().reconstructFromJson(a));
-			} else {
-				this.addNewAccord().reconstructFromJson(childJs);
-			}
+		if (jsObject.has("accordList")) {
+			toStream(jsObject.getJSONArray("accordList")).forEach(
+				childJs -> this.addNewAccord().reconstructFromJson(childJs));
+
+		} else if (jsObject.has("tactList")) {
+			toStream(jsObject.getJSONArray("tactList")).forEach(
+				childJs -> toStream(childJs.getJSONArray("accordList")).forEach(
+					a -> addNewAccord().reconstructFromJson(a)));
+		} else {
+			throw new JSONException("Staff Json Has Valid Children!");
 		}
 
 		return this;
@@ -383,7 +384,7 @@ public class Staff extends MidianaComponent {
 		}
 	}
 
-	private Stream<JSONObject> toList(JSONArray jsArray) throws JSONException
+	private Stream<JSONObject> toStream(JSONArray jsArray) throws JSONException
 	{
 		return IntStream.range(0, jsArray.length()).boxed().map(i -> jsArray.getJSONObject(i));
 	}
