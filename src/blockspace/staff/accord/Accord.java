@@ -12,6 +12,7 @@ import model.field.Arr;
 import model.field.Field;
 import model.SimpleAction;
 import blockspace.staff.MidianaComponent;
+import stuff.tools.Fp;
 import stuff.tools.jmusic_integration.INota;
 import org.apache.commons.math3.fraction.Fraction;
 
@@ -64,19 +65,9 @@ public class Accord extends MidianaComponent {
 		return g -> {
 			if (g.getFontMetrics(g.getFont()).stringWidth(value) > 0) {
 				g.setColor(Color.BLACK);
-				g.setFont(scaleFont(value, r, g));
-				g.drawString(value, 0, 0);
+				Fp.fitTextIn(r, value, g);
 			}
 		};
-	}
-
-	private static Font scaleFont(String text, Rectangle rect, Graphics g) {
-		float fontSize = 20.0f;
-
-		Font font = g.getFont().deriveFont(fontSize);
-		int width = g.getFontMetrics(font).stringWidth(text);
-		fontSize = (rect.width / width ) * fontSize;
-		return g.getFont().deriveFont(fontSize);
 	}
 
 	// responses to events (actions)
@@ -113,11 +104,6 @@ public class Accord extends MidianaComponent {
 	public long getEarliestKeydown() {
 		Nota nota = this.getNotaSet().stream().reduce(null, (a, b) -> a != null && a.keydownTimestamp < b.keydownTimestamp ? a : b);
 		return nota != null ? nota.keydownTimestamp : 0;
-	}
-
-	public Boolean isHighestBotommedToFitSystem() {
-		Nota nota = this.getNotaSet().stream().reduce(null, (a, b) -> a != null && a.tune.get() > b.tune.get() ? a : b);
-		return nota != null ? nota.isBotommedToFitSystem() : false;
 	}
 
 	public Nota findByTuneAndChannel(int tune, int channel) {

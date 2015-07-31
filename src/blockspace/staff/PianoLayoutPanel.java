@@ -47,7 +47,6 @@ public class PianoLayoutPanel extends JPanel
 
 		Set<INota> highlightEm = getNotaSet();
 
-		// draw base piano layout
 		int firstTune = 36;
 		int tuneCount = 72; // 6 octaves
 
@@ -94,24 +93,23 @@ public class PianoLayoutPanel extends JPanel
 		});
 	}
 
-	private Set<INota> getNotaSet()
+	synchronized private Set<INota> getNotaSet()
 	{
 		Set<INota> result = new TreeSet<>();
 
 		int index = staff.getFocusedIndex();
-		Fraction sum = new Fraction(0);
+		if (index > -1) {
+			Fraction sum = staff.getAccordList().get(index).getFraction().negate();
 
-		while (sum.compareTo(ImageStorage.getTallLimit()) < 0) {
+			while (sum.compareTo(ImageStorage.getTallLimit()) < 0 && index > -1) {
 
-			Accord accord = staff.getAccordList().get(index);
+				Accord accord = staff.getAccordList().get(index);
+				sum = sum.add(accord.getFraction());
 
-			final Fraction finalSum = sum;
-			accord.notaStream(n -> n.getRealLength().compareTo(finalSum) > 0).forEach(result::add);
+				final Fraction finalSum = sum;
+				accord.notaStream(n -> n.getRealLength().compareTo(finalSum) > 0).forEach(result::add);
 
-			if (--index >= 0) {
-				sum = sum.add(staff.getAccordList().get(index).getFraction());
-			} else {
-				break;
+				--index;
 			}
 		}
 

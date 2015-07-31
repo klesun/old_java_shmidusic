@@ -145,10 +145,10 @@ public class ImageStorage {
 
 	public static Color getColorByChannel(int n) {
 		return	n == 0 ? new Color(0,0,0) : // black
-				n == 1 ? new Color(255,0,0) : // red
-				n == 2 ? new Color(0,192,0) : // green
-				n == 3 ? new Color(0,0,255) : // blue
-				n == 4 ? new Color(191,191,0) : // yellow
+				n == 1 ? new Color(192,0,0) : // red
+				n == 2 ? new Color(0,148,0) : // green
+				n == 3 ? new Color(48,48,255) : // blue
+				n == 4 ? new Color(128,128,0) : // yellow
 				n == 5 ? new Color(0,127,255) : // cyan
 				n == 6 ? new Color(192,0,192) : // magenta
 				n == 7 ? new Color(255,128,0) : // orange

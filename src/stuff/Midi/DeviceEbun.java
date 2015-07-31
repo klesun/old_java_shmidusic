@@ -128,22 +128,22 @@ public class DeviceEbun {
 		sendMessage(ShortMessage.CONTROL_CHANGE, channel, VOLUME, value);
 	}
 
-	public static void openNota(INota nota) {
+	synchronized public static void openNota(INota nota) {
+		openNotaSet.add(nota);
 		if (nota.getChannel() != DRUM_CHANNEL) {
 			sendMessage(ShortMessage.NOTE_ON, nota.getChannel(), nota.getTune(), nota.getVolume());
 		} else {
 			sendMessage(DRUM_NOTE_ON, nota.getTune(), nota.getVolume());
 		}
-		openNotaSet.add(nota);
 	}
 
-	public static void closeNota(INota nota) {
+	synchronized public static void closeNota(INota nota) {
+		openNotaSet.remove(nota);
 		if (nota.getChannel() != DRUM_CHANNEL) {
 			sendMessage(ShortMessage.NOTE_OFF, nota.getChannel(), nota.getTune(), 0);
 		} else {
 			sendMessage(DRUM_NOTE_OFF, nota.getTune(), 0);
 		}
-		openNotaSet.remove(nota);
 	}
 
 	public static void closeAllNotas() {

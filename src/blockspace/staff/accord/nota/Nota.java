@@ -71,9 +71,9 @@ public class Nota extends MidianaComponent implements INota {
 		surface.drawImage(tmpImg, x + getNotaImgRelX(), y, null);
 
 		if (isTriplet.get()) {
-			for (int i = 0; i < 3; ++i) {
-				surface.drawLine(x + getStickX(), y + i * 2 + 1, x + getStickX() - 6, y + i * 2 + 1);
-			}
+			surface.setColor(ImageStorage.getColorByChannel(channel.get()));
+			Rectangle rect = new Rectangle(x + dx() /4, y + 6 * dy(), dx() / 2, dy() * 2);
+			Fp.fitTextIn(rect, "3", surface);
 		}
 
 		for (int i = 0; i < getDotCount(); ++i) {

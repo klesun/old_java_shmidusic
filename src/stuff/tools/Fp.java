@@ -1,10 +1,13 @@
 package stuff.tools;
 
+import gui.Constants;
+
 import java.awt.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 public class Fp {
 	// TODO: make static class Settings, where we will store scaling koef and the stuff
@@ -46,6 +49,22 @@ public class Fp {
 
 		g.setColor(tmpColor);
 		g.setStroke(tmpStroke);
+	}
+
+	public static void fitTextIn(Rectangle rect, String text, Graphics g) {
+
+		Function<Integer, Double> toInches = pixels -> pixels * 1.25;
+		Function<Double, Double> toPixels = inches -> inches * 0.8;
+
+		double fontSize = toInches.apply(rect.height);
+
+		Font font = Constants.PROJECT_FONT.deriveFont((float)fontSize);
+		int width = g.getFontMetrics(font).stringWidth(text);
+		fontSize = Math.min(fontSize * rect.width / width, fontSize);
+
+		g.setFont(Constants.PROJECT_FONT.deriveFont((float)fontSize));
+
+		g.drawString(text, rect.x, rect.y + toPixels.apply(fontSize).intValue());
 	}
 
 	// TODO: this method was written on quick hand - don't judge strict, but better - improve!
