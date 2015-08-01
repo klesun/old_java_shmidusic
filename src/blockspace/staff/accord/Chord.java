@@ -2,8 +2,6 @@ package blockspace.staff.accord;
 
 import java.awt.*;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -12,7 +10,6 @@ import model.field.Arr;
 import model.field.Field;
 import model.SimpleAction;
 import blockspace.staff.MidianaComponent;
-import stuff.tools.Fp;
 import stuff.tools.jmusic_integration.INota;
 import org.apache.commons.math3.fraction.Fraction;
 
@@ -20,17 +17,17 @@ import blockspace.staff.accord.nota.Nota;
 import blockspace.staff.Staff;
 import org.json.JSONObject;
 
-public class Accord extends MidianaComponent {
-
-	private Field<Boolean> isDiminendo = new Field<>("isDiminendo", false, this).setPaintingLambda(Accord::diminendoPainting);
-	public Field<String> slog = new Field<>("slog", "", this).setPaintingLambda(Accord::slogPainting).setOmitDefaultFromJson(true);
+public class Chord extends MidianaComponent
+{
+	private Field<Boolean> isDiminendo = new Field<>("isDiminendo", false, this).setPaintingLambda(ChordPainter::diminendoPainting);
+	public Field<String> slog = new Field<>("slog", "", this).setPaintingLambda(ChordPainter::slogPainting).setOmitDefaultFromJson(true);
 	public Arr<Nota> notaList = new Arr<>("notaList", new TreeSet<>(), this, Nota.class);
 
 	private Boolean surfaceChanged = true;
 
 	int focusedIndex = -1;
 
-	public Accord(Staff parent) {
+	public Chord(Staff parent) {
 		super(parent);
 		h.getFieldStorage().forEach(f -> f.setOnChange(this::surfaceChanged));
 	}
@@ -39,35 +36,11 @@ public class Accord extends MidianaComponent {
 		this.surfaceChanged = true;
 	}
 
-	public void drawOn(Graphics surface, int x, int y, Boolean completeRepaintRequired) {
+	public void drawOn(Graphics2D surface, int x, int y, Boolean completeRepaintRequired) {
 		if (completeRepaintRequired || surfaceChanged) {
-			new AccordPainter(this, surface, x, y).draw(true); // TODO: make it be not needed
+			new ChordPainter(this, surface, x, y).draw(true); // TODO: make it be not needed
 			surfaceChanged = false;
 		}
-	}
-
-	private static Consumer<Graphics> diminendoPainting(Rectangle r, Boolean value) {
-		return g -> {
-			double stretch = 0.5;
-//			g.setColor(value ? Color.BLACK : Color.white);
-			g.setColor(Color.BLACK);
-			int x1 = (int)(r.x + r.width * stretch / 2);
-			int x2 = (int)(r.x - r.width * stretch / 2) + r.width;
-
-			if (value) {
-				g.drawLine(x1, r.y, x2, r.y + r.height / 2);
-				g.drawLine(x1, r.y + r.height, x2, r.y + r.height / 2);
-			}
-		};
-	}
-
-	private static Consumer<Graphics> slogPainting(Rectangle r, String value) {
-		return g -> {
-			if (g.getFontMetrics(g.getFont()).stringWidth(value) > 0) {
-				g.setColor(Color.BLACK);
-				Fp.fitTextIn(r, value, g);
-			}
-		};
 	}
 
 	// responses to events (actions)
@@ -133,7 +106,7 @@ public class Accord extends MidianaComponent {
 		return (Staff)this.getModelParent();
 	}
 	public String getSlog() { return this.slog.get(); }
-	public Accord setSlog(String value) { this.slog.set(value); return this; }
+	public Chord setSlog(String value) { this.slog.set(value); return this; }
 	public int getFocusedIndex() {
 		return this.focusedIndex;
 	}
@@ -145,14 +118,14 @@ public class Accord extends MidianaComponent {
 		setIsDiminendo(!getIsDiminendo());
 	}
 
-	public Accord getNext() {
-		int nextIndex = getParentStaff().getAccordList().indexOf(this) + 1;
-		return nextIndex < getParentStaff().getAccordList().size()
-				? getParentStaff().getAccordList().get(nextIndex)
+	public Chord getNext() {
+		int nextIndex = getParentStaff().getChordList().indexOf(this) + 1;
+		return nextIndex < getParentStaff().getChordList().size()
+				? getParentStaff().getChordList().get(nextIndex)
 				: null;
 	}
 
-	public Accord setFocusedIndex(int value) {
+	public Chord setFocusedIndex(int value) {
 		value = value >= this.getNotaSet().size() ? this.getNotaSet().size() - 1 : value;
 		value = value < -1 ? -1 : value;
 		this.focusedIndex = value;

@@ -2,16 +2,23 @@ package stuff.OverridingDefaultClasses;
 
 import java.awt.*;
 
-public class Pnt extends Point {
+public class Pnt
+{
+	final public double x;
+	final public double y;
 
-	public Pnt(int x, int y) {
-		super(x, y);
+	public Pnt(double x, double y)
+	{
+		this.x = x;
+		this.y = y;
+	}
+
+	public Point legacy() {
+		return new Point((int)x, (int)y);
 	}
 
 	public Pnt plus(Point p) {
-		Pnt newPoint = new Pnt(this.x, this.y);
-		newPoint.translate(p.x, p.y);
-		return newPoint;
+		return new Pnt(x + p.x, y + p.y);
 	}
 
 	public Pnt plus(int x, int y) {

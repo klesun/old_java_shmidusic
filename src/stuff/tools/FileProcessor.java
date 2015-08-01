@@ -16,6 +16,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import stuff.Midi.SimpleMidiParser;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -33,7 +34,7 @@ public class FileProcessor {
 		return makeSaveFileDialog("png", "PNG images").ifSuccess(f ->
 		{
 			BufferedImage img = new BufferedImage(staff.getWidth(), staff.getHeight(), BufferedImage.TYPE_INT_ARGB);
-			staff.drawOn(img.getGraphics(), true);
+			staff.drawOn((Graphics2D)img.getGraphics(), true);
 
 			return Explain.tryException(() -> ImageIO.write(img, "png", f));
 		});

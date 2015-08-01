@@ -1,8 +1,5 @@
 package blockspace.staff;
 
-import blockspace.staff.accord.Accord;
-import gui.Constants;
-import gui.ImageStorage;
 import gui.Settings;
 import model.*;
 import blockspace.BlockSpace;
@@ -13,19 +10,14 @@ import stuff.OverridingDefaultClasses.Scroll;
 import stuff.OverridingDefaultClasses.TruMap;
 import org.json.JSONException;
 import org.json.JSONObject;
-import stuff.tools.jmusic_integration.INota;
 
 import java.awt.*;
 
 import javax.swing.*;
 
 import java.awt.event.*;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.function.Consumer;
-import java.util.stream.IntStream;
 
 
 final public class StaffPanel extends JPanel implements IBlockSpacePanel {
@@ -95,7 +87,6 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 	@Override
 	public void paintComponent(Graphics g) {
 		if (!loadJsonOnFocus) {
-
 			super.paintComponent(g);
 
 			// maybe need to move it to RealStaffPanel::paintComponent()
@@ -205,7 +196,11 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 		public void paintComponent(Graphics g)
 		{
 			super.paintComponent(g);
-			staff.drawOn(g, true);
+
+			Graphics2D g2 = (Graphics2D)g;
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+			staff.drawOn(g2, true);
 		}
 
 //		context.getVerticalScrollBar().addMouseListener(new MouseAdapter() {

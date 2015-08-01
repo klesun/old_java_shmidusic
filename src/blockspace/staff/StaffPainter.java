@@ -1,17 +1,16 @@
 package blockspace.staff;
 
-import blockspace.staff.accord.Accord;
+import blockspace.staff.accord.Chord;
+import blockspace.staff.accord.nota.Nota;
 import model.AbstractPainter;
 import org.apache.commons.math3.fraction.Fraction;
 import stuff.tools.jmusic_integration.INota;
 
 import java.awt.*;
-import java.util.*;
-import java.util.stream.IntStream;
 
 public class StaffPainter extends AbstractPainter
 {
-	public StaffPainter(Staff context, Graphics g, int x, int y) {
+	public StaffPainter(Staff context, Graphics2D g, int x, int y) {
 		// this trick won't do when Painter becames child of Staff
 		super(context, g, x + context.getMarginX() + 3 * context.dx(), y + context.getMarginY()); // 3dx - violin/bass keys and Config
 	}
@@ -24,29 +23,18 @@ public class StaffPainter extends AbstractPainter
 		Staff.TactMeasurer tactMeasurer = new Staff.TactMeasurer(s.getConfig().getTactSize());
 
 		int i = 0;
-		for (java.util.List<Accord> row : s.getAccordRowList()) {
+		for (java.util.List<Chord> row : s.getAccordRowList()) {
 
 			int y = i * Staff.SISDISPLACE * dy(); // bottommest y nota may be drawn on
 
-			// normal Nota height lines
-			for (int j = 0; j < 11; ++j) {
-				if (j == 5) continue;
-				int lineY = y + j * dy() * 2;
-				drawLine(- 3 * dx(), lineY, s.getWidth() - s.getMarginX() * 6, lineY, Color.BLUE);
-			}
-
-			// hidden Nota height lines fot way too high Nota-s
-			for (int j = -3; j >= -5; --j) { // -3 - Mi; -5 -si
-				int lineY = y + j * dy() * 2;
-				drawLine(- 3 * dx(), lineY, s.getWidth() - s.getMarginX() * 6, lineY, Color.LIGHT_GRAY);
-			}
+			drawStaffLines(y);
 
 			int j = 0;
-			for (Accord accord : row) {
+			for (Chord chord : row) {
 				int x = j * (2 * dx());
 
-				drawModel(accord, x, y - 12 * dy(), completeRepaint);
-				if (tactMeasurer.inject(accord)) {
+				drawModel(chord, x, y - 12 * dy(), completeRepaint);
+				if (tactMeasurer.inject(chord)) {
 					drawTactLine(x + dx() * 2, y, tactMeasurer);
 				}
 
@@ -73,5 +61,29 @@ public class StaffPainter extends AbstractPainter
 		drawLine(x, baseY - dy() * 5, x, baseY + dy() * 20, lineColor);
 		Color numberColor = new Color(0, 161, 62);
 		drawString(tactMeasurer.tactCount + "", x, baseY - dy() * 6, numberColor);
+	}
+
+	private void drawStaffLines(int y)
+	{
+		Staff s = (Staff)context;
+
+		int tune = INota.nextIvoryTune(INota.nextIvoryTune(Nota.FA + 12 * 2));
+
+		// normal Nota height lines
+		for (int j = 0; j < 11; ++j) {
+			tune = INota.prevIvoryTune(INota.prevIvoryTune(tune));
+			if (j == 5) continue;
+			int lineY = y + j * dy() * 2;
+			drawLine(-3 * dx(), lineY, s.getWidth() - s.getMarginX() * 6, lineY, new Color(128,128,255));
+
+			Rectangle measureFrame = new Rectangle(s.getWidth() - s.getMarginX() * 6 + dx() / 6, lineY - dy() - 1, dx(), dy() * 2);
+			drawString(tune + "", measureFrame, Color.BLUE);
+		}
+
+		// hidden Nota height lines fot way too high Nota-s
+		for (int j = -3; j >= -5; --j) { // -3 - Mi; -5 -si
+			int lineY = y + j * dy() * 2;
+			drawLine(- 3 * dx(), lineY, s.getWidth() - s.getMarginX() * 6, lineY, Color.LIGHT_GRAY);
+		}
 	}
 }

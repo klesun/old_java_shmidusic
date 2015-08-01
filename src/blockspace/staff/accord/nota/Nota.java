@@ -1,46 +1,43 @@
 package blockspace.staff.accord.nota;
 
 
+import blockspace.staff.StaffConfig.KeySignature;
+import blockspace.staff.accord.Chord;
 import gui.ImageStorage;
-import model.AbstractPainter;
 import model.Combo;
 import model.field.Field;
 import blockspace.staff.MidianaComponent;
-import blockspace.staff.accord.Accord;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
 
-import stuff.OverridingDefaultClasses.Pnt;
 import stuff.tools.jmusic_integration.INota;
 import org.apache.commons.math3.fraction.Fraction;
 
 import blockspace.staff.StaffConfig.StaffConfig;
-import stuff.tools.Fp;
 import org.json.JSONObject;
 
-public class Nota extends MidianaComponent implements INota {
-
+public class Nota extends MidianaComponent implements INota
+{
 	// <editor-fold desc="model field declaration">
 
 	// TODO: normalization rules maybe ???
-	public Field<Integer> tune = new Field<>("tune", Integer.class, true, this);
-	protected Field<Integer> channel = new Field<>("channel", Integer.class, true, this);
+	final public Field<Integer> tune = new Field<>("tune", Integer.class, true, this);
+	final protected Field<Integer> channel = new Field<>("channel", Integer.class, true, this);
 
-	public Field<Fraction> length = new Field<>("length", new Fraction(1, 4), this, INota::legnthNorm);
-	public Field<Boolean> isTriplet = new Field<>("isTriplet", false, this);
-	private Field<Boolean> isSharp = new Field<>("isSharp", false, this);
-	private Field<Boolean> isMuted = new Field<>("isMuted", false, this);
-	private Field<Boolean> isLinkedToNext = new Field<>("isLinkedToNext", false, this);
+	final public Field<Fraction> length = new Field<>("length", new Fraction(1, 4), this, INota::legnthNorm);
+	final public Field<Boolean> isTriplet = new Field<>("isTriplet", false, this);
+	final public Field<Boolean> isSharp = new Field<>("isSharp", false, this);
+	final private Field<Boolean> isMuted = new Field<>("isMuted", false, this);
+	final private Field<Boolean> isLinkedToNext = new Field<>("isLinkedToNext", false, this);
 
-	final private static int MAX_DOT_COUNT = 5;
+	final private static int MAX_DOT_COUNT = 3;
 	final private static int PAUSE_POSITION = 3 * 7;
 
 	// </editor-fold>
 
 	public long keydownTimestamp;
 
-	public Nota(Accord parent) {
+	public Nota(Chord parent) {
 		super(parent);
 		h.getFieldStorage().forEach(f -> f.setOnChange(getParentAccord()::surfaceChanged));
 	}
@@ -49,47 +46,8 @@ public class Nota extends MidianaComponent implements INota {
 
 	// <editor-fold desc="implementing abstract model">
 
-	// TODO: AbstractPainter
-	public void drawOn(Graphics surface, int x, int y, Boolean completeRepaint) {
-		surface.setColor(Color.BLACK);
-		surface.drawImage(getEbonySignImage(), x + dx() / 2, y + 3 * dy() + 2, null);
-
-		int colorChannel = getIsMuted() || isPause() ? 9 : getChannel();
-		BufferedImage tmpImg;
-		if (isTooShort()) {
-			tmpImg = getImageStorage().getTooShortImage();
-		} else if (isTooLong()) {
-			tmpImg = getImageStorage().getTooLongImage();
-		} else {
-			tmpImg = getImageStorage().getNotaImg(getCleanLength(), colorChannel);
-		}
-
-		if (getIsLinkedToNext()) {
-			Fp.drawParabola((Graphics2D) surface, new Rectangle(x + dx() * 3 / 2, y + dy() * 7, dx() * 2, dy() * 2));
-		}
-
-		surface.drawImage(tmpImg, x + getNotaImgRelX(), y, null);
-
-		if (isTriplet.get()) {
-			surface.setColor(ImageStorage.getColorByChannel(channel.get()));
-			Rectangle rect = new Rectangle(x + dx() /4, y + 6 * dy(), dx() / 2, dy() * 2);
-			Fp.fitTextIn(rect, "3", surface);
-		}
-
-		for (int i = 0; i < getDotCount(); ++i) {
-			surface.fillOval(x + dx() * 5/3 + dx() * i / getDotCount(), y + dy() * 7, dy(), dy());
-		}
-
-		if (isStriked()) {
-			AbstractPainter.Straight stra = getTraitCoordinates().plus(new Point(x, y));
-			surface.drawLine(stra.p1.x, stra.p1.y, stra.p2.x, stra.p2.y);
-		}
-	}
-
-	// TODO: AbstractPainter
-	private AbstractPainter.Straight getTraitCoordinates() {
-		int r = getSettings().getNotaWidth() * 12 / 25;
-		return new AbstractPainter.Straight(getAncorPoint().plus(-r, 0), getAncorPoint().plus(r, 0));
+	public void drawOn(Graphics2D surface, int x, int y, Boolean completeRepaint) {
+		new NotaPainter(this, surface, x, y).draw(completeRepaint);
 	}
 
 	@Override
@@ -121,12 +79,6 @@ public class Nota extends MidianaComponent implements INota {
 
 	// <editor-fold desc="getters">
 
-//	public int getAcademicIndex() {
-//		return isEbony() && getIsSharp()
-//				? INota.ivoryMask(this.tune.get()) - 1
-//				: INota.ivoryMask(this.tune.get());
-//	}
-
 	public int getTimeMilliseconds(Boolean includeLinkedTime) {
 		StaffConfig config = getParentAccord().getParentStaff().getConfig();
 		int linkedTime = (includeLinkedTime && linkedTo() != null) ? linkedTo().getTimeMilliseconds(true) : 0;
@@ -150,13 +102,7 @@ public class Nota extends MidianaComponent implements INota {
 		}
 	}
 
-	private BufferedImage getEbonySignImage() {
-		return  !this.isEbony() ? null :
-				getIsSharp() ? getImageStorage().getSharpImage() :
-				getImageStorage().getFlatImage();
-	}
-
-	private int getDotCount() {
+	public int getDotCount() {
 
 		Fraction length = this.length.get().divide(ImageStorage.getTallLimit().multiply(2)); // to make sure, that the length is less than 1
 		// don't worry, denominator does not affect dot count
@@ -178,7 +124,7 @@ public class Nota extends MidianaComponent implements INota {
 		return e == 0 ? 1 : n * pow(n, e - 1);
 	}
 
-	private Fraction getCleanLength() { // i.e. length without dots: 1/4, 1/2
+	public Fraction getCleanLength() { // i.e. length without dots: 1/4, 1/2
 		return length.get().getDenominator() == 1
 				? new Fraction(length.get().getNumerator() * 2, length.get().getDenominator() + 1)
 				: new Fraction(length.get().getNumerator() + 1, length.get().getDenominator() * 2);
@@ -189,14 +135,16 @@ public class Nota extends MidianaComponent implements INota {
 	// <editor-fold desc="one-line-getters">
 
 	// 0 - do, 2 - re, 4 - mi, 5 - fa, 7 - so, 9 - la, 10 - ti
-	public Boolean isBotommedToFitSystem() { return this.getOctave() > 6; } // 8va
-	public Boolean isStriked() { return ivoryIndex() % 2 == 1; }
 
 	@Override
 	public int ivoryIndex() {
-		return isPause() ? PAUSE_POSITION : INota.super.ivoryIndex() - (isEbony() && isSharp.get() ? 1 : 0);
+		if (isPause()) {
+			return PAUSE_POSITION;
+		} else {
+			KeySignature siga = getParentAccord().getParentStaff().getConfig().getSignature();
+			return INota.super.ivoryIndex(siga)/* - (isEbony() && isSharp.get() ? 1 : 0)*/; /** @debug, but i suppose, we should get rid of this */
+		}
 	}
-	public Pnt getAncorPoint() { return new Pnt(getWidth()*16/25, getHeight() - dy()); }
 	public int getNotaImgRelX() { return this.getWidth() / 2; } // bad name
 	public int getStickX() { return this.getNotaImgRelX() + dx() / 2; }
 
@@ -204,7 +152,7 @@ public class Nota extends MidianaComponent implements INota {
 	// TODO: use it in accord.getWidth()
 	public int getWidth() { return dx() * 2; }
 
-	private Boolean isPause() { return tune.get() == 0; }
+	public Boolean isPause() { return tune.get() == 0; }
 
 	// </editor-fold>
 
@@ -233,7 +181,7 @@ public class Nota extends MidianaComponent implements INota {
 
 	// </editor-fold>
 
-	public Accord getParentAccord() { return (Accord)this.getModelParent(); }
+	public Chord getParentAccord() { return (Chord)this.getModelParent(); }
 	public Nota setKeydownTimestamp(long value) { this.keydownTimestamp = value; return this; }
 
 	// <editor-fold desc="event handles">
@@ -261,9 +209,9 @@ public class Nota extends MidianaComponent implements INota {
 
 	/** @return nota of the next accord with same tune or null */
 	private Nota getNext() {
-		Accord nextAccord = getParentAccord().getNext();
-		return nextAccord != null
-				? nextAccord.findByTuneAndChannel(this.tune.get(), this.getChannel())
+		Chord nextChord = getParentAccord().getNext();
+		return nextChord != null
+				? nextChord.findByTuneAndChannel(this.tune.get(), this.getChannel())
 				: null;
 	}
 

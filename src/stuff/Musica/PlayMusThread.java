@@ -3,7 +3,7 @@ package stuff.Musica;
 import model.Combo;
 import blockspace.staff.Staff;
 import blockspace.staff.accord.nota.Nota;
-import blockspace.staff.accord.Accord;
+import blockspace.staff.accord.Chord;
 import stuff.Midi.DeviceEbun;
 import stuff.Midi.Playback;
 import org.apache.commons.math3.fraction.Fraction;
@@ -42,7 +42,7 @@ public class PlayMusThread extends Thread {
 
 		// for some reason has huge delay between sound and canvas repainting
 		if (staff.getFocusedAccord() != null) { this.playAccord(staff.getFocusedAccord()); }
-		int accordsLeft = staff.getAccordList().size() - staff.getFocusedIndex() - 1;
+		int accordsLeft = staff.getChordList().size() - staff.getFocusedIndex() - 1;
     	for (int i = 0; stop == false && i <= accordsLeft; ++i) {
 			if (staff.getFocusedAccord() != null) {
 				int time = staff.getFocusedAccord().getShortestTime();
@@ -57,11 +57,11 @@ public class PlayMusThread extends Thread {
     }
 
 	@Deprecated // move it to Playback class
-	public static void playAccord(Accord accord) {
+	public static void playAccord(Chord chord) {
 		Playback.resetDiminendo();
-		accord.getNotaSet().forEach(PlayMusThread::playNotu);
-		if (accord.getIsDiminendo()) {
-			runDiminendoThread(accord.getShortestTime(), 127, 0);
+		chord.getNotaSet().forEach(PlayMusThread::playNotu);
+		if (chord.getIsDiminendo()) {
+			runDiminendoThread(chord.getShortestTime(), 127, 0);
 		}
 	}
 

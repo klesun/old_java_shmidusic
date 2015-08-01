@@ -2,15 +2,9 @@ package stuff.Midi;
 
 import blockspace.staff.Staff;
 import blockspace.staff.StaffConfig.Channel;
-import blockspace.staff.accord.Accord;
-import blockspace.staff.accord.nota.Nota;
 import jm.midi.SMF;
 import jm.midi.Track;
 import jm.midi.event.*;
-import org.apache.commons.math3.fraction.Fraction;
-import stuff.tools.Logger;
-import stuff.tools.jmusic_integration.INota;
-import stuff.tools.jmusic_integration.JmNote;
 
 import java.util.*;
 import java.util.function.Function;

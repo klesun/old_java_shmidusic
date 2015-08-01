@@ -2,8 +2,7 @@ package stuff.tools.jmusic_integration.JmModel;
 
 
 import blockspace.staff.Staff;
-import blockspace.staff.StaffConfig.Channel;
-import blockspace.staff.accord.Accord;
+import blockspace.staff.accord.Chord;
 import blockspace.staff.accord.nota.Nota;
 import jm.music.data.Phrase;
 import stuff.tools.Logger;
@@ -12,7 +11,6 @@ import stuff.tools.jmusic_integration.INota;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -26,10 +24,10 @@ public class JmPhrase {
 	public static List<Phrase> makeListFrom(Staff staff, int channel) {
 
 		Predicate<Nota> filter = n -> n.getChannel() == channel;
-		Function<Accord, Integer> cnt = a -> (int)a.notaStream(filter).count();
+		Function<Chord, Integer> cnt = a -> (int)a.notaStream(filter).count();
 
 		// fuck performance. long live readability! // long live readability блеать
-		long phraseCount = cnt.apply(staff.getAccordList().stream().max(cmp(cnt)).get());
+		long phraseCount = cnt.apply(staff.getChordList().stream().max(cmp(cnt)).get());
 
 		List<Phrase> result = new ArrayList<>();
 		for (int i = 0; i < phraseCount; ++i) {
@@ -44,8 +42,8 @@ public class JmPhrase {
 	{
 		Phrase phrase = new Phrase();
 
-		for (Accord accord: staff.getAccordList()) {
-			Stream<Nota> notas = accord.notaStream(n -> n.getChannel() == channel);
+		for (Chord chord : staff.getChordList()) {
+			Stream<Nota> notas = chord.notaStream(n -> n.getChannel() == channel);
 			if (notas.count() < notaOrder) {
 				// добавить ноту
 //				if (/*длина ноты больше сука я не знаю что нам делать нахуй их, сам распаршу*/) {
@@ -70,7 +68,7 @@ public class JmPhrase {
 //			final int channelFinal = channel;
 //
 //			// TODO: add exact number of Phrases on this step, as needed, using
-//			int channlePhraseCount = staff.getAccordList().stream()
+//			int channlePhraseCount = staff.getChordList().stream()
 //					.max((a, b) -> a.getNotaSet().size() - b.getNotaSet().size())
 //					.get().getNotaSet().size();
 //			List<JmPhrase> channelPhrases = new ArrayList<>();
@@ -78,7 +76,7 @@ public class JmPhrase {
 //				channelPhrases.add(new JmPhrase());
 //			}
 //
-//			for (Accord accord: staff.getAccordList()) {
+//			for (Chord accord: staff.getChordList()) {
 //
 //				Set<Nota> notaSet = accord.getNotaSet().stream()
 //						.filter(n -> n.getChannel() == channelFinal)

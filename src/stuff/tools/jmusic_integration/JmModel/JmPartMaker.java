@@ -1,14 +1,10 @@
 package stuff.tools.jmusic_integration.JmModel;
 
 import blockspace.staff.Staff;
-import blockspace.staff.accord.Accord;
-import blockspace.staff.accord.nota.Nota;
+import blockspace.staff.accord.Chord;
 import jm.music.data.Part;
-import stuff.tools.Logger;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 // A Part is container of Phrase-s played in common channel
@@ -17,7 +13,7 @@ public class JmPartMaker {
 	public static List<Part> makeListFrom(Staff staff) {
 
 		Set<Integer> channels = new HashSet<>();
-		for (Accord a: staff.getAccordList()) {
+		for (Chord a: staff.getChordList()) {
 			channels.addAll(a.getNotaSet().stream().map(n -> n.getChannel()).collect(Collectors.toSet()));
 		}
 

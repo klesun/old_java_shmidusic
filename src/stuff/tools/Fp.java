@@ -25,48 +25,6 @@ public class Fp {
 		return resultVector;
 	}
 
-	/** draws parabola, that would fit into the rectangle */
-	public static void drawParabola(Graphics2D g, Rectangle r) {
-		Color tmpColor = g.getColor();
-		Stroke tmpStroke = g.getStroke();
-		g.setColor(Color.MAGENTA);
-		g.setStroke(new BasicStroke(2));
-
-		double sharpness = r.getHeight() / Math.pow(r.getWidth() / 2.0, 2);
-		int baseX = r.x + r.width / 2;
-		int baseY = r.y + r.height;
-
-		int lastX = - r.width / 2;
-		int lastY = (int)(lastX * lastX * sharpness);
-
-		for (int x0 = - r.width / 2 + 1; x0 < r.width / 2; ++x0) {
-			int y0 = (int)(x0 * x0 * sharpness);
-			g.drawLine(baseX + lastX, baseY - lastY, baseX + x0, baseY - y0);
-
-			lastX = x0;
-			lastY = y0;
-		}
-
-		g.setColor(tmpColor);
-		g.setStroke(tmpStroke);
-	}
-
-	public static void fitTextIn(Rectangle rect, String text, Graphics g) {
-
-		Function<Integer, Double> toInches = pixels -> pixels * 1.25;
-		Function<Double, Double> toPixels = inches -> inches * 0.8;
-
-		double fontSize = toInches.apply(rect.height);
-
-		Font font = Constants.PROJECT_FONT.deriveFont((float)fontSize);
-		int width = g.getFontMetrics(font).stringWidth(text);
-		fontSize = Math.min(fontSize * rect.width / width, fontSize);
-
-		g.setFont(Constants.PROJECT_FONT.deriveFont((float)fontSize));
-
-		g.drawString(text, rect.x, rect.y + toPixels.apply(fontSize).intValue());
-	}
-
 	// TODO: this method was written on quick hand - don't judge strict, but better - improve!
 	public static String traceDiff(Throwable trace1, Throwable trace2)
 	{

@@ -123,6 +123,7 @@ public class ImageStorage {
 	public BufferedImage getViolinKeyImage() { return openSizedDefaultImage("vio.png"); }
 	public BufferedImage getBassKeyImage() { return openSizedDefaultImage("bass.png"); }
 	public BufferedImage getPointerImage() { return openSizedDefaultImage("MyPointer.png"); }
+	@Deprecated // use method to draw it, so it was easy to switch between image file and generated image
 	public BufferedImage getSharpImage() { return openSizedDefaultImage("sharp.png"); }
 
 	// not used for now, but may be handy one day
@@ -154,6 +155,23 @@ public class ImageStorage {
 				n == 7 ? new Color(255,128,0) : // orange
 				n == 8 ? new Color(91,0,255) : // bluish magenta
 				Color.GRAY;
+	}
+
+	public static Image openImageUncached(String fileName)
+	{
+		URL file = ImageStorage.class.getResource(DEFAULT_IMAGE_FOLDER + fileName);
+		if (file != null) {
+			try {
+				Image img = ImageIO.read(file);
+				return img;
+			} catch (IOException exc) {
+				Logger.warning("Failed to load image [" + fileName + "] " + exc.getMessage());
+				return strToImg("=P");
+			}
+		} else {
+			Logger.warning("No such image file [" + fileName + "] ");
+			return strToImg("=P");
+		}
 	}
 
 	// private methods

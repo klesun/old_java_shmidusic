@@ -1,8 +1,8 @@
 package stuff.Midi;
 
+import blockspace.staff.accord.Chord;
 import main.Main;
 import model.Explain;
-import blockspace.staff.accord.Accord;
 import blockspace.staff.Staff;
 import org.apache.commons.math3.fraction.Fraction;
 import stuff.tools.jmusic_integration.INota;
@@ -36,7 +36,7 @@ public class Playback {
 	}
 
 	private Explain play() {
-		if (!staff.getAccordList().isEmpty()) {
+		if (!staff.getChordList().isEmpty()) {
 			if (runningProcess != null) { interrupt(); }
 			runningProcess = new PlaybackTimer(staff.getConfig());
 
@@ -65,12 +65,12 @@ public class Playback {
 	{
 		Fraction sumFraction = new Fraction(0);
 
-		for (Accord accord: staff.getAccordList().subList(startFrom, staff.getAccordList().size())) {
+		for (Chord chord : staff.getChordList().subList(startFrom, staff.getChordList().size())) {
 			final Fraction finalStart = sumFraction;
 
-			accord.notaStream(n -> true).forEach(n -> playNota(n, finalStart, scheduler));
+			chord.notaStream(n -> true).forEach(n -> playNota(n, finalStart, scheduler));
 			onAccord.accept(sumFraction);
-			sumFraction = new Fraction(sumFraction.doubleValue() + accord.getFraction().doubleValue());
+			sumFraction = new Fraction(sumFraction.doubleValue() + chord.getFraction().doubleValue());
 		}
 	}
 

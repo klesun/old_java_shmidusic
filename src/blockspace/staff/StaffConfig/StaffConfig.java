@@ -1,6 +1,9 @@
 package blockspace.staff.StaffConfig;
 
+import blockspace.staff.accord.nota.Nota;
 import gui.ImageStorage;
+import gui.Settings;
+import gui.ShapeProvider;
 import model.AbstractHandler;
 import model.AbstractModel;
 import model.Combo;
@@ -16,6 +19,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -26,9 +31,10 @@ import org.apache.commons.math3.fraction.Fraction;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import stuff.tools.jmusic_integration.INota;
 
-public class StaffConfig extends MidianaComponent {
-
+public class StaffConfig extends MidianaComponent
+{
 	final private static int MIN_TEMPO = 15; // i doubt you would need longer. with this 1/16 lasts one second
 	final private static int MAX_TEMPO = 480; // i hope no one needs more
 
@@ -39,6 +45,7 @@ public class StaffConfig extends MidianaComponent {
 	// TODO: use Fraction
 	private Field<Integer> numerator = new Field<>("numerator", 8, this, n -> limit(n, 1, MAX_TACT_NUMERATOR)); // h.addField("numerator", 8); // because 8x8 = 64; 64/64 = 1; obvious
 	private Field<Integer> tempo = new Field<>("tempo", 120, this, n -> limit(n, MIN_TEMPO, MAX_TEMPO)); // h.addField("tempo", 120);
+	public Field<Integer> keySignature = addField("keySignature", 0);
 
 	// TODO: make it ordered Set instead of List
 	final public Arr<Channel> channelList = new Arr<>("channelList", makeChannelList(), this, Channel.class).setOmitDefaultFromJson(true);
@@ -110,36 +117,63 @@ public class StaffConfig extends MidianaComponent {
 
 	public static void syncSyntChannels(AbstractModel c) { ((StaffConfig)c).syncSyntChannels(); }
 
-	public void drawOn(Graphics g, int xIndent, int yIndent, Boolean completeRepaint) {
+	@Override
+	public void drawOn(Graphics2D g, int xIndent, int yIndent, Boolean completeRepaint) {
 		int dX = dx()/5, dY = getSettings().getNotaHeight() * 2;
-		g.drawImage(this.getImage(), xIndent - dX, yIndent - dY, null);
+		drawImage(g, xIndent - dX, yIndent - dY);
+
+		drawSignature(g, xIndent + dX / 4, yIndent);
 	}
 
-	public BufferedImage getImage() {
-		int w = dx() * 5;
-		int h = getSettings().getNotaHeight() * 6;
-		BufferedImage rez = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-		Graphics g = rez.getGraphics();
-		g.setColor(Color.black);
+	private void drawSignature(Graphics2D g, int x, int y)
+	{
+		KeySignature siga = new KeySignature(keySignature.get());
 
-		int tz=8, tc = getNumerator();
+		ShapeProvider shaper = new ShapeProvider(getSettings(), g, getImageStorage());
+
+		BiConsumer<Integer, Integer> paintEbony = keySignature.get() > 0
+				? shaper::drawSharpSign
+				: shaper::drawFlatSign;
+
+		int doPositionY = y + 10 * dy(); // y is toppest Staff line
+		int i = 0;
+		for (int ivory: siga.getAffectedIvorySet()) {
+			int positionY = doPositionY - ivory * dy();
+
+			if (ivory < KeySignature.SO) {
+				positionY -= 7 * dy();
+			}
+
+			// dealing with them covering one another
+			int xShift = i * dx() / 2;
+			if (i > 3) { xShift -= dx(); }
+
+			paintEbony.accept(x + xShift, positionY);
+
+			++i;
+		}
+	}
+
+	public void drawImage(Graphics2D g, int x, int y)
+	{
+		g.setColor(Color.black);
+		int inches = getSettings().getNotaHeight()*5/8, taktY = getSettings().getNotaHeight()*2; // 25, 80
+		g.setFont(new Font(Font.MONOSPACED, Font.BOLD, inches)); // 12 - 7px width
+
+		int tz = 8, tc = getNumerator(); // tz - denominator, tc - numerator
 		while (tz>4 && tc%2==0) {
 			tz /= 2;
 			tc /= 2;
 		}
-		int inches = getSettings().getNotaHeight()*5/8, taktX= 0, taktY = getSettings().getNotaHeight()*2; // 25, 80
-		g.setFont(new Font(Font.MONOSPACED, Font.BOLD, inches)); // 12 - 7px width
-		g.drawString(tc+"", 0 + taktX, inches*4/5 + taktY);
-		int delta = 0 + (tc>9 && tz<10? inches*7/12/2: 0) + ( tc>99 && tz<100?inches*7/12/2:0 );
-		g.drawString(tz+"", delta + taktX, 2*inches*4/5 + taktY);
 
-		int tpx = 0, tpy = 0;
+		g.drawString(tc+"", x - dx() / 2, y + inches*4/5 + taktY);
+		g.drawString(tz+"", x - dx() / 2, y + 2 * inches*4/5 + taktY);
+
+		int tpx = x, tpy = y + dy() * 2;
 		g.drawImage(getImageStorage().getQuarterImage(), tpx, tpy, null);
 		inches = getSettings().getNotaHeight() * 9/20;
 		g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, inches)); // 12 - 7px width
 		g.drawString(" = " + getTempo() , tpx + dx() * 4/5, tpy + inches*4/5 + getSettings().getNotaHeight()*13/20);
-
-		return rez;
 	}
 
 	@Override
@@ -156,14 +190,16 @@ public class StaffConfig extends MidianaComponent {
 	}
 
 	// field getters
-	
-	public Staff getParentStaff() { return (Staff)this.getModelParent(); }
 
 	public Integer getTempo() { return this.tempo.get(); }
 	public StaffConfig setTempo(int value) { this.tempo.set(value); return this; }
 	public Integer getNumerator() { return this.numerator.get(); }
 	public StaffConfig setNumerator(int value) { this.numerator.set(value); return this; }
 	public TreeSet<Channel> getChannelList() { return (TreeSet<Channel>)this.channelList.get(); }
+
+	public KeySignature getSignature() {
+		return new KeySignature(keySignature.get());
+	}
 
 	public int getVolume(int channel) {
 		Channel chan = channelList.get(channel);

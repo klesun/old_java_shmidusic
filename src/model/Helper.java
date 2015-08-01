@@ -1,11 +1,11 @@
 package model;
 
+import blockspace.staff.accord.Chord;
 import model.field.Field;
 import blockspace.article.Article;
 import blockspace.article.Paragraph;
 import blockspace.BlockSpace;
 import blockspace.Image.ImagePanel;
-import blockspace.staff.accord.Accord;
 import blockspace.staff.accord.nota.Nota;
 import blockspace.staff.Staff;
 import blockspace.staff.StaffPanel;
@@ -41,9 +41,9 @@ public class Helper {
 		} else if (model.getClass() == StaffPanel.class) {
 			return Arrays.asList(new Staff((StaffPanel)model));
 		} else if (model.getClass() == Staff.class) {
-			return Arrays.asList(new Accord((Staff)model));
-		} else if (model.getClass() == Accord.class) {
-			return Arrays.asList(new Nota((Accord)model));
+			return Arrays.asList(new Chord((Staff)model));
+		} else if (model.getClass() == Chord.class) {
+			return Arrays.asList(new Nota((Chord)model));
 		} else {
 			return new ArrayList<>();
 		}

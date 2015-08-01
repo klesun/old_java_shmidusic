@@ -1,5 +1,6 @@
 package blockspace.staff;
 
+import blockspace.staff.accord.Chord;
 import blockspace.staff.accord.Tact;
 import blockspace.staff.accord.nota.Nota;
 import model.Explain;
@@ -12,7 +13,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import blockspace.staff.accord.Accord;
 import stuff.Midi.DeviceEbun;
 import stuff.Midi.Playback;
 import stuff.Musica.PlayMusThread;
@@ -40,7 +40,7 @@ public class Staff extends MidianaComponent {
 	public StaffConfig staffConfig = null;
 
 	// TODO: MUAAAAH, USE FIELD CLASS MAZAFAKA AAAAAA!
-	private ArrayList<Accord> accordList = new ArrayList<>();
+	private ArrayList<Chord> chordList = new ArrayList<>();
 	public int focusedIndex = -1;
 
 	final private StaffPanel blockPanel;
@@ -55,44 +55,44 @@ public class Staff extends MidianaComponent {
 		this.playback = new Playback(this);
 	}
 
-	public synchronized Accord addNewAccordWithPlayback()
+	public synchronized Chord addNewAccordWithPlayback()
 	{
-		Accord accord = addNewAccord(getFocusedIndex() + 1);
+		Chord chord = addNewAccord(getFocusedIndex() + 1);
 		this.moveFocus(1);
-		if (DeviceEbun.isPlaybackSoftware()) { // i.e. when playback is not done with piano - no need to play pressed accord, user hears it anyways
-			new Thread(() -> { Uninterruptibles.sleepUninterruptibly(AccordHandler.ACCORD_EPSILON, TimeUnit.MILLISECONDS); PlayMusThread.playAccord(accord); }).start();
+		if (DeviceEbun.isPlaybackSoftware()) { // i.e. when playback is not done with piano - no need to play pressed chord, user hears it anyways
+			new Thread(() -> { Uninterruptibles.sleepUninterruptibly(AccordHandler.ACCORD_EPSILON, TimeUnit.MILLISECONDS); PlayMusThread.playAccord(chord); }).start();
 		}
 
-		return accord;
+		return chord;
 	}
 
-	public Accord addNewAccord()
+	public Chord addNewAccord()
 	{
-		return addNewAccord(accordList.size());
+		return addNewAccord(chordList.size());
 	}
 
-	public Accord addNewAccord(int position)
+	public Chord addNewAccord(int position)
 	{
-		return add(new Accord(this), position);
+		return add(new Chord(this), position);
 	}
 
 	/** TODO: public is temporary */
-	public synchronized Accord add(Accord accord, int index) {
+	public synchronized Chord add(Chord chord, int index) {
 		getHandler().performAction(new SimpleAction()
-			.setRedo(() -> getAccordList().add(index, accord))
-			.setUndo(() -> getAccordList().remove(accord)));
+			.setRedo(() -> getChordList().add(index, chord))
+			.setUndo(() -> getChordList().remove(chord)));
 
 		accordListChanged(index);
 
-		return accord;
+		return chord;
 	}
 
-	public synchronized void remove(Accord accord) {
-		int index = getAccordList().indexOf(accord);
+	public synchronized void remove(Chord chord) {
+		int index = getChordList().indexOf(chord);
 		if (index <= getFocusedIndex()) { setFocusedIndex(getFocusedIndex() - 1); }
 		getHandler().performAction(new SimpleAction()
-			.setRedo(() -> getAccordList().remove(accord))
-			.setUndo(() -> getAccordList().add(index, accord)));
+			.setRedo(() -> getChordList().remove(chord))
+			.setUndo(() -> getChordList().add(index, chord)));
 
 		accordListChanged(index);
 	}
@@ -102,17 +102,15 @@ public class Staff extends MidianaComponent {
 		getParentSheet().staffContainer.setPreferredSize(new Dimension(10/*width - 25*/, getHeightIf(width)));	//	Needed for the scrollBar bars to appear
 		getParentSheet().staffContainer.revalidate();	//	Needed to recalc the scrollBar bars
 
-		getAccordList().subList(repaintAllFromIndex, getAccordList().size()).forEach(Accord::surfaceChanged);
+		getChordList().subList(repaintAllFromIndex, getChordList().size()).forEach(Chord::surfaceChanged);
 	}
 
     @Override
-    public void drawOn(Graphics g, int x, int y, Boolean completeRepaint) {
+    public void drawOn(Graphics2D g, int x, int y, Boolean completeRepaint) {
         drawOn(g, completeRepaint);
     }
 
-	// TODO: move into some StaffPainter class
-	public synchronized void drawOn(Graphics g, Boolean completeRepaintRequired)
-	{
+	public synchronized void drawOn(Graphics2D g, Boolean completeRepaintRequired) {
 		new StaffPainter(this, g, 0, 0).draw(completeRepaintRequired);
 	}
 
@@ -132,9 +130,9 @@ public class Staff extends MidianaComponent {
 
 		Tact currentTact = new Tact(this);
 		int i = 0;
-		for (Accord accord: accordList) {
-			currentTact.accordList.add(accord);
-			if (measurer.inject(accord)) {
+		for (Chord chord : chordList) {
+			currentTact.accordList.add(chord);
+			if (measurer.inject(chord)) {
 				result.add(currentTact);
 				currentTact = new Tact(this, i++);
 			}
@@ -154,13 +152,13 @@ public class Staff extends MidianaComponent {
 		JSONObject configJson = jsObject.getJSONObject("staffConfig");
 		this.getConfig().reconstructFromJson(configJson);
 
-		if (jsObject.has("accordList")) {
-			toStream(jsObject.getJSONArray("accordList")).forEach(
+		if (jsObject.has("chordList")) {
+			toStream(jsObject.getJSONArray("chordList")).forEach(
 				childJs -> this.addNewAccord().reconstructFromJson(childJs));
 
 		} else if (jsObject.has("tactList")) {
 			toStream(jsObject.getJSONArray("tactList")).forEach(
-				childJs -> toStream(childJs.getJSONArray("accordList")).forEach(
+				childJs -> toStream(childJs.getJSONArray("chordList")).forEach(
 					a -> addNewAccord().reconstructFromJson(a)));
 		} else {
 			throw new JSONException("Staff Json Has Valid Children!");
@@ -173,35 +171,35 @@ public class Staff extends MidianaComponent {
 	public StaffHandler getHandler() { return (StaffHandler)super.getHandler(); }
 
 	public Staff clearStan() {
-		this.getAccordList().clear();
+		this.getChordList().clear();
 		this.focusedIndex = -1;
 
 		return this;
 	}
 
 	@Override
-	public Accord getFocusedChild() { return getFocusedAccord(); }
+	public Chord getFocusedChild() { return getFocusedAccord(); }
 	@Override
 	protected StaffHandler makeHandler() { return new StaffHandler(this); }
 
 	// getters
 
-	public Accord getFocusedAccord() {
+	public Chord getFocusedAccord() {
 		if (this.getFocusedIndex() > -1) {
-			return getAccordList().get(getFocusedIndex());
+			return getChordList().get(getFocusedIndex());
 		} else {
 			return null;
 		}
 	}
 
-	public List<Accord> getAccordList() {
-		return this.accordList;
+	public List<Chord> getChordList() {
+		return this.chordList;
 	}
 
-	public List<List<Accord>> getAccordRowList() {
-		List<List<Accord>> resultList = new ArrayList<>();
-		for (int fromIdx = 0; fromIdx < this.getAccordList().size(); fromIdx += getAccordInRowCount()) {
-			resultList.add(this.getAccordList().subList(fromIdx, Math.min(fromIdx + getAccordInRowCount(), this.getAccordList().size())));
+	public List<List<Chord>> getAccordRowList() {
+		List<List<Chord>> resultList = new ArrayList<>();
+		for (int fromIdx = 0; fromIdx < this.getChordList().size(); fromIdx += getAccordInRowCount()) {
+			resultList.add(this.getChordList().subList(fromIdx, Math.min(fromIdx + getAccordInRowCount(), this.getChordList().size())));
 		}
 
 		if (resultList.isEmpty()) { resultList.add(new ArrayList<>()); }
@@ -246,7 +244,7 @@ public class Staff extends MidianaComponent {
 	public Staff setFocusedIndex(int value) {
 		if (this.getFocusedAccord() != null) { this.getFocusedAccord().setFocusedIndex(-1).surfaceChanged(); } // surfaceChanged - to erase pointer
 
-		this.focusedIndex = limit(value, -1, getAccordList().size() - 1);
+		this.focusedIndex = limit(value, -1, getChordList().size() - 1);
 		if (this.getFocusedAccord() != null) { this.getFocusedAccord().surfaceChanged(); } // to draw pointer
 
 		return this;
@@ -296,61 +294,61 @@ public class Staff extends MidianaComponent {
 		// what this method does, yes it's definitely should be move into some MidiSheetMusicCalculator or so...
 
 		Fraction curPos = new Fraction(0);
-		for (int i = 0; i < getAccordList().size(); ++i) {
+		for (int i = 0; i < getChordList().size(); ++i) {
 
 			if (curPos.equals(desiredPos)) {
-				Accord accord = getAccordList().get(i);
+				Chord chord = getChordList().get(i);
 
-				Fraction wasAccordLength = accord.getFraction();
-				Nota newNota = accord.addNewNota(nota);
+				Fraction wasAccordLength = chord.getFraction();
+				Nota newNota = chord.addNewNota(nota);
 
-				if (!wasAccordLength.equals(accord.getFraction())) {
-					// putting filler in case when accord length became smaller to preserve timing
-					Fraction dl = wasAccordLength.subtract(accord.getFraction());
-					this.add(new Accord(this), i + 1).addNewNota(0, 0).setLength(dl);
+				if (!wasAccordLength.equals(chord.getFraction())) {
+					// putting filler in case when chord length became smaller to preserve timing
+					Fraction dl = wasAccordLength.subtract(chord.getFraction());
+					this.add(new Chord(this), i + 1).addNewNota(0, 0).setLength(dl);
 				}
 				return newNota;
 			} else if (curPos.compareTo(desiredPos) > 0) {
 
-				Accord accord = getAccordList().get(i - 1);
+				Chord chord = getChordList().get(i - 1);
 				Fraction offset = new Fraction(curPos.doubleValue() - desiredPos.doubleValue());
-				Fraction onset = new Fraction(accord.getFraction().doubleValue() - offset.doubleValue());
+				Fraction onset = new Fraction(chord.getFraction().doubleValue() - offset.doubleValue());
 
 				/** @debug */
 //				if (onset.equals(new Fraction(0))) {
-//					Logger.fatal("How came ?! " + accord.getFraction() + " " + offset + " " + curPos + " " + desiredPos);
+//					Logger.fatal("How came ?! " + chord.getFraction() + " " + offset + " " + curPos + " " + desiredPos);
 //				}
 
-				accord.addNewNota(0, 0).setLength(onset);
+				chord.addNewNota(0, 0).setLength(onset);
 
-				Accord newAccord = this.add(new Accord(this), i);
-				Nota newNota = newAccord.addNewNota(nota);
+				Chord newChord = this.add(new Chord(this), i);
+				Nota newNota = newChord.addNewNota(nota);
 				if (newNota.getLength().compareTo(offset) > 0) {
-					// TODO: maybe if last accord in staff then no need
-					// put nota with onset length into newNota's accord to preserve timing
-					newAccord.addNewNota(0, 0).setLength(offset);
+					// TODO: maybe if last chord in staff then no need
+					// put nota with onset length into newNota's chord to preserve timing
+					newChord.addNewNota(0, 0).setLength(offset);
 				} else if (newNota.getLength().compareTo(offset) < 0) {
-					// TODO: maybe if last accord in staff then no need
+					// TODO: maybe if last chord in staff then no need
 					// put an empty nota after and set it's length(onset - newNota.getLength())
-					this.add(new Accord(this), i + 1).addNewNota(0, 0).setLength(offset.subtract(newNota.getLength()));
+					this.add(new Chord(this), i + 1).addNewNota(0, 0).setLength(offset.subtract(newNota.getLength()));
 				}
 
 				return newNota;
 			}
 
-			Fraction accordFraction = getAccordList().get(i).getFraction();
+			Fraction accordFraction = getChordList().get(i).getFraction();
 
 			curPos = new Fraction(curPos.doubleValue() + accordFraction.doubleValue());
 		}
 
 		Fraction rest = desiredPos.subtract(curPos);
 		if (!rest.equals(new Fraction(0))) {
-			this.add(new Accord(this), getAccordList().size()).addNewNota(0,0).setLength(rest);
+			this.add(new Chord(this), getChordList().size()).addNewNota(0,0).setLength(rest);
 		}
 
 		// TODO: we don't handle here pause prefix! (i.e when desired start is more than end) !!!
 		// if not returned already
-		return this.add(new Accord(this), getAccordList().size()).addNewNota(nota);
+		return this.add(new Chord(this), getChordList().size()).addNewNota(nota);
 	}
 
 	public static class TactMeasurer {
@@ -365,12 +363,12 @@ public class Staff extends MidianaComponent {
 			this.tactSize = tactSize;
 		}
 
-		/** @returns true if accord finished the tact */
-		public Boolean inject(Accord accord) {
-			if (INota.isDotable(accord.getFraction())) {
-				sumFraction = sumFraction.add(accord.getFraction());
+		/** @returns true if chord finished the tact */
+		public Boolean inject(Chord chord) {
+			if (INota.isDotable(chord.getFraction())) {
+				sumFraction = sumFraction.add(chord.getFraction());
 			} else {
-				sumFraction = new Fraction(sumFraction.doubleValue() + accord.getFraction().doubleValue());
+				sumFraction = new Fraction(sumFraction.doubleValue() + chord.getFraction().doubleValue());
 			}
 
 			Boolean finishedTact = false;

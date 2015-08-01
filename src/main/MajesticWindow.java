@@ -1,6 +1,7 @@
 package main;
 
 import blockspace.Block;
+import gui.ImageStorage;
 import model.*;
 import blockspace.BlockSpace;
 import stuff.OverridingDefaultClasses.TruMenuItem;
@@ -34,7 +35,8 @@ public class MajesticWindow extends JFrame {
 	public JTextArea terminal;
 
 	public MajesticWindow() {
-		super("Да будет такая музыка!"); //Заголовок окна
+		super("Да будет такая музыка!");
+		this.setIconImage(ImageStorage.openImageUncached("midusic.png"));
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		this.setSize(XP_MINWIDTH, XP_MINHEIGHT);
 		this.addWindowListener(new MajesticListener());

@@ -1,7 +1,7 @@
 package blockspace.staff;
 
 
-import blockspace.staff.accord.Accord;
+import blockspace.staff.accord.Chord;
 import gui.Constants;
 import gui.ImageStorage;
 import org.apache.commons.math3.fraction.Fraction;
@@ -99,15 +99,15 @@ public class PianoLayoutPanel extends JPanel
 
 		int index = staff.getFocusedIndex();
 		if (index > -1) {
-			Fraction sum = staff.getAccordList().get(index).getFraction().negate();
+			Fraction sum = staff.getChordList().get(index).getFraction().negate();
 
 			while (sum.compareTo(ImageStorage.getTallLimit()) < 0 && index > -1) {
 
-				Accord accord = staff.getAccordList().get(index);
-				sum = sum.add(accord.getFraction());
+				Chord chord = staff.getChordList().get(index);
+				sum = sum.add(chord.getFraction());
 
 				final Fraction finalSum = sum;
-				accord.notaStream(n -> n.getRealLength().compareTo(finalSum) > 0).forEach(result::add);
+				chord.notaStream(n -> n.getRealLength().compareTo(finalSum) > 0).forEach(result::add);
 
 				--index;
 			}

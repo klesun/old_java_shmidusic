@@ -1,5 +1,6 @@
 package stuff.tools.jmusic_integration;
 
+import blockspace.staff.StaffConfig.KeySignature;
 import gui.ImageStorage;
 import stuff.tools.Bin;
 import stuff.tools.Logger;
@@ -58,11 +59,13 @@ public interface INota extends Comparable<INota> {
 
 	default int ivoryIndex() { return ivoryIndex(getTune()); }
 
+	default int ivoryIndex(KeySignature siga) { return ivoryIndex(getTune(), siga); }
 
-	// treating all ebonies as flats
-	static int ivoryMask(int tune) { return Arrays.asList(0,1,1,2,2,3,4,4,5,5,6,6).get(tune % 12); }
+	static int ivoryIndex(int tune) { return ivoryIndex(tune, new KeySignature(0)); }
 
-	static int ivoryIndex(int tune) { return getOctave(tune) * 7 + ivoryMask(tune); }
+	static int ivoryIndex(int tune, KeySignature siga) {
+		return getOctave(tune) * 7 + siga.calcIvoryMask(tune);
+	}
 
 	static int getOctave(int tune) { return tune /12; }
 
@@ -107,6 +110,13 @@ public interface INota extends Comparable<INota> {
 		return Arrays.asList(1, 3, 6, 8, 10).contains(tune % 12);
 	}
 
+	static int nextIvoryTune(int tune) {
+		return isEbony(tune + 1) ? tune + 2 : tune + 1;
+	}
+
+	static int prevIvoryTune(int tune) {
+		return isEbony(tune - 1) ? tune - 2 : tune - 1;
+	}
 
 	// TODO: what if i said we could store these instead of numbers in json?
 	static String strIdx(int n){ return Arrays.asList("do","re","mi","fa","so","la","ti").get(n % 12); }

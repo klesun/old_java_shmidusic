@@ -14,23 +14,23 @@ public class AccordHandler extends AbstractHandler {
 
 	final public static int ACCORD_EPSILON = Nota.getTimeMilliseconds(new Fraction(1, 16), 120); // 0.125 sec
 
-	public AccordHandler(Accord context) {
+	public AccordHandler(Chord context) {
 		super(context);
 	}
 
 	@Override
-	public Accord getContext() {
-		return (Accord)super.getContext();
+	public Chord getContext() {
+		return (Chord)super.getContext();
 	}
 
-	private static TruMap<Combo, ContextAction<Accord>> actionMap = new TruMap<>();
+	private static TruMap<Combo, ContextAction<Chord>> actionMap = new TruMap<>();
 	static {
 		for (Map.Entry<Combo, ContextAction<Nota>> entry: NotaHandler.getClassActionMap().entrySet()) {
 			actionMap.p(entry.getKey(), mkAction(accord -> accord.getNotaSet().forEach(entry.getValue()::redo))
 				.setCaption("Notas: " + entry.getValue().getCaption()));
 		}
 
-		actionMap.p(new Combo(ctrl, k.VK_PERIOD), mkAction(Accord::triggerIsDiminendo).setCaption("Diminendo On/Off"))
+		actionMap.p(new Combo(ctrl, k.VK_PERIOD), mkAction(Chord::triggerIsDiminendo).setCaption("Diminendo On/Off"))
 			.p(new Combo(0, k.VK_UP), mkFailableAction(a -> a.moveFocus(-1)).setCaption("Up"))
 			.p(new Combo(0, k.VK_DOWN), mkFailableAction(a -> a.moveFocus(1)).setCaption("Down"))
 			.p(new Combo(0, k.VK_DELETE), mkAction(accord -> accord.getParentStaff().remove(accord)).setCaption("Delete"))
@@ -44,7 +44,7 @@ public class AccordHandler extends AbstractHandler {
 
 		// MIDI-key press
 		for (Map.Entry<Combo, Integer> entry: Combo.getComboTuneMap().entrySet()) {
-			ContextAction<Accord> action = new ContextAction<>();
+			ContextAction<Chord> action = new ContextAction<>();
 			actionMap.p(entry.getKey(), action
 					.setRedo(accord -> System.currentTimeMillis() - accord.getEarliestKeydown() < ACCORD_EPSILON
 						? new Explain(accord.addNewNota(entry.getValue(), accord.getSettings().getDefaultChannel()))
@@ -59,13 +59,13 @@ public class AccordHandler extends AbstractHandler {
 		return actionMap;
 	}
 
-	private static ContextAction<Accord> mkAction(Consumer<Accord> lambda) {
-		ContextAction<Accord> action = new ContextAction<>();
+	private static ContextAction<Chord> mkAction(Consumer<Chord> lambda) {
+		ContextAction<Chord> action = new ContextAction<>();
 		return action.setRedo(lambda);
 	}
 
-	private static ContextAction<Accord> mkFailableAction(Function<Accord, Explain> lambda) {
-		ContextAction<Accord> action = new ContextAction<>();
+	private static ContextAction<Chord> mkFailableAction(Function<Chord, Explain> lambda) {
+		ContextAction<Chord> action = new ContextAction<>();
 		return action.setRedo(lambda);
 	}
 }

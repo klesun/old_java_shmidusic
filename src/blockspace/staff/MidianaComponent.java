@@ -15,7 +15,7 @@ abstract public class MidianaComponent extends AbstractModel implements ICompone
 
 	abstract public MidianaComponent getFocusedChild();
 	abstract protected AbstractHandler makeHandler();
-	abstract  public void drawOn(Graphics surface, int x, int y, Boolean completeRepaint); // TODO: renmae to paintComponent() for compatibility with AWT components
+	abstract  public void drawOn(Graphics2D surface, int x, int y, Boolean completeRepaint); // TODO: renmae to paintComponent() for compatibility with AWT components
 
 	// TODO: separate Model from Event handler, i wanna be able to instantiate Nota without Staff!
 	public MidianaComponent(IComponentModel parent) {

@@ -31,18 +31,18 @@ To create music you'll have to have some midi-piano plugged into your midi-port 
 | Esc | configurations dialog (instruments and volumes for channels) |
 | . | . |
 | // FOCUSED ACCORD OPERATIONS | . |
-| delete | delete WHOLE accord if Nota not selected |
-| ctlr-UP/DOWN | Select next note in current accord (for following operations) |
+| delete | delete WHOLE chord if Nota not selected |
+| ctlr-UP/DOWN | Select next note in current chord (for following operations) |
 | . | . |
 | // FOCUSED NOTE OPERATIONS | . |
-| "["/"]" | increase/decrease length of selected note (with ctrl - for whole accord) |
+| "["/"]" | increase/decrease length of selected note (with ctrl - for whole chord) |
 | [0..9] | mark note with the digit (color will change and you will be able to mute it) |
 | delete | delete selected Nota |
 | . | . |
 | // PIANO | . |
-| press-any-key | will insert it after focused accord (or into pointed accord if some his note is selected at the moment) |
-| press-multiple-keys | will insert an accord after focused accord |
-| press-the-very-left-Do-bekar | will insert muted note (like pause). It's very helpful, when you need to play next accord, before current ends |
+| press-any-key | will insert it after focused chord (or into pointed chord if some his note is selected at the moment) |
+| press-multiple-keys | will insert an chord after focused chord |
+| press-the-very-left-Do-bekar | will insert muted note (like pause). It's very helpful, when you need to play next chord, before current ends |
 | . | . |
 | . | . |
 *If you (for some reason) want to use my program, please contact me at arturklesun@gmail.com, i'll give you love and support. I feel lonely being the only person using this program =( <br />

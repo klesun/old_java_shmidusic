@@ -3,7 +3,7 @@ package blockspace.staff;
 import model.*;
 import blockspace.staff.StaffConfig.StaffConfig;
 import stuff.Midi.DeviceEbun;
-import blockspace.staff.accord.Accord;
+import blockspace.staff.accord.Chord;
 import blockspace.staff.accord.nota.Nota;
 import stuff.OverridingDefaultClasses.TruMap;
 import stuff.tools.FileProcessor;
@@ -39,7 +39,7 @@ public class StaffHandler extends AbstractHandler {
 			.p(new Combo(0, k.VK_ESCAPE), mkAction(s -> s.getConfig().getDialog().showMenuDialog(StaffConfig::syncSyntChannels))
 				.setCaption("Settings"))
 			.p(new Combo(0, k.VK_HOME), mkAction(s -> s.setFocusedIndex(-1)).setCaption("To Start"))
-			.p(new Combo(0, k.VK_END), mkAction(s -> s.setFocusedIndex(s.getAccordList().size() - 1)).setCaption("To End"))
+			.p(new Combo(0, k.VK_END), mkAction(s -> s.setFocusedIndex(s.getChordList().size() - 1)).setCaption("To End"))
 			.p(new Combo(0, k.VK_LEFT), mkFailableAction(s -> s.moveFocusWithPlayback(-1)).setCaption("Left"))
 			.p(new Combo(0, k.VK_RIGHT), mkFailableAction(s -> s.moveFocusWithPlayback(1)).setCaption("Right"))
 			.p(new Combo(0, k.VK_UP), mkFailableAction(s -> s.moveFocusRow(-1)).setCaption("Up"))
@@ -85,11 +85,11 @@ public class StaffHandler extends AbstractHandler {
 
 	/** @legacy */
 	private static void updateDeprecatedPauses(Staff staff) {
-		for (Accord accord: staff.getAccordList()) {
-			Nota oldPause = accord.findByTuneAndChannel(36, 0);
+		for (Chord chord : staff.getChordList()) {
+			Nota oldPause = chord.findByTuneAndChannel(36, 0);
 			if (oldPause != null) {
-				accord.remove(oldPause);
-				accord.addNewNota(0, 0).setLength(oldPause.length.get()).isTriplet.set(oldPause.isTriplet.get());
+				chord.remove(oldPause);
+				chord.addNewNota(0, 0).setLength(oldPause.length.get()).isTriplet.set(oldPause.isTriplet.get());
 			}
 		}
 	}
