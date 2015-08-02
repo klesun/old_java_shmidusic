@@ -14,7 +14,7 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 	final public static int ctrl = KeyEvent.CTRL_MASK;
 	final public static KeyEvent k = new KeyEvent(new JPanel(),0,0,0,0,'h'); // just for constants
 
-	private IComponentModel context = null;
+	private IComponent context = null;
 
 	private LinkedList<SimpleAction> simpleActionQueue = new LinkedList<>();
 	private int simpleActionIterator = 0;
@@ -31,7 +31,7 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 	// mouse
 	protected Point mouseLocation = new Point(0,0);
 
-	public AbstractHandler(IComponentModel context) {
+	public AbstractHandler(IComponent context) {
 		this.context = context;
 	}
 
@@ -49,7 +49,7 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 	final public void keyReleased(KeyEvent e) {}
 
 	public BlockSpaceHandler getRootHandler() {
-		IComponentModel rootContext = getContext();
+		IComponent rootContext = getContext();
 		while (rootContext.getModelParent() != null) {
 			rootContext = rootContext.getModelParent();
 		}
@@ -77,7 +77,7 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 		return result != null ? result : new Explain(false, "No Action For This Combination").setImplicit(true);
 	}
 
-	public IComponentModel getContext() {
+	public IComponent getContext() {
 		return this.context;
 	}
 

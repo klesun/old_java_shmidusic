@@ -11,11 +11,12 @@ import blockspace.staff.StaffConfig.StaffConfig;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import stuff.Midi.DeviceEbun;
 import stuff.Midi.Playback;
-import stuff.Musica.PlayMusThread;
+import stuff.musica.PlayMusThread;
 
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
@@ -128,13 +129,14 @@ public class Staff extends MidianaComponent {
 
 		TactMeasurer measurer = new TactMeasurer(getConfig().getTactSize());
 
-		Tact currentTact = new Tact(this);
+
 		int i = 0;
+		Tact currentTact = new Tact(i++);
 		for (Chord chord : chordList) {
 			currentTact.accordList.add(chord);
 			if (measurer.inject(chord)) {
 				result.add(currentTact);
-				currentTact = new Tact(this, i++);
+				currentTact = new Tact(i++);
 			}
 		}
 		if (currentTact.accordList.size() > 0) {
@@ -161,7 +163,7 @@ public class Staff extends MidianaComponent {
 				childJs -> toStream(childJs.getJSONArray("chordList")).forEach(
 					a -> addNewAccord().reconstructFromJson(a)));
 		} else {
-			throw new JSONException("Staff Json Has Valid Children!");
+			throw new JSONException("Staff Json Has No Valid Children! It got only: " + Arrays.toString(jsObject.keySet().toArray()));
 		}
 
 		return this;

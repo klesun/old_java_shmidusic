@@ -10,7 +10,6 @@ import java.awt.*;
 
 public interface IModel {
 
-	IComponentModel getModelParent();
 	Helper getModelHelper();
 
 	default JSONObject getJsonRepresentation() {
@@ -39,10 +38,6 @@ public interface IModel {
 
 	default <T> Field<T> addField(String name, T defaultValue) {
 		return new Field<>(name, defaultValue, this);
-	}
-
-	default Cursor getDefaultCursor() {
-		return Cursor.getDefaultCursor();
 	}
 
 	default int limit(int value, int min, int max) { return Math.min(Math.max(value, min), max); }

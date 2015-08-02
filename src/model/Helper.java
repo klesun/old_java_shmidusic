@@ -28,24 +28,4 @@ public class Helper {
 	private List<Field> fieldStorage = new ArrayList<>();
 
 	public List<Field> getFieldStorage() { return fieldStorage; }
-
-	// retarded language
-	public List<IComponentModel> makeFakePossibleChildListForClassMethods() {
-		if (model.getClass() == BlockSpace.class) {
-			return Arrays.asList(new Block(new ImagePanel((BlockSpace)model), (BlockSpace)model));
-		} else if (model.getClass() == Block.class) {
-			Block scroll = (Block)model;
-			return Arrays.asList(new StaffPanel(scroll.getModelParent()), new Article(scroll.getModelParent()), new ImagePanel(scroll.getModelParent()));
-		} else if (model.getClass() == Article.class) {
-			return Arrays.asList(new Paragraph((Article)model));
-		} else if (model.getClass() == StaffPanel.class) {
-			return Arrays.asList(new Staff((StaffPanel)model));
-		} else if (model.getClass() == Staff.class) {
-			return Arrays.asList(new Chord((Staff)model));
-		} else if (model.getClass() == Chord.class) {
-			return Arrays.asList(new Nota((Chord)model));
-		} else {
-			return new ArrayList<>();
-		}
-	}
 }

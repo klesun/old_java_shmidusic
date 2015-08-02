@@ -260,13 +260,13 @@ public class Nota extends MidianaComponent implements INota
 	final public static int OCTAVA = 12;
 
 	// small octava
-	final public static int DO = 48;
-	final public static int RE = 50;
-	final public static int MI = 52;
-	final public static int FA = 53;
-	final public static int SO = 55;
-	final public static int LA = 57;
-	final public static int TI = 59;
+	final public static int DO = 60;
+	final public static int RE = 62;
+	final public static int MI = 64;
+	final public static int FA = 65;
+	final public static int SO = 67;
+	final public static int LA = 69; // 440 hz
+	final public static int TI = 71;
 
 	// private static methods
 }

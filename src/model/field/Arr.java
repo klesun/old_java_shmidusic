@@ -1,6 +1,8 @@
 package model.field;
 
+import blockspace.staff.MidianaComponent;
 import model.AbstractModel;
+import model.IComponent;
 import model.IModel;
 import stuff.tools.Logger;
 import org.json.JSONArray;
@@ -41,8 +43,21 @@ public class Arr<ELEM_CLASS extends AbstractModel> extends Field<Collection<ELEM
 		JSONArray arr = jsObject.getJSONArray(getName());
 		for (int i = 0; i < arr.length(); ++i) {
 			ELEM_CLASS el = null;
-			try { el = elemClass.getDeclaredConstructor(owner.getClass()).newInstance(owner); }
-			catch (Exception e) { Logger.fatal(e, "Failed to make instance of {" + elemClass.getSimpleName() + "}"); }
+			if (MidianaComponent.class.isAssignableFrom(elemClass)) {
+				try {
+					el = elemClass.getDeclaredConstructor(owner.getClass()).newInstance(owner);
+				} catch (Exception e) {
+					Logger.fatal(e, "Failed to make instance of {" + elemClass.getSimpleName() + "}");
+				}
+			} else if (AbstractModel.class.isAssignableFrom(elemClass)) {
+				try {
+					el = elemClass.newInstance();
+				} catch (Exception e) {
+					Logger.fatal(e, "Common, every class has an empty constructor in java! {" + elemClass.getSimpleName() + "}");
+				}
+			} else {
+				Logger.fatal("Should never happen, right?");
+			}
 
 			el.reconstructFromJson(arr.getJSONObject(i)); // it's important to do reconstructFromJson before add, cuz the Collection may be a set
 			get().add(el);

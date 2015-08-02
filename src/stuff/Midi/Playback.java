@@ -38,7 +38,11 @@ public class Playback {
 	private Explain play() {
 		if (!staff.getChordList().isEmpty()) {
 			if (runningProcess != null) { interrupt(); }
-			runningProcess = new PlaybackTimer(staff.getConfig());
+			if (staff.getConfig().useHardcoreSynthesizer.get()) {
+				runningProcess = new PlaybackTimer.KlesunthesizerTimer(staff.getConfig());
+			} else {
+				runningProcess = new PlaybackTimer(staff.getConfig());
+			}
 
 			staff.moveFocus(-1);
 			int startFrom = staff.getFocusedIndex() + 1;
@@ -77,13 +81,11 @@ public class Playback {
 	private static void playNota(INota nota, Fraction start, IMidiScheduler scheduler)
 	{
 		if (!Main.isLinux) {
-			scheduler.addNoteOnTask(start, nota);
-			scheduler.addNoteOffTask(start.add(nota.getRealLength()), nota);
+			scheduler.addNoteTask(start, nota);
 		} else {
 			// making sound lag a bit, so it fitted lagging graphics ^_^
 			// TODO: maybe move this hack into preferences with parameter one day...
-			scheduler.addNoteOnTask(start.add(new Fraction(1, 16)), nota);
-			scheduler.addNoteOffTask(start.add(new Fraction(1, 16)).add(nota.getRealLength()), nota);
+			scheduler.addNoteTask(start.add(new Fraction(1, 16)), nota);
 		}
 	}
 

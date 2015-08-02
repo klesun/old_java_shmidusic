@@ -12,8 +12,7 @@ public class CatchPhrase extends AbstractModel {
 	private Field<String> text = new Field<>("text", "", this);
 	private Field<Integer> score = new Field<>("score", 4, this);
 
-	public CatchPhrase(Paragraph parent, String text) {
-		super(parent);
+	public CatchPhrase(String text) {
 		setText(text);
 	}
 

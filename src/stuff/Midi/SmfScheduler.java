@@ -21,18 +21,12 @@ public class SmfScheduler implements IMidiScheduler
 		this.config = config;
 	}
 
-	public void addNoteOnTask(Fraction when, INota nota) {
+	public void addNoteTask(Fraction when, INota nota) {
 		if (!trackDict.containsKey(nota.getChannel())) {
 			trackDict.put(nota.getChannel(), new Track());
 		}
 		trackDict.get(nota.getChannel()).addEvent(new NoteOn(nota, time(when)));
-	}
-
-	public void addNoteOffTask(Fraction when, INota nota) {
-		if (!trackDict.containsKey(nota.getChannel())) {
-			trackDict.put(nota.getChannel(), new Track());
-		}
-		trackDict.get(nota.getChannel()).addEvent(new NoteOff(nota, time(when)));
+		trackDict.get(nota.getChannel()).addEvent(new NoteOff(nota, time(when.add(nota.getRealLength()))));
 	}
 
 	private int time(Fraction f) {

@@ -14,7 +14,7 @@ public class ComboMouse {
 	public Boolean leftButton;
 	public Boolean rightButton;
 
-	private IModel origin;
+	private IComponent origin;
 
 	public ComboMouse(MouseEvent e, Point vectorSource) {
 		dx = (int) (e.getPoint().getX() - vectorSource.getX());
@@ -28,7 +28,7 @@ public class ComboMouse {
 	public ComboMouse(MouseEvent e) { this(e, e.getPoint()); }
 
 	public Point getPoint() { return this.point; }
-	public IModel getOrigin() { return origin; }
-	public ComboMouse setOrigin(IModel value) { origin = value; return this; }
+	public IComponent getOrigin() { return origin; }
+	public ComboMouse setOrigin(IComponent value) { origin = value; return this; }
 	
 }

@@ -4,15 +4,14 @@ import javax.sound.midi.*;
 
 import main.Main;
 import model.Explain;
-import blockspace.staff.accord.nota.Nota;
 import blockspace.staff.StaffConfig.StaffConfig;
 import blockspace.staff.StaffPanel;
-import stuff.Musica.PlayMusThread;
+import stuff.musica.Klesunthesizer;
+import stuff.musica.PlayMusThread;
 import stuff.tools.Logger;
 import stuff.tools.jmusic_integration.INota;
 
 import java.util.TreeSet;
-import java.util.stream.Stream;
 
 
 public class DeviceEbun {

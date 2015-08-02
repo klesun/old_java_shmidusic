@@ -1,7 +1,7 @@
 package blockspace.staff.accord.nota;
 
 import model.*;
-import stuff.Musica.PlayMusThread;
+import stuff.musica.PlayMusThread;
 import stuff.OverridingDefaultClasses.TruMap;
 import org.json.JSONObject;
 

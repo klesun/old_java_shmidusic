@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import gui.ImageStorage;
 import blockspace.staff.accord.nota.Nota;
 import blockspace.staff.StaffConfig.StaffConfig;
+import stuff.musica.Klesunthesizer;
 import stuff.tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 import stuff.tools.jmusic_integration.INota;
@@ -25,12 +26,9 @@ public class PlaybackTimer implements IMidiScheduler {
 		this.config = config;
 	}
 
-	public void addNoteOnTask(Fraction when, INota nota) {
+	public void addNoteTask(Fraction when, INota nota) {
 		addTask(when, () -> DeviceEbun.openNota(nota));
-	}
-
-	public void addNoteOffTask(Fraction when, INota nota) {
-		addTask(when, () -> DeviceEbun.closeNota(nota));
+		addTask(when.add(nota.getRealLength()), () -> DeviceEbun.closeNota(nota));
 	}
 
 	public void addTask(Fraction fraction, Runnable task)
@@ -84,13 +82,21 @@ public class PlaybackTimer implements IMidiScheduler {
 		}
 	}
 
-	private long toMillis(Fraction f) {
+	protected long toMillis(Fraction f) {
 		int tempo = config.getTempo();
 		return Nota.getTimeMilliseconds(f, tempo);
 	}
 
-	private long getTimerPeriod() {
-		Fraction step = ImageStorage.getShortLimit().divide(3); // 3 - cuz triplet
-		return toMillis(step);
+	// it's bad
+	public static class KlesunthesizerTimer extends PlaybackTimer
+	{
+		public KlesunthesizerTimer(StaffConfig config) {
+			super(config);
+		}
+
+		@Override
+		public void addNoteTask(Fraction when, INota nota) {
+			addTask(when, () -> Klesunthesizer.send(nota.getTune(), (int)toMillis(nota.getRealLength())));
+		}
 	}
 }

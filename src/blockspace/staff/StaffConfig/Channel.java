@@ -13,8 +13,6 @@ public class Channel extends AbstractModel implements Comparable<Channel>  {
 	final private Field<Boolean> isMuted = new Field<>("isMuted", false, this);
 	final public Field<Integer> channelNumber = new Field<>("channelNumber", Integer.class, true, this);
 
-	public Channel(StaffConfig parent) { super(parent); }
-
 	public Channel setInstrument(int value) { instrument.set(value); return this; }
 	public Channel setVolume(int value) { volume.set(value); return this; }
 	public Channel setIsMuted(Boolean value) { isMuted.set(value); return this; }

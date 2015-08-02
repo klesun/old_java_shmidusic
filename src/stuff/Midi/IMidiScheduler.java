@@ -5,6 +5,5 @@ import stuff.tools.jmusic_integration.INota;
 
 public interface IMidiScheduler
 {
-	void addNoteOnTask(Fraction when, INota nota);
-	void addNoteOffTask(Fraction when, INota nota);
+	void addNoteTask(Fraction when, INota nota);
 }

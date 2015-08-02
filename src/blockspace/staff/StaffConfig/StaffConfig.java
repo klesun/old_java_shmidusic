@@ -43,9 +43,10 @@ public class StaffConfig extends MidianaComponent
 	// tempo 60 => quarter nota = 1 second
 
 	// TODO: use Fraction
-	private Field<Integer> numerator = new Field<>("numerator", 8, this, n -> limit(n, 1, MAX_TACT_NUMERATOR)); // h.addField("numerator", 8); // because 8x8 = 64; 64/64 = 1; obvious
-	private Field<Integer> tempo = new Field<>("tempo", 120, this, n -> limit(n, MIN_TEMPO, MAX_TEMPO)); // h.addField("tempo", 120);
-	public Field<Integer> keySignature = addField("keySignature", 0);
+	final private Field<Integer> numerator = new Field<>("numerator", 8, this, n -> limit(n, 1, MAX_TACT_NUMERATOR)); // h.addField("numerator", 8); // because 8x8 = 64; 64/64 = 1; obvious
+	final private Field<Integer> tempo = new Field<>("tempo", 120, this, n -> limit(n, MIN_TEMPO, MAX_TEMPO)); // h.addField("tempo", 120);
+	final public Field<Integer> keySignature = addField("keySignature", 0);
+	final public Field<Boolean> useHardcoreSynthesizer = addField("useHardcordSynthesizer", false);
 
 	// TODO: make it ordered Set instead of List
 	final public Arr<Channel> channelList = new Arr<>("channelList", makeChannelList(), this, Channel.class).setOmitDefaultFromJson(true);
@@ -55,7 +56,7 @@ public class StaffConfig extends MidianaComponent
 
 		for (int i = 0; i < Channel.CHANNEL_COUNT; ++i) {
 			JSONObject state = new JSONObject().put("channelNumber", i);
-			Channel channel = new Channel(this);
+			Channel channel = new Channel();
 			channel.reconstructFromJson(state);
 
 			list.add(channel);

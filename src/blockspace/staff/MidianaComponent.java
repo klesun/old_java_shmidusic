@@ -4,25 +4,27 @@ import gui.ImageStorage;
 import gui.Settings;
 import model.AbstractHandler;
 import model.AbstractModel;
-import model.IComponentModel;
+import model.IComponent;
 
 import java.awt.*;
 import java.awt.event.FocusListener;
 
-abstract public class MidianaComponent extends AbstractModel implements IComponentModel {
+abstract public class MidianaComponent extends AbstractModel implements IComponent {
 
-	private AbstractHandler eventHandler = null;
+	final private IComponent parent;
+	final private AbstractHandler eventHandler;
 
 	abstract public MidianaComponent getFocusedChild();
 	abstract protected AbstractHandler makeHandler();
 	abstract  public void drawOn(Graphics2D surface, int x, int y, Boolean completeRepaint); // TODO: renmae to paintComponent() for compatibility with AWT components
 
 	// TODO: separate Model from Event handler, i wanna be able to instantiate Nota without Staff!
-	public MidianaComponent(IComponentModel parent) {
-		super(parent);
+	public MidianaComponent(IComponent parent) {
+		this.parent = parent;
 		this.eventHandler = this.makeHandler();
 	}
 
+	public IComponent getModelParent() { return this.parent; }
 	public AbstractHandler getHandler() { return this.eventHandler; }
 
 	@Override

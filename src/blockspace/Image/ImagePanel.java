@@ -65,7 +65,7 @@ public class ImagePanel extends JPanel implements IBlockSpacePanel {
 	@Override
 	public Block getParentBlock() { return scroll; }
 	@Override
-	public IComponentModel getFocusedChild() { return null; }
+	public IComponent getFocusedChild() { return null; }
 	@Override
 	public Block getModelParent() { return Block.class.cast(getParent().getParent()); } // =D
 	@Override

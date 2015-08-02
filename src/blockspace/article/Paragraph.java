@@ -25,7 +25,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 
-public class Paragraph extends JTextArea implements IComponentModel {
+public class Paragraph extends JTextArea implements IComponent, IModel {
 
 	private Article parent = null;
 	private AbstractHandler handler = null;
@@ -145,7 +145,7 @@ public class Paragraph extends JTextArea implements IComponentModel {
 	}
 
 	public CatchPhrase addCatchPhrase(String text) {
-		CatchPhrase phrase = new CatchPhrase(this, text);
+		CatchPhrase phrase = new CatchPhrase(text);
 		catchPhrases.put(text, phrase);
 		return phrase;
 	}
@@ -166,7 +166,7 @@ public class Paragraph extends JTextArea implements IComponentModel {
 	}
 
 	@Override
-	public IComponentModel getFocusedChild() { return null; }
+	public IComponent getFocusedChild() { return null; }
 	@Override
 	public Article getModelParent() { return parent; }
 	@Override
@@ -191,7 +191,7 @@ public class Paragraph extends JTextArea implements IComponentModel {
 	@Override
 	public IModel reconstructFromJson(JSONObject jsObject) throws JSONException {
 		clearChildList();
-		IComponentModel.super.reconstructFromJson(jsObject);
+		IModel.super.reconstructFromJson(jsObject);
 		setText(jsObject.getString("text"));
 		if (jsObject.has("catchPhrases")) {
 			JSONObject phraseDict = jsObject.getJSONObject("catchPhrases");

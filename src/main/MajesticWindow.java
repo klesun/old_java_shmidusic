@@ -21,7 +21,7 @@ public class MajesticWindow extends JFrame {
 
 	public JPanel cards = new JPanel();
 	private JMenuBar menuBar;
-	private Map<Class<? extends IComponentModel>, JMenu> menus = new HashMap<>();
+	private Map<Class<? extends IComponent>, JMenu> menus = new HashMap<>();
 	private JMenuItem fullscreenMenuItem = null;
 
 	private Component lastFocusedBeforeMenu = null;
@@ -74,7 +74,7 @@ public class MajesticWindow extends JFrame {
 		});
 	}
 
-	private void addMenuItems(IComponentModel fakeModelForClassMethods) {
+	private void addMenuItems(IComponent fakeModelForClassMethods) {
 
 		LinkedHashMap<Combo, ContextAction> actionMap = fakeModelForClassMethods.getHandler().getMyClassActionMap();
 		if (actionMap.values().stream().anyMatch(a -> !a.omitMenuBar())) {
@@ -95,8 +95,8 @@ public class MajesticWindow extends JFrame {
 				eMenuItem.setAccelerator(key.toKeystroke());
 
 				eMenuItem.addActionListener(event -> {
-					Class<? extends IComponentModel> cls = fakeModelForClassMethods.getClass();
-					IComponentModel context = findeFocusedByClass(cls);
+					Class<? extends IComponent> cls = fakeModelForClassMethods.getClass();
+					IComponent context = findeFocusedByClass(cls);
 					if (context != null) {
 						Explain explain = action.redo(context);
 						if (explain.isSuccess()) {
@@ -118,16 +118,16 @@ public class MajesticWindow extends JFrame {
 			menus.put(fakeModelForClassMethods.getClass(), modelMenu);
 		}
 
-		for (IComponentModel child: fakeModelForClassMethods.getModelHelper().makeFakePossibleChildListForClassMethods()) {
+		for (IComponent child: fakeModelForClassMethods.makeFakePossibleChildListForClassMethods()) {
 			addMenuItems(child);
 		}
 	}
 
-	private IComponentModel findeFocusedByClass(Class<? extends IComponentModel> cls) {
+	private IComponent findeFocusedByClass(Class<? extends IComponent> cls) {
 		if (cls == BlockSpace.class) {
 			return blockSpace;
 		} else {
-			IComponentModel result = blockSpace.getFocusedChild(lastFocusedBeforeMenu);
+			IComponent result = blockSpace.getFocusedChild(lastFocusedBeforeMenu);
 			while (result != null) {
 				if (result.getClass() == cls) {
 					break;
@@ -148,7 +148,7 @@ public class MajesticWindow extends JFrame {
 			m.setToolTipText("Instance Not Focused");
 		});
 
-		IComponentModel model = blockSpace;
+		IComponent model = blockSpace;
 		while (model != null) {
 			if (menus.containsKey(model.getClass())) { // will be false for StaffPanel cuz i dont like it
 				menus.get(model.getClass()).setEnabled(true);

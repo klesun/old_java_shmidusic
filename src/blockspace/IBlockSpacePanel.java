@@ -1,8 +1,9 @@
 package blockspace;
 
-import model.IComponentModel;
+import model.IComponent;
+import model.IModel;
 
-public interface IBlockSpacePanel extends IComponentModel {
+public interface IBlockSpacePanel extends IComponent, IModel {
 
 	Block getParentBlock();
 

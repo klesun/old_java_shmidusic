@@ -20,7 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.function.Consumer;
 
 
-final public class StaffPanel extends JPanel implements IBlockSpacePanel {
+final public class StaffPanel extends JPanel implements IBlockSpacePanel, IModel {
 
 	public static int MARGIN_V = 15; // Сколько отступов сделать сверху перед рисованием полосочек // TODO: move it into Constants class maybe? // eliminate it nahuj maybe?
 	public static int MARGIN_H = 1; // TODO: move it into Constants class maybe?
@@ -198,7 +198,9 @@ final public class StaffPanel extends JPanel implements IBlockSpacePanel {
 			super.paintComponent(g);
 
 			Graphics2D g2 = (Graphics2D)g;
-			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+			// TODO: i suspect it is the reason of huge lags in Linux. Maybe disable it only for him ? =D
+//			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 			staff.drawOn(g2, true);
 		}

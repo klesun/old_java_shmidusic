@@ -1,4 +1,4 @@
-package stuff.Musica;
+package stuff.musica;
 
 import model.Combo;
 import blockspace.staff.Staff;

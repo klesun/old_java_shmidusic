@@ -80,7 +80,7 @@ public class BlockSpaceHandler extends AbstractHandler {
 	}
 	@Override
 	public Boolean mouseReleasedFinal(ComboMouse mouse) {
-		IComponentModel eventOrigin = (IComponentModel)getFirstParentComponent(mouse.getOrigin());
+		IComponent eventOrigin = (IComponent)getFirstParentComponent(mouse.getOrigin());
 		eventOrigin.setCursor(eventOrigin.getDefaultCursor());
 		return true;
 	}
@@ -88,7 +88,7 @@ public class BlockSpaceHandler extends AbstractHandler {
 	@Override
 	public BlockSpace getContext() { return (BlockSpace)super.getContext(); }
 
-	private static Component getFirstParentComponent(IModel model) {
+	private static Component getFirstParentComponent(IComponent model) {
 		while (!(model instanceof Component)) {
 			if (model == null) { Logger.fatal("orphan model detected! " + model.getClass().getSimpleName()); }
 			model = model.getModelParent();

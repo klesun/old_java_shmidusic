@@ -1,9 +1,8 @@
 package blockspace;
-import blockspace.staff.Staff;
 import model.AbstractHandler;
 import model.Helper;
-import model.IComponentModel;
-import stuff.OverridingDefaultClasses.Scroll;
+import model.IComponent;
+import model.IModel;
 import stuff.OverridingDefaultClasses.TruLabel;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,7 +13,7 @@ import javax.swing.*;
 import javax.swing.border.Border;
 
 @SuppressWarnings("serial")
-public class Block extends JPanel implements IComponentModel {
+public class Block extends JPanel implements IComponent, IModel {
 	
 	final public IBlockSpacePanel content;
 
@@ -67,7 +66,7 @@ public class Block extends JPanel implements IComponentModel {
 	// implementing IModel
 
 	@Override
-	public IComponentModel getFocusedChild() { return IComponentModel.class.cast(content); }
+	public IComponent getFocusedChild() { return IComponent.class.cast(content); }
 	@Override
 	public BlockSpace getModelParent() { return this.parent; }
 	@Override

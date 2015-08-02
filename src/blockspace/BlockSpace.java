@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class BlockSpace extends JPanel implements IComponentModel {
+public class BlockSpace extends JPanel implements IComponent, IModel {
 
 	private MajesticWindow window = null;
 
@@ -72,7 +72,7 @@ public class BlockSpace extends JPanel implements IComponentModel {
 	// overriding IModel
 
 	@Override
-	public IComponentModel getModelParent() { return null; } // BlockSpace is root parent
+	public IComponent getModelParent() { return null; } // BlockSpace is root parent
 	@Override
 	public Block getFocusedChild() { // i think, i don't get awt philosophy...
 		return getFocusedChild(window.getFocusOwner());
@@ -80,7 +80,7 @@ public class BlockSpace extends JPanel implements IComponentModel {
 
 	public Block getFocusedChild(Component awtFocus) {
 		if (awtFocus instanceof IModel) {
-			IModel model = (IModel)awtFocus;
+			IComponent model = (IComponent)awtFocus;
 			while (model != null) {
 				if (childScrollList.contains(model)) {
 					return (Block)model;
