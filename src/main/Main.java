@@ -1,8 +1,8 @@
 package main;
 
 //import com.sun.deploy.util.SystemUtils;
-import stuff.Midi.DeviceEbun;
-import stuff.tools.Logger;
+import org.sheet_midusic.stuff.Midi.DeviceEbun;
+import org.sheet_midusic.stuff.tools.Logger;
 
 public class Main
 {

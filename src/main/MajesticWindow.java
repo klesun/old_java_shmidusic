@@ -1,10 +1,13 @@
 package main;
 
-import blockspace.Block;
-import gui.ImageStorage;
-import model.*;
-import blockspace.BlockSpace;
-import stuff.OverridingDefaultClasses.TruMenuItem;
+import org.blockspace.Block;
+import org.sheet_midusic.stuff.graphics.ImageStorage;
+import org.blockspace.BlockSpace;
+import org.klesun_model.Combo;
+import org.klesun_model.ContextAction;
+import org.klesun_model.Explain;
+import org.klesun_model.IComponent;
+import org.sheet_midusic.stuff.OverridingDefaultClasses.TruMenuItem;
 
 import javax.swing.*;
 
@@ -57,7 +60,7 @@ public class MajesticWindow extends JFrame {
 		cards.add(blockSpace = new BlockSpace(this), cardEnum.CARDS_STORYSPACE.name());
 		addMenuBar();
 		switchTo(cardEnum.CARDS_STORYSPACE);
-		// for user-friendship there will be one initial staff
+		// for user-friendship there will be one initial org.sheet_midusic.staff
 		blockSpace.addMusicBlock().getParentBlock() .switchFullscreen();
 
 		updateMenuBar();
@@ -140,7 +143,7 @@ public class MajesticWindow extends JFrame {
 	}
 
 	// the Great idea behind this is to refresh menu bar each time we change focus
-	// i.e. when we're pointing nota we have Menus: [BlockSpace, Scroll, staff, accord, nota], when Paragraph - [BlockSpace, Scroll, article, Paragraph] etc
+	// i.e. when we're pointing nota we have Menus: [BlockSpace, Scroll, org.sheet_midusic.staff, chord, nota], when Paragraph - [BlockSpace, Scroll, article, Paragraph] etc
 	public void updateMenuBar() {
 
 		menus.values().forEach(m -> {

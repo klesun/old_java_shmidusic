@@ -1,6 +1,6 @@
 [submodule "src/org/json"]
 	path = src/org/json
 	url = https://github.com/arturklesun/SheetMusicJSON-java
-[submodule "src/jm"]
-	path = src/jm
+[submodule "src/org/jm"]
+	path = src/org/jm
 	url = https://github.com/arturklesun/jMusic_fork

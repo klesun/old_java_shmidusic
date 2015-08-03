@@ -1,6 +1,6 @@
 package main;
 
-import stuff.Midi.DeviceEbun;
+import org.sheet_midusic.stuff.Midi.DeviceEbun;
 
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
