@@ -29,33 +29,37 @@ public class StaffHandler extends AbstractHandler {
 		JFileChooser pngChooser = new JFileChooser();
 		pngChooser.setFileFilter(new FileNameExtensionFilter("PNG images", "png"));
 
-		actionMap
-			.p(new Combo(ctrl, k.VK_P), mkAction(Staff::triggerPlayback).setCaption("Play/Stop"))
+		String navigation = "navigation";
 
-				// TODO: maybe move these two into Scroll
+		actionMap
+			// File
 			.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel).setCaption("Save midi.json"))
 			.p(new Combo(ctrl, k.VK_U), mkFailableAction(FileProcessor::saveMidi).setCaption("Save midi (alpha)"))
 			.p(new Combo(ctrl, k.VK_O), mkFailableAction(FileProcessor::openStaff).setCaption("Open"))
 			.p(new Combo(ctrl, k.VK_M), mkFailableAction(FileProcessor::openJMusic).setCaption("Open JMusic project"))
 			.p(new Combo(ctrl, k.VK_K), mkFailableAction(FileProcessor::openJMusic2).setCaption("Open JMusic project (with rounding)"))
+			.p(new Combo(ctrl, k.VK_E), mkFailableAction(FileProcessor::savePNG).setCaption("Export png"))
 
 			.p(new Combo(0, k.VK_ESCAPE), mkAction(s -> s.getConfig().getDialog().showMenuDialog(StaffConfig::syncSyntChannels))
-				.setCaption("Settings"))
-			.p(new Combo(0, k.VK_HOME), mkAction(s -> s.setFocusedIndex(-1)).setCaption("To Start"))
-			.p(new Combo(0, k.VK_END), mkAction(s -> s.setFocusedIndex(s.getChordList().size() - 1)).setCaption("To End"))
-			.p(new Combo(0, k.VK_LEFT), mkFailableAction(s -> s.moveFocusWithPlayback(-1)).setCaption("Left"))
-			.p(new Combo(0, k.VK_RIGHT), mkFailableAction(s -> s.moveFocusWithPlayback(1)).setCaption("Right"))
-			.p(new Combo(0, k.VK_UP), mkFailableAction(s -> s.moveFocusRow(-1)).setCaption("Up"))
-			.p(new Combo(0, k.VK_DOWN), mkFailableAction(s -> s.moveFocusRow(1)).setCaption("Down"))
+				.setCaption("Settings").setPostfix(navigation))
+
+			// Navigation
+			.p(new Combo(0, k.VK_HOME), mkAction(s -> s.setFocusedIndex(-1)).setCaption("To Start").setPostfix(navigation))
+			.p(new Combo(0, k.VK_END), mkAction(s -> s.setFocusedIndex(s.getChordList().size() - 1)).setCaption("To End").setPostfix(navigation))
+			.p(new Combo(ctrl, k.VK_LEFT), mkAction(s -> s.moveFocusTact(-1)).setCaption("Left Tact").setPostfix("Navigation"))
+			.p(new Combo(ctrl, k.VK_RIGHT), mkAction(s -> s.moveFocusTact(1)).setCaption("Right Tact").setPostfix("Navigation"))
+			.p(new Combo(0, k.VK_LEFT), mkFailableAction(s -> s.moveFocusWithPlayback(-1)).setCaption("Left").setPostfix(navigation))
+			.p(new Combo(0, k.VK_RIGHT), mkFailableAction(s -> s.moveFocusWithPlayback(1)).setCaption("Right").setPostfix(navigation))
+			.p(new Combo(0, k.VK_UP), mkFailableAction(s -> s.moveFocusRow(-1)).setCaption("Up").setPostfix(navigation))
+			.p(new Combo(0, k.VK_DOWN), mkFailableAction(s -> s.moveFocusRow(1)).setCaption("Down").setPostfix(navigation))
+
+			// TODO: move it to StaffConfig
 			.p(new Combo(ctrl, k.VK_D), mkFailableAction(s -> DeviceEbun.changeOutDevice(s.getConfig()))
 				.setCaption("Change Playback Device"))
-			.p(new Combo(ctrl, k.VK_0), mkAction(s -> {
-				/** @debug */
-				s.mode = Staff.aMode.passive;
-			}).setCaption("Disable Input From MIDI Device"))
+			.p(new Combo(ctrl, k.VK_0), mkAction(s -> s.mode = Staff.aMode.passive).setCaption("Disable Input From MIDI Device"))
 			.p(new Combo(ctrl, k.VK_9), mkAction(s -> s.mode = Staff.aMode.insert).setCaption("Enable Input From MIDI Device"))
-			.p(new Combo(ctrl, k.VK_E), mkFailableAction(FileProcessor::savePNG).setCaption("Export png"))
-				/** @legacy */
+
+			/** @legacy */
 			.p(new Combo(ctrl, k.VK_W), mkAction(StaffHandler::updateDeprecatedPauses).setCaption("Convert Deprecated Pauses"))
 		;
 

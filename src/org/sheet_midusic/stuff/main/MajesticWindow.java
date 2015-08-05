@@ -1,8 +1,7 @@
-package main;
+package org.sheet_midusic.stuff.main;
 
-import org.blockspace.Block;
+import org.sheet_midusic.staff.staff_panel.MainPanel;
 import org.sheet_midusic.stuff.graphics.ImageStorage;
-import org.blockspace.BlockSpace;
 import org.klesun_model.Combo;
 import org.klesun_model.ContextAction;
 import org.klesun_model.Explain;
@@ -32,9 +31,11 @@ public class MajesticWindow extends JFrame {
 	public enum cardEnum {
 		CARDS_STORYSPACE,
 		CARDS_TERMINAL,
+		CARDS_SHEET_MIDUSIC
 	}
 
-	public BlockSpace blockSpace;
+//	public BlockSpace blockSpace;
+	public MainPanel staffPanel;
 	public JTextArea terminal;
 
 	public MajesticWindow() {
@@ -57,18 +58,20 @@ public class MajesticWindow extends JFrame {
 
 	// this method should be called only once
 	public void init() {
-		cards.add(blockSpace = new BlockSpace(this), cardEnum.CARDS_STORYSPACE.name());
+		cards.add(staffPanel = new MainPanel(), cardEnum.CARDS_SHEET_MIDUSIC.name());
+//		cards.add(blockSpace = new BlockSpace(this), cardEnum.CARDS_STORYSPACE.name());
 		addMenuBar();
-		switchTo(cardEnum.CARDS_STORYSPACE);
+		switchTo(cardEnum.CARDS_SHEET_MIDUSIC);
+		staffPanel.requestFocus();
 		// for user-friendship there will be one initial org.sheet_midusic.staff
-		blockSpace.addMusicBlock().getParentBlock() .switchFullscreen();
+//		blockSpace.addMusicBlock().getParentBlock().switchFullscreen();
 
 		updateMenuBar();
 	}
 
 	private void addMenuBar() {
 		this.menuBar = new JMenuBar();
-		addMenuItems(new BlockSpace(this));
+		addMenuItems(new MainPanel());
 		setJMenuBar(menuBar);
 		getRootPane().addFocusListener(new FocusAdapter() {
 			public void focusGained(FocusEvent e) {
@@ -77,8 +80,8 @@ public class MajesticWindow extends JFrame {
 		});
 	}
 
-	private void addMenuItems(IComponent fakeModelForClassMethods) {
-
+	private void addMenuItems(IComponent fakeModelForClassMethods)
+	{
 		LinkedHashMap<Combo, ContextAction> actionMap = fakeModelForClassMethods.getHandler().getMyClassActionMap();
 		if (actionMap.values().stream().anyMatch(a -> !a.omitMenuBar())) {
 
@@ -127,10 +130,10 @@ public class MajesticWindow extends JFrame {
 	}
 
 	private IComponent findeFocusedByClass(Class<? extends IComponent> cls) {
-		if (cls == BlockSpace.class) {
-			return blockSpace;
+		if (cls == MainPanel.class) {
+			return staffPanel;
 		} else {
-			IComponent result = blockSpace.getFocusedChild(lastFocusedBeforeMenu);
+			IComponent result = staffPanel.getFocusedChild();
 			while (result != null) {
 				if (result.getClass() == cls) {
 					break;
@@ -151,7 +154,7 @@ public class MajesticWindow extends JFrame {
 			m.setToolTipText("Instance Not Focused");
 		});
 
-		IComponent model = blockSpace;
+		IComponent model = staffPanel;
 		while (model != null) {
 			if (menus.containsKey(model.getClass())) { // will be false for StaffPanel cuz i dont like it
 				menus.get(model.getClass()).setEnabled(true);
@@ -160,22 +163,22 @@ public class MajesticWindow extends JFrame {
 			model = model.getFocusedChild();
 		}
 
-		if (blockSpace.getChildScrollList().stream().anyMatch(Block::isFullscreen)) {
-			menus.get(BlockSpace.class).setEnabled(false);
-			menus.get(BlockSpace.class).setToolTipText("Disabled In Fullscreen Mode");
-
-			Arrays.stream(menus.get(Block.class).getMenuComponents()).forEach(e -> {
-				e.setEnabled(false);
-				((JMenuItem) e).setToolTipText("Disabled In Fullscreen Mode");
-			});
-			fullscreenMenuItem.setEnabled(true);
-			fullscreenMenuItem.setToolTipText(null);
-		} else {
-			Arrays.stream(menus.get(Block.class).getMenuComponents()).forEach(e -> {
-				e.setEnabled(true);
-				((JMenuItem) e).setToolTipText(null);
-			});
-		}
+//		if (blockSpace.getChildScrollList().stream().anyMatch(Block::isFullscreen)) {
+//			menus.get(BlockSpace.class).setEnabled(false);
+//			menus.get(BlockSpace.class).setToolTipText("Disabled In Fullscreen Mode");
+//
+//			Arrays.stream(menus.get(Block.class).getMenuComponents()).forEach(e -> {
+//				e.setEnabled(false);
+//				((JMenuItem) e).setToolTipText("Disabled In Fullscreen Mode");
+//			});
+//			fullscreenMenuItem.setEnabled(true);
+//			fullscreenMenuItem.setToolTipText(null);
+//		} else {
+//			Arrays.stream(menus.get(Block.class).getMenuComponents()).forEach(e -> {
+//				e.setEnabled(true);
+//				((JMenuItem) e).setToolTipText(null);
+//			});
+//		}
 	}
 
 	public void switchTo(cardEnum card) {

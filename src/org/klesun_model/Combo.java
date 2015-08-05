@@ -1,7 +1,6 @@
 package org.klesun_model;
 
 import org.sheet_midusic.stuff.OverridingDefaultClasses.TruMap;
-import org.sheet_midusic.stuff.tools.Logger;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
@@ -29,20 +28,6 @@ public class Combo
 	public Combo(int mod, int keyCode) {
 		this.mod = mod;
 		this.keyCode = keyCode;
-	}
-
-	public Combo changeSign() {
-		return new Combo(this.mod, anti(this.keyCode));
-	}
-
-	public int getSign() {
-		if (getAntiKeyMap().containsKey(getKeyCode())) {
-			return -1;
-		} else if (getAntiKeyMap().inverse().containsKey(getKeyCode())) {
-			return +1;
-		} else {
-			return 0;
-		}
 	}
 
 	public int getPressedNumber()
@@ -94,20 +79,6 @@ public class Combo
 		return getAsciTuneMap().inverse().get(tune);
 	}
 
-	// static - private
-
-	private static int anti(int keyCode) {
-		if (getAntiKeyMap().containsKey(keyCode)) {
-			return getAntiKeyMap().get(keyCode);
-		} else if (getAntiKeyMap().inverse().containsKey(keyCode)) {
-			return getAntiKeyMap().inverse().get(keyCode);
-		} else {
-			Logger.fatal("Жопа!!! Этот метод не должен вызываться с параметром " + keyCode);
-			System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
-			return keyCode;
-		}
-	}
-
 	// field getters
 
 	public char getKeyChar() {
@@ -150,17 +121,6 @@ public class Combo
 	}
 
 	// 100500-line properties
-
-	private static BiMap<Integer, Integer> getAntiKeyMap() {
-		BiMap<Integer, Integer> antiKeyMap = HashBiMap.create();
-		antiKeyMap.put(KeyEvent.VK_UP, KeyEvent.VK_DOWN);
-		antiKeyMap.put(KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT);
-		antiKeyMap.put(KeyEvent.VK_MINUS, KeyEvent.VK_EQUALS);
-		antiKeyMap.put(KeyEvent.VK_OPEN_BRACKET, KeyEvent.VK_CLOSE_BRACKET);
-		antiKeyMap.put(KeyEvent.VK_COMMA, KeyEvent.VK_PERIOD);
-		antiKeyMap.put(KeyEvent.VK_PAGE_UP, KeyEvent.VK_PAGE_DOWN);
-		return antiKeyMap;
-	}
 
 	public static BiMap<Integer, Integer> getAsciTuneMap() {
 		int[][] keyboardArrangement = {

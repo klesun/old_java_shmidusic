@@ -225,12 +225,6 @@ public class Nota extends MidianaComponent implements INota
 		return this;
 	}
 
-	public Nota changeLength(Combo combo) {
-		return combo.getSign() > 0
-				? incLen()
-				: decLen();
-	}
-
 	public Boolean putDot() {
 		if (getDotCount() < MAX_DOT_COUNT) {
 			setDotCount(getDotCount() + 1);
@@ -247,12 +241,6 @@ public class Nota extends MidianaComponent implements INota
 		} else {
 			return false;
 		}
-	}
-
-	public Boolean dot(Combo combo) {
-		return combo.getSign() > 0
-			? putDot()
-			: removeDot();
 	}
 
 	// </editor-fold>

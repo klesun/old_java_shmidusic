@@ -2,9 +2,8 @@ package org.sheet_midusic.stuff.tools;
 
 import org.jm.midi.SMF;
 import org.klesun_model.Explain;
-import main.Main;
+import org.sheet_midusic.stuff.main.Main;
 import org.sheet_midusic.staff.Staff;
-import org.blockspace.BlockSpace;
 import org.klesun_model.IModel;
 
 import javax.imageio.ImageIO;
@@ -34,21 +33,21 @@ public class FileProcessor {
 		return makeSaveFileDialog("png", "PNG images").ifSuccess(f ->
 		{
 			BufferedImage img = new BufferedImage(staff.getWidth(), staff.getHeight(), BufferedImage.TYPE_INT_ARGB);
-			staff.drawOn((Graphics2D)img.getGraphics(), true);
+			staff.drawOn((Graphics2D)img.getGraphics(), 0, 0);
 
 			return Explain.tryException(() -> ImageIO.write(img, "png", f));
 		});
 	}
 
-	public static Explain<File> saveStoryspace(BlockSpace blockSpace) {
-		return makeSaveFileDialog("bs.json", "BlockSpace Project Json Data")
-				.ifSuccess(f -> saveModel(f, blockSpace));
-	}
+//	public static Explain<File> saveStoryspace(BlockSpace blockSpace) {
+//		return makeSaveFileDialog("bs.json", "BlockSpace Project Json Data")
+//				.ifSuccess(f -> saveModel(f, blockSpace));
+//	}
 
 	public static Explain saveMusicPanel(Staff staff) {
 
 		return makeSaveFileDialog("midi.json", "Json Midi-music data").ifSuccess(f -> {
-			staff.getParentSheet().getParentBlock().setTitle(f.getName());
+//			staff.getParentSheet().getParentBlock().setTitle(f.getName());
 			return saveModel(f, staff); // TODO: use messages when fail
 		});
 	}
@@ -71,10 +70,10 @@ public class FileProcessor {
 		}
 	}
 
-	public static Explain openStoryspace(File f, BlockSpace blockSpace) {
-		Main.window.setTitle(f.getAbsolutePath());
-		return openModel(f, blockSpace);
-	}
+//	public static Explain openStoryspace(File f, BlockSpace blockSpace) {
+//		Main.window.setTitle(f.getAbsolutePath());
+//		return openModel(f, blockSpace);
+//	}
 
 	public static Explain openStaff(Staff staff) {
 		fileChooser.resetChoosableFileFilters();
@@ -88,7 +87,7 @@ public class FileProcessor {
 		});
 		if (fileChooser.showOpenDialog(Main.window) == JFileChooser.APPROVE_OPTION) {
 			File f = fileChooser.getSelectedFile();
-			staff.getParentSheet().getParentBlock().setTitle(f.getName());
+//			staff.getParentSheet().getParentBlock().setTitle(f.getName());
 
 			return openModel(f, staff);
 		} else {
@@ -114,7 +113,7 @@ public class FileProcessor {
 		});
 		if (fileChooser.showOpenDialog(Main.window) == JFileChooser.APPROVE_OPTION) {
 			File f = fileChooser.getSelectedFile();
-			staff.clearStan().getParentSheet().getParentBlock().setTitle(f.getName());
+//			staff.clearStan().getParentSheet().getParentBlock().setTitle(f.getName());
 
 			Explain<JSONObject> jsExplain = openJsonFile(f);
 			return jsExplain.isSuccess() ? fillStaffLambda.apply(jsExplain.getData()) : jsExplain;

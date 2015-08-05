@@ -1,6 +1,6 @@
 package org.sheet_midusic.staff;
 
-import org.sheet_midusic.staff.staff_panel.StaffPanel;
+import org.sheet_midusic.staff.staff_panel.MainPanel;
 import org.sheet_midusic.stuff.graphics.ImageStorage;
 import org.sheet_midusic.stuff.graphics.Settings;
 import org.klesun_model.AbstractHandler;
@@ -42,14 +42,14 @@ abstract public class MidianaComponent extends AbstractModel implements ICompone
 		// TODO: soon. something like setFocusedIndex(indexO(this)) { old.focusListener.handleLostFocus(); blablabla; focusListener.handleGainedFocus(); }
 	}
 
-	public StaffPanel getPanel() {
-		return (StaffPanel)this.getFirstAwtParent();
+	public MainPanel getPanel() {
+		return (MainPanel)this.getFirstAwtParent();
 	}
 
 	final public Settings getSettings() {
 		return getPanel().getSettings();
 	}
-	final public ImageStorage getImageStorage() { return getPanel().getParentBlock().getModelParent().getImageStorage(); }
+	final public ImageStorage getImageStorage() { return ImageStorage.inst(); }
 	final public int dx() { return getSettings().getStepWidth(); }
 	final public int dy() { return getSettings().getStepHeight(); }
 

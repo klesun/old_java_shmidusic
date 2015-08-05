@@ -5,8 +5,9 @@ import org.klesun_model.field.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Helper {
-
+// TODO: rename to ModelHelper
+public class Helper
+{
 	IModel model;
 
 	public Helper(IModel model) {

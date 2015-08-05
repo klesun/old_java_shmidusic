@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.sheet_midusic.staff.staff_panel.StaffPanel;
+import org.sheet_midusic.staff.staff_panel.MainPanel;
 import org.sheet_midusic.stuff.Midi.DeviceEbun;
 import org.sheet_midusic.stuff.Midi.Playback;
 import org.sheet_midusic.stuff.musica.PlayMusThread;
@@ -24,15 +24,16 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 
+import org.sheet_midusic.stuff.tools.Logger;
 import org.sheet_midusic.stuff.tools.jmusic_integration.INota;
-import com.google.common.util.concurrent.Uninterruptibles;
 import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Staff extends MidianaComponent {
-
+/** A Staff is part of SheetMusic with individual StaffConfig properties (keySignature/tempo/tactSize) */
+public class Staff extends MidianaComponent
+{
 	final public static int SISDISPLACE = 40;
 	public static final int DEFAULT_ZNAM = 64; // TODO: move it into some constants maybe
 
@@ -42,15 +43,16 @@ public class Staff extends MidianaComponent {
 	public StaffConfig staffConfig = null;
 
 	// TODO: MUAAAAH, USE FIELD CLASS MAZAFAKA AAAAAA!
-	private ArrayList<Chord> chordList = new ArrayList<>();
+	private List<Chord> chordList = new ArrayList<>();
+	private List<Tact> tactList = new ArrayList<>();
 	public int focusedIndex = -1;
 
-	final private StaffPanel blockPanel;
+	@Deprecated final private MainPanel blockPanel;
 	final private Playback playback;
 
 	private Boolean surfaceChanged = true;
 
-	public Staff(StaffPanel blockPanel) {
+	public Staff(MainPanel blockPanel) {
 		super(null);
 		this.blockPanel = blockPanel;
 		this.staffConfig = new StaffConfig(this);
@@ -62,7 +64,14 @@ public class Staff extends MidianaComponent {
 		Chord chord = addNewAccord(getFocusedIndex() + 1);
 		this.moveFocus(1);
 		if (DeviceEbun.isPlaybackSoftware()) { // i.e. when playback is not done with piano - no need to play pressed chord, user hears it anyways
-			new Thread(() -> { Uninterruptibles.sleepUninterruptibly(ChordHandler.ACCORD_EPSILON, TimeUnit.MILLISECONDS); PlayMusThread.playAccord(chord); }).start();
+			new Thread(() -> {
+				try {
+					Thread.sleep(ChordHandler.ACCORD_EPSILON);
+					PlayMusThread.playAccord(chord);
+				} catch (InterruptedException exc) {
+					Logger.error("okay...");
+				}
+			}).start();
 		}
 
 		return chord;
@@ -100,36 +109,37 @@ public class Staff extends MidianaComponent {
 	}
 
 	private void accordListChanged(int repaintAllFromIndex) {
-		int width = getParentSheet().getParentBlock().getWidth();
+		int width = getParentSheet().getWidth();
 		getParentSheet().staffContainer.setPreferredSize(new Dimension(10/*width - 25*/, getHeightIf(width)));	//	Needed for the scrollBar bars to appear
 		getParentSheet().staffContainer.revalidate();	//	Needed to recalc the scrollBar bars
 
-		getChordList().subList(repaintAllFromIndex, getChordList().size()).forEach(Chord::surfaceChanged);
+//		getChordList().subList(repaintAllFromIndex, getChordList().size()).forEach(Chord::surfaceChanged);
+		this.tactList = recalcTactList(); // TODO: maybe do some optimization using repaintAllFromIndex
 	}
 
-    @Override
+    @Deprecated
     public void drawOn(Graphics2D g, int x, int y, Boolean completeRepaint) {
-        drawOn(g, completeRepaint);
+        drawOn(g, x, y);
     }
 
-	public synchronized void drawOn(Graphics2D g, Boolean completeRepaintRequired) {
-		new StaffPainter(this, g, 0, 0).draw(completeRepaintRequired);
+	public synchronized int drawOn(Graphics2D g, int x, int y) {
+		new StaffPainter(this, g, x, y).draw(true);
+		return getHeightIf(getWidth());
 	}
 
 	@Override
 	public JSONObject getJsonRepresentation() {
 		return new JSONObject()
 			.put("staffConfig", this.getConfig().getJsonRepresentation())
-			.put("tactList", getTactStream().stream().map(IModel::getJsonRepresentation).toArray());
+			.put("tactList", tactList.stream().map(IModel::getJsonRepresentation).toArray());
 	}
 
-	public List<Tact> getTactStream()
+	private List<Tact> recalcTactList()
 	{
 		// TODO: maybe move implementation into Tact or TactMeasurer
 		List<Tact> result = new ArrayList<>();
 
 		TactMeasurer measurer = new TactMeasurer(getConfig().getTactSize());
-
 
 		int i = 0;
 		Tact currentTact = new Tact(i++);
@@ -215,13 +225,14 @@ public class Staff extends MidianaComponent {
 
 
 	public int getWidth() { return getParentSheet().getWidth(); }
+	@Deprecated // no comments
 	public int getHeight() { return getParentSheet().getHeight(); }
 
 	public int getMarginX() {
-		return Math.round(StaffPanel.MARGIN_H * dx());
+		return Math.round(MainPanel.MARGIN_H * dx());
 	}
 	public int getMarginY() {
-		return Math.round(StaffPanel.MARGIN_V * dy());
+		return Math.round(MainPanel.MARGIN_V * dy());
 	}
 
 	public int getAccordInRowCount() {
@@ -234,12 +245,12 @@ public class Staff extends MidianaComponent {
 	public StaffConfig getConfig() {
 		return this.staffConfig;
 	}
-	public StaffPanel getParentSheet() { // ???
+	public MainPanel getParentSheet() { // ???
 		return this.blockPanel;
 	}
 	public Playback getPlayback() { return this.playback; }
 	@Override
-	public StaffPanel getModelParent() { return getParentSheet(); }
+	public MainPanel getModelParent() { return getParentSheet(); }
 	public int getFocusedIndex() {
 		return this.focusedIndex;
 	}
@@ -254,10 +265,6 @@ public class Staff extends MidianaComponent {
 	}
 
 	// action handles
-
-    public void triggerPlayback() {
-        this.playback.trigger();
-    }
 
 	public Explain moveFocusWithPlayback(int sign, Boolean interruptSounding) {
 		Explain result = moveFocus(sign);
@@ -274,6 +281,10 @@ public class Staff extends MidianaComponent {
 
 	public Explain moveFocusWithPlayback(int sign) {
 		return moveFocusWithPlayback(sign, true);
+	}
+
+	public Explain moveFocusTact(int sign) {
+		return new Explain(false, "Not Implemented Yet!");
 	}
 
 	public Explain moveFocusRow(int sign) {

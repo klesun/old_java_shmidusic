@@ -1,4 +1,4 @@
-package main;
+package org.sheet_midusic.stuff.main;
 
 //import com.sun.deploy.util.SystemUtils;
 import org.sheet_midusic.stuff.Midi.DeviceEbun;

@@ -1,0 +1,26 @@
+﻿1. Маленькие поправки к Дизайну
+
+	1.1. Разбить стаф на графы:
+		- File:
+			+ Open
+			+ Save
+			+ Export Midi
+			+ Export Png	
+		- Navigation:
+			+ Play/Stop
+			+ Left
+			+ Right
+			+ Up
+			+ Down
+			+ To Begin
+			+ To End
+
+	1.2. Вынести в StaffConfig:
+		+ Settings
+		+ Change Playback Device
+		+ Disable Midi Input
+		+ Enable Midi Input
+		
+2. Небольшая фича для Больших свершений
+
+	2.1 Сделай, чтоб в панели был список Стафов, а не один единственный, чтоб посреди произведения можно было хуяк! и пометь размер такта/темп/раскладку тональности

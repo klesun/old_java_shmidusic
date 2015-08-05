@@ -1,30 +1,33 @@
 package org.sheet_midusic.stuff.graphics;
 
-import org.blockspace.BlockSpace;
-import org.sheet_midusic.staff.staff_panel.StaffPanel;
-
 // TODO: maybe move it into ImageStorage
 public class Settings {
 
-	final private BlockSpace blockSpace;
+//	final private BlockSpace blockSpace;
+
+	private static Settings inst = null;
 
 	private int scaleKoefficient = -1;
 	private int defaultChannel = 0;
-
-	public Settings(BlockSpace blockSpace) {
-		this.blockSpace = blockSpace;
-	}
+//
+//	public Settings(BlockSpace blockSpace) {
+//		this.blockSpace = blockSpace;
+//	}
 
 	public void setDefaultChannel(int value) { this.defaultChannel = value; }
 	public int getDefaultChannel() { return this.defaultChannel; }
 
+	public static Settings inst()
+	{
+		if (inst == null) {
+			inst = new Settings();
+		}
+		return inst;
+	}
+
 	public void scale(int sign) {
 		this.scaleKoefficient = sign == 1 ? -1 : -3;
-		blockSpace.getImageStorage().refreshImageSizes();
-
-		blockSpace.getChildScrollList().stream()
-				.filter(s -> s.content instanceof StaffPanel)
-				.forEach(s -> ((StaffPanel)s.content).surfaceCompletelyChanged());
+		ImageStorage.inst().refreshImageSizes();
 	}
 
 	public int getStepWidth() { return getNotaWidth(); } // nota image width (the one OS would display when you click on fil->properties)

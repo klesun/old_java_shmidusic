@@ -1,6 +1,5 @@
 package org.sheet_midusic.stuff.graphics;
 
-import org.blockspace.BlockSpace;
 import org.sheet_midusic.staff.staff_config.Channel;
 import org.sheet_midusic.stuff.tools.Logger;
 import org.sheet_midusic.stuff.tools.jmusic_integration.INota;
@@ -16,9 +15,11 @@ import java.util.List;
 
 public class ImageStorage {
 
+	private static ImageStorage inst = null;
+
 	final private static String DEFAULT_IMAGE_FOLDER = "imgs/";
 
-	final private BlockSpace parentBlockSpace;
+//	final private BlockSpace parentBlockSpace;
 
 	private Map<Fraction, BufferedImage>[] coloredNotas = new Map[Channel.CHANNEL_COUNT];
 
@@ -28,12 +29,20 @@ public class ImageStorage {
 	private Map<URL, BufferedImage> sizedDefaultImageMap = new HashMap<>();
 	private Map<URL, BufferedImage> randomImageMap = new HashMap<>();
 
-	public ImageStorage(BlockSpace parentBlockSpace) {
-		this.parentBlockSpace = parentBlockSpace;
+	public ImageStorage() {
+//		this.parentBlockSpace = parentBlockSpace;
 		for (int i = 0; i < Channel.CHANNEL_COUNT; ++i) {
 			coloredNotas[i] = new HashMap<>();
 		}
 		refreshImageSizes();
+	}
+
+	public static ImageStorage inst()
+	{
+		if (inst == null) {
+			inst = new ImageStorage();
+		}
+		return inst;
 	}
 
 	public BufferedImage getNotaImg(Fraction length, int channel) {
@@ -67,8 +76,8 @@ public class ImageStorage {
 	private void refreshNotaSizes() {
 
 		int w1, h1; Graphics2D g;
-		w1 = parentBlockSpace.getSettings().getNotaWidth();
-		h1 = parentBlockSpace.getSettings().getNotaHeight();
+		w1 = Settings.inst().getNotaWidth();
+		h1 = Settings.inst().getNotaHeight();
 
 		// resizing first base color nota
 		for (Fraction length: getAvailableNotaLengthList()) {
@@ -81,7 +90,7 @@ public class ImageStorage {
 				coloredNotas[chan].put(length, new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB));
 				g = (Graphics2D)coloredNotas[chan].get(length).getGraphics();
 				g.setColor(getColorByChannel(chan));
-				g.fillRect(0, 0, parentBlockSpace.getSettings().getNotaWidth(), parentBlockSpace.getSettings().getNotaHeight());
+				g.fillRect(0, 0, Settings.inst().getNotaWidth(), Settings.inst().getNotaHeight());
 				g.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN, 1.0f));
 				g.drawImage(coloredNotas[0].get(length), 0, 0, w1, h1, null); // not sure that need
 			}
@@ -148,9 +157,9 @@ public class ImageStorage {
 		return	n == 0 ? new Color(0,0,0) : // black
 				n == 1 ? new Color(192,0,0) : // red
 				n == 2 ? new Color(0,148,0) : // green
-				n == 3 ? new Color(48,48,255) : // blue
-				n == 4 ? new Color(128,128,0) : // yellow
-				n == 5 ? new Color(0,127,255) : // cyan
+				n == 3 ? new Color(60,60,255) : // blue
+				n == 4 ? new Color(152,152,0) : // yellow
+				n == 5 ? new Color(0,152,152) : // cyan
 				n == 6 ? new Color(192,0,192) : // magenta
 				n == 7 ? new Color(255,128,0) : // orange
 				n == 8 ? new Color(91,0,255) : // bluish magenta
@@ -205,8 +214,8 @@ public class ImageStorage {
 	}
 
 	private BufferedImage changeSize(BufferedImage originalImage) {
-		int w1 = originalImage.getWidth() * parentBlockSpace.getSettings().getNotaWidth() / Constants.NORMAL_NOTA_WIDTH;
-		int h1 = originalImage.getHeight() * parentBlockSpace.getSettings().getNotaHeight() / Constants.NORMAL_NOTA_HEIGHT;
+		int w1 = originalImage.getWidth() * Settings.inst().getNotaWidth() / Constants.NORMAL_NOTA_WIDTH;
+		int h1 = originalImage.getHeight() * Settings.inst().getNotaHeight() / Constants.NORMAL_NOTA_HEIGHT;
 
 		Image tmpImage = originalImage.getScaledInstance(w1, h1, Image.SCALE_SMOOTH);
 		BufferedImage newImage = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);

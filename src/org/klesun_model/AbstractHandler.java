@@ -1,6 +1,6 @@
 package org.klesun_model;
 
-import org.blockspace.BlockSpaceHandler;
+import org.sheet_midusic.stuff.main.Main;
 import org.sheet_midusic.staff.MidianaComponent;
 
 import javax.swing.*;
@@ -39,7 +39,11 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 
 	// implemented methods
 	final public void keyPressed(KeyEvent e) {
-		BlockSpaceHandler bsh = getRootHandler();
+
+		/** @debug */
+		System.out.println("zhopa " + e.getKeyCode());
+
+		AbstractHandler bsh = getRootHandler();
 		Explain result = bsh.handleKey(new Combo(e));
 		if (!result.isSuccess() && !result.isImplicit()) {
 			JOptionPane.showMessageDialog(getContext().getFirstAwtParent(), result.getExplanation());
@@ -48,13 +52,13 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 	final public void keyTyped(KeyEvent e) {}
 	final public void keyReleased(KeyEvent e) {}
 
-	public BlockSpaceHandler getRootHandler() {
+	public AbstractHandler getRootHandler() {
 		IComponent rootContext = getContext();
 		while (rootContext.getModelParent() != null) {
 			rootContext = rootContext.getModelParent();
 		}
 
-		return (BlockSpaceHandler)rootContext.getHandler();
+		return rootContext.getHandler();
 	}
 
 	final public Explain handleKey(Combo combo) {
@@ -71,7 +75,7 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 			if (getContext() instanceof MidianaComponent) { // i don't like this
 				MidianaComponent.class.cast(getContext()).getPanel().checkCam();
 			}
-			getRootHandler().getContext().getWindow().updateMenuBar();
+			Main.window.updateMenuBar();
 		}
 
 		return result != null ? result : new Explain(false, "No Action For This Combination").setImplicit(true);

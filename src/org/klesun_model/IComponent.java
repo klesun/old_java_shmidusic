@@ -1,12 +1,7 @@
 package org.klesun_model;
 
-import org.blockspace.Block;
-import org.blockspace.BlockSpace;
-import org.blockspace.Image.ImagePanel;
-import org.blockspace.article.Article;
-import org.blockspace.article.Paragraph;
 import org.sheet_midusic.staff.Staff;
-import org.sheet_midusic.staff.staff_panel.StaffPanel;
+import org.sheet_midusic.staff.staff_panel.MainPanel;
 import org.sheet_midusic.staff.chord.Chord;
 import org.sheet_midusic.staff.chord.nota.Nota;
 
@@ -44,15 +39,15 @@ public interface IComponent {
 
 	// retarded language
 	default java.util.List<IComponent> makeFakePossibleChildListForClassMethods() {
-		if (this.getClass() == BlockSpace.class) {
+		/*if (this.getClass() == BlockSpace.class) {
 			return Arrays.asList(new Block(new ImagePanel((BlockSpace)this), (BlockSpace)this));
 		} else if (this.getClass() == Block.class) {
 			Block scroll = (Block)this;
-			return Arrays.asList(new StaffPanel(scroll.getModelParent()), new Article(scroll.getModelParent()), new ImagePanel(scroll.getModelParent()));
+			return Arrays.asList(new MainPanel(scroll.getModelParent()), new Article(scroll.getModelParent()), new ImagePanel(scroll.getModelParent()));
 		} else if (this.getClass() == Article.class) {
 			return Arrays.asList(new Paragraph((Article)this));
-		} else if (this.getClass() == StaffPanel.class) {
-			return Arrays.asList(new Staff((StaffPanel)this));
+		} else */if (this.getClass() == MainPanel.class) {
+			return Arrays.asList(new Staff((MainPanel)this));
 		} else if (this.getClass() == Staff.class) {
 			return Arrays.asList(new Chord((Staff)this));
 		} else if (this.getClass() == Chord.class) {

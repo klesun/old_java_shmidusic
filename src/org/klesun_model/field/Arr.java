@@ -75,11 +75,7 @@ public class Arr<ELEM_CLASS extends AbstractModel> extends Field<Collection<ELEM
 	public ELEM_CLASS add(ELEM_CLASS elem, int index) {
 		List<ELEM_CLASS> newList = new ArrayList<>(get());
 		newList.add(index, elem);
-		try { set(collectionClass.getDeclaredConstructor(Collection.class).newInstance(newList)); }
-		catch (NoSuchMethodException exc) { Logger.fatal(exc, "I dont believe you! What is it a Collection, that cannot be created from another Collection?"); }
-		catch (InstantiationException exc) { Logger.fatal(exc, "Abstract class? NO WAI!"); }
-		catch (InvocationTargetException exc) { Logger.fatal(exc, "Bet it wont occur evar? I dont even know what this exception means"); }
-		catch (IllegalAccessException exc) { Logger.fatal(exc, "Shouldn't private methods be private only on compilation time, like generics?"); } // heretic
+		setFromList(newList);
 		return elem;
 	}
 
@@ -90,6 +86,19 @@ public class Arr<ELEM_CLASS extends AbstractModel> extends Field<Collection<ELEM
 
 	public int size() {
 		return get().size();
+	}
+
+	public int indexOf(ELEM_CLASS elem) {
+		return new ArrayList<>(get()).indexOf(elem);
+	}
+
+	private void setFromList(List<ELEM_CLASS> list)
+	{
+		try { set(collectionClass.getDeclaredConstructor(Collection.class).newInstance(list)); }
+		catch (NoSuchMethodException exc) { Logger.fatal(exc, "I dont believe you! What is it a Collection, that cannot be created from another Collection?"); }
+		catch (InstantiationException exc) { Logger.fatal(exc, "Abstract class? NO WAI!"); }
+		catch (InvocationTargetException exc) { Logger.fatal(exc, "Bet it wont occur evar? I dont even know what this exception means"); }
+		catch (IllegalAccessException exc) { Logger.fatal(exc, "Shouldn't private methods be private only on compilation time, like generics?"); } // heretic
 	}
 
 	@Override

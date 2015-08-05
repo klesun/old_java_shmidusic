@@ -2,10 +2,9 @@ package org.sheet_midusic.stuff.Midi;
 
 import javax.sound.midi.*;
 
-import main.Main;
+import org.sheet_midusic.stuff.main.Main;
 import org.klesun_model.Explain;
 import org.sheet_midusic.staff.staff_config.StaffConfig;
-import org.sheet_midusic.staff.staff_panel.StaffPanel;
 import org.sheet_midusic.stuff.musica.PlayMusThread;
 import org.sheet_midusic.stuff.tools.Logger;
 import org.sheet_midusic.stuff.tools.jmusic_integration.INota;
@@ -88,13 +87,13 @@ public class DeviceEbun {
 
 	public static void closeMidiDevices() {
 		// close all opent Notas
-		Main.window.blockSpace.getChildScrollList().stream()
-			.filter(s -> s.content instanceof StaffPanel)
-			.forEach(s -> ((StaffPanel) s.content).getStaff().getPlayback().interrupt());
+		Main.window.staffPanel.getStaff().getPlayback().interrupt();
 		PlayMusThread.shutTheFuckUp();
 
 		// close devices
-		if (device != null) { device.close(); }
+		if (device != null) {
+			device.close();
+		}
 		if (gervill != null) { gervill.close(); }
 	}
 

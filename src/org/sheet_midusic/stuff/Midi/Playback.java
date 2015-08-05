@@ -1,7 +1,7 @@
 package org.sheet_midusic.stuff.Midi;
 
 import org.sheet_midusic.staff.chord.Chord;
-import main.Main;
+import org.sheet_midusic.stuff.main.Main;
 import org.klesun_model.Explain;
 import org.sheet_midusic.staff.Staff;
 import org.apache.commons.math3.fraction.Fraction;

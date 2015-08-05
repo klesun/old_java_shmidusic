@@ -56,6 +56,11 @@ public class Explain<C> {
 		return this.isSuccess() ? lambda.apply(this.getData()) : this;
 	}
 
+	public Explain runIfSuccess(Runnable lambda) {
+		lambda.run();
+		return this;
+	}
+
 	public C dieIfFailure()
 	{
 		if (isSuccess()) {
