@@ -4,6 +4,8 @@ import org.sheet_midusic.staff.Staff;
 import org.sheet_midusic.staff.staff_panel.MainPanel;
 import org.sheet_midusic.staff.chord.Chord;
 import org.sheet_midusic.staff.chord.nota.Nota;
+import org.sheet_midusic.staff.staff_panel.SheetMusicPanel;
+import org.sheet_midusic.staff.staff_panel.StaffComponent;
 
 import java.awt.*;
 import java.awt.event.FocusListener;
@@ -18,7 +20,7 @@ public interface IComponent {
 
 	default Component getFirstAwtParent() {
 		IComponent context = this;
-		while (!(context instanceof Component) && context != null) { // circular import? yes...
+		while (!(context instanceof Component) && context != null) {
 			context = context.getModelParent();
 		}
 		return (Component)context;
@@ -47,9 +49,11 @@ public interface IComponent {
 		} else if (this.getClass() == Article.class) {
 			return Arrays.asList(new Paragraph((Article)this));
 		} else */if (this.getClass() == MainPanel.class) {
-			return Arrays.asList(new Staff((MainPanel)this));
-		} else if (this.getClass() == Staff.class) {
-			return Arrays.asList(new Chord((Staff)this));
+			return Arrays.asList(new SheetMusicPanel((MainPanel)this));
+		} else if (this.getClass() == SheetMusicPanel.class) {
+			return Arrays.asList(new StaffComponent(new Staff((MainPanel)this.getModelParent())));
+		} else if (this.getClass() == StaffComponent.class) {
+			return Arrays.asList(new Chord((StaffComponent)this));
 		} else if (this.getClass() == Chord.class) {
 			return Arrays.asList(new Nota((Chord)this));
 		} else {

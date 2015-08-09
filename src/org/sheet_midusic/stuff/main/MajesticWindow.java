@@ -156,7 +156,7 @@ public class MajesticWindow extends JFrame {
 
 		IComponent model = staffPanel;
 		while (model != null) {
-			if (menus.containsKey(model.getClass())) { // will be false for StaffPanel cuz i dont like it
+			if (menus.containsKey(model.getClass())) { // will be false for StaffComponent cuz i dont like it
 				menus.get(model.getClass()).setEnabled(true);
 				menus.get(model.getClass()).setToolTipText(null);
 			}

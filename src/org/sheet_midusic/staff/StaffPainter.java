@@ -4,21 +4,23 @@ import org.sheet_midusic.staff.chord.Chord;
 import org.sheet_midusic.staff.chord.nota.Nota;
 import org.klesun_model.AbstractPainter;
 import org.apache.commons.math3.fraction.Fraction;
+import org.sheet_midusic.staff.staff_panel.StaffComponent;
+import org.sheet_midusic.stuff.graphics.ImageStorage;
 import org.sheet_midusic.stuff.tools.jmusic_integration.INota;
 
 import java.awt.*;
 
 public class StaffPainter extends AbstractPainter
 {
-	public StaffPainter(Staff context, Graphics2D g, int x, int y) {
+	public StaffPainter(StaffComponent context, Graphics2D g, int x, int y) {
 		// this trick won't do when Painter becames child of Staff
-		super(context, g, x + context.getMarginX() + 3 * context.dx(), y + context.getMarginY()); // 3dx - violin/bass keys and Config
+		super(context, g, x + context.staff.getMarginX() + 3 * context.dx(), y + context.staff.getMarginY()); // 3dx - violin/bass keys and Config
 	}
 
 	@Override
 	public void draw(Boolean completeRepaint)
 	{
-		Staff s = (Staff)context;
+		Staff s = ((StaffComponent)context).staff;
 
 		Staff.TactMeasurer tactMeasurer = new Staff.TactMeasurer(s.getConfig().getTactSize());
 
@@ -42,14 +44,14 @@ public class StaffPainter extends AbstractPainter
 			}
 
 			if (completeRepaint) {
-				drawImage(s.getImageStorage().getViolinKeyImage(), - 3 * dx(), y - 3 * dy());
-				drawImage(s.getImageStorage().getBassKeyImage(), - 3 * dx(), 11 * dy() + y);
+				drawImage(ImageStorage.inst().getViolinKeyImage(), - 3 * dx(), y - 3 * dy());
+				drawImage(ImageStorage.inst().getBassKeyImage(), - 3 * dx(), 11 * dy() + y);
 			}
 
 			++i;
 		}
 
-		drawModel(s.getConfig(), -dx(), 0, completeRepaint);
+		drawModel(s.getConfig().makeComponent((StaffComponent)context), -dx(), 0, completeRepaint);
 	}
 
 	private void drawTactLine(int x, int baseY, Staff.TactMeasurer tactMeasurer)
@@ -65,7 +67,7 @@ public class StaffPainter extends AbstractPainter
 
 	private void drawStaffLines(int y)
 	{
-		Staff s = (Staff)context;
+		Staff s = ((StaffComponent)context).staff;
 
 		int tune = INota.nextIvoryTune(INota.nextIvoryTune(Nota.FA + 12 * 2));
 

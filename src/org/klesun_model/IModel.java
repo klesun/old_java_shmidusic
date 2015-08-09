@@ -22,8 +22,8 @@ public interface IModel {
 		return dict;
 	}
 
-	default IModel reconstructFromJson(JSONObject jsObject) throws JSONException {
-
+	default IModel reconstructFromJson(JSONObject jsObject) throws JSONException
+	{
 		for (Field field : getModelHelper().getFieldStorage()) {
 			if (jsObject.has(field.getName())) {
 				field.setValueFromJsObject(jsObject);

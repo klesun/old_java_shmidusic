@@ -5,6 +5,7 @@ import org.sheet_midusic.staff.staff_config.Channel;
 import org.jm.midi.SMF;
 import org.jm.midi.Track;
 import org.jm.midi.event.*;
+import org.sheet_midusic.staff.staff_panel.SheetMusic;
 
 import java.util.*;
 import java.util.function.Function;
@@ -14,8 +15,11 @@ import java.util.function.Function;
 public class SimpleMidiParser
 {
 	// imitates MidiParser::scoreToSMF()
-	public static SMF staffToSmf(Staff staff)
+	public static SMF sheetMusicToSmf(SheetMusic sheetMusic)
 	{
+		// TODO: take into account multiple Staff-s!
+		Staff staff = sheetMusic.staffList.get(0);
+
 		// tempo 120 - semibreve - 960 miliseconds - qppt - 480
 		// tempo 90 - semibreve
 		SMF smf = new SMF((short)1, (short)(staff.getConfig().getTempo() * 4)); // 1 i think means nothing, and tempo should be 480 by convention probably

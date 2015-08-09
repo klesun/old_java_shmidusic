@@ -2,6 +2,8 @@ package org.sheet_midusic.stuff.tools;
 
 import org.jm.midi.SMF;
 import org.klesun_model.Explain;
+import org.sheet_midusic.staff.staff_panel.SheetMusic;
+import org.sheet_midusic.staff.staff_panel.SheetMusicPanel;
 import org.sheet_midusic.stuff.main.Main;
 import org.sheet_midusic.staff.Staff;
 import org.klesun_model.IModel;
@@ -15,7 +17,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.sheet_midusic.stuff.Midi.SimpleMidiParser;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -28,12 +29,12 @@ public class FileProcessor {
 	// TODO: make folder of project default path
 	private static JFileChooser fileChooser = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/");
 	
-	public static Explain savePNG (Staff staff)
+	public static Explain savePNG (SheetMusicPanel sheetMusicPanel)
 	{
 		return makeSaveFileDialog("png", "PNG images").ifSuccess(f ->
 		{
-			BufferedImage img = new BufferedImage(staff.getWidth(), staff.getHeight(), BufferedImage.TYPE_INT_ARGB);
-			staff.drawOn((Graphics2D)img.getGraphics(), 0, 0);
+			BufferedImage img = new BufferedImage(sheetMusicPanel.getWidth(), sheetMusicPanel.getHeight(), BufferedImage.TYPE_INT_ARGB);
+			sheetMusicPanel.paintComponent(img.getGraphics());
 
 			return Explain.tryException(() -> ImageIO.write(img, "png", f));
 		});
@@ -44,24 +45,23 @@ public class FileProcessor {
 //				.ifSuccess(f -> saveModel(f, blockSpace));
 //	}
 
-	public static Explain saveMusicPanel(Staff staff) {
+	public static Explain saveMusicPanel(SheetMusicPanel sheetMusicPanel) {
 
 		return makeSaveFileDialog("midi.json", "Json Midi-music data").ifSuccess(f -> {
 //			staff.getParentSheet().getParentBlock().setTitle(f.getName());
-			return saveModel(f, staff); // TODO: use messages when fail
+			return saveModel(f, sheetMusicPanel.sheetMusic); // TODO: use messages when fail
 		});
 	}
 
-	public static Explain saveMidi(Staff staff) {
-
+	public static Explain saveMidi(SheetMusicPanel sheetMusicPanel) {
 		return makeSaveFileDialog("mid", "MIDI binary data file")
-			.ifSuccess(f -> writeStaffMidi(staff, f));
+			.ifSuccess(f -> writeSheetMusicMidi(sheetMusicPanel.sheetMusic, f));
 	}
 
-	private static Explain writeStaffMidi(Staff staff, File f)
+	private static Explain writeSheetMusicMidi(SheetMusic sheetMusic, File f)
 	{
 		try {
-			SMF smf = SimpleMidiParser.staffToSmf(staff);
+			SMF smf = SimpleMidiParser.sheetMusicToSmf(sheetMusic);
 			OutputStream os = new FileOutputStream(f);
 			smf.write(os);
 			return new Explain(true);
@@ -75,7 +75,7 @@ public class FileProcessor {
 //		return openModel(f, blockSpace);
 //	}
 
-	public static Explain openStaff(Staff staff) {
+	public static Explain openStaff(SheetMusicPanel sheetMusicPanel) {
 		fileChooser.resetChoosableFileFilters();
 		fileChooser.setFileFilter(new FileFilter() {
 			public boolean accept(File f) {
@@ -89,7 +89,7 @@ public class FileProcessor {
 			File f = fileChooser.getSelectedFile();
 //			staff.getParentSheet().getParentBlock().setTitle(f.getName());
 
-			return openModel(f, staff);
+			return openModel(f, sheetMusicPanel.sheetMusic);
 		} else {
 			return new Explain(false, "you changed your mind, why?");
 		}

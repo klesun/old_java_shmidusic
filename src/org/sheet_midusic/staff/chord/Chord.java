@@ -10,6 +10,7 @@ import org.klesun_model.field.Arr;
 import org.klesun_model.field.Field;
 import org.klesun_model.SimpleAction;
 import org.sheet_midusic.staff.MidianaComponent;
+import org.sheet_midusic.staff.staff_panel.StaffComponent;
 import org.sheet_midusic.stuff.tools.jmusic_integration.INota;
 import org.apache.commons.math3.fraction.Fraction;
 
@@ -27,7 +28,7 @@ public class Chord extends MidianaComponent
 
 	int focusedIndex = -1;
 
-	public Chord(Staff parent) {
+	public Chord(StaffComponent parent) {
 		super(parent);
 		h.getFieldStorage().forEach(f -> f.setOnChange(this::surfaceChanged));
 	}
@@ -36,11 +37,9 @@ public class Chord extends MidianaComponent
 		this.surfaceChanged = true;
 	}
 
-	public void drawOn(Graphics2D surface, int x, int y, Boolean completeRepaintRequired) {
-		if (completeRepaintRequired || surfaceChanged) {
-			new ChordPainter(this, surface, x, y).draw(true); // TODO: make it be not needed
-			surfaceChanged = false;
-		}
+	public int drawOn(Graphics2D surface, int x, int y) {
+		new ChordPainter(this, surface, x, y).draw(true); // TODO: make it be not needed
+		return -100;
 	}
 
 	// responses to events (actions)
@@ -103,7 +102,7 @@ public class Chord extends MidianaComponent
 	// field getters/setters
 
 	public Staff getParentStaff() {
-		return (Staff)this.getModelParent();
+		return ((StaffComponent)this.getModelParent()).staff;
 	}
 	public String getSlog() { return this.slog.get(); }
 	public Chord setSlog(String value) { this.slog.set(value); return this; }

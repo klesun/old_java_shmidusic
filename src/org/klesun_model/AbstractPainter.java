@@ -64,7 +64,7 @@ abstract public class AbstractPainter { // like Picasso!
 	}
 
 	final protected void drawModel(MidianaComponent model, int x0, int y0, Boolean completeRepaint) {
-		model.drawOn(g, x + x0, y + y0, completeRepaint);
+		model.drawOn(g, x + x0, y + y0);
 	}
 	final protected void drawImage(Image image, int x0, int y0) {
 		g.drawImage(image, x + x0, y + y0, null);

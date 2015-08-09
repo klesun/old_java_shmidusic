@@ -13,48 +13,16 @@ import java.awt.event.KeyEvent;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class PlayMusThread extends Thread {
+@Deprecated
+final public class PlayMusThread {
 
 	final private static long DIMINDENDO_STEP_TIME = Nota.getTimeMilliseconds(new Fraction(1, 16), 240); // 0.0625 sec
 
     public static Map<Nota, Thread> opentNotas = new ConcurrentHashMap<>();
 
-	private Staff staff = null;
-
 	public static boolean stop = true;
-	public static void stopMusic(){
-		stop = true;
-	}
-		
-	public PlayMusThread(Staff staff) {
-		this.staff = staff;
-	}
 
-    @Deprecated // use Playback::playStaff() instead
-    public void run() {
-
-		// TODO: i may be a paranoic, but i definitely feel, that timing (sound) is wrong for about 20-30 milliseconds
-		// like if it would count not by current time, but waiting for some time between operations
-		// so i suggest do it without creating new threads. just a loop, store in array sounding notas
-		// and datetimes, when they should be off and check every epsilon time... but maybe not >_<
-
-    	stop = false;
-
-		// for some reason has huge delay between sound and canvas repainting
-		if (staff.getFocusedAccord() != null) { this.playAccord(staff.getFocusedAccord()); }
-		int accordsLeft = staff.getChordList().size() - staff.getFocusedIndex() - 1;
-    	for (int i = 0; stop == false && i <= accordsLeft; ++i) {
-			if (staff.getFocusedAccord() != null) {
-				int time = staff.getFocusedAccord().getShortestTime();
-				try { Thread.sleep(time); } catch (InterruptedException e) { System.out.println("Ошибка сна" + e); }
-				if (stop) { break; }
-			}
-
-			staff.getHandler().handleKey(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_RIGHT));
-		}
-
-		stop = true;
-    }
+	private PlayMusThread() {}
 
 	@Deprecated // move it to Playback class
 	public static void playAccord(Chord chord) {

@@ -111,14 +111,14 @@ public class Field<E> {
 	public Object getJsonValue() { return get(); };
 
 	// override me please!
-	public void setValueFromJsObject(JSONObject jsObject) {
-
+	public void setValueFromJsObject(JSONObject jsObject)
+	{
 		this.setValueFromString(jsObject.get(getName()).toString());
 	}
 
-	public Field setValueFromString(String str) {
+	public Field setValueFromString(String str)
+	{
 		set((E)getParserMap().get(elemClass).apply(str));
-
 		return this;
 	}
 

@@ -17,7 +17,8 @@ abstract public class MidianaComponent extends AbstractModel implements ICompone
 
 	abstract public MidianaComponent getFocusedChild();
 	abstract protected AbstractHandler makeHandler();
-	abstract  public void drawOn(Graphics2D surface, int x, int y, Boolean completeRepaint); // TODO: renmae to paintComponent() for compatibility with AWT components
+	/** @return int - position of bottomest drawn pixel */
+	abstract public int drawOn(Graphics2D surface, int x, int y); // TODO: renmae to paintComponent() for compatibility with AWT components
 
 	// TODO: separate Model from Event handler, i wanna be able to instantiate Nota without Staff!
 	public MidianaComponent(IComponent parent) {
@@ -47,7 +48,7 @@ abstract public class MidianaComponent extends AbstractModel implements ICompone
 	}
 
 	final public Settings getSettings() {
-		return getPanel().getSettings();
+		return Settings.inst();
 	}
 	final public ImageStorage getImageStorage() { return ImageStorage.inst(); }
 	final public int dx() { return getSettings().getStepWidth(); }

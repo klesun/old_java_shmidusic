@@ -98,7 +98,7 @@ public class PianoLayoutPanel extends JPanel
 	{
 		Set<INota> result = new TreeSet<>();
 
-		Staff staff = sheetMusicPanel.getFocusedChild();
+		Staff staff = sheetMusicPanel.getFocusedChild().staff;
 
 		int index = staff.getFocusedIndex();
 		if (index > -1) {

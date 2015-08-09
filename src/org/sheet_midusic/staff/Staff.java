@@ -1,11 +1,11 @@
 package org.sheet_midusic.staff;
 
+import org.klesun_model.AbstractModel;
 import org.sheet_midusic.staff.chord.Chord;
 import org.sheet_midusic.staff.chord.Tact;
 import org.sheet_midusic.staff.chord.nota.Nota;
 import org.klesun_model.Explain;
 import org.klesun_model.IModel;
-import org.klesun_model.SimpleAction;
 import org.sheet_midusic.staff.chord.ChordHandler;
 import org.sheet_midusic.staff.staff_config.StaffConfig;
 
@@ -15,11 +15,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.sheet_midusic.staff.staff_panel.MainPanel;
+import org.sheet_midusic.staff.staff_panel.StaffComponent;
 import org.sheet_midusic.stuff.Midi.DeviceEbun;
 import org.sheet_midusic.stuff.Midi.Playback;
+import org.sheet_midusic.stuff.graphics.Settings;
 import org.sheet_midusic.stuff.musica.PlayMusThread;
 
-import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -32,7 +33,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /** A Staff is part of SheetMusic with individual StaffConfig properties (keySignature/tempo/tactSize) */
-public class Staff extends MidianaComponent
+public class Staff extends AbstractModel
 {
 	final public static int SISDISPLACE = 40;
 	public static final int DEFAULT_ZNAM = 64; // TODO: move it into some constants maybe
@@ -50,10 +51,9 @@ public class Staff extends MidianaComponent
 	@Deprecated final private MainPanel blockPanel;
 	final private Playback playback;
 
-	private Boolean surfaceChanged = true;
-
-	public Staff(MainPanel blockPanel) {
-		super(null);
+	public Staff(MainPanel blockPanel)
+	{
+//		super(null);
 		this.blockPanel = blockPanel;
 		this.staffConfig = new StaffConfig(this);
 		this.playback = new Playback(this);
@@ -84,26 +84,22 @@ public class Staff extends MidianaComponent
 
 	public Chord addNewAccord(int position)
 	{
-		return add(new Chord(this), position);
+		// TODO: it's a temporary hack till we completely separate Model from Component
+		StaffComponent hackPanel = blockPanel.staffContainer.getFocusedChild();
+		return add(new Chord(hackPanel), position);
 	}
 
 	/** TODO: public is temporary */
 	public synchronized Chord add(Chord chord, int index) {
-		getHandler().performAction(new SimpleAction()
-			.setRedo(() -> getChordList().add(index, chord))
-			.setUndo(() -> getChordList().remove(chord)));
-
+		getChordList().add(index, chord);
 		accordListChanged(index);
-
 		return chord;
 	}
 
 	public synchronized void remove(Chord chord) {
 		int index = getChordList().indexOf(chord);
 		if (index <= getFocusedIndex()) { setFocusedIndex(getFocusedIndex() - 1); }
-		getHandler().performAction(new SimpleAction()
-			.setRedo(() -> getChordList().remove(chord))
-			.setUndo(() -> getChordList().add(index, chord)));
+		getChordList().remove(chord);
 
 		accordListChanged(index);
 	}
@@ -117,15 +113,10 @@ public class Staff extends MidianaComponent
 		this.tactList = recalcTactList(); // TODO: maybe do some optimization using repaintAllFromIndex
 	}
 
-    @Deprecated
-    public void drawOn(Graphics2D g, int x, int y, Boolean completeRepaint) {
-        drawOn(g, x, y);
-    }
-
-	public synchronized int drawOn(Graphics2D g, int x, int y) {
-		new StaffPainter(this, g, x, y).draw(true);
-		return getHeightIf(getWidth());
-	}
+//	public synchronized int drawOn(Graphics2D g, int x, int y) {
+//		new StaffPainter(this, g, x, y).draw(true);
+//		return getHeightIf(getWidth());
+//	}
 
 	@Override
 	public JSONObject getJsonRepresentation() {
@@ -180,9 +171,6 @@ public class Staff extends MidianaComponent
 		return this;
 	}
 
-	@Override
-	public StaffHandler getHandler() { return (StaffHandler)super.getHandler(); }
-
 	public Staff clearStan() {
 		this.getChordList().clear();
 		this.focusedIndex = -1;
@@ -190,10 +178,8 @@ public class Staff extends MidianaComponent
 		return this;
 	}
 
-	@Override
-	public Chord getFocusedChild() { return getFocusedAccord(); }
-	@Override
-	protected StaffHandler makeHandler() { return new StaffHandler(this); }
+//	public Chord getFocusedChild() { return getFocusedAccord(); }
+//	protected StaffHandler makeHandler() { return new StaffHandler(this); }
 
 	// getters
 
@@ -240,6 +226,9 @@ public class Staff extends MidianaComponent
 		return Math.max(result, 1);
 	}
 
+	final private int dx() { return Settings.inst().getStepWidth(); }
+	final private int dy() { return Settings.inst().getStepHeight(); }
+
 	// field getters/setters
 
 	public StaffConfig getConfig() {
@@ -249,8 +238,6 @@ public class Staff extends MidianaComponent
 		return this.blockPanel;
 	}
 	public Playback getPlayback() { return this.playback; }
-	@Override
-	public MainPanel getModelParent() { return getParentSheet(); }
 	public int getFocusedIndex() {
 		return this.focusedIndex;
 	}
@@ -319,7 +306,7 @@ public class Staff extends MidianaComponent
 				if (!wasAccordLength.equals(chord.getFraction())) {
 					// putting filler in case when chord length became smaller to preserve timing
 					Fraction dl = wasAccordLength.subtract(chord.getFraction());
-					this.add(new Chord(this), i + 1).addNewNota(0, 0).setLength(dl);
+					this.addNewAccord(i + 1).addNewNota(0, 0).setLength(dl);
 				}
 				return newNota;
 			} else if (curPos.compareTo(desiredPos) > 0) {
@@ -335,7 +322,7 @@ public class Staff extends MidianaComponent
 
 				chord.addNewNota(0, 0).setLength(onset);
 
-				Chord newChord = this.add(new Chord(this), i);
+				Chord newChord = this.addNewAccord(i);
 				Nota newNota = newChord.addNewNota(nota);
 				if (newNota.getLength().compareTo(offset) > 0) {
 					// TODO: maybe if last chord in org.sheet_midusic.staff then no need
@@ -344,7 +331,7 @@ public class Staff extends MidianaComponent
 				} else if (newNota.getLength().compareTo(offset) < 0) {
 					// TODO: maybe if last chord in org.sheet_midusic.staff then no need
 					// put an empty nota after and set it's length(onset - newNota.getLength())
-					this.add(new Chord(this), i + 1).addNewNota(0, 0).setLength(offset.subtract(newNota.getLength()));
+					this.addNewAccord(i + 1).addNewNota(0, 0).setLength(offset.subtract(newNota.getLength()));
 				}
 
 				return newNota;
@@ -357,12 +344,12 @@ public class Staff extends MidianaComponent
 
 		Fraction rest = desiredPos.subtract(curPos);
 		if (!rest.equals(new Fraction(0))) {
-			this.add(new Chord(this), getChordList().size()).addNewNota(0,0).setLength(rest);
+			this.addNewAccord().addNewNota(0,0).setLength(rest);
 		}
 
 		// TODO: we don't handle here pause prefix! (i.e when desired start is more than end) !!!
 		// if not returned already
-		return this.add(new Chord(this), getChordList().size()).addNewNota(nota);
+		return this.addNewAccord().addNewNota(nota);
 	}
 
 	public static class TactMeasurer {

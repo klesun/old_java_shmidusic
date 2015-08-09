@@ -73,7 +73,8 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 			result = getMyClassActionMap().get(combo).redo(getContext());
 
 			if (getContext() instanceof MidianaComponent) { // i don't like this
-				MidianaComponent.class.cast(getContext()).getPanel().checkCam();
+//				MidianaComponent.class.cast(getContext()).getPanel().checkCam();
+				Main.window.staffPanel.checkCam();
 			}
 			Main.window.updateMenuBar();
 		}

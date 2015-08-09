@@ -140,7 +140,7 @@ final public class MainPanel extends JPanel implements IComponent, IModel {
 
 	// getters/setters
 
-	public Staff getStaff() { return this.staffContainer.getFocusedChild(); }
+	public Staff getStaff() { return this.staffContainer.getFocusedChild().staff; }
 	public Settings getSettings() {
 //		Block scroll = getParentBlock();
 //		BlockSpace blockSpace = scroll.getModelParent();

@@ -5,11 +5,11 @@ import org.klesun_model.Combo;
 import org.klesun_model.ContextAction;
 import org.klesun_model.Explain;
 import org.sheet_midusic.staff.staff_config.StaffConfig;
+import org.sheet_midusic.staff.staff_panel.StaffComponent;
 import org.sheet_midusic.stuff.Midi.DeviceEbun;
 import org.sheet_midusic.staff.chord.Chord;
 import org.sheet_midusic.staff.chord.nota.Nota;
 import org.sheet_midusic.stuff.OverridingDefaultClasses.TruMap;
-import org.sheet_midusic.stuff.tools.FileProcessor;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -19,12 +19,12 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class StaffHandler extends AbstractHandler {
 
-	public StaffHandler(Staff context) { super(context); }
-	public Staff getContext() {
-		return Staff.class.cast(super.getContext());
+	public StaffHandler(StaffComponent context) { super(context); }
+	public StaffComponent getContext() {
+		return (StaffComponent)super.getContext();
 	}
 
-	private static TruMap<Combo, ContextAction<Staff>> actionMap = new TruMap<>();
+	private static TruMap<Combo, ContextAction<StaffComponent>> actionMap = new TruMap<>();
 	static {
 		JFileChooser pngChooser = new JFileChooser();
 		pngChooser.setFileFilter(new FileNameExtensionFilter("PNG images", "png"));
@@ -32,44 +32,39 @@ public class StaffHandler extends AbstractHandler {
 		String navigation = "navigation";
 
 		actionMap
-			// File
-			.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel).setCaption("Save midi.json"))
-			.p(new Combo(ctrl, k.VK_U), mkFailableAction(FileProcessor::saveMidi).setCaption("Save midi (alpha)"))
-			.p(new Combo(ctrl, k.VK_O), mkFailableAction(FileProcessor::openStaff).setCaption("Open"))
-			.p(new Combo(ctrl, k.VK_M), mkFailableAction(FileProcessor::openJMusic).setCaption("Open JMusic project"))
-			.p(new Combo(ctrl, k.VK_K), mkFailableAction(FileProcessor::openJMusic2).setCaption("Open JMusic project (with rounding)"))
-			.p(new Combo(ctrl, k.VK_E), mkFailableAction(FileProcessor::savePNG).setCaption("Export png"))
+//			.p(new Combo(ctrl, k.VK_M), mkFailableAction(FileProcessor::openJMusic).setCaption("Open JMusic project"))
+//			.p(new Combo(ctrl, k.VK_K), mkFailableAction(FileProcessor::openJMusic2).setCaption("Open JMusic project (with rounding)"))
 
-			.p(new Combo(0, k.VK_ESCAPE), mkAction(s -> s.getConfig().getDialog().showMenuDialog(StaffConfig::syncSyntChannels))
+			.p(new Combo(0, k.VK_ESCAPE), mkAction(p -> p.staff.getConfig().getDialog().showMenuDialog(StaffConfig::syncSyntChannels))
 				.setCaption("Settings").setPostfix(navigation))
 
 			// Navigation
-			.p(new Combo(0, k.VK_HOME), mkAction(s -> s.setFocusedIndex(-1)).setCaption("To Start").setPostfix(navigation))
-			.p(new Combo(0, k.VK_END), mkAction(s -> s.setFocusedIndex(s.getChordList().size() - 1)).setCaption("To End").setPostfix(navigation))
-			.p(new Combo(ctrl, k.VK_LEFT), mkAction(s -> s.moveFocusTact(-1)).setCaption("Left Tact").setPostfix("Navigation"))
-			.p(new Combo(ctrl, k.VK_RIGHT), mkAction(s -> s.moveFocusTact(1)).setCaption("Right Tact").setPostfix("Navigation"))
-			.p(new Combo(0, k.VK_LEFT), mkFailableAction(s -> s.moveFocusWithPlayback(-1)).setCaption("Left").setPostfix(navigation))
-			.p(new Combo(0, k.VK_RIGHT), mkFailableAction(s -> s.moveFocusWithPlayback(1)).setCaption("Right").setPostfix(navigation))
-			.p(new Combo(0, k.VK_UP), mkFailableAction(s -> s.moveFocusRow(-1)).setCaption("Up").setPostfix(navigation))
-			.p(new Combo(0, k.VK_DOWN), mkFailableAction(s -> s.moveFocusRow(1)).setCaption("Down").setPostfix(navigation))
+			.p(new Combo(0, k.VK_HOME), mkAction(p -> p.staff.setFocusedIndex(-1)).setCaption("To Start").setPostfix(navigation))
+			.p(new Combo(0, k.VK_END), mkAction(p -> p.staff.setFocusedIndex(p.staff.getChordList().size() - 1)).setCaption("To End").setPostfix(navigation))
+			.p(new Combo(ctrl, k.VK_LEFT), mkAction(p -> p.staff.moveFocusTact(-1)).setCaption("Left Tact").setPostfix("Navigation"))
+			.p(new Combo(ctrl, k.VK_RIGHT), mkAction(p -> p.staff.moveFocusTact(1)).setCaption("Right Tact").setPostfix("Navigation"))
+			.p(new Combo(0, k.VK_LEFT), mkFailableAction(s -> s.staff.moveFocusWithPlayback(-1)).setCaption("Left").setPostfix(navigation))
+			.p(new Combo(0, k.VK_RIGHT), mkFailableAction(s -> s.staff.moveFocusWithPlayback(1)).setCaption("Right").setPostfix(navigation))
+			.p(new Combo(0, k.VK_UP), mkFailableAction(s -> s.staff.moveFocusRow(-1)).setCaption("Up").setPostfix(navigation))
+			.p(new Combo(0, k.VK_DOWN), mkFailableAction(s -> s.staff.moveFocusRow(1)).setCaption("Down").setPostfix(navigation))
 
 			// TODO: move it to StaffConfig
-			.p(new Combo(ctrl, k.VK_D), mkFailableAction(s -> DeviceEbun.changeOutDevice(s.getConfig()))
+			.p(new Combo(ctrl, k.VK_D), mkFailableAction(s -> DeviceEbun.changeOutDevice(s.staff.getConfig()))
 				.setCaption("Change Playback Device"))
-			.p(new Combo(ctrl, k.VK_0), mkAction(s -> s.mode = Staff.aMode.passive).setCaption("Disable Input From MIDI Device"))
-			.p(new Combo(ctrl, k.VK_9), mkAction(s -> s.mode = Staff.aMode.insert).setCaption("Enable Input From MIDI Device"))
+			.p(new Combo(ctrl, k.VK_0), mkAction(s -> s.staff.mode = Staff.aMode.passive).setCaption("Disable Input From MIDI Device"))
+			.p(new Combo(ctrl, k.VK_9), mkAction(s -> s.staff.mode = Staff.aMode.insert).setCaption("Enable Input From MIDI Device"))
 
 			/** @legacy */
-			.p(new Combo(ctrl, k.VK_W), mkAction(StaffHandler::updateDeprecatedPauses).setCaption("Convert Deprecated Pauses"))
+//			.p(new Combo(ctrl, k.VK_W), mkAction(StaffHandler::updateDeprecatedPauses).setCaption("Convert Deprecated Pauses"))
 		;
 
 		// MIDI-key press
 		for (Map.Entry<Combo, Integer> entry: Combo.getComboTuneMap().entrySet()) {
-			ContextAction<Staff> action = new ContextAction<>();
+			ContextAction<StaffComponent> action = new ContextAction<>();
 			actionMap.p(entry.getKey(), action
 				.setRedo(s -> {
-					if (s.mode != Staff.aMode.passive) {
-						s.addNewAccordWithPlayback().addNewNota(entry.getValue(), s.getSettings().getDefaultChannel());
+					if (s.staff.mode != Staff.aMode.passive) {
+						s.staff.addNewAccordWithPlayback().addNewNota(entry.getValue(), s.getSettings().getDefaultChannel());
 						return new Explain(true);
 					} else {
 						return new Explain("Cant do, passive mode is on!");
@@ -101,13 +96,13 @@ public class StaffHandler extends AbstractHandler {
 		}
 	}
 
-	private static ContextAction<Staff> mkAction(Consumer<Staff> lambda) {
-		ContextAction<Staff> action = new ContextAction<>();
+	private static ContextAction<StaffComponent> mkAction(Consumer<StaffComponent> lambda) {
+		ContextAction<StaffComponent> action = new ContextAction<>();
 		return action.setRedo(lambda);
 	}
 
-	private static ContextAction<Staff> mkFailableAction(Function<Staff, Explain> lambda) {
-		ContextAction<Staff> action = new ContextAction<>();
+	private static ContextAction<StaffComponent> mkFailableAction(Function<StaffComponent, Explain> lambda) {
+		ContextAction<StaffComponent> action = new ContextAction<>();
 		return action.setRedo(lambda);
 	}
 }

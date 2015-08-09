@@ -46,8 +46,9 @@ public class Nota extends MidianaComponent implements INota
 
 	// <editor-fold desc="implementing abstract model">
 
-	public void drawOn(Graphics2D surface, int x, int y, Boolean completeRepaint) {
-		new NotaPainter(this, surface, x, y).draw(completeRepaint);
+	public int drawOn(Graphics2D surface, int x, int y) {
+		new NotaPainter(this, surface, x, y).draw(true);
+		return -100;
 	}
 
 	@Override
