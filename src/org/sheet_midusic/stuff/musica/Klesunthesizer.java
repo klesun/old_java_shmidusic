@@ -27,7 +27,7 @@ public class Klesunthesizer
 					// if you turn off bass kolonku, artifacts ginda disappear partially
 					sound(tuneToFreq(tune2), msecs, 0.8);
 				} catch (LineUnavailableException exc) {
-					System.out.println("zhopa4");
+					System.out.println("I hope it not supposed to happen");
 				}
 			}).start();
 		}

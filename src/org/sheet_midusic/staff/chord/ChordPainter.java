@@ -24,8 +24,8 @@ public class ChordPainter extends AbstractPainter {
 
 		for (int i = 0; i < a.getNotaSet().size(); ++i) {
 			Nota nota = a.notaList.get(i);
-			int notaY = getLowestPossibleNotaY() - dy() * nota.ivoryIndex();
-			int notaX = i > 0 && a.notaList.get(i - 1).ivoryIndex() == nota.ivoryIndex()
+			int notaY = getLowestPossibleNotaY() - dy() * nota.ivoryIndex(siga);
+			int notaX = i > 0 && a.notaList.get(i - 1).ivoryIndex(siga) == nota.ivoryIndex(siga) // TODO: uuu, ivoryIndex(siga - 1)
 				? dx() / 3 // TODO: draw them flipped
 				: 0;
 

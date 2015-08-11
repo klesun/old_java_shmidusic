@@ -3,6 +3,7 @@ package org.klesun_model;
 import org.sheet_midusic.stuff.tools.Logger;
 
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -54,6 +55,11 @@ public class Explain<C> {
 
 	public Explain ifSuccess(Function<C, Explain> lambda) {
 		return this.isSuccess() ? lambda.apply(this.getData()) : this;
+	}
+
+	public Explain whenSuccess(Consumer<C> lambda) {
+		Function<C, Explain> truLambda = c -> { lambda.accept(c); return new Explain(true); };
+		return ifSuccess(truLambda);
 	}
 
 	public Explain runIfSuccess(Runnable lambda) {

@@ -6,6 +6,7 @@ import org.sheet_midusic.staff.chord.ChordComponent;
 import org.sheet_midusic.staff.chord.nota.Nota;
 import org.sheet_midusic.staff.chord.nota.NoteComponent;
 import org.sheet_midusic.staff.staff_panel.MainPanel;
+import org.sheet_midusic.staff.staff_panel.SheetMusic;
 import org.sheet_midusic.staff.staff_panel.SheetMusicPanel;
 import org.sheet_midusic.staff.staff_panel.StaffComponent;
 import org.sheet_midusic.stuff.graphics.ImageStorage;
@@ -148,7 +149,7 @@ public class MajesticWindow extends JFrame {
 		} else if (this.getClass() == Article.class) {
 			return Arrays.asList(new Paragraph((Article)this));
 		} else */if (parent.getClass() == MainPanel.class) {
-			return Arrays.asList(new SheetMusicPanel((MainPanel)parent));
+			return Arrays.asList(new SheetMusicPanel(new SheetMusic(), (MainPanel)parent));
 		} else if (parent.getClass() == SheetMusicPanel.class) {
 			return Arrays.asList(new StaffComponent(new Staff(), (MainPanel)parent.getModelParent()));
 		} else if (parent.getClass() == StaffComponent.class) {

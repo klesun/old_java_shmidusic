@@ -11,6 +11,12 @@ public class SheetMusic extends AbstractModel
 {
 	public Arr<Staff> staffList = new Arr<>("staffList", new ArrayList<>(), this, Staff.class);
 
+	public SheetMusic()
+	{
+		Staff staff = new Staff();
+		this.staffList.add(staff);
+	}
+
 	public Staff addNewStaffAfter(Staff staff)
 	{
 		Staff newStaff = new Staff();

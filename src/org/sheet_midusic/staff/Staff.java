@@ -169,6 +169,11 @@ public class Staff extends AbstractModel
 		return this.chordList;
 	}
 
+	public Stream<Chord> chordStream()
+	{
+		return chordList.stream();
+	}
+
 	public List<List<Chord>> getAccordRowList(int width) {
 		List<List<Chord>> resultList = new ArrayList<>();
 		for (int fromIdx = 0; fromIdx < this.getChordList().size(); fromIdx += getAccordInRowCount(width)) {
@@ -208,12 +213,9 @@ public class Staff extends AbstractModel
 		return this.focusedIndex;
 	}
 
-	public Staff setFocusedIndex(int value) {
-		if (this.getFocusedAccord() != null) { this.getFocusedAccord().setFocusedIndex(-1).surfaceChanged(); } // surfaceChanged - to erase pointer
-
+	public Staff setFocusedIndex(int value)
+	{
 		this.focusedIndex = limit(value, -1, getChordList().size() - 1);
-		if (this.getFocusedAccord() != null) { this.getFocusedAccord().surfaceChanged(); } // to draw pointer
-
 		return this;
 	}
 

@@ -2,6 +2,7 @@ package org.sheet_midusic.stuff.tools;
 
 import org.jm.midi.SMF;
 import org.klesun_model.Explain;
+import org.sheet_midusic.staff.staff_panel.MainPanel;
 import org.sheet_midusic.staff.staff_panel.SheetMusic;
 import org.sheet_midusic.staff.staff_panel.SheetMusicPanel;
 import org.sheet_midusic.stuff.main.Main;
@@ -87,9 +88,10 @@ public class FileProcessor {
 		});
 		if (fileChooser.showOpenDialog(Main.window) == JFileChooser.APPROVE_OPTION) {
 			File f = fileChooser.getSelectedFile();
-//			staff.getParentSheet().getParentBlock().setTitle(f.getName());
-
-			return openModel(f, sheetMusicPanel.sheetMusic);
+			MainPanel mainPanel = sheetMusicPanel.getModelParent();
+			return openSheetMusic(f).whenSuccess(sheetMusic ->
+				mainPanel.replaceSheetMusicPanelWith(new SheetMusicPanel(sheetMusic, mainPanel))
+			);
 		} else {
 			return new Explain(false, "you changed your mind, why?");
 		}
@@ -120,6 +122,12 @@ public class FileProcessor {
 		} else {
 			return new Explain(false, "you changed your mind, why?");
 		}
+	}
+
+	private static Explain<SheetMusic> openSheetMusic(File f)
+	{
+		SheetMusic sheetMusic = new SheetMusic();
+		return openModel(f, sheetMusic).ifSuccess(h -> new Explain(sheetMusic));
 	}
 
 	private static Explain openModel(File f, IModel model)

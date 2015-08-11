@@ -22,14 +22,16 @@ public class SheetMusicPanel extends JPanel implements IComponent
 
 	private Set<StaffComponent> staffComponentSet = new HashSet<>();
 
-	public SheetMusicPanel(@Deprecated MainPanel mainPanel)
+	public SheetMusicPanel(SheetMusic sheetMusic, MainPanel mainPanel)
 	{
 		this.mainPanel = mainPanel;
-
-		this.sheetMusic = new SheetMusic();
-		Staff staff = new Staff();
-		this.sheetMusic.staffList.add(staff);
-		this.staffComponentSet.add(new StaffComponent(staff, this));
+		this.sheetMusic = sheetMusic;
+		sheetMusic.staffList.get().forEach(staff -> {
+			StaffComponent staffComp = new StaffComponent(staff, this);
+			staffComponentSet.add(staffComp);
+		});
+		this.setBackground(Color.WHITE);
+		this.revalidate();
 
 		this.handler = new AbstractHandler(this) {
 			public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() {
@@ -44,8 +46,6 @@ public class SheetMusicPanel extends JPanel implements IComponent
 					;
 			}
 		};
-
-		this.setBackground(Color.WHITE);
 	}
 
 	public void triggerPlayback() {
@@ -96,7 +96,7 @@ public class SheetMusicPanel extends JPanel implements IComponent
 	}
 
 	@Override
-	public IComponent getModelParent() {
+	public MainPanel getModelParent() {
 		return this.mainPanel;
 	}
 

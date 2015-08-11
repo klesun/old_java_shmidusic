@@ -38,11 +38,8 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 	abstract public LinkedHashMap<Combo, ContextAction> getMyClassActionMap();
 
 	// implemented methods
-	final public void keyPressed(KeyEvent e) {
-
-		/** @debug */
-		System.out.println("zhopa " + e.getKeyCode());
-
+	final public void keyPressed(KeyEvent e)
+	{
 		AbstractHandler bsh = getRootHandler();
 		Explain result = bsh.handleKey(new Combo(e));
 		if (!result.isSuccess() && !result.isImplicit()) {

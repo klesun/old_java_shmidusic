@@ -1,5 +1,6 @@
 package org.sheet_midusic.staff.staff_panel;
 
+import com.sun.istack.internal.NotNull;
 import org.sheet_midusic.stuff.main.Main;
 import org.sheet_midusic.staff.Staff;
 import org.sheet_midusic.stuff.graphics.Settings;
@@ -32,8 +33,8 @@ final public class MainPanel extends JPanel implements IComponent, IModel {
 	private Boolean surfaceCompletelyChanged = false;
 
 	/** @debug - return private when done */
-	final public SheetMusicPanel staffContainer;
-	final private Scroll staffScroll;
+	@NotNull public SheetMusicPanel staffContainer = new SheetMusicPanel(new SheetMusic(), this);
+	@NotNull private Scroll staffScroll = new Scroll(staffContainer);
 	final private PianoLayoutPanel pianoLayoutPanel;
 
 	public MainPanel() {
@@ -45,30 +46,20 @@ final public class MainPanel extends JPanel implements IComponent, IModel {
 		this.addMouseListener(handler);
 		this.addMouseMotionListener(handler);
 
-//		addFocusListener(new FocusAdapter() {
-//			public void focusGained(FocusEvent e) {
-//				if (loadJsonOnFocus) {
-//					staff.reconstructFromJson(staffJson);
-//					loadJsonOnFocus = false;
-//				}
-//				staff.getConfig().syncSyntChannels();
-//				DumpReceiver.eventHandler = staff.getHandler();
-//			}
-//
-//			public void focusLost(FocusEvent e) {
-//				DumpReceiver.eventHandler = null;
-//			}
-//		});
-
 		this.setLayout(new BorderLayout());
 		this.setFocusable(true);
 		this.requestFocus();
 
-		staffContainer = new SheetMusicPanel(this);
-		staffScroll = new Scroll(staffContainer);
 		this.add(staffScroll, BorderLayout.CENTER);
-
 		this.add(pianoLayoutPanel = new PianoLayoutPanel(staffContainer), BorderLayout.PAGE_END);
+	}
+
+	public void replaceSheetMusicPanelWith(SheetMusicPanel newPanel)
+	{
+		this.staffContainer = newPanel;
+		this.remove(staffScroll);
+		this.add(staffScroll = new Scroll(staffContainer));
+		this.revalidate();
 	}
 
 	private void iThinkItInterruptsPreviousPaintingThreadsSoTheyDidntSlowCurrent() {
@@ -82,12 +73,9 @@ final public class MainPanel extends JPanel implements IComponent, IModel {
 
 	@Override
 	public void paintComponent(Graphics g) {
-		if (!loadJsonOnFocus) {
-			super.paintComponent(g);
-
-			// maybe need to move it to SheetMusicPanel::paintComponent()
-			iThinkItInterruptsPreviousPaintingThreadsSoTheyDidntSlowCurrent();
-		}
+		super.paintComponent(g);
+		// maybe need to move it to SheetMusicPanel::paintComponent()
+		iThinkItInterruptsPreviousPaintingThreadsSoTheyDidntSlowCurrent();
 	}
 
 	// TODO: move to StaffComponent

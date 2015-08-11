@@ -77,15 +77,6 @@ public class Nota extends AbstractModel implements INota
 		return length.multiply(semibreveTime).intValue();
 	}
 
-	@Deprecated // why send muted Nota event?
-	public byte getVolume(StaffConfig config) {
-		if (getIsMuted() || isPause()) {
-			return 0; // пауза лол какбэ
-		} else {
-			return (byte)(127 * config.getVolume(getChannel()) / 100);
-		}
-	}
-
 	public int getDotCount() {
 
 		Fraction length = this.length.get().divide(ImageStorage.getTallLimit().multiply(2)); // to make sure, that the length is less than 1

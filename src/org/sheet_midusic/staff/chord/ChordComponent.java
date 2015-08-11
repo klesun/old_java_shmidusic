@@ -19,27 +19,25 @@ public class ChordComponent extends MidianaComponent
 	final public Chord chord;
 	private Set<NoteComponent> noteComponents = new HashSet<>();
 
-	public ChordComponent(Chord chord, IComponent parent) {
+	public ChordComponent(Chord chord, IComponent parent)
+	{
 		super(parent);
 		this.chord = chord;
+		chord.notaList.get().forEach(this::addComponent);
 	}
 
-	public NoteComponent addNewNota(int tune, int channel)
-	{
-		Nota note = chord.addNewNota(tune, channel);
-		NoteComponent noteComp = new NoteComponent(note, this);
-		noteComponents.add(noteComp);
-
-		return noteComp;
+	public NoteComponent addNewNota(int tune, int channel) {
+		return addComponent(chord.addNewNota(tune, channel));
 	}
 
+	public NoteComponent addNewNota(JSONObject newNotaJs) {
+		return addComponent(chord.addNewNota(newNotaJs));
+	}
 
-	public NoteComponent addNewNota(JSONObject newNotaJs)
+	private NoteComponent addComponent(Nota note)
 	{
-		Nota note = chord.addNewNota(newNotaJs);
 		NoteComponent noteComp = new NoteComponent(note, this);
 		noteComponents.add(noteComp);
-
 		return noteComp;
 	}
 

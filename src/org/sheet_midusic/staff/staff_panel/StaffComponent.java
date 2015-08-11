@@ -23,16 +23,17 @@ public class StaffComponent extends MidianaComponent
 	final public Staff staff;
 	private Set<ChordComponent> chordComponents = new HashSet<>();
 
-	public StaffComponent(Staff staff, Component cont) {
-		super((IComponent)cont);
+	public StaffComponent(Staff staff, IComponent cont) {
+		super(cont);
 		this.staff = staff;
+		staff.chordStream().forEach(this::addComponent);
+		this.revalidate();
 	}
 
 	public ChordComponent addNewChordWithPlayback()
 	{
 		Chord chord = staff.addNewAccord(staff.getFocusedIndex() + 1);
-		ChordComponent chordComp = new ChordComponent(chord, this);
-		chordComponents.add(chordComp);
+		ChordComponent chordComp = this.addComponent(chord);
 
 		staff.moveFocus(1);
 		if (DeviceEbun.isPlaybackSoftware()) { // i.e. when playback is not done with piano - no need to play pressed chord, user hears it anyways
@@ -48,6 +49,13 @@ public class StaffComponent extends MidianaComponent
 
 		revalidate();
 		return chordComp;
+	}
+
+	private ChordComponent addComponent(Chord chord)
+	{
+		ChordComponent comp = new ChordComponent(chord, this);
+		chordComponents.add(comp);
+		return comp;
 	}
 
 	public void removeChord(Chord chord)

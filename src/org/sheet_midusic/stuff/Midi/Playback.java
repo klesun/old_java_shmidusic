@@ -81,12 +81,14 @@ public class Playback {
 
 	private static void playNota(INota nota, Fraction start, IMidiScheduler scheduler)
 	{
-		if (!Main.isLinux) {
-			scheduler.addNoteTask(start, nota);
-		} else {
-			// making sound lag a bit, so it fitted lagging graphics ^_^
-			// TODO: maybe move this hack into preferences with parameter one day...
-			scheduler.addNoteTask(start.add(new Fraction(1, 16)), nota);
+		if (nota.getTune() != 0) { // 0 means pause in my world
+			if (!Main.isLinux || scheduler instanceof SmfScheduler) {
+				scheduler.addNoteTask(start, nota);
+			} else {
+				// making sound lag a bit, so it fitted lagging graphics ^_^
+				// TODO: maybe move this hack into preferences with parameter one day...
+				scheduler.addNoteTask(start.add(new Fraction(1, 16)), nota);
+			}
 		}
 	}
 

@@ -55,10 +55,6 @@ public interface INota extends Comparable<INota> {
 
 	default Boolean isEbony() { return isEbony(getTune()); }
 
-	default int getOctave() { return getOctave(getTune()); }
-
-	default int ivoryIndex() { return ivoryIndex(getTune()); }
-
 	default int ivoryIndex(KeySignature siga) { return ivoryIndex(getTune(), siga); }
 
 	static int ivoryIndex(int tune) { return ivoryIndex(tune, new KeySignature(0)); }

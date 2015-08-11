@@ -36,15 +36,20 @@ final public class PlayMusThread {
 	// TODO: say NO to a thread for each single Nota in Playback
 	public static void playNotu(Nota newNota)
 	{
-		Thread oldThread = opentNotas.get(newNota);
+		if (!newNota.isPause() && !newNota.getIsMuted()) {
+			Thread oldThread = opentNotas.get(newNota);
 
-		if (oldThread != null) {
-			oldThread.interrupt();
-			try { oldThread.join(); }
-			catch (Exception e) { System.out.println("Не дождались"); }
+			if (oldThread != null) {
+				oldThread.interrupt();
+				try {
+					oldThread.join();
+				} catch (Exception e) {
+					System.out.println("Не дождались");
+				}
+			}
+
+			runNotaThread(newNota);
 		}
-
-		runNotaThread(newNota);
     }
 
 	public static void shutTheFuckUp() {

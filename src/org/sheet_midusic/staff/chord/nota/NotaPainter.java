@@ -60,7 +60,7 @@ public class NotaPainter extends AbstractPainter
 			drawDot(new Pnt(x, notaCenterY), dy() / 2, Color.BLACK);
 		}
 
-		if (n.ivoryIndex() % 2 == 1) {
+		if (n.ivoryIndex(siga) % 2 == 1) {
 			drawLine(dx() * 2/3, notaCenterY, dx() * 2, notaCenterY);
 		}
 	}
