@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Deprecated
 final public class PlayMusThread {
 
-	final private static long DIMINDENDO_STEP_TIME = Nota.getTimeMilliseconds(new Fraction(1, 16), 240); // 0.0625 sec
+	final private static long DIMINDENDO_STEP_TIME = Nota.getTimeMilliseconds(new Fraction(1, 16), 120); // 0.0625 sec
 
     public static Map<Nota, Thread> opentNotas = new ConcurrentHashMap<>();
 
@@ -29,31 +29,22 @@ final public class PlayMusThread {
 		Playback.resetDiminendo();
 		chord.getNotaSet().forEach(PlayMusThread::playNotu);
 		if (chord.getIsDiminendo()) {
-			runDiminendoThread(chord.getShortestTime(), 127, 0);
+			runDiminendoThread(chord.getShortestTime(120), 127, 0); //yeah, yeah, TODO: i should've pased here property of StaffConfig
 		}
 	}
 
 	// TODO: say NO to a thread for each single Nota in Playback
-	public static void playNotu(Nota newNota){
-
-		Nota oldNota = opentNotas.keySet().stream().filter(k -> k.equals(newNota)).findAny().orElse(null);
+	public static void playNotu(Nota newNota)
+	{
 		Thread oldThread = opentNotas.get(newNota);
 
-		if (oldThread == null || oldNota.linkedTo() != newNota) {
-
-			if (oldThread != null) {
-				oldThread.interrupt();
-				try { oldThread.join(); }
-				catch (Exception e) { System.out.println("Не дождались"); }
-			}
-
-			runNotaThread(newNota);
-
-		} else if (oldNota.linkedTo() == newNota) {
-			// updating key with new nota
-			opentNotas.remove(newNota); // it won't overwrite key otherwise
-			opentNotas.put(newNota, oldThread);
+		if (oldThread != null) {
+			oldThread.interrupt();
+			try { oldThread.join(); }
+			catch (Exception e) { System.out.println("Не дождались"); }
 		}
+
+		runNotaThread(newNota);
     }
 
 	public static void shutTheFuckUp() {
@@ -65,7 +56,7 @@ final public class PlayMusThread {
 		Thread thread = new Thread(() -> {
 			DeviceEbun.openNota(nota);
 
-			try { Thread.sleep(nota.getTimeMilliseconds(true)); }
+			try { Thread.sleep(nota.getTimeMilliseconds(120)); } //yeah, yeah, TODO: i should've pased here property of StaffConfig
 			catch (InterruptedException e) {}
 
 			DeviceEbun.closeNota(nota);

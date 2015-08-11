@@ -1,6 +1,13 @@
 package org.sheet_midusic.stuff.main;
 
+import org.sheet_midusic.staff.Staff;
+import org.sheet_midusic.staff.chord.Chord;
+import org.sheet_midusic.staff.chord.ChordComponent;
+import org.sheet_midusic.staff.chord.nota.Nota;
+import org.sheet_midusic.staff.chord.nota.NoteComponent;
 import org.sheet_midusic.staff.staff_panel.MainPanel;
+import org.sheet_midusic.staff.staff_panel.SheetMusicPanel;
+import org.sheet_midusic.staff.staff_panel.StaffComponent;
 import org.sheet_midusic.stuff.graphics.ImageStorage;
 import org.klesun_model.Combo;
 import org.klesun_model.ContextAction;
@@ -15,6 +22,7 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 import java.util.*;
+import java.util.List;
 
 public class MajesticWindow extends JFrame {
 
@@ -124,8 +132,31 @@ public class MajesticWindow extends JFrame {
 			menus.put(fakeModelForClassMethods.getClass(), modelMenu);
 		}
 
-		for (IComponent child: fakeModelForClassMethods.makeFakePossibleChildListForClassMethods()) {
+		for (IComponent child: makeFakePossibleChildListForClassMethods(fakeModelForClassMethods)) {
 			addMenuItems(child);
+		}
+	}
+
+
+	// retarded language does not support overridable class methods
+	private static List<IComponent> makeFakePossibleChildListForClassMethods(IComponent parent) {
+		/*if (this.getClass() == BlockSpace.class) {
+			return Arrays.asList(new Block(new ImagePanel((BlockSpace)this), (BlockSpace)this));
+		} else if (this.getClass() == Block.class) {
+			Block scroll = (Block)this;
+			return Arrays.asList(new MainPanel(scroll.getModelParent()), new Article(scroll.getModelParent()), new ImagePanel(scroll.getModelParent()));
+		} else if (this.getClass() == Article.class) {
+			return Arrays.asList(new Paragraph((Article)this));
+		} else */if (parent.getClass() == MainPanel.class) {
+			return Arrays.asList(new SheetMusicPanel((MainPanel)parent));
+		} else if (parent.getClass() == SheetMusicPanel.class) {
+			return Arrays.asList(new StaffComponent(new Staff(), (MainPanel)parent.getModelParent()));
+		} else if (parent.getClass() == StaffComponent.class) {
+			return Arrays.asList(new ChordComponent(new Chord(), parent));
+		} else if (parent.getClass() == ChordComponent.class) {
+			return Arrays.asList(new NoteComponent(new Nota(), (ChordComponent)parent));
+		} else {
+			return new ArrayList<>();
 		}
 	}
 

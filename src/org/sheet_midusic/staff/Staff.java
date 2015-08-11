@@ -48,33 +48,12 @@ public class Staff extends AbstractModel
 	private List<Tact> tactList = new ArrayList<>();
 	public int focusedIndex = -1;
 
-	@Deprecated final private MainPanel blockPanel;
 	final private Playback playback;
 
-	public Staff(MainPanel blockPanel)
+	public Staff()
 	{
-//		super(null);
-		this.blockPanel = blockPanel;
 		this.staffConfig = new StaffConfig(this);
 		this.playback = new Playback(this);
-	}
-
-	public synchronized Chord addNewAccordWithPlayback()
-	{
-		Chord chord = addNewAccord(getFocusedIndex() + 1);
-		this.moveFocus(1);
-		if (DeviceEbun.isPlaybackSoftware()) { // i.e. when playback is not done with piano - no need to play pressed chord, user hears it anyways
-			new Thread(() -> {
-				try {
-					Thread.sleep(ChordHandler.ACCORD_EPSILON);
-					PlayMusThread.playAccord(chord);
-				} catch (InterruptedException exc) {
-					Logger.error("okay...");
-				}
-			}).start();
-		}
-
-		return chord;
 	}
 
 	public Chord addNewAccord()
@@ -82,11 +61,8 @@ public class Staff extends AbstractModel
 		return addNewAccord(chordList.size());
 	}
 
-	public Chord addNewAccord(int position)
-	{
-		// TODO: it's a temporary hack till we completely separate Model from Component
-		StaffComponent hackPanel = blockPanel.staffContainer.getFocusedChild();
-		return add(new Chord(hackPanel), position);
+	public Chord addNewAccord(int position) {
+		return add(new Chord(), position);
 	}
 
 	/** TODO: public is temporary */
@@ -98,18 +74,16 @@ public class Staff extends AbstractModel
 
 	public synchronized void remove(Chord chord) {
 		int index = getChordList().indexOf(chord);
-		if (index <= getFocusedIndex()) { setFocusedIndex(getFocusedIndex() - 1); }
 		getChordList().remove(chord);
 
 		accordListChanged(index);
 	}
 
-	private void accordListChanged(int repaintAllFromIndex) {
-		int width = getParentSheet().getWidth();
-		getParentSheet().staffContainer.setPreferredSize(new Dimension(10/*width - 25*/, getHeightIf(width)));	//	Needed for the scrollBar bars to appear
-		getParentSheet().staffContainer.revalidate();	//	Needed to recalc the scrollBar bars
-
-//		getChordList().subList(repaintAllFromIndex, getChordList().size()).forEach(Chord::surfaceChanged);
+	// TODO: add "add"/"remove" methods in StaffComponent, move this method there and call only when
+	// the methods are called from the component context
+	private void accordListChanged(int repaintAllFromIndex)
+	{
+		setFocusedIndex(limit(getFocusedIndex(), -1, chordList.size() - 1));
 		this.tactList = recalcTactList(); // TODO: maybe do some optimization using repaintAllFromIndex
 	}
 
@@ -195,10 +169,10 @@ public class Staff extends AbstractModel
 		return this.chordList;
 	}
 
-	public List<List<Chord>> getAccordRowList() {
+	public List<List<Chord>> getAccordRowList(int width) {
 		List<List<Chord>> resultList = new ArrayList<>();
-		for (int fromIdx = 0; fromIdx < this.getChordList().size(); fromIdx += getAccordInRowCount()) {
-			resultList.add(this.getChordList().subList(fromIdx, Math.min(fromIdx + getAccordInRowCount(), this.getChordList().size())));
+		for (int fromIdx = 0; fromIdx < this.getChordList().size(); fromIdx += getAccordInRowCount(width)) {
+			resultList.add(this.getChordList().subList(fromIdx, Math.min(fromIdx + getAccordInRowCount(width), this.getChordList().size())));
 		}
 
 		if (resultList.isEmpty()) { resultList.add(new ArrayList<>()); }
@@ -206,13 +180,8 @@ public class Staff extends AbstractModel
 	}
 
 	public int getHeightIf(int width) {
-		return getAccordRowList().size() * SISDISPLACE * dy() + getMarginY();
+		return getAccordRowList(width).size() * SISDISPLACE * dy() + getMarginY();
 	}
-
-
-	public int getWidth() { return getParentSheet().getWidth(); }
-	@Deprecated // no comments
-	public int getHeight() { return getParentSheet().getHeight(); }
 
 	public int getMarginX() {
 		return Math.round(MainPanel.MARGIN_H * dx());
@@ -221,8 +190,8 @@ public class Staff extends AbstractModel
 		return Math.round(MainPanel.MARGIN_V * dy());
 	}
 
-	public int getAccordInRowCount() {
-		int result = this.getWidth() / (dx() * 2) - 3; // - 3 because violin key and phantom
+	public int getAccordInRowCount(int width) {
+		int result = width / (dx() * 2) - 3; // - 3 because violin key and phantom
 		return Math.max(result, 1);
 	}
 
@@ -233,9 +202,6 @@ public class Staff extends AbstractModel
 
 	public StaffConfig getConfig() {
 		return this.staffConfig;
-	}
-	public MainPanel getParentSheet() { // ???
-		return this.blockPanel;
 	}
 	public Playback getPlayback() { return this.playback; }
 	public int getFocusedIndex() {
@@ -274,8 +240,8 @@ public class Staff extends AbstractModel
 		return new Explain(false, "Not Implemented Yet!");
 	}
 
-	public Explain moveFocusRow(int sign) {
-		int n = sign * getAccordInRowCount();
+	public Explain moveFocusRow(int sign, int width) {
+		int n = sign * getAccordInRowCount(width);
 		return moveFocusWithPlayback(n);
 	}
 

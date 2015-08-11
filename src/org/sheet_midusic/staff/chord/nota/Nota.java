@@ -1,6 +1,7 @@
 package org.sheet_midusic.staff.chord.nota;
 
 
+import org.klesun_model.AbstractModel;
 import org.sheet_midusic.staff.staff_config.KeySignature;
 import org.sheet_midusic.staff.chord.Chord;
 import org.sheet_midusic.stuff.graphics.ImageStorage;
@@ -16,7 +17,7 @@ import org.apache.commons.math3.fraction.Fraction;
 import org.sheet_midusic.staff.staff_config.StaffConfig;
 import org.json.JSONObject;
 
-public class Nota extends MidianaComponent implements INota
+public class Nota extends AbstractModel implements INota
 {
 	// <editor-fold desc="model field declaration">
 
@@ -37,24 +38,9 @@ public class Nota extends MidianaComponent implements INota
 
 	public long keydownTimestamp;
 
-	public Nota(Chord parent) {
-		super(parent);
-		h.getFieldStorage().forEach(f -> f.setOnChange(getParentAccord()::surfaceChanged));
-	}
-
 	public Boolean isLongerThan(Nota rival) { return getRealLength().compareTo(rival.getRealLength()) > 0; }
 
 	// <editor-fold desc="implementing abstract model">
-
-	public int drawOn(Graphics2D surface, int x, int y) {
-		new NotaPainter(this, surface, x, y).draw(true);
-		return -100;
-	}
-
-	@Override
-	public MidianaComponent getFocusedChild() { return null; }
-	@Override
-	protected NotaHandler makeHandler() { return new NotaHandler(this); }
 
 	@Override
 	public int hashCode() {
@@ -80,11 +66,8 @@ public class Nota extends MidianaComponent implements INota
 
 	// <editor-fold desc="getters">
 
-	public int getTimeMilliseconds(Boolean includeLinkedTime) {
-		StaffConfig config = getParentAccord().getParentStaff().getConfig();
-		int linkedTime = (includeLinkedTime && linkedTo() != null) ? linkedTo().getTimeMilliseconds(true) : 0;
-
-		return getTimeMilliseconds(getRealLength(), config.getTempo()) + linkedTime;
+	public int getTimeMilliseconds(int tempo) {
+		return getTimeMilliseconds(getRealLength(), tempo);
 	}
 
 	public static int getTimeMilliseconds(Fraction length, int tempo) {
@@ -94,11 +77,11 @@ public class Nota extends MidianaComponent implements INota
 		return length.multiply(semibreveTime).intValue();
 	}
 
-	public byte getVolume() {
+	@Deprecated // why send muted Nota event?
+	public byte getVolume(StaffConfig config) {
 		if (getIsMuted() || isPause()) {
 			return 0; // пауза лол какбэ
 		} else {
-			StaffConfig config = getParentAccord().getParentStaff().getConfig();
 			return (byte)(127 * config.getVolume(getChannel()) / 100);
 		}
 	}
@@ -138,20 +121,13 @@ public class Nota extends MidianaComponent implements INota
 	// 0 - do, 2 - re, 4 - mi, 5 - fa, 7 - so, 9 - la, 10 - ti
 
 	@Override
-	public int ivoryIndex() {
+	public int ivoryIndex(KeySignature siga) { // siga - key signature from staff config
 		if (isPause()) {
 			return PAUSE_POSITION;
 		} else {
-			KeySignature siga = getParentAccord().getParentStaff().getConfig().getSignature();
 			return INota.super.ivoryIndex(siga)/* - (isEbony() && isSharp.get() ? 1 : 0)*/; /** @debug, but i suppose, we should get rid of this */
 		}
 	}
-	public int getNotaImgRelX() { return this.getWidth() / 2; } // bad name
-	public int getStickX() { return this.getNotaImgRelX() + dx() / 2; }
-
-	public int getHeight() { return getSettings().getNotaHeight(); }
-	// TODO: use it in chord.getWidth()
-	public int getWidth() { return dx() * 2; }
 
 	public Boolean isPause() { return tune.get() == 0; }
 
@@ -182,7 +158,6 @@ public class Nota extends MidianaComponent implements INota
 
 	// </editor-fold>
 
-	public Chord getParentAccord() { return (Chord)this.getModelParent(); }
 	public Nota setKeydownTimestamp(long value) { this.keydownTimestamp = value; return this; }
 
 	// <editor-fold desc="event handles">
@@ -191,29 +166,12 @@ public class Nota extends MidianaComponent implements INota
 		setIsSharp(!getIsSharp()); return this; }
 	public Nota triggerIsMuted() {
 		setIsMuted(!getIsMuted()); return this; }
-	public Boolean triggerIsLinkedToNext() {
-		if (getNext() != null || getIsLinkedToNext() == true) {
-			setIsLinkedToNext(!getIsLinkedToNext());
-			return true;
-		} else {
-			return false;
-		}
+	public void triggerIsLinkedToNext() {
+		isLinkedToNext.set(!isLinkedToNext.get());
 	}
 	public Nota triggerTupletDenominator() {
 		isTriplet.set(!isTriplet.get());
 		return this;
-	}
-
-	public Nota linkedTo() {
-		return this.getIsLinkedToNext() ? this.getNext() : null;
-	}
-
-	/** @return nota of the next chord with same tune or null */
-	private Nota getNext() {
-		Chord nextChord = getParentAccord().getNext();
-		return nextChord != null
-				? nextChord.findByTuneAndChannel(this.tune.get(), this.getChannel())
-				: null;
 	}
 
 	public Nota incLen() {

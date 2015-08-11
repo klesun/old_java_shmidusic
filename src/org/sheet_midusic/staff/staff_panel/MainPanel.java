@@ -90,15 +90,12 @@ final public class MainPanel extends JPanel implements IComponent, IModel {
 		}
 	}
 
-	public void surfaceCompletelyChanged() {
-		this.surfaceCompletelyChanged = true;
-		this.checkCam();
+	// TODO: move to StaffComponent
+	public int getFocusedSystemY() {
+		return Staff.SISDISPLACE * dy() * (getStaff().getFocusedIndex() / getStaff().getAccordInRowCount(staffContainer.getWidth()));
 	}
 
-	public int getFocusedSystemY() {
-		return Staff.SISDISPLACE * dy() * (getStaff().getFocusedIndex() / getStaff().getAccordInRowCount());
-	}
-	
+	// TODO: move to StaffComponent
 	public void checkCam() {
 		simpleRepaint = !surfaceCompletelyChanged;
 		surfaceCompletelyChanged = false;

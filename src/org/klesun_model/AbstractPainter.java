@@ -2,6 +2,7 @@ package org.klesun_model;
 
 // this will be helper class for MidianaComponent-s
 
+import org.sheet_midusic.stuff.OverridingDefaultClasses.TriConsumer;
 import org.sheet_midusic.stuff.graphics.Constants;
 import org.sheet_midusic.stuff.graphics.ShapeProvider;
 import org.klesun_model.field.Field;
@@ -16,6 +17,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+// even though it's abstract, his inheritors does not override nothing, they just use it's methods.
+// TODO: transform it into helper instead of abstract-hujact ?
 abstract public class AbstractPainter { // like Picasso!
 
 	final protected MidianaComponent context;
@@ -28,8 +31,6 @@ abstract public class AbstractPainter { // like Picasso!
 		this.x = x;
 		this.y = y;
 	}
-
-	abstract public void draw(Boolean completeRepaint);
 
 	final protected void fillRect(Rectangle r, Color c) {
 		performWithColor(c, () -> g.fillRect(this.x + r.x, this.y + r.y, r.width, r.height));
@@ -63,8 +64,8 @@ abstract public class AbstractPainter { // like Picasso!
 		performWithColor(c, () -> fitTextIn(absoluteRect, str, g));
 	}
 
-	final protected void drawModel(MidianaComponent model, int x0, int y0, Boolean completeRepaint) {
-		model.drawOn(g, x + x0, y + y0);
+	final protected void drawModel(TriConsumer<Graphics2D, Integer, Integer> paintLambda, int x0, int y0) {
+		paintLambda.accept(g, x + x0, y + y0);
 	}
 	final protected void drawImage(Image image, int x0, int y0) {
 		g.drawImage(image, x + x0, y + y0, null);
@@ -99,7 +100,7 @@ abstract public class AbstractPainter { // like Picasso!
 		g.setStroke(tmpStroke);
 	}
 
-	protected void drawFields(Boolean completeRepaint) {
+	protected void drawFields() {
 		java.util.List<Field> drawableList = context.getModelHelper().getFieldStorage().stream()
 				.filter(f -> f.hasPaintingLambda()).collect(Collectors.toList());
 
@@ -108,7 +109,7 @@ abstract public class AbstractPainter { // like Picasso!
 
 		for (int i = 0; i < drawableList.size(); ++i) {
 			Rectangle r = new Rectangle(x, y + dy, w, dy);
-			if (drawableList.get(i).changedSinceLastRepaint || completeRepaint) {
+			if (drawableList.get(i).changedSinceLastRepaint || true) {
 				drawableList.get(i).repaint(g, r);
 			}
 		}

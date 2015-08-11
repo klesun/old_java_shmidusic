@@ -13,7 +13,7 @@ public class SheetMusic extends AbstractModel
 
 	public Staff addNewStaffAfter(Staff staff)
 	{
-		Staff newStaff = new Staff(null);
+		Staff newStaff = new Staff();
 		staffList.add(newStaff, staffList.indexOf(staff) + 1);
 		return newStaff;
 	}

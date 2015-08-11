@@ -11,18 +11,17 @@ import java.util.function.BiConsumer;
 
 public class NotaPainter extends AbstractPainter
 {
-	public NotaPainter(Nota context, Graphics2D g, int x, int y) {
+	public NotaPainter(NoteComponent context, Graphics2D g, int x, int y) {
 		super(context, g, x, y);
 	}
 
-	@Override
-	public void draw(Boolean completeRepaint)
+	public void draw(KeySignature siga)
 	{
-		Nota n = (Nota)context;
+		NoteComponent comp = (NoteComponent)context;
+		Nota n = comp.note;
 
 		double notaCenterY = 7 * dy();
 
-		KeySignature siga = n.getParentAccord().getParentStaff().getConfig().getSignature();
 		if (!siga.myTuneQueue().contains(n.tune.get() % 12)) {
 			if (n.isEbony()) {
 				// draw bemol cuz i decided to draw bemols in comment from KeySignature class
@@ -38,18 +37,18 @@ public class NotaPainter extends AbstractPainter
 		int colorChannel = n.getIsMuted() || n.isPause() ? 9 : n.getChannel();
 		BufferedImage tmpImg;
 		if (n.isTooShort()) {
-			tmpImg = n.getImageStorage().getTooShortImage();
+			tmpImg = ImageStorage.inst().getTooShortImage();
 		} else if (n.isTooLong()) {
-			tmpImg = n.getImageStorage().getTooLongImage();
+			tmpImg = ImageStorage.inst().getTooLongImage();
 		} else {
-			tmpImg = n.getImageStorage().getNotaImg(n.getCleanLength(), colorChannel);
+			tmpImg = ImageStorage.inst().getNotaImg(n.getCleanLength(), colorChannel);
 		}
 
 		if (n.getIsLinkedToNext()) {
 			drawParabola(new Rectangle(dx() * 3 / 2, (int) notaCenterY, dx() * 2, dy() * 2));
 		}
 
-		drawImage(tmpImg, n.getNotaImgRelX(), 0);
+		drawImage(tmpImg, dx(), 0);
 
 		if (n.isTriplet.get()) {
 			Rectangle rect = new Rectangle(dx() /4, 6 * dy(), dx() / 2, dy() * 2);

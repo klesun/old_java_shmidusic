@@ -24,10 +24,12 @@ public class SheetMusicPanel extends JPanel implements IComponent
 
 	public SheetMusicPanel(@Deprecated MainPanel mainPanel)
 	{
+		this.mainPanel = mainPanel;
+
 		this.sheetMusic = new SheetMusic();
-		Staff staff = new Staff(this.mainPanel = mainPanel);
+		Staff staff = new Staff();
 		this.sheetMusic.staffList.add(staff);
-		this.staffComponentSet.add(new StaffComponent(staff));
+		this.staffComponentSet.add(new StaffComponent(staff, this));
 
 		this.handler = new AbstractHandler(this) {
 			public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() {
@@ -63,6 +65,7 @@ public class SheetMusicPanel extends JPanel implements IComponent
 				s.remove(c);
 				newStaff.addNewAccord().reconstructFromJson(c.getJsonRepresentation());
 			});
+			this.revalidate();
 
 			newStaff.getConfig().reconstructFromJson(newStaff.getJsonRepresentation());
 		});

@@ -31,7 +31,6 @@ public class StaffConfigComponent extends MidianaComponent
 		};
 	}
 
-	@Override
 	public int drawOn(Graphics2D surface, int x, int y) {
 		// TODO: move it here from StaffConfig
 		return -100;

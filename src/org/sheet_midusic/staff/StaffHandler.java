@@ -45,8 +45,8 @@ public class StaffHandler extends AbstractHandler {
 			.p(new Combo(ctrl, k.VK_RIGHT), mkAction(p -> p.staff.moveFocusTact(1)).setCaption("Right Tact").setPostfix("Navigation"))
 			.p(new Combo(0, k.VK_LEFT), mkFailableAction(s -> s.staff.moveFocusWithPlayback(-1)).setCaption("Left").setPostfix(navigation))
 			.p(new Combo(0, k.VK_RIGHT), mkFailableAction(s -> s.staff.moveFocusWithPlayback(1)).setCaption("Right").setPostfix(navigation))
-			.p(new Combo(0, k.VK_UP), mkFailableAction(s -> s.staff.moveFocusRow(-1)).setCaption("Up").setPostfix(navigation))
-			.p(new Combo(0, k.VK_DOWN), mkFailableAction(s -> s.staff.moveFocusRow(1)).setCaption("Down").setPostfix(navigation))
+			.p(new Combo(0, k.VK_UP), mkFailableAction(s -> s.staff.moveFocusRow(-1, s.getWidth())).setCaption("Up").setPostfix(navigation))
+			.p(new Combo(0, k.VK_DOWN), mkFailableAction(s -> s.staff.moveFocusRow(1, s.getWidth())).setCaption("Down").setPostfix(navigation))
 
 			// TODO: move it to StaffConfig
 			.p(new Combo(ctrl, k.VK_D), mkFailableAction(s -> DeviceEbun.changeOutDevice(s.staff.getConfig()))
@@ -64,7 +64,7 @@ public class StaffHandler extends AbstractHandler {
 			actionMap.p(entry.getKey(), action
 				.setRedo(s -> {
 					if (s.staff.mode != Staff.aMode.passive) {
-						s.staff.addNewAccordWithPlayback().addNewNota(entry.getValue(), s.getSettings().getDefaultChannel());
+						s.addNewChordWithPlayback().addNewNota(entry.getValue(), s.getSettings().getDefaultChannel());
 						return new Explain(true);
 					} else {
 						return new Explain("Cant do, passive mode is on!");

@@ -65,7 +65,7 @@ public class StaffConfig extends AbstractModel
 	public ConfigDialog getDialog() { return new ConfigDialog(this); }
 
 	// temporary solution
-	public MidianaComponent makeComponent(StaffComponent parentForComponent)
+	public StaffConfigComponent makeComponent(StaffComponent parentForComponent)
 	{
 		return new StaffConfigComponent(parentForComponent, this);
 	}

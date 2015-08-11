@@ -38,26 +38,4 @@ public interface IComponent {
 	void addFocusListener(FocusListener focusListener);
 
 	// </editor-fold>
-
-	// retarded language
-	default java.util.List<IComponent> makeFakePossibleChildListForClassMethods() {
-		/*if (this.getClass() == BlockSpace.class) {
-			return Arrays.asList(new Block(new ImagePanel((BlockSpace)this), (BlockSpace)this));
-		} else if (this.getClass() == Block.class) {
-			Block scroll = (Block)this;
-			return Arrays.asList(new MainPanel(scroll.getModelParent()), new Article(scroll.getModelParent()), new ImagePanel(scroll.getModelParent()));
-		} else if (this.getClass() == Article.class) {
-			return Arrays.asList(new Paragraph((Article)this));
-		} else */if (this.getClass() == MainPanel.class) {
-			return Arrays.asList(new SheetMusicPanel((MainPanel)this));
-		} else if (this.getClass() == SheetMusicPanel.class) {
-			return Arrays.asList(new StaffComponent(new Staff((MainPanel)this.getModelParent())));
-		} else if (this.getClass() == StaffComponent.class) {
-			return Arrays.asList(new Chord((StaffComponent)this));
-		} else if (this.getClass() == Chord.class) {
-			return Arrays.asList(new Nota((Chord)this));
-		} else {
-			return new ArrayList<>();
-		}
-	}
 }

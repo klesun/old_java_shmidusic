@@ -1,9 +1,13 @@
 package org.sheet_midusic.staff;
 
 import org.sheet_midusic.staff.chord.Chord;
+import org.sheet_midusic.staff.chord.ChordComponent;
 import org.sheet_midusic.staff.chord.nota.Nota;
 import org.klesun_model.AbstractPainter;
 import org.apache.commons.math3.fraction.Fraction;
+import org.sheet_midusic.staff.chord.nota.NoteComponent;
+import org.sheet_midusic.staff.staff_config.KeySignature;
+import org.sheet_midusic.staff.staff_config.StaffConfigComponent;
 import org.sheet_midusic.staff.staff_panel.StaffComponent;
 import org.sheet_midusic.stuff.graphics.ImageStorage;
 import org.sheet_midusic.stuff.tools.jmusic_integration.INota;
@@ -17,15 +21,15 @@ public class StaffPainter extends AbstractPainter
 		super(context, g, x + context.staff.getMarginX() + 3 * context.dx(), y + context.staff.getMarginY()); // 3dx - violin/bass keys and Config
 	}
 
-	@Override
 	public void draw(Boolean completeRepaint)
 	{
-		Staff s = ((StaffComponent)context).staff;
+		StaffComponent comp = (StaffComponent)context;
+		Staff s = comp.staff;
 
 		Staff.TactMeasurer tactMeasurer = new Staff.TactMeasurer(s.getConfig().getTactSize());
 
 		int i = 0;
-		for (java.util.List<Chord> row : s.getAccordRowList()) {
+		for (java.util.List<Chord> row : s.getAccordRowList(comp.getWidth())) {
 
 			int y = i * Staff.SISDISPLACE * dy(); // bottommest y nota may be drawn on
 
@@ -35,7 +39,10 @@ public class StaffPainter extends AbstractPainter
 			for (Chord chord : row) {
 				int x = j * (2 * dx());
 
-				drawModel(chord, x, y - 12 * dy(), completeRepaint);
+				ChordComponent chordComp = comp.findChild(chord);
+				KeySignature siga = s.getConfig().getSignature();
+				drawModel((g, xArg, yArg) -> chordComp.drawOn(g, xArg, yArg, siga), x, y - 12 * dy());
+
 				if (tactMeasurer.inject(chord)) {
 					drawTactLine(x + dx() * 2, y, tactMeasurer);
 				}
@@ -51,7 +58,8 @@ public class StaffPainter extends AbstractPainter
 			++i;
 		}
 
-		drawModel(s.getConfig().makeComponent((StaffComponent)context), -dx(), 0, completeRepaint);
+		StaffConfigComponent configComp = s.getConfig().makeComponent(comp);
+		drawModel((g, xArg, yArg) -> configComp.drawOn(g, xArg, yArg), -dx(), 0);
 	}
 
 	private void drawTactLine(int x, int baseY, Staff.TactMeasurer tactMeasurer)
@@ -67,7 +75,8 @@ public class StaffPainter extends AbstractPainter
 
 	private void drawStaffLines(int y)
 	{
-		Staff s = ((StaffComponent)context).staff;
+		StaffComponent comp = (StaffComponent)context;
+		Staff s = comp.staff;
 
 		int tune = INota.nextIvoryTune(INota.nextIvoryTune(Nota.FA + 12 * 2));
 
@@ -76,16 +85,16 @@ public class StaffPainter extends AbstractPainter
 			tune = INota.prevIvoryTune(INota.prevIvoryTune(tune));
 			if (j == 5) continue;
 			int lineY = y + j * dy() * 2;
-			drawLine(-3 * dx(), lineY, s.getWidth() - s.getMarginX() * 6, lineY, new Color(128,128,255));
+			drawLine(-3 * dx(), lineY, comp.getWidth() - s.getMarginX() * 6, lineY, new Color(128,128,255));
 
-			Rectangle measureFrame = new Rectangle(s.getWidth() - s.getMarginX() * 6 + dx() / 6, lineY - dy() - 1, dx(), dy() * 2);
+			Rectangle measureFrame = new Rectangle(comp.getWidth() - s.getMarginX() * 6 + dx() / 6, lineY - dy() - 1, dx(), dy() * 2);
 			drawString(tune + "", measureFrame, Color.BLUE);
 		}
 
 		// hidden Nota height lines fot way too high Nota-s
 		for (int j = -3; j >= -5; --j) { // -3 - Mi; -5 -si
 			int lineY = y + j * dy() * 2;
-			drawLine(- 3 * dx(), lineY, s.getWidth() - s.getMarginX() * 6, lineY, Color.LIGHT_GRAY);
+			drawLine(- 3 * dx(), lineY, comp.getWidth() - s.getMarginX() * 6, lineY, Color.LIGHT_GRAY);
 		}
 	}
 }

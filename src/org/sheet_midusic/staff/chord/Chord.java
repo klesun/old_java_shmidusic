@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import org.klesun_model.AbstractModel;
 import org.klesun_model.Explain;
 import org.klesun_model.field.Arr;
 import org.klesun_model.field.Field;
@@ -18,7 +19,7 @@ import org.sheet_midusic.staff.chord.nota.Nota;
 import org.sheet_midusic.staff.Staff;
 import org.json.JSONObject;
 
-public class Chord extends MidianaComponent
+public class Chord extends AbstractModel
 {
 	private Field<Boolean> isDiminendo = new Field<>("isDiminendo", false, this).setPaintingLambda(ChordPainter::diminendoPainting);
 	public Field<String> slog = new Field<>("slog", "", this).setPaintingLambda(ChordPainter::slogPainting).setOmitDefaultFromJson(true);
@@ -28,18 +29,12 @@ public class Chord extends MidianaComponent
 
 	int focusedIndex = -1;
 
-	public Chord(StaffComponent parent) {
-		super(parent);
+	public Chord() {
 		h.getFieldStorage().forEach(f -> f.setOnChange(this::surfaceChanged));
 	}
 
 	public void surfaceChanged() {
 		this.surfaceChanged = true;
-	}
-
-	public int drawOn(Graphics2D surface, int x, int y) {
-		new ChordPainter(this, surface, x, y).draw(true); // TODO: make it be not needed
-		return -100;
 	}
 
 	// responses to events (actions)
@@ -61,10 +56,6 @@ public class Chord extends MidianaComponent
 
 	// getters/setters
 
-	public int getHeight() {
-		return this.getLowestPossibleNotaY();
-	}
-
 	public TreeSet<Nota> getNotaSet() {
 		return (TreeSet)notaList.get();
 	}
@@ -82,8 +73,8 @@ public class Chord extends MidianaComponent
 		return this.getNotaSet().stream().filter(n -> n.tune.get() == tune && n.getChannel() == channel).findFirst().orElse(null);
 	}
 
-	public int getShortestTime() {
-		return Nota.getTimeMilliseconds(getFraction(), getParentStaff().getConfig().getTempo());
+	public int getShortestTime(int tempo) {
+		return Nota.getTimeMilliseconds(getFraction(),tempo);
 	}
 
 	public Fraction getFraction() {
@@ -95,15 +86,8 @@ public class Chord extends MidianaComponent
 		return getFocusedIndex() > -1 ? this.notaList.get(getFocusedIndex()) : null;
 	}
 
-	public int getLowestPossibleNotaY() {
-		return 50 * dy();
-	}
-
 	// field getters/setters
 
-	public Staff getParentStaff() {
-		return ((StaffComponent)this.getModelParent()).staff;
-	}
 	public String getSlog() { return this.slog.get(); }
 	public Chord setSlog(String value) { this.slog.set(value); return this; }
 	public int getFocusedIndex() {
@@ -117,13 +101,6 @@ public class Chord extends MidianaComponent
 		setIsDiminendo(!getIsDiminendo());
 	}
 
-	public Chord getNext() {
-		int nextIndex = getParentStaff().getChordList().indexOf(this) + 1;
-		return nextIndex < getParentStaff().getChordList().size()
-				? getParentStaff().getChordList().get(nextIndex)
-				: null;
-	}
-
 	public Chord setFocusedIndex(int value) {
 		value = value >= this.getNotaSet().size() ? this.getNotaSet().size() - 1 : value;
 		value = value < -1 ? -1 : value;
@@ -131,13 +108,9 @@ public class Chord extends MidianaComponent
 		return this;
 	}
 
-	@Override
+	@Deprecated // it's ChordComponent's logic
 	public Nota getFocusedChild() {
 		return this.getFocusedNota();
-	}
-	@Override
-	protected ChordHandler makeHandler() {
-		return new ChordHandler(this);
 	}
 
 	// event handles
@@ -149,28 +122,24 @@ public class Chord extends MidianaComponent
 	}
 
 	public Nota addNewNota(int tune, int channel) {
-		return add(new Nota(this).setTune(tune).setChannel(channel)
+		return add(new Nota().setTune(tune).setChannel(channel)
 			.setKeydownTimestamp(System.currentTimeMillis()));
 	}
 
 	public Nota addNewNota(JSONObject newNotaJs) {
-		return add(new Nota(this).reconstructFromJson(newNotaJs)
+		return add(new Nota().reconstructFromJson(newNotaJs)
 			.setKeydownTimestamp(System.currentTimeMillis()));
 	}
 
 	synchronized public Nota add(Nota nota) {
-		getHandler().performAction(new SimpleAction()
-			.setRedo(() -> notaList.add(nota))
-			.setUndo(() -> notaList.remove(nota)));
-		return nota;
+		return notaList.add(nota);
 	}
 
 	synchronized public void remove(Nota nota) {
 		int index = getNotaSet().headSet(nota).size();
 		if (index <= getFocusedIndex()) { setFocusedIndex(getFocusedIndex() - 1); }
-		getHandler().performAction(new SimpleAction()
-			.setRedo(() -> notaList.remove(nota))
-			.setUndo(() -> notaList.add(nota)));
+
+		notaList.remove(nota);
 	}
 
 }

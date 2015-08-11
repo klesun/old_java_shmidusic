@@ -30,7 +30,7 @@ public class Settings {
 		ImageStorage.inst().refreshImageSizes();
 	}
 
-	public int getStepWidth() { return getNotaWidth(); } // nota image width (the one OS would display when you click on fil->properties)
+	public int getStepWidth() { return getNotaWidth(); } // nota image width (the one OS would display when you click on file->properties)
 	public int getStepHeight() { return getNotaHeight() / 8; } // half-space between two org.sheet_midusic.staff's lines
 
 	/** @return - scaled nota image from file width */

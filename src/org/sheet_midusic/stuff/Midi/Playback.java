@@ -1,5 +1,6 @@
 package org.sheet_midusic.stuff.Midi;
 
+import org.jm.audio.synth.Window;
 import org.sheet_midusic.staff.chord.Chord;
 import org.sheet_midusic.stuff.main.Main;
 import org.klesun_model.Explain;
@@ -50,7 +51,7 @@ public class Playback {
 			streamTo(runningProcess, startFrom, now -> runningProcess.addTask(now, () ->
 			{
 				staff.moveFocus(1);
-				staff.getParentSheet().checkCam();
+				Main.window.staffPanel.checkCam();
 			}));
 
 			runningProcess.appendTask(new Fraction(1), this::interrupt);
