@@ -3,6 +3,7 @@ package org.sheet_midusic.staff.chord.nota;
 import org.klesun_model.AbstractHandler;
 import org.klesun_model.Combo;
 import org.klesun_model.ContextAction;
+import org.klesun_model.Explain;
 import org.sheet_midusic.stuff.graphics.Settings;
 import org.sheet_midusic.stuff.musica.PlayMusThread;
 import org.sheet_midusic.stuff.OverridingDefaultClasses.TruMap;
@@ -12,6 +13,7 @@ import javax.swing.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class NotaHandler extends AbstractHandler {
 
@@ -30,9 +32,10 @@ public class NotaHandler extends AbstractHandler {
 
 			.p(new Combo(k.CTRL_MASK, k.VK_3), mkAction(model(Nota::triggerTupletDenominator)).setCaption("Switch Triplet/Normal"))
 			.p(new Combo(k.CTRL_MASK, k.VK_H), mkAction(model(Nota::triggerIsMuted)).setCaption("Mute/Unmute"))
-			.p(new Combo(k.SHIFT_MASK, k.VK_3), mkAction(model(Nota::triggerIsSharp)).setCaption("Switch Sharp/Flat"))
-			.p(new Combo(k.SHIFT_MASK, k.VK_BACK_QUOTE), mkAction(model(Nota::triggerIsLinkedToNext)).setCaption("Link/Unlink with next"))
-			.p(new Combo(k.CTRL_MASK, k.VK_I), mkAction(n -> JOptionPane.showMessageDialog(n.getFirstAwtParent(), n.toString())).setCaption("Info"))
+			.p(new Combo(k.SHIFT_MASK, k.VK_3), mkFailableAction(NoteComponent::triggerIsSharp).setCaption("Switch Sharp/Flat"))
+		.
+		p(new Combo(k.SHIFT_MASK, k.VK_BACK_QUOTE), mkAction(model(Nota::triggerIsLinkedToNext)).setCaption("Link/Unlink with next"))
+			.p(new Combo(k.CTRL_MASK, k.VK_I), mkAction(n -> JOptionPane.showMessageDialog(n.getFirstAwtParent(), n.note.toString())).setCaption("Info"))
 		;
 
 		for (Combo combo: Combo.getNumberComboList(0)) {
@@ -67,6 +70,11 @@ public class NotaHandler extends AbstractHandler {
 
 	// stupid java, stupid lambdas don't see stupid generics! that's why i was forced to create separate method to do it in one line
 	private static ContextAction<NoteComponent> mkAction(Consumer<NoteComponent> lambda) {
+		ContextAction<NoteComponent> action = new ContextAction<>();
+		return action.setRedo(lambda);
+	}
+
+	private static ContextAction<NoteComponent> mkFailableAction(Function<NoteComponent, Explain> lambda) {
 		ContextAction<NoteComponent> action = new ContextAction<>();
 		return action.setRedo(lambda);
 	}

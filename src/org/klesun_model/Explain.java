@@ -53,13 +53,12 @@ public class Explain<C> {
 		return explanation;
 	}
 
-	public Explain ifSuccess(Function<C, Explain> lambda) {
-		return this.isSuccess() ? lambda.apply(this.getData()) : this;
+	public <T> Explain<T> ifSuccess(Function<C, Explain<T>> lambda) {
+		return this.isSuccess() ? lambda.apply(this.getData()) : new Explain<T>(false, explanation);
 	}
 
 	public Explain whenSuccess(Consumer<C> lambda) {
-		Function<C, Explain> truLambda = c -> { lambda.accept(c); return new Explain(true); };
-		return ifSuccess(truLambda);
+		return ifSuccess(c -> { lambda.accept(c); return new Explain(true); });
 	}
 
 	public Explain runIfSuccess(Runnable lambda) {

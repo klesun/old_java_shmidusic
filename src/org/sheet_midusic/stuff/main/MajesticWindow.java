@@ -7,7 +7,7 @@ import org.sheet_midusic.staff.chord.nota.Nota;
 import org.sheet_midusic.staff.chord.nota.NoteComponent;
 import org.sheet_midusic.staff.staff_panel.MainPanel;
 import org.sheet_midusic.staff.staff_panel.SheetMusic;
-import org.sheet_midusic.staff.staff_panel.SheetMusicPanel;
+import org.sheet_midusic.staff.staff_panel.SheetMusicComponent;
 import org.sheet_midusic.staff.staff_panel.StaffComponent;
 import org.sheet_midusic.stuff.graphics.ImageStorage;
 import org.klesun_model.Combo;
@@ -94,7 +94,7 @@ public class MajesticWindow extends JFrame {
 		LinkedHashMap<Combo, ContextAction> actionMap = fakeModelForClassMethods.getHandler().getMyClassActionMap();
 		if (actionMap.values().stream().anyMatch(a -> !a.omitMenuBar())) {
 
-			JMenu modelMenu = new JMenu(fakeModelForClassMethods.getClass().getSimpleName());
+			JMenu modelMenu = new JMenu(fakeModelForClassMethods.getModel().getClass().getSimpleName());
 			modelMenu.setToolTipText("Enabled");
 
 			for (Combo key : actionMap.keySet()) {
@@ -149,8 +149,8 @@ public class MajesticWindow extends JFrame {
 		} else if (this.getClass() == Article.class) {
 			return Arrays.asList(new Paragraph((Article)this));
 		} else */if (parent.getClass() == MainPanel.class) {
-			return Arrays.asList(new SheetMusicPanel(new SheetMusic(), (MainPanel)parent));
-		} else if (parent.getClass() == SheetMusicPanel.class) {
+			return Arrays.asList(new SheetMusicComponent(new SheetMusic(), (MainPanel)parent));
+		} else if (parent.getClass() == SheetMusicComponent.class) {
 			return Arrays.asList(new StaffComponent(new Staff(), (MainPanel)parent.getModelParent()));
 		} else if (parent.getClass() == StaffComponent.class) {
 			return Arrays.asList(new ChordComponent(new Chord(), parent));

@@ -4,6 +4,7 @@ import org.klesun_model.AbstractHandler;
 import org.klesun_model.Combo;
 import org.klesun_model.ContextAction;
 import org.sheet_midusic.staff.MidianaComponent;
+import org.sheet_midusic.staff.Staff;
 import org.sheet_midusic.staff.staff_panel.StaffComponent;
 import org.sheet_midusic.stuff.OverridingDefaultClasses.TruMap;
 import org.sheet_midusic.stuff.graphics.ImageStorage;
@@ -21,6 +22,11 @@ public class StaffConfigComponent extends MidianaComponent
 	public StaffConfigComponent(StaffComponent parent, StaffConfig staffConfig) {
 		super(parent);  /** @deprecated */
 		this.staffConfig = staffConfig;
+	}
+
+	@Override
+	public StaffConfig getModel() {
+		return this.staffConfig;
 	}
 
 	@Override

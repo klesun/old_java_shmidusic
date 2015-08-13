@@ -1,10 +1,11 @@
 package org.sheet_midusic.stuff.tools;
 
 import org.jm.midi.SMF;
+import org.json.JSONArray;
 import org.klesun_model.Explain;
 import org.sheet_midusic.staff.staff_panel.MainPanel;
 import org.sheet_midusic.staff.staff_panel.SheetMusic;
-import org.sheet_midusic.staff.staff_panel.SheetMusicPanel;
+import org.sheet_midusic.staff.staff_panel.SheetMusicComponent;
 import org.sheet_midusic.stuff.main.Main;
 import org.sheet_midusic.staff.Staff;
 import org.klesun_model.IModel;
@@ -30,12 +31,12 @@ public class FileProcessor {
 	// TODO: make folder of project default path
 	private static JFileChooser fileChooser = new JFileChooser("/home/klesun/yuzefa_git/a_opuses_json/");
 	
-	public static Explain savePNG (SheetMusicPanel sheetMusicPanel)
+	public static Explain savePNG (SheetMusicComponent sheetMusicComponent)
 	{
 		return makeSaveFileDialog("png", "PNG images").ifSuccess(f ->
 		{
-			BufferedImage img = new BufferedImage(sheetMusicPanel.getWidth(), sheetMusicPanel.getHeight(), BufferedImage.TYPE_INT_ARGB);
-			sheetMusicPanel.paintComponent(img.getGraphics());
+			BufferedImage img = new BufferedImage(sheetMusicComponent.getWidth(), sheetMusicComponent.getHeight(), BufferedImage.TYPE_INT_ARGB);
+			sheetMusicComponent.paintComponent(img.getGraphics());
 
 			return Explain.tryException(() -> ImageIO.write(img, "png", f));
 		});
@@ -46,17 +47,17 @@ public class FileProcessor {
 //				.ifSuccess(f -> saveModel(f, blockSpace));
 //	}
 
-	public static Explain saveMusicPanel(SheetMusicPanel sheetMusicPanel) {
+	public static Explain saveMusicPanel(SheetMusicComponent sheetMusicComponent) {
 
 		return makeSaveFileDialog("midi.json", "Json Midi-music data").ifSuccess(f -> {
 //			staff.getParentSheet().getParentBlock().setTitle(f.getName());
-			return saveModel(f, sheetMusicPanel.sheetMusic); // TODO: use messages when fail
+			return saveModel(f, sheetMusicComponent.sheetMusic); // TODO: use messages when fail
 		});
 	}
 
-	public static Explain saveMidi(SheetMusicPanel sheetMusicPanel) {
+	public static Explain saveMidi(SheetMusicComponent sheetMusicComponent) {
 		return makeSaveFileDialog("mid", "MIDI binary data file")
-			.ifSuccess(f -> writeSheetMusicMidi(sheetMusicPanel.sheetMusic, f));
+			.ifSuccess(f -> writeSheetMusicMidi(sheetMusicComponent.sheetMusic, f));
 	}
 
 	private static Explain writeSheetMusicMidi(SheetMusic sheetMusic, File f)
@@ -76,7 +77,38 @@ public class FileProcessor {
 //		return openModel(f, blockSpace);
 //	}
 
-	public static Explain openStaff(SheetMusicPanel sheetMusicPanel) {
+	/** @legacy - from the time when we had only single Staff */
+	public static Explain openStaffOld(SheetMusicComponent comp)
+	{
+		return
+			chooseMidiJsonFile().ifSuccess(f ->
+			openJsonFile(f).ifSuccess(js ->
+			{
+				JSONObject staffJs = js.getJSONObject("Staff");
+				JSONObject sheetJs = new JSONObject().put("SheetMusic", new JSONObject().put("staffList", new JSONArray().put(staffJs)));
+
+				return fillModelFromJson(sheetJs, new SheetMusic()).whenSuccess(sheetMusic ->
+				{
+					MainPanel mainPanel = comp.getModelParent();
+					mainPanel.replaceSheetMusicPanelWith(new SheetMusicComponent(sheetMusic, mainPanel));
+				});
+			}));
+	}
+
+	public static Explain openSheetMusic(SheetMusicComponent sheetMusicComponent)
+	{
+		return
+			chooseMidiJsonFile().ifSuccess(f ->
+			openJsonFile(f).ifSuccess(js ->
+			fillModelFromJson(js, new SheetMusic())).whenSuccess(sheetMusic ->
+			{
+				MainPanel mainPanel = sheetMusicComponent.getModelParent();
+				mainPanel.replaceSheetMusicPanelWith(new SheetMusicComponent(sheetMusic, mainPanel));
+			}));
+	}
+
+	private static Explain<File> chooseMidiJsonFile()
+	{
 		fileChooser.resetChoosableFileFilters();
 		fileChooser.setFileFilter(new FileFilter() {
 			public boolean accept(File f) {
@@ -86,12 +118,9 @@ public class FileProcessor {
 				return "Json Midi-music data";
 			}
 		});
+
 		if (fileChooser.showOpenDialog(Main.window) == JFileChooser.APPROVE_OPTION) {
-			File f = fileChooser.getSelectedFile();
-			MainPanel mainPanel = sheetMusicPanel.getModelParent();
-			return openSheetMusic(f).whenSuccess(sheetMusic ->
-				mainPanel.replaceSheetMusicPanelWith(new SheetMusicPanel(sheetMusic, mainPanel))
-			);
+			return new Explain(fileChooser.getSelectedFile());
 		} else {
 			return new Explain(false, "you changed your mind, why?");
 		}
@@ -124,30 +153,21 @@ public class FileProcessor {
 		}
 	}
 
-	private static Explain<SheetMusic> openSheetMusic(File f)
+	private static <T extends IModel> Explain<T> fillModelFromJson(JSONObject js, T model)
 	{
-		SheetMusic sheetMusic = new SheetMusic();
-		return openModel(f, sheetMusic).ifSuccess(h -> new Explain(sheetMusic));
-	}
+		if (js.has(model.getClass().getSimpleName())) {
+			JSONObject modelJs = js.getJSONObject(model.getClass().getSimpleName());
 
-	private static Explain openModel(File f, IModel model)
-	{
-		return openJsonFile(f).ifSuccess(js ->
-		{
-			if (js.has(model.getClass().getSimpleName())) {
-				JSONObject modelJs = js.getJSONObject(model.getClass().getSimpleName());
-
-				try {
-					model.reconstructFromJson(modelJs);
-					return new Explain(true);
-				} catch (JSONException exc) {
-					return new Explain(false, "Failed to Open Model, some Json error: " + describeException(exc));
-				}
-			} else {
-				return new Explain(false, "File you provided does not have [" + model.getClass().getSimpleName() + "] key in main body, " + "" +
-					"only " + Arrays.toString(JSONObject.getNames(js)) + "]");
+			try {
+				model.reconstructFromJson(modelJs);
+				return new Explain(model);
+			} catch (JSONException exc) {
+				return new Explain(false, "Failed to Open Model, some Json error: " + describeException(exc));
 			}
-		});
+		} else {
+			return new Explain(false, "File you provided does not have [" + model.getClass().getSimpleName() + "] key in main body, " + "" +
+				"only " + Arrays.toString(JSONObject.getNames(js)) + "]");
+		}
 	}
 
 	private static String describeException(Exception exc)

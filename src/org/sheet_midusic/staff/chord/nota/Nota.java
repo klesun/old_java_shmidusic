@@ -17,6 +17,7 @@ import org.apache.commons.math3.fraction.Fraction;
 import org.sheet_midusic.staff.staff_config.StaffConfig;
 import org.json.JSONObject;
 
+// TODO: rename to Note
 public class Nota extends AbstractModel implements INota
 {
 	// <editor-fold desc="model field declaration">

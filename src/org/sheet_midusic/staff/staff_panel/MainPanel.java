@@ -33,7 +33,7 @@ final public class MainPanel extends JPanel implements IComponent, IModel {
 	private Boolean surfaceCompletelyChanged = false;
 
 	/** @debug - return private when done */
-	@NotNull public SheetMusicPanel staffContainer = new SheetMusicPanel(new SheetMusic(), this);
+	@NotNull public SheetMusicComponent staffContainer = new SheetMusicComponent(new SheetMusic(), this);
 	@NotNull private Scroll staffScroll = new Scroll(staffContainer);
 	final private PianoLayoutPanel pianoLayoutPanel;
 
@@ -51,10 +51,10 @@ final public class MainPanel extends JPanel implements IComponent, IModel {
 		this.requestFocus();
 
 		this.add(staffScroll, BorderLayout.CENTER);
-		this.add(pianoLayoutPanel = new PianoLayoutPanel(staffContainer), BorderLayout.PAGE_END);
+		this.add(pianoLayoutPanel = new PianoLayoutPanel(this), BorderLayout.PAGE_END);
 	}
 
-	public void replaceSheetMusicPanelWith(SheetMusicPanel newPanel)
+	public void replaceSheetMusicPanelWith(SheetMusicComponent newPanel)
 	{
 		this.staffContainer = newPanel;
 		this.remove(staffScroll);
@@ -62,8 +62,8 @@ final public class MainPanel extends JPanel implements IComponent, IModel {
 		this.revalidate();
 	}
 
-	private void iThinkItInterruptsPreviousPaintingThreadsSoTheyDidntSlowCurrent() {
-
+	private void iThinkItInterruptsPreviousPaintingThreadsSoTheyDidntSlowCurrent()
+	{
 		// i don't know, who is stupider: linuxes, awt or me, but need it cuz it forces to repaint JUST the time it's requested to repaint
 		// on windows issues does not occur
 		// i aproximetely know, what's happening, it's calling something like revalidate(), but i amnt not sure
@@ -74,7 +74,7 @@ final public class MainPanel extends JPanel implements IComponent, IModel {
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		// maybe need to move it to SheetMusicPanel::paintComponent()
+		// maybe need to move it to SheetMusicComponent::paintComponent()
 		iThinkItInterruptsPreviousPaintingThreadsSoTheyDidntSlowCurrent();
 	}
 
@@ -102,7 +102,15 @@ final public class MainPanel extends JPanel implements IComponent, IModel {
 	// IModel implementation
 
 	@Override
-	public SheetMusicPanel getFocusedChild() { return staffContainer; }
+	public IModel getModel() {
+		return new IModel() {
+			public Helper getModelHelper() {
+				return new Helper(this);
+			}
+		};
+	}
+	@Override
+	public SheetMusicComponent getFocusedChild() { return staffContainer; }
 	@Override
 	public IComponent getModelParent() {
 		return null;

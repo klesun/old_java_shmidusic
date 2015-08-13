@@ -101,7 +101,7 @@ abstract public class AbstractPainter { // like Picasso!
 	}
 
 	protected void drawFields() {
-		java.util.List<Field> drawableList = context.getModelHelper().getFieldStorage().stream()
+		java.util.List<Field> drawableList = context.getModel().getModelHelper().getFieldStorage().stream()
 				.filter(f -> f.hasPaintingLambda()).collect(Collectors.toList());
 
 		int w = dx() * 2;

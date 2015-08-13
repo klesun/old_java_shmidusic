@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-public class SheetMusicPanel extends JPanel implements IComponent
+public class SheetMusicComponent extends JPanel implements IComponent
 {
 	@Deprecated final MainPanel mainPanel;
 	final public SheetMusic sheetMusic;
@@ -22,7 +22,7 @@ public class SheetMusicPanel extends JPanel implements IComponent
 
 	private Set<StaffComponent> staffComponentSet = new HashSet<>();
 
-	public SheetMusicPanel(SheetMusic sheetMusic, MainPanel mainPanel)
+	public SheetMusicComponent(SheetMusic sheetMusic, MainPanel mainPanel)
 	{
 		this.mainPanel = mainPanel;
 		this.sheetMusic = sheetMusic;
@@ -36,12 +36,15 @@ public class SheetMusicPanel extends JPanel implements IComponent
 		this.handler = new AbstractHandler(this) {
 			public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() {
 				return new TruMap<>()
-					.p(new Combo(ctrl, k.VK_L), mkFailableAction(SheetMusicPanel::splitFocusedStaff))
-					.p(new Combo(ctrl, k.VK_P), mkAction(SheetMusicPanel::triggerPlayback).setCaption("Play/Stop"))
+					.p(new Combo(ctrl, k.VK_L), mkFailableAction(SheetMusicComponent::splitFocusedStaff))
+					.p(new Combo(ctrl, k.VK_P), mkAction(SheetMusicComponent::triggerPlayback).setCaption("Play/Stop"))
 						// File
 					.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel).setCaption("Save midi.json"))
 					.p(new Combo(ctrl, k.VK_U), mkFailableAction(FileProcessor::saveMidi).setCaption("Save midi (alpha)"))
-					.p(new Combo(ctrl, k.VK_O), mkFailableAction(FileProcessor::openStaff).setCaption("Open"))
+					.p(new Combo(ctrl, k.VK_O), mkFailableAction(FileProcessor::openSheetMusic).setCaption("Open"))
+					/** @legacy */
+					.p(new Combo(ctrl, k.VK_U), mkFailableAction(FileProcessor::openStaffOld).setCaption("Open Old (When Staff Coul Be Only One)"))
+
 					.p(new Combo(ctrl, k.VK_E), mkFailableAction(FileProcessor::savePNG).setCaption("Export png"))
 					;
 			}
@@ -96,6 +99,11 @@ public class SheetMusicPanel extends JPanel implements IComponent
 	}
 
 	@Override
+	public SheetMusic getModel() {
+		return this.sheetMusic;
+	}
+
+	@Override
 	public MainPanel getModelParent() {
 		return this.mainPanel;
 	}
@@ -133,13 +141,13 @@ public class SheetMusicPanel extends JPanel implements IComponent
 //		im.put(KeyStroke.getKeyStroke("PAGE_UP"), "none");
 //		im.put(KeyStroke.getKeyStroke("PAGE_DOWN"), "none");
 
-	private static ContextAction<SheetMusicPanel> mkAction(Consumer<SheetMusicPanel> lambda) {
-		ContextAction<SheetMusicPanel> action = new ContextAction<>();
+	private static ContextAction<SheetMusicComponent> mkAction(Consumer<SheetMusicComponent> lambda) {
+		ContextAction<SheetMusicComponent> action = new ContextAction<>();
 		return action.setRedo(lambda);
 	}
 
-	private static ContextAction<SheetMusicPanel> mkFailableAction(Function<SheetMusicPanel, Explain> lambda) {
-		ContextAction<SheetMusicPanel> action = new ContextAction<>();
+	private static ContextAction<SheetMusicComponent> mkFailableAction(Function<SheetMusicComponent, Explain> lambda) {
+		ContextAction<SheetMusicComponent> action = new ContextAction<>();
 		return action.setRedo(lambda);
 	}
 }

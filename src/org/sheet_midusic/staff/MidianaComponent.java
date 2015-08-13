@@ -1,5 +1,6 @@
 package org.sheet_midusic.staff;
 
+import org.klesun_model.IModel;
 import org.sheet_midusic.staff.staff_panel.MainPanel;
 import org.sheet_midusic.stuff.graphics.ImageStorage;
 import org.sheet_midusic.stuff.graphics.Settings;
@@ -10,7 +11,8 @@ import org.klesun_model.IComponent;
 import java.awt.*;
 import java.awt.event.FocusListener;
 
-abstract public class MidianaComponent extends AbstractModel implements IComponent {
+abstract public class MidianaComponent implements IComponent
+{
 
 	final private IComponent parent;
 	final private AbstractHandler eventHandler;

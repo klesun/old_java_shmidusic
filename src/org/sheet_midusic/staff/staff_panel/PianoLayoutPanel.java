@@ -16,11 +16,11 @@ import java.util.stream.IntStream;
 
 public class PianoLayoutPanel extends JPanel
 {
-	final private SheetMusicPanel sheetMusicPanel;
+	final private MainPanel mainPanel;
 
-	public PianoLayoutPanel(SheetMusicPanel sheetMusicPanel)
+	public PianoLayoutPanel(MainPanel mainPanel)
 	{
-		this.sheetMusicPanel = sheetMusicPanel;
+		this.mainPanel = mainPanel;
 	}
 
 	@Override
@@ -98,7 +98,7 @@ public class PianoLayoutPanel extends JPanel
 	{
 		Set<INota> result = new TreeSet<>();
 
-		Staff staff = sheetMusicPanel.getFocusedChild().staff;
+		Staff staff = mainPanel.staffContainer.getFocusedChild().staff;
 
 		int index = staff.getFocusedIndex();
 		if (index > -1) {

@@ -1,19 +1,12 @@
 package org.klesun_model;
 
-import org.sheet_midusic.staff.Staff;
-import org.sheet_midusic.staff.staff_panel.MainPanel;
-import org.sheet_midusic.staff.chord.Chord;
-import org.sheet_midusic.staff.chord.nota.Nota;
-import org.sheet_midusic.staff.staff_panel.SheetMusicPanel;
-import org.sheet_midusic.staff.staff_panel.StaffComponent;
-
 import java.awt.*;
 import java.awt.event.FocusListener;
-import java.util.*;
 
 // TODO: rename to just IComponent
-public interface IComponent {
-
+public interface IComponent
+{
+	IModel getModel();
 	IComponent getModelParent();
 	IComponent getFocusedChild();
 	AbstractHandler getHandler();

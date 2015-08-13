@@ -79,6 +79,11 @@ public class StaffComponent extends MidianaComponent
 	}
 
 	@Override
+	public Staff getModel() {
+		return this.staff;
+	}
+
+	@Override
 	public ChordComponent getFocusedChild()
 	{
 		// TODO: pointer should be here, not in Model

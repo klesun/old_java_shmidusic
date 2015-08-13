@@ -3,6 +3,7 @@ package org.sheet_midusic.staff.chord;
 import org.json.JSONObject;
 import org.klesun_model.AbstractHandler;
 import org.klesun_model.IComponent;
+import org.klesun_model.IModel;
 import org.sheet_midusic.staff.MidianaComponent;
 import org.sheet_midusic.staff.chord.nota.Nota;
 import org.sheet_midusic.staff.chord.nota.NoteComponent;
@@ -50,6 +51,11 @@ public class ChordComponent extends MidianaComponent
 	public StaffComponent getParentComponent() // may conflict with java's Component method
 	{
 		return (StaffComponent)this.getModelParent();
+	}
+
+	@Override
+	public IModel getModel() {
+		return this.chord;
 	}
 
 	@Override
