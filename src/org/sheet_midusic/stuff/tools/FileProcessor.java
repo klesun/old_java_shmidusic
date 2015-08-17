@@ -77,34 +77,28 @@ public class FileProcessor {
 //		return openModel(f, blockSpace);
 //	}
 
+	public static Explain openSheetMusic(SheetMusicComponent comp)
+	{
+		return chooseMidiJsonFile()
+			.ifSuccess(FileProcessor::openJsonFile)
+			.ifSuccess(js -> fillModelFromJson(js, new SheetMusic()))
+			.whenSuccess(comp.getModelParent()::replaceSheetMusic);
+	}
+
 	/** @legacy - from the time when we had only single Staff */
 	public static Explain openStaffOld(SheetMusicComponent comp)
 	{
-		return
-			chooseMidiJsonFile().ifSuccess(f ->
-			openJsonFile(f).ifSuccess(js ->
-			{
-				JSONObject staffJs = js.getJSONObject("Staff");
-				JSONObject sheetJs = new JSONObject().put("SheetMusic", new JSONObject().put("staffList", new JSONArray().put(staffJs)));
-
-				return fillModelFromJson(sheetJs, new SheetMusic()).whenSuccess(sheetMusic ->
-				{
-					MainPanel mainPanel = comp.getModelParent();
-					mainPanel.replaceSheetMusicPanelWith(new SheetMusicComponent(sheetMusic, mainPanel));
-				});
-			}));
+		return chooseMidiJsonFile()
+			.ifSuccess(FileProcessor::openJsonFile)
+			.ifSuccess(js -> fillModelFromJson(toSheetFileJs(js), new SheetMusic()))
+			.whenSuccess(comp.getModelParent()::replaceSheetMusic);
 	}
 
-	public static Explain openSheetMusic(SheetMusicComponent sheetMusicComponent)
+	// TODO: it's stupid that we store things in {SheetMusic: {sheetMusicState}} format instead of just {sheetMusicState}
+	private static JSONObject toSheetFileJs(JSONObject staffFileJs)
 	{
-		return
-			chooseMidiJsonFile().ifSuccess(f ->
-			openJsonFile(f).ifSuccess(js ->
-			fillModelFromJson(js, new SheetMusic())).whenSuccess(sheetMusic ->
-			{
-				MainPanel mainPanel = sheetMusicComponent.getModelParent();
-				mainPanel.replaceSheetMusicPanelWith(new SheetMusicComponent(sheetMusic, mainPanel));
-			}));
+		JSONObject staffJs = staffFileJs.getJSONObject("Staff");
+		return new JSONObject().put("SheetMusic", new JSONObject().put("staffList", new JSONArray().put(staffJs)));
 	}
 
 	private static Explain<File> chooseMidiJsonFile()

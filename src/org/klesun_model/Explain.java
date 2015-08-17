@@ -53,7 +53,7 @@ public class Explain<C> {
 		return explanation;
 	}
 
-	public <T> Explain<T> ifSuccess(Function<C, Explain<T>> lambda) {
+	public <T> Explain<T>  ifSuccess(Function<C, Explain<T>> lambda) {
 		return this.isSuccess() ? lambda.apply(this.getData()) : new Explain<T>(false, explanation);
 	}
 

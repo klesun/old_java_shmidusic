@@ -54,9 +54,9 @@ final public class MainPanel extends JPanel implements IComponent, IModel {
 		this.add(pianoLayoutPanel = new PianoLayoutPanel(this), BorderLayout.PAGE_END);
 	}
 
-	public void replaceSheetMusicPanelWith(SheetMusicComponent newPanel)
+	public void replaceSheetMusic(SheetMusic sheetMusic)
 	{
-		this.staffContainer = newPanel;
+		this.staffContainer = new SheetMusicComponent(sheetMusic, this);
 		this.remove(staffScroll);
 		this.add(staffScroll = new Scroll(staffContainer));
 		this.revalidate();
