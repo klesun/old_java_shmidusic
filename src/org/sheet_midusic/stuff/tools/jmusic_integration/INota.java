@@ -45,10 +45,6 @@ public interface INota extends Comparable<INota> {
 		return isTooShort(getLength());
 	}
 
-	default byte getVolume() {
-		return 127; // max velocity for a Nota
-	}
-
 	default Fraction getRealLength() { // that includes tuplet denominator
 		return getLength().divide(isTriplet() ? 3 : 1);
 	}

@@ -2,6 +2,7 @@ package org.sheet_midusic.stuff.Midi;
 
 import org.jm.audio.synth.Window;
 import org.sheet_midusic.staff.chord.Chord;
+import org.sheet_midusic.staff.staff_panel.StaffComponent;
 import org.sheet_midusic.stuff.main.Main;
 import org.klesun_model.Explain;
 import org.sheet_midusic.staff.Staff;
@@ -15,11 +16,11 @@ public class Playback {
 	@Deprecated // instance MAZAFAKA
 	public static Thread diminendoThread = null;
 
-	final private Staff staff;
+	final private StaffComponent staffComp;
 	private PlaybackTimer runningProcess = null;
 
-	public Playback(Staff staff) {
-		this.staff = staff;
+	public Playback(StaffComponent staffComp) {
+		this.staffComp = staffComp;
 	}
 
 	public void trigger() {
@@ -37,6 +38,7 @@ public class Playback {
 	}
 
 	private Explain play() {
+		Staff staff = staffComp.staff;
 		if (!staff.getChordList().isEmpty()) {
 			if (runningProcess != null) { interrupt(); }
 			if (staff.getConfig().useHardcoreSynthesizer.get()) {
@@ -45,13 +47,13 @@ public class Playback {
 				runningProcess = new PlaybackTimer(staff.getConfig());
 			}
 
-			staff.moveFocus(-1);
+			staffComp.moveFocus(-1);
 			int startFrom = staff.getFocusedIndex() + 1;
 
 			streamTo(runningProcess, startFrom, now -> runningProcess.addTask(now, () ->
 			{
-				staff.moveFocus(1);
-				Main.window.staffPanel.checkCam();
+				staffComp.moveFocus(1);
+//				Main.window.staffPanel.staffContainer.checkCam();
 			}));
 
 			runningProcess.appendTask(new Fraction(1), this::interrupt);
@@ -70,7 +72,7 @@ public class Playback {
 	{
 		Fraction sumFraction = new Fraction(0);
 
-		for (Chord chord : staff.getChordList().subList(startFrom, staff.getChordList().size())) {
+		for (Chord chord : staffComp.staff.getChordList().subList(startFrom, staffComp.staff.getChordList().size())) {
 			final Fraction finalStart = sumFraction;
 
 			chord.notaStream(n -> true).forEach(n -> playNota(n, finalStart, scheduler));

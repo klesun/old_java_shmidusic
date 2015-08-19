@@ -35,7 +35,7 @@ import org.json.JSONObject;
 /** A Staff is part of SheetMusic with individual StaffConfig properties (keySignature/tempo/tactSize) */
 public class Staff extends AbstractModel
 {
-	final public static int SISDISPLACE = 40;
+	final public static int SISDISPLACE = 40; // it does not belong here
 	public static final int DEFAULT_ZNAM = 64; // TODO: move it into some constants maybe
 
 	public enum aMode { insert, passive }
@@ -48,12 +48,9 @@ public class Staff extends AbstractModel
 	private List<Tact> tactList = new ArrayList<>();
 	public int focusedIndex = -1;
 
-	final private Playback playback;
-
 	public Staff()
 	{
 		this.staffConfig = new StaffConfig(this);
-		this.playback = new Playback(this);
 	}
 
 	public Chord addNewAccord()
@@ -174,27 +171,35 @@ public class Staff extends AbstractModel
 		return chordList.stream();
 	}
 
-	public List<List<Chord>> getAccordRowList(int width) {
+	// TODO: makes leak rows
+	public List<List<Chord>> getAccordRowList(int width)
+	{
 		List<List<Chord>> resultList = new ArrayList<>();
-		for (int fromIdx = 0; fromIdx < this.getChordList().size(); fromIdx += getAccordInRowCount(width)) {
-			resultList.add(this.getChordList().subList(fromIdx, Math.min(fromIdx + getAccordInRowCount(width), this.getChordList().size())));
+
+		int rowSize = getAccordInRowCount(width);
+		for (int fromIdx = 0; fromIdx < this.getChordList().size(); fromIdx += rowSize) {
+			int toIndex = Math.min(fromIdx + getAccordInRowCount(width), this.getChordList().size());
+			resultList.add(this.getChordList().subList(fromIdx, toIndex));
 		}
 
 		if (resultList.isEmpty()) { resultList.add(new ArrayList<>()); }
+
 		return resultList;
 	}
 
+	// TODO: should be moved to StaffComponent
 	public int getHeightIf(int width) {
 		return getAccordRowList(width).size() * SISDISPLACE * dy() + getMarginY();
 	}
 
 	public int getMarginX() {
-		return Math.round(MainPanel.MARGIN_H * dx());
+		return dx();
 	}
 	public int getMarginY() {
 		return Math.round(MainPanel.MARGIN_V * dy());
 	}
 
+	// TODO: it shoud be component's method
 	public int getAccordInRowCount(int width) {
 		int result = width / (dx() * 2) - 3; // - 3 because violin key and phantom
 		return Math.max(result, 1);
@@ -208,7 +213,7 @@ public class Staff extends AbstractModel
 	public StaffConfig getConfig() {
 		return this.staffConfig;
 	}
-	public Playback getPlayback() { return this.playback; }
+
 	public int getFocusedIndex() {
 		return this.focusedIndex;
 	}
@@ -220,40 +225,6 @@ public class Staff extends AbstractModel
 	}
 
 	// action handles
-
-	public Explain moveFocusWithPlayback(int sign, Boolean interruptSounding) {
-		Explain result = moveFocus(sign);
-		if (getFocusedAccord() != null && result.isSuccess()) {
-
-			if (interruptSounding) {
-				PlayMusThread.shutTheFuckUp();
-				playback.interrupt();
-			}
-			PlayMusThread.playAccord(getFocusedAccord());
-		}
-		return result;
-	}
-
-	public Explain moveFocusWithPlayback(int sign) {
-		return moveFocusWithPlayback(sign, true);
-	}
-
-	public Explain moveFocusTact(int sign) {
-		return new Explain(false, "Not Implemented Yet!");
-	}
-
-	public Explain moveFocusRow(int sign, int width) {
-		int n = sign * getAccordInRowCount(width);
-		return moveFocusWithPlayback(n);
-	}
-
-	public Explain moveFocus(int n)
-	{
-		int wasIndex = getFocusedIndex();
-		setFocusedIndex(getFocusedIndex() + n);
-
-		return getFocusedIndex() != wasIndex ? new Explain(true) : new Explain(false, "dead end").setImplicit(true);
-	}
 
 	/** @return - nota that we just put */
 	public Nota putAt(Fraction desiredPos, INota nota)

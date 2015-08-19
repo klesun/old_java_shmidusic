@@ -10,6 +10,7 @@ import org.sheet_midusic.stuff.Midi.DeviceEbun;
 import org.sheet_midusic.staff.chord.Chord;
 import org.sheet_midusic.staff.chord.nota.Nota;
 import org.sheet_midusic.stuff.OverridingDefaultClasses.TruMap;
+import org.sheet_midusic.stuff.graphics.Settings;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -41,12 +42,12 @@ public class StaffHandler extends AbstractHandler {
 			// Navigation
 			.p(new Combo(0, k.VK_HOME), mkAction(p -> p.staff.setFocusedIndex(-1)).setCaption("To Start").setPostfix(navigation))
 			.p(new Combo(0, k.VK_END), mkAction(p -> p.staff.setFocusedIndex(p.staff.getChordList().size() - 1)).setCaption("To End").setPostfix(navigation))
-			.p(new Combo(ctrl, k.VK_LEFT), mkAction(p -> p.staff.moveFocusTact(-1)).setCaption("Left Tact").setPostfix("Navigation"))
-			.p(new Combo(ctrl, k.VK_RIGHT), mkAction(p -> p.staff.moveFocusTact(1)).setCaption("Right Tact").setPostfix("Navigation"))
-			.p(new Combo(0, k.VK_LEFT), mkFailableAction(s -> s.staff.moveFocusWithPlayback(-1)).setCaption("Left").setPostfix(navigation))
-			.p(new Combo(0, k.VK_RIGHT), mkFailableAction(s -> s.staff.moveFocusWithPlayback(1)).setCaption("Right").setPostfix(navigation))
-			.p(new Combo(0, k.VK_UP), mkFailableAction(s -> s.staff.moveFocusRow(-1, s.getWidth())).setCaption("Up").setPostfix(navigation))
-			.p(new Combo(0, k.VK_DOWN), mkFailableAction(s -> s.staff.moveFocusRow(1, s.getWidth())).setCaption("Down").setPostfix(navigation))
+			.p(new Combo(ctrl, k.VK_LEFT), mkAction(p -> p.moveFocusTact(-1)).setCaption("Left Tact").setPostfix("Navigation"))
+			.p(new Combo(ctrl, k.VK_RIGHT), mkAction(p -> p.moveFocusTact(1)).setCaption("Right Tact").setPostfix("Navigation"))
+			.p(new Combo(0, k.VK_LEFT), mkFailableAction(s -> s.moveFocusWithPlayback(-1)).setCaption("Left").setPostfix(navigation))
+			.p(new Combo(0, k.VK_RIGHT), mkFailableAction(s -> s.moveFocusWithPlayback(1)).setCaption("Right").setPostfix(navigation))
+			.p(new Combo(0, k.VK_UP), mkFailableAction(s -> s.moveFocusRow(-1, s.getWidth())).setCaption("Up").setPostfix(navigation))
+			.p(new Combo(0, k.VK_DOWN), mkFailableAction(s -> s.moveFocusRow(1, s.getWidth())).setCaption("Down").setPostfix(navigation))
 
 			// TODO: move it to StaffConfig
 			.p(new Combo(ctrl, k.VK_D), mkFailableAction(s -> DeviceEbun.changeOutDevice(s.staff.getConfig()))
@@ -64,7 +65,7 @@ public class StaffHandler extends AbstractHandler {
 			actionMap.p(entry.getKey(), action
 				.setRedo(s -> {
 					if (s.staff.mode != Staff.aMode.passive) {
-						s.addNewChordWithPlayback().addNewNota(entry.getValue(), s.getSettings().getDefaultChannel());
+						s.addNewChordWithPlayback().addNewNota(entry.getValue(), Settings.inst().getDefaultChannel());
 						return new Explain(true);
 					} else {
 						return new Explain("Cant do, passive mode is on!");

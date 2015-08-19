@@ -4,6 +4,8 @@ package org.klesun_model;
 
 import org.sheet_midusic.stuff.OverridingDefaultClasses.TriConsumer;
 import org.sheet_midusic.stuff.graphics.Constants;
+import org.sheet_midusic.stuff.graphics.ImageStorage;
+import org.sheet_midusic.stuff.graphics.Settings;
 import org.sheet_midusic.stuff.graphics.ShapeProvider;
 import org.klesun_model.field.Field;
 import org.sheet_midusic.staff.MidianaComponent;
@@ -21,11 +23,11 @@ import java.util.stream.Collectors;
 // TODO: transform it into helper instead of abstract-hujact ?
 abstract public class AbstractPainter { // like Picasso!
 
-	final protected MidianaComponent context;
+	final protected IComponent context;
 	final private Graphics2D g;
 	final private int x, y;
 
-	public AbstractPainter(MidianaComponent context, Graphics2D g, int x, int y) {
+	public AbstractPainter(IComponent context, Graphics2D g, int x, int y) {
 		this.context = context;
 		this.g = g;
 		this.x = x;
@@ -116,7 +118,7 @@ abstract public class AbstractPainter { // like Picasso!
 	}
 
 	final protected ShapeProvider getShapeProvider() {
-		return new ShapeProvider(context.getSettings(), g, context.getImageStorage());
+		return new ShapeProvider(Settings.inst(), g, ImageStorage.inst());
 	}
 
 	final protected BiConsumer<Double, Double> relative(BiConsumer<Double, Double> paintLambda) {
@@ -147,6 +149,6 @@ abstract public class AbstractPainter { // like Picasso!
 		g.setFont(wasFont);
 	}
 
-	final protected int dx() { return context.getSettings().getStepWidth(); }
-	final protected int dy() { return context.getSettings().getStepHeight(); }
+	final protected static int dx() { return Settings.inst().getStepWidth(); }
+	final protected static int dy() { return Settings.inst().getStepHeight(); }
 }

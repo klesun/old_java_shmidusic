@@ -18,7 +18,7 @@ public class StaffPainter extends AbstractPainter
 {
 	public StaffPainter(StaffComponent context, Graphics2D g, int x, int y) {
 		// this trick won't do when Painter becames child of Staff
-		super(context, g, x + context.staff.getMarginX() + 3 * context.dx(), y + context.staff.getMarginY()); // 3dx - violin/bass keys and Config
+		super(context, g, x + context.staff.getMarginX() + 3 * dx(), y + context.staff.getMarginY()); // 3dx - violin/bass keys and Config
 	}
 
 	public void draw(Boolean completeRepaint)
@@ -39,11 +39,11 @@ public class StaffPainter extends AbstractPainter
 			for (Chord chord : row) {
 				int x = j * (2 * dx());
 
-				ChordComponent chordComp = comp.findChild(chord);
-				KeySignature siga = s.getConfig().getSignature();
-				drawModel((g, xArg, yArg) -> chordComp.drawOn(g, xArg, yArg, siga), x, y - 12 * dy());
+//				ChordComponent chordComp = comp.findChild(chord);
+//				KeySignature siga = s.getConfig().getSignature();
+//				drawModel((g, xArg, yArg) -> chordComp.drawOn(g, xArg, yArg, siga), x, y - 12 * dy());
 
-				if (tactMeasurer.inject(chord)) {
+				if (tactMeasurer.inject(chord)) { // TODO: broken. we cant draw it separately from chords (when you resize they go assync)
 					drawTactLine(x + dx() * 2, y, tactMeasurer);
 				}
 

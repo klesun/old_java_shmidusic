@@ -36,7 +36,7 @@ public class FileProcessor {
 		return makeSaveFileDialog("png", "PNG images").ifSuccess(f ->
 		{
 			BufferedImage img = new BufferedImage(sheetMusicComponent.getWidth(), sheetMusicComponent.getHeight(), BufferedImage.TYPE_INT_ARGB);
-			sheetMusicComponent.paintComponent(img.getGraphics());
+			sheetMusicComponent.paint(img.getGraphics());
 
 			return Explain.tryException(() -> ImageIO.write(img, "png", f));
 		});

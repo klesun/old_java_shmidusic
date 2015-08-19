@@ -87,7 +87,6 @@ public class DeviceEbun {
 
 	public static void closeMidiDevices() {
 		// close all opent Notas
-		Main.window.staffPanel.getStaff().getPlayback().interrupt();
 		PlayMusThread.shutTheFuckUp();
 
 		// close devices
@@ -125,16 +124,18 @@ public class DeviceEbun {
 		sendMessage(ShortMessage.CONTROL_CHANGE, channel, VOLUME, value);
 	}
 
-	synchronized public static void openNota(INota nota) {
+	synchronized public static void openNota(INota nota)
+	{
 		openNotaSet.add(nota);
 		if (nota.getChannel() != DRUM_CHANNEL) {
-			sendMessage(ShortMessage.NOTE_ON, nota.getChannel(), nota.getTune(), nota.getVolume());
+			sendMessage(ShortMessage.NOTE_ON, nota.getChannel(), nota.getTune(), 63); // 63 volume seems kinda hacky
 		} else {
-			sendMessage(DRUM_NOTE_ON, nota.getTune(), nota.getVolume());
+			sendMessage(DRUM_NOTE_ON, nota.getTune(), 63); // 63 volume seems kinda hacky
 		}
 	}
 
-	synchronized public static void closeNota(INota nota) {
+	synchronized public static void closeNota(INota nota)
+	{
 		openNotaSet.remove(nota);
 		if (nota.getChannel() != DRUM_CHANNEL) {
 			sendMessage(ShortMessage.NOTE_OFF, nota.getChannel(), nota.getTune(), 0);

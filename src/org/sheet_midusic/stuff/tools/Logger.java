@@ -43,7 +43,7 @@ public class Logger {
 		new File(PRE_FATAL_BACKUP_FOLDER).mkdirs();
 		File file = new File(PRE_FATAL_BACKUP_FOLDER + "fatal_backup_" + dateFormat.format(new Date()) + ".bs.json");
 
-		Explain result = FileProcessor.saveModel(file, Main.window.staffPanel.getStaff());
+		Explain result = FileProcessor.saveModel(file, Main.window.staffPanel.staffContainer.sheetMusic);
 
 		JTextArea text = new JTextArea();
 		text.setEditable(false);

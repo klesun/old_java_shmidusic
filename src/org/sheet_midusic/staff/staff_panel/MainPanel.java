@@ -17,14 +17,12 @@ import javax.swing.*;
 import java.util.LinkedHashMap;
 
 
-final public class MainPanel extends JPanel implements IComponent, IModel {
+final public class MainPanel extends JPanel implements IComponent {
 
 	public static int MARGIN_V = 15; // Сколько отступов сделать сверху перед рисованием полосочек // TODO: move it into Constants class maybe? // eliminate it nahuj maybe?
-	public static int MARGIN_H = 1; // TODO: move it into Constants class maybe?
 
 //	final private Block parentBlock;
 	final private AbstractHandler handler;
-	final private Helper modelHelper = new Helper(this);
 //	final private Staff staff;
 
 	private JSONObject staffJson;
@@ -34,7 +32,7 @@ final public class MainPanel extends JPanel implements IComponent, IModel {
 
 	/** @debug - return private when done */
 	@NotNull public SheetMusicComponent staffContainer = new SheetMusicComponent(new SheetMusic(), this);
-	@NotNull private Scroll staffScroll = new Scroll(staffContainer);
+	@NotNull public Scroll staffScroll = new Scroll(staffContainer);
 	final private PianoLayoutPanel pianoLayoutPanel;
 
 	public MainPanel() {
@@ -58,7 +56,7 @@ final public class MainPanel extends JPanel implements IComponent, IModel {
 	{
 		this.staffContainer = new SheetMusicComponent(sheetMusic, this);
 		this.remove(staffScroll);
-		this.add(staffScroll = new Scroll(staffContainer));
+		this.add(staffScroll = new Scroll(staffContainer), BorderLayout.CENTER);
 		this.revalidate();
 	}
 
@@ -78,27 +76,6 @@ final public class MainPanel extends JPanel implements IComponent, IModel {
 		iThinkItInterruptsPreviousPaintingThreadsSoTheyDidntSlowCurrent();
 	}
 
-	// TODO: move to StaffComponent
-	public int getFocusedSystemY() {
-		return Staff.SISDISPLACE * dy() * (getStaff().getFocusedIndex() / getStaff().getAccordInRowCount(staffContainer.getWidth()));
-	}
-
-	// TODO: move to StaffComponent
-	public void checkCam() {
-		simpleRepaint = !surfaceCompletelyChanged;
-		surfaceCompletelyChanged = false;
-
-		JScrollBar vertical = staffScroll.getVerticalScrollBar();
-		if (vertical.getValue() + staffScroll.getHeight() < getFocusedSystemY() + Staff.SISDISPLACE * dy() ||
-			vertical.getValue() > getFocusedSystemY()) {
-			vertical.setValue(getFocusedSystemY());
-			simpleRepaint = false;
-		}
-
-		repaint();
-	}
-//	public Block getParentBlock() { return parentBlock; }
-
 	// IModel implementation
 
 	@Override
@@ -117,19 +94,6 @@ final public class MainPanel extends JPanel implements IComponent, IModel {
 	}
 	@Override
 	public AbstractHandler getHandler() { return this.handler; }
-	public Helper getModelHelper() { return modelHelper; }
-
-	public JSONObject getJsonRepresentation() {
-		return new JSONObject()
-				.put("Staff", loadJsonOnFocus ? staffJson : getStaff().getJsonRepresentation());
-	}
-
-	@Override
-	public MainPanel reconstructFromJson(JSONObject jsObject) throws JSONException {
-		this.staffJson = jsObject.getJSONObject("Staff");
-		this.loadJsonOnFocus = true;
-		return this;
-	}
 
 	// getters/setters
 

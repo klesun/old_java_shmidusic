@@ -4,6 +4,7 @@ import org.klesun_model.*;
 import org.sheet_midusic.staff.Staff;
 import org.sheet_midusic.staff.chord.Chord;
 import org.sheet_midusic.stuff.OverridingDefaultClasses.TruMap;
+import org.sheet_midusic.stuff.graphics.Settings;
 import org.sheet_midusic.stuff.tools.FileProcessor;
 
 import javax.swing.*;
@@ -26,11 +27,14 @@ public class SheetMusicComponent extends JPanel implements IComponent
 	{
 		this.mainPanel = mainPanel;
 		this.sheetMusic = sheetMusic;
+
+		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+
 		sheetMusic.staffList.get().forEach(staff -> {
 			StaffComponent staffComp = new StaffComponent(staff, this);
 			staffComponentSet.add(staffComp);
+			this.add(staffComp);
 		});
-		this.setBackground(Color.WHITE);
 		this.revalidate();
 
 		this.handler = new AbstractHandler(this) {
@@ -52,7 +56,7 @@ public class SheetMusicComponent extends JPanel implements IComponent
 	}
 
 	public void triggerPlayback() {
-		getFocusedChild().staff.getPlayback().trigger();
+		getFocusedChild().getPlayback().trigger();
 	}
 
 	/** creating two staffs from one: to pointer pos and from pointer pos */
@@ -74,17 +78,30 @@ public class SheetMusicComponent extends JPanel implements IComponent
 		});
 	}
 
-	@Override
-	public void paintComponent(Graphics g)
+	private int getFocusedSystemY() {
+		int dy = Settings.inst().getStepHeight();
+		return Staff.SISDISPLACE * dy * (getFocusedChild().staff.getFocusedIndex() / getFocusedChild().staff.getAccordInRowCount(getWidth()));
+	}
+
+	public void checkCam()
 	{
-		super.paintComponent(g);
+		int dy = Settings.inst().getStepHeight();
 
-		Graphics2D g2 = (Graphics2D)g;
+		JScrollPane staffScroll = getModelParent().staffScroll;
+		JScrollBar vertical = staffScroll.getVerticalScrollBar();
+		if (vertical.getValue() + staffScroll.getHeight() < getFocusedSystemY() + Staff.SISDISPLACE * dy ||
+				vertical.getValue() > getFocusedSystemY()) {
+			vertical.setValue(getFocusedSystemY());
+		}
 
-		// TODO: i suspect it is the reason of huge lags in Linux. Maybe disable it only for him ? =D
-//		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		repaint();
+	}
 
-		getStaffPanelStream().reduce(0, (y, s) -> y + s.drawOn(g2, 0, y), Integer::sum);
+	@Override
+	public Dimension getPreferredSize()
+	{
+		int height = getStaffPanelStream().map(c -> c.staff.getHeightIf(getWidth())).reduce(Math::addExact).get();
+		return new Dimension(mainPanel.getWidth() - 30, height); // - 30 - love awt and horizontal scrollbars
 	}
 
 	private Stream<StaffComponent> getStaffPanelStream()

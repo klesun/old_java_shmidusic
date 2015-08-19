@@ -6,6 +6,7 @@ import org.jm.midi.SMF;
 import org.jm.midi.Track;
 import org.jm.midi.event.*;
 import org.sheet_midusic.staff.staff_panel.SheetMusic;
+import org.sheet_midusic.staff.staff_panel.StaffComponent;
 
 import java.util.*;
 import java.util.function.Function;
@@ -40,7 +41,7 @@ public class SimpleMidiParser
 
 		Map<Integer, Track> trackDict = new HashMap<>();
 
-		new Playback(staff).streamTo(new SmfScheduler(trackDict, staff.getConfig()));
+		new Playback(new StaffComponent(staff, null) /* XD */).streamTo(new SmfScheduler(trackDict, staff.getConfig()));
 
 		// TODO: handle our hack with drums (they are not general Nota-s even though they are stored like that with 10 channel)
 

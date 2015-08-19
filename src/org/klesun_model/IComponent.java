@@ -3,7 +3,6 @@ package org.klesun_model;
 import java.awt.*;
 import java.awt.event.FocusListener;
 
-// TODO: rename to just IComponent
 public interface IComponent
 {
 	IModel getModel();
