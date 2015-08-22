@@ -138,9 +138,10 @@ public class StaffComponent extends JPanel implements IComponent
 	{
 		staff.remove(chord);
 		ChordComponent comp = findChild(chord);
-		chordSpace.add(comp);
+		chordSpace.remove(comp);
 		chordComponents.remove(comp);
 		revalidate();
+		repaint();
 	}
 
 	public void refreshTacts(int fromIndex) {

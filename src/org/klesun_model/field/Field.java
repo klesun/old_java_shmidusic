@@ -112,7 +112,7 @@ public class Field<E> {
 	}
 
 	// override me please!
-	public Object getJsonValue() { return get(); };
+	public Object getJsonValue() { return get().toString(); };
 
 	// override me please!
 	public void setValueFromJsObject(JSONObject jsObject)

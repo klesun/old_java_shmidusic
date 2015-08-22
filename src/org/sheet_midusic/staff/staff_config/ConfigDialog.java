@@ -71,8 +71,8 @@ public class ConfigDialog extends JPanel {
 		});
 	}
 
-	private void addPropertyGrid() {
-
+	private void addPropertyGrid()
+	{
 		List<Field> propertyList = parent.getModelHelper().getFieldStorage().stream().filter(field -> !(field instanceof Arr)).collect(Collectors.toList());
 
 		JPanel propertyGridPanel = new JPanel(new GridLayout(propertyList.size() + 1, 2, 4, 4));
