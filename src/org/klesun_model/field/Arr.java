@@ -1,9 +1,9 @@
 package org.klesun_model.field;
 
-import org.sheet_midusic.staff.MidianaComponent;
+import org.shmidusic.staff.MidianaComponent;
 import org.klesun_model.AbstractModel;
 import org.klesun_model.IModel;
-import org.sheet_midusic.stuff.tools.Logger;
+import org.shmidusic.stuff.tools.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

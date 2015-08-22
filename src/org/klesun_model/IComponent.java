@@ -1,6 +1,6 @@
 package org.klesun_model;
 
-import org.sheet_midusic.stuff.graphics.Settings;
+import org.shmidusic.stuff.graphics.Settings;
 
 import java.awt.*;
 import java.awt.event.FocusListener;

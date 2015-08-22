@@ -4,7 +4,7 @@ import org.klesun_model.field.Field;
 import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.sheet_midusic.stuff.tools.Logger;
+import org.shmidusic.stuff.tools.Logger;
 
 public interface IModel {
 

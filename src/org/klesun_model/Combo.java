@@ -1,6 +1,6 @@
 package org.klesun_model;
 
-import org.sheet_midusic.stuff.OverridingDefaultClasses.TruMap;
+import org.shmidusic.stuff.OverridingDefaultClasses.TruMap;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 

@@ -2,15 +2,14 @@ package org.klesun_model;
 
 // this will be helper class for MidianaComponent-s
 
-import org.sheet_midusic.stuff.OverridingDefaultClasses.TriConsumer;
-import org.sheet_midusic.stuff.graphics.Constants;
-import org.sheet_midusic.stuff.graphics.ImageStorage;
-import org.sheet_midusic.stuff.graphics.Settings;
-import org.sheet_midusic.stuff.graphics.ShapeProvider;
+import org.shmidusic.stuff.OverridingDefaultClasses.TriConsumer;
+import org.shmidusic.stuff.graphics.Constants;
+import org.shmidusic.stuff.graphics.ImageStorage;
+import org.shmidusic.stuff.graphics.Settings;
+import org.shmidusic.stuff.graphics.ShapeProvider;
 import org.klesun_model.field.Field;
-import org.sheet_midusic.staff.MidianaComponent;
-import org.sheet_midusic.stuff.OverridingDefaultClasses.Pnt;
-import org.sheet_midusic.stuff.OverridingDefaultClasses.Straight;
+import org.shmidusic.stuff.OverridingDefaultClasses.Pnt;
+import org.shmidusic.stuff.OverridingDefaultClasses.Straight;
 
 import java.awt.*;
 import java.awt.geom.Ellipse2D;

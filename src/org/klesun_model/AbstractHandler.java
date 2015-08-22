@@ -1,7 +1,6 @@
 package org.klesun_model;
 
-import org.sheet_midusic.stuff.main.Main;
-import org.sheet_midusic.staff.MidianaComponent;
+import org.shmidusic.stuff.main.Main;
 
 import javax.swing.*;
 import java.awt.*;

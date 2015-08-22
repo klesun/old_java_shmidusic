@@ -1,8 +1,8 @@
 package org.klesun_model.field;
 
 import org.klesun_model.IModel;
-import org.sheet_midusic.stuff.OverridingDefaultClasses.TruMap;
-import org.sheet_midusic.stuff.tools.Logger;
+import org.shmidusic.stuff.OverridingDefaultClasses.TruMap;
+import org.shmidusic.stuff.tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 import org.apache.commons.math3.fraction.FractionFormat;
 import org.json.JSONObject;

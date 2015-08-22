@@ -1,6 +1,6 @@
 package org.klesun_model;
 
-import org.sheet_midusic.stuff.tools.Logger;
+import org.shmidusic.stuff.tools.Logger;
 
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
