@@ -10,7 +10,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public class Fp {
+public class Fp
+{
+	public static String splitCamelCase(String s) {
+		return "<html><center>" + s.replaceAll(
+				String.format("%s|%s|%s",
+						"(?<=[A-Z])(?=[A-Z][a-z])",
+						"(?<=[^A-Z])(?=[A-Z])",
+						"(?<=[A-Za-z])(?=[^A-Za-z])"
+				),
+				" "
+		) + "</center></html>";
+	}
 
 	public static <T> Explain<T> findBinary(List<T> list, Function<T, Integer> pred)
 	{

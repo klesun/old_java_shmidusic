@@ -7,6 +7,7 @@ import org.klesun_model.field.Arr;
 import org.klesun_model.field.Field;
 import org.sheet_midusic.stuff.OverridingDefaultClasses.ModelFieldInput;
 import org.sheet_midusic.stuff.OverridingDefaultClasses.TruLabel;
+import org.sheet_midusic.stuff.tools.Fp;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,6 +20,9 @@ public class ConfigDialog extends JPanel {
 
 	final private static int CELL_HEIGHT = 30;
 	final private static int CELL_WIDTH = 75;
+
+	final private static int PROPERTY_CELL_HEIGHT = 40;
+	final private static int PROPERTY_CELL_WIDTH = 100;
 
 	List<ModelFieldInput> inputList = new ArrayList<>();
 	Consumer<AbstractModel> onConfirm;
@@ -51,7 +55,7 @@ public class ConfigDialog extends JPanel {
 		this.add(channelGridPanel);
 
 		// header grid row
-		for (String header: fieldList) { channelGridPanel.add(new TruLabel(header)); }
+		for (String header: fieldList) { channelGridPanel.add(new TruLabel(Fp.splitCamelCase(header))); }
 
 		parent.getModelHelper().getFieldStorage().stream().filter(field -> field instanceof Arr).forEach(field -> {
 			Arr arr = (Arr)field;
@@ -59,9 +63,9 @@ public class ConfigDialog extends JPanel {
 
 				AbstractModel model = arr.get(i);
 				for (Field channelField: model.getModelHelper().getFieldStorage()) {
-					JTextField textField = checkEm(new ModelFieldInput(channelField));
-					textField.setForeground(ImageStorage.getColorByChannel(i));
-					channelGridPanel.add(textField);
+					JComponent input = checkEm(new ModelFieldInput(channelField));
+					input.setForeground(ImageStorage.getColorByChannel(i));
+					channelGridPanel.add(input);
 				}
 			}
 		});
@@ -72,16 +76,16 @@ public class ConfigDialog extends JPanel {
 		List<Field> propertyList = parent.getModelHelper().getFieldStorage().stream().filter(field -> !(field instanceof Arr)).collect(Collectors.toList());
 
 		JPanel propertyGridPanel = new JPanel(new GridLayout(propertyList.size() + 1, 2, 4, 4));
-		propertyGridPanel.setPreferredSize(new Dimension(2 * CELL_WIDTH, (propertyList.size() + 1) * CELL_HEIGHT));
+		propertyGridPanel.setPreferredSize(new Dimension(2 * PROPERTY_CELL_WIDTH, (propertyList.size() + 1) * PROPERTY_CELL_HEIGHT));
 		this.add(propertyGridPanel);
 
-		String[] gridHeaders = new String[]{"Prop.", "Value"};
+		String[] gridHeaders = new String[]{"Property", "Value"};
 		// header grid row
 		for (String header: gridHeaders) { propertyGridPanel.add(new TruLabel(header)); }
 
 		// filling grid with cells
 		for (Field field: propertyList) {
-			propertyGridPanel.add(new TruLabel(field.getName()));
+			propertyGridPanel.add(new TruLabel(Fp.splitCamelCase(field.getName())));
 			propertyGridPanel.add(checkEm(new ModelFieldInput(field)));
 		}
 	}
@@ -89,13 +93,13 @@ public class ConfigDialog extends JPanel {
 	private void confirmChanges() {
 		for (ModelFieldInput input: inputList) {
 			if (!input.getOwner().isFinal) {
-				input.getOwner().setValueFromString(input.getText());
+				input.getOwner().setValueFromString(input.getValue());
 			}
 		}
 	}
 
-	private ModelFieldInput checkEm(ModelFieldInput input) {
+	private JComponent checkEm(ModelFieldInput input) {
 		this.inputList.add(input);
-		return input;
+		return input.getComponent();
 	}
 }

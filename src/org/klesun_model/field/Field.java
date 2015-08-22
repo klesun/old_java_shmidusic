@@ -18,33 +18,37 @@ public class Field<E> {
 	final private String name;
 	final protected IModel owner;
 	final public Boolean isFinal;
-	final private Class<E> elemClass;
+	final public Class<E> elemClass;
 
 	private E value;
 
 	public E defaultValue = null;
 	private Boolean isValueSet = false;
-	Function<E, E> normalize = null;
+	final public Function<E, E> normalize;
 	@Deprecated // i used it to repaint, but now we have separate repinting lambda
 	private Runnable onChange = null;
 	private Boolean omitDefaultFromJson = false;
 	private BiFunction<Rectangle, E, Consumer<Graphics>> paintingLambda = null;
 	public Boolean changedSinceLastRepaint = true;
 
-    public Field(String name, E value, IModel owner) { this(name, value, owner, null); }
+    public Field(String name, E value, IModel owner) { this(name, value, owner, a -> a); }
 
 	public Field(String name, E value, IModel owner, Function<E, E> normalizeLambda) {
-        this(name, (Class<E>)value.getClass(), false, owner);
-		this.normalize = normalizeLambda;
+        this(name, (Class<E>)value.getClass(), false, owner, normalizeLambda);
 		this.defaultValue = value;
         set(value);
 	}
 
 	public Field(String name, Class<E> cls, Boolean isFinal, IModel owner) {
+		this(name, cls, isFinal, owner, a -> a);
+	}
+
+	private Field(String name, Class<E> cls, Boolean isFinal, IModel owner, Function<E, E> normalizeLambda) {
 		checkValueClass(cls);
 		this.elemClass = cls;
 		this.owner = owner;
 		this.name = name;
+		this.normalize = normalizeLambda;
 
 		owner.getModelHelper().getFieldStorage().add(this);
 		this.isFinal = isFinal;
@@ -70,7 +74,7 @@ public class Field<E> {
 			Logger.fatal("You are trying to change immutable field! " + getName() + " " + get() + " " + value);
 		} else {
 
-			E normalizedValue = normalize != null ? normalize.apply(value) : value;
+			E normalizedValue = normalize.apply(value);
 			if (!normalizedValue.equals(value)) {
 				Logger.warning("Tried to set invalid value: [" + value + "] for field [" + getName() + "] of [" + owner.getClass().getSimpleName() + "]");
 			}
