@@ -25,35 +25,6 @@ public class Chord extends AbstractModel
 	public Field<String> slog = new Field<>("slog", "", this).setPaintingLambda(ChordPainter::slogPainting).setOmitDefaultFromJson(true);
 	public Arr<Nota> notaList = new Arr<>("notaList", new TreeSet<>(), this, Nota.class);
 
-	private Boolean surfaceChanged = true;
-
-	int focusedIndex = -1;
-
-	public Chord() {
-		h.getFieldStorage().forEach(f -> f.setOnChange(this::surfaceChanged));
-	}
-
-	public void surfaceChanged() {
-		this.surfaceChanged = true;
-	}
-
-	// responses to events (actions)
-
-	public Explain<Boolean> moveFocus(int n) {
-
-		if (getFocusedIndex() + n > this.getNotaSet().size() - 1 || getFocusedIndex() + n < 0) {
-			this.setFocusedIndex(-1);
-			return new Explain<>(false, "End Of chord");
-		} else {
-			if (this.getFocusedIndex() + n < -1) {
-				this.setFocusedIndex(this.getNotaSet().size() - 1);
-			} else {
-				this.setFocusedIndex(this.getFocusedIndex() + n);
-			}
-			return new Explain<>(true);
-		}
-	}
-
 	// getters/setters
 
 	public TreeSet<Nota> getNotaSet() {
@@ -62,6 +33,10 @@ public class Chord extends AbstractModel
 
 	public Stream<Nota> notaStream(Predicate<Nota> filterLambda) {
 		return getNotaSet().stream().filter(filterLambda);
+	}
+
+	public Stream<Nota> notaStream() {
+		return getNotaSet().stream();
 	}
 
 	public long getEarliestKeydown() {
@@ -82,36 +57,13 @@ public class Chord extends AbstractModel
 		return nota != null ? nota.getRealLength() : new Fraction(0);
 	}
 
-	synchronized public Nota getFocusedNota() {
-		return getFocusedIndex() > -1 ? this.notaList.get(getFocusedIndex()) : null;
-	}
-
 	// field getters/setters
 
 	public String getSlog() { return this.slog.get(); }
 	public Chord setSlog(String value) { this.slog.set(value); return this; }
-	public int getFocusedIndex() {
-		return this.focusedIndex;
-	}
 
 	public Boolean getIsDiminendo() { return isDiminendo.get(); }
 	public void setIsDiminendo(Boolean value) { isDiminendo.set(value); }
-
-	public void triggerIsDiminendo() {
-		setIsDiminendo(!getIsDiminendo());
-	}
-
-	public Chord setFocusedIndex(int value) {
-		value = value >= this.getNotaSet().size() ? this.getNotaSet().size() - 1 : value;
-		value = value < -1 ? -1 : value;
-		this.focusedIndex = value;
-		return this;
-	}
-
-	@Deprecated // it's ChordComponent's logic
-	public Nota getFocusedChild() {
-		return this.getFocusedNota();
-	}
 
 	// event handles
 
@@ -136,9 +88,6 @@ public class Chord extends AbstractModel
 	}
 
 	synchronized public void remove(Nota nota) {
-		int index = getNotaSet().headSet(nota).size();
-		if (index <= getFocusedIndex()) { setFocusedIndex(getFocusedIndex() - 1); }
-
 		notaList.remove(nota);
 	}
 

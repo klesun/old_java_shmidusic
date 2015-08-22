@@ -1,25 +1,39 @@
 package org.sheet_midusic.stuff.tools;
 
+import org.klesun_model.Explain;
+import org.sheet_midusic.staff.chord.Tact;
+
 import java.awt.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 public class Fp {
-	// TODO: make static class Settings, where we will store scaling koef and the org.sheet_midusic.stuff
-	public static void drawString(Graphics surface, String str, int x, int y, Color color) {
-//		surface.setColor(color);
-//		int inches = sheet.getNotaHeight()*5/8; // 25, 80
-//		surface.setFont(new Font(Font.MONOSPACED, Font.PLAIN, inches)); // 12 - 7px width
-	}
 
-	public static List<Integer> vectorSum(List<Integer> vector1, List<Integer> vector2) {
-		ArrayList<Integer> resultVector = new ArrayList<>();
-		for (int i = 0; i < vector1.size(); ++i) {
-			resultVector.add(vector1.get(i) + vector2.get(i));
+	public static <T> Explain<T> findBinary(List<T> list, Function<T, Integer> pred)
+	{
+		Explain<T> result = new Explain<>(false, "No one element matched predicate");
+
+		int l = 0;
+		int r = list.size() - 1;
+
+		while (l <= r) {
+			int middle = (l + r) / 2;
+			int cmpResult = pred.apply(list.get(middle));
+			if (cmpResult > 0) {
+				l = middle + 1;
+			} else if (cmpResult < 0) {
+				r = middle - 1;
+			} else {
+				result = new Explain<>(list.get(middle));
+				break;
+			}
 		}
-		return resultVector;
+
+		return result;
+
 	}
 
 	// TODO: this method was written on quick hand - don't judge strict, but better - improve!

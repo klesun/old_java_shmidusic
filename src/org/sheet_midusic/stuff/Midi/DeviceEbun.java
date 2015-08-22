@@ -144,7 +144,7 @@ public class DeviceEbun {
 		}
 	}
 
-	public static void closeAllNotas() {
+	synchronized public static void closeAllNotas() {
 		// we do it through new set to avoid concurrent modification
 		new TreeSet<>(openNotaSet).forEach(DeviceEbun::closeNota);
 	}

@@ -21,10 +21,13 @@ import org.sheet_midusic.stuff.Midi.Playback;
 import org.sheet_midusic.stuff.graphics.Settings;
 import org.sheet_midusic.stuff.musica.PlayMusThread;
 
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 
+import org.sheet_midusic.stuff.tools.Fp;
 import org.sheet_midusic.stuff.tools.Logger;
 import org.sheet_midusic.stuff.tools.jmusic_integration.INota;
 import org.apache.commons.math3.fraction.Fraction;
@@ -76,9 +79,7 @@ public class Staff extends AbstractModel
 		accordListChanged(index);
 	}
 
-	// TODO: add "add"/"remove" methods in StaffComponent, move this method there and call only when
-	// the methods are called from the component context
-	private void accordListChanged(int repaintAllFromIndex)
+	public void accordListChanged(int repaintAllFromIndex)
 	{
 		setFocusedIndex(limit(getFocusedIndex(), -1, chordList.size() - 1));
 		this.tactList = recalcTactList(); // TODO: maybe do some optimization using repaintAllFromIndex
@@ -117,6 +118,21 @@ public class Staff extends AbstractModel
 		}
 
 		return result;
+	}
+
+	public Explain<Tact> findTact(Chord chord)
+	{
+		// for now i'll use binary search, but this probably may be resolved with something efficientier
+		// like storing owner tact in each accord... nda...
+
+		int chordIdx = chordList.indexOf(chord);
+		Function<Tact, Integer> pred = t ->
+			t.accordList.get().contains(chord) ? 0 : chordIdx - chordList.indexOf(t.accordList.get(0));
+
+		return Fp.findBinary(tactList, pred);
+
+		// SLOOOOOOOOOOOOOOOOOOOOOOW
+//		return tactList.stream().filter(t -> t.accordList.get().contains(chord)).findAny();
 	}
 
 	// TODO: model, mazafaka!
@@ -171,14 +187,12 @@ public class Staff extends AbstractModel
 		return chordList.stream();
 	}
 
-	// TODO: makes leak rows
-	public List<List<Chord>> getAccordRowList(int width)
+	public List<List<Chord>> getAccordRowList(int rowSize)
 	{
 		List<List<Chord>> resultList = new ArrayList<>();
 
-		int rowSize = getAccordInRowCount(width);
 		for (int fromIdx = 0; fromIdx < this.getChordList().size(); fromIdx += rowSize) {
-			int toIndex = Math.min(fromIdx + getAccordInRowCount(width), this.getChordList().size());
+			int toIndex = Math.min(fromIdx + rowSize, this.getChordList().size());
 			resultList.add(this.getChordList().subList(fromIdx, toIndex));
 		}
 
@@ -187,22 +201,11 @@ public class Staff extends AbstractModel
 		return resultList;
 	}
 
-	// TODO: should be moved to StaffComponent
-	public int getHeightIf(int width) {
-		return getAccordRowList(width).size() * SISDISPLACE * dy() + getMarginY();
-	}
-
 	public int getMarginX() {
 		return dx();
 	}
 	public int getMarginY() {
 		return Math.round(MainPanel.MARGIN_V * dy());
-	}
-
-	// TODO: it shoud be component's method
-	public int getAccordInRowCount(int width) {
-		int result = width / (dx() * 2) - 3; // - 3 because violin key and phantom
-		return Math.max(result, 1);
 	}
 
 	final private int dx() { return Settings.inst().getStepWidth(); }

@@ -80,7 +80,12 @@ public class SheetMusicComponent extends JPanel implements IComponent
 
 	private int getFocusedSystemY() {
 		int dy = Settings.inst().getStepHeight();
-		return Staff.SISDISPLACE * dy * (getFocusedChild().staff.getFocusedIndex() / getFocusedChild().staff.getAccordInRowCount(getWidth()));
+		return Staff.SISDISPLACE * dy * (getFocusedChild().staff.getFocusedIndex() / getAccordInRowCount());
+	}
+
+	private int getAccordInRowCount() {
+		int result = (getWidth() - StaffComponent.getLeftMargin() - StaffComponent.getRightMargin()) / (2 * dx());
+		return Math.max(result, 1);
 	}
 
 	public void checkCam()
@@ -89,18 +94,17 @@ public class SheetMusicComponent extends JPanel implements IComponent
 
 		JScrollPane staffScroll = getModelParent().staffScroll;
 		JScrollBar vertical = staffScroll.getVerticalScrollBar();
+
 		if (vertical.getValue() + staffScroll.getHeight() < getFocusedSystemY() + Staff.SISDISPLACE * dy ||
 				vertical.getValue() > getFocusedSystemY()) {
 			vertical.setValue(getFocusedSystemY());
 		}
-
-		repaint();
 	}
 
 	@Override
 	public Dimension getPreferredSize()
 	{
-		int height = getStaffPanelStream().map(c -> c.staff.getHeightIf(getWidth())).reduce(Math::addExact).get();
+		int height = getStaffPanelStream().map(c -> c.calcTrueHeight()).reduce(Math::addExact).get();
 		return new Dimension(mainPanel.getWidth() - 30, height); // - 30 - love awt and horizontal scrollbars
 	}
 

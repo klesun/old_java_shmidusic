@@ -1,6 +1,7 @@
 package org.sheet_midusic.stuff.main;
 
 import org.sheet_midusic.staff.Staff;
+import org.sheet_midusic.staff.StaffHandler;
 import org.sheet_midusic.staff.chord.Chord;
 import org.sheet_midusic.staff.chord.ChordComponent;
 import org.sheet_midusic.staff.chord.nota.Nota;
@@ -9,6 +10,7 @@ import org.sheet_midusic.staff.staff_panel.MainPanel;
 import org.sheet_midusic.staff.staff_panel.SheetMusic;
 import org.sheet_midusic.staff.staff_panel.SheetMusicComponent;
 import org.sheet_midusic.staff.staff_panel.StaffComponent;
+import org.sheet_midusic.stuff.Midi.DumpReceiver;
 import org.sheet_midusic.stuff.graphics.ImageStorage;
 import org.klesun_model.Combo;
 import org.klesun_model.ContextAction;
@@ -72,6 +74,7 @@ public class MajesticWindow extends JFrame {
 		addMenuBar();
 		switchTo(cardEnum.CARDS_SHEET_MIDUSIC);
 		staffPanel.requestFocus();
+		DumpReceiver.eventHandler = (StaffHandler)staffPanel.staffContainer.getFocusedChild().getHandler();;
 		// for user-friendship there will be one initial org.sheet_midusic.staff
 //		blockSpace.addMusicBlock().getParentBlock().switchFullscreen();
 

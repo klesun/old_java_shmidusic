@@ -9,7 +9,8 @@ import	javax.sound.midi.Receiver;
 import java.util.Arrays;
 
 public class DumpReceiver implements Receiver {
-	
+
+	// TODO: make it SheeMusicHandler and final
 	public static StaffHandler eventHandler;
 	
 	public DumpReceiver() {}

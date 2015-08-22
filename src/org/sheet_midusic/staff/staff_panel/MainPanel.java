@@ -1,6 +1,5 @@
 package org.sheet_midusic.staff.staff_panel;
 
-import com.sun.istack.internal.NotNull;
 import org.sheet_midusic.stuff.main.Main;
 import org.sheet_midusic.staff.Staff;
 import org.sheet_midusic.stuff.graphics.Settings;
@@ -31,9 +30,9 @@ final public class MainPanel extends JPanel implements IComponent {
 	private Boolean surfaceCompletelyChanged = false;
 
 	/** @debug - return private when done */
-	@NotNull public SheetMusicComponent staffContainer = new SheetMusicComponent(new SheetMusic(), this);
-	@NotNull public Scroll staffScroll = new Scroll(staffContainer);
-	final private PianoLayoutPanel pianoLayoutPanel;
+	public SheetMusicComponent staffContainer = new SheetMusicComponent(new SheetMusic(), this);
+	public Scroll staffScroll = new Scroll(staffContainer);
+	final public PianoLayoutPanel pianoLayoutPanel;
 
 	public MainPanel() {
 		super();
@@ -104,9 +103,6 @@ final public class MainPanel extends JPanel implements IComponent {
 //		return blockSpace.getSettings();
 		return Settings.inst();
 	}
-
-	// maybe put it into AbstractModel?
-	private int dy() { return getSettings().getStepHeight(); }
 
 	// Until here
 

@@ -29,7 +29,7 @@ public class StaffPainter extends AbstractPainter
 		Staff.TactMeasurer tactMeasurer = new Staff.TactMeasurer(s.getConfig().getTactSize());
 
 		int i = 0;
-		for (java.util.List<Chord> row : s.getAccordRowList(comp.getWidth())) {
+		for (java.util.List<Chord> row : s.getAccordRowList(comp.getAccordInRowCount())) {
 
 			int y = i * Staff.SISDISPLACE * dy(); // bottommest y nota may be drawn on
 
@@ -39,11 +39,7 @@ public class StaffPainter extends AbstractPainter
 			for (Chord chord : row) {
 				int x = j * (2 * dx());
 
-//				ChordComponent chordComp = comp.findChild(chord);
-//				KeySignature siga = s.getConfig().getSignature();
-//				drawModel((g, xArg, yArg) -> chordComp.drawOn(g, xArg, yArg, siga), x, y - 12 * dy());
-
-				if (tactMeasurer.inject(chord)) { // TODO: broken. we cant draw it separately from chords (when you resize they go assync)
+				if (tactMeasurer.inject(chord)) {
 					drawTactLine(x + dx() * 2, y, tactMeasurer);
 				}
 

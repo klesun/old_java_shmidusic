@@ -25,13 +25,12 @@ public class ChordPainter extends AbstractPainter {
 		for (int i = 0; i < a.getNotaSet().size(); ++i) {
 			Nota nota = a.notaList.get(i);
 			int notaY = getLowestPossibleNotaY() - dy() * nota.ivoryIndex(siga);
-			int notaX = i > 0 && a.notaList.get(i - 1).ivoryIndex(siga) == nota.ivoryIndex(siga) // TODO: uuu, ivoryIndex(siga - 1)
+			int notaX = i > 0 && a.notaList.get(i - 1).ivoryIndex(siga) == nota.ivoryIndex(siga)
 				? dx() / 3 // TODO: draw them flipped
 				: 0;
 
-			if (nota == a.getFocusedNota()) {
-				Pnt point = new Pnt(notaX + dx() * 2, notaY + 6 * dy());
-				drawDot(point, dy(), Color.RED);
+			if (comp.getFocusedIndex() != -1 && nota == comp.getFocusedChild().note) {
+				fillRect(new Rectangle(0, notaY + 6 * dy(), 2 * dx(), 2 * dy()), new Color(0,255,0,127));
 			}
 
 			NoteComponent noteComp = comp.findChild(nota);

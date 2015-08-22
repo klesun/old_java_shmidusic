@@ -7,9 +7,8 @@ import org.sheet_midusic.stuff.tools.Logger;
 public class Main
 {
 	/* TODO: maybe rename midiana to something like
-	 * SheetMidiMusic,
-	 * SheetMidusic (and portrait of woman with snakes from head on main page)
-	 * ShmiditMusic
+	 * shmidusic
+	 * shmidi
 	 */
 
 	public static Boolean isLinux = false;

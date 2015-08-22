@@ -1,23 +1,45 @@
 package org.sheet_midusic.staff.staff_config;
 
+import org.sheet_midusic.staff.chord.Chord;
 import org.sheet_midusic.stuff.OverridingDefaultClasses.TruMap;
+import org.sheet_midusic.stuff.tools.jmusic_integration.INota;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 public class KeySignature
 {
-	final public int signature;
+	// TODO: it's very open question, how to determine whether it's flat or sharp (or straight)
+	// when a Note that is not present in Staff's main key signature is pressed
+	// i prophet a musician would know the answer. Check how it's done in Musescore, maybe?
+
+	// for now we treat all not predicted ebonies as flats and ivories as becars, but i may hear
+	// that they are not sometimes. we may get some issue like: [si-bemol; si-becar; si-bemol] when
+	// it obviously is [la-diez; si; la]
+
+	// TODO: i think it's not needed
+	final private int signature;
 
 	final static int DO = 0, RE = 1, MI = 2, FA = 3, SO = 4, LA = 5, TI = 6;
 
 	final static List<Set<Integer>> sharpSignatures;
 	final static List<Set<Integer>> flatSignatures;
 
+	final Set<Integer> mySharpSignature = new HashSet<>();
+	final Set<Integer> myFlatSignature = new HashSet<>();
+
 	public KeySignature(int signature)
 	{
 		this.signature = signature;
+
+		if (signature > 0) {
+			mySharpSignature.addAll(sharpSignatures.get(signature - 1));
+		} else if (signature < 0) {
+			myFlatSignature.addAll(flatSignatures.get(Math.abs(signature) - 1));
+		}
 	}
 
+	// что делает этот метод???
 	public int calcIvoryMask(int tune) {
 		int tuneMask = tune % 12;
 		if (matches(tuneMask)) {
@@ -25,6 +47,24 @@ public class KeySignature
 		} else {
 			return flatIvoryMask(tune); // for now we will draw all unknown Nota-s as bemol
 		}
+	}
+
+	// add bemols/becars/diezes of this chord Note-s
+	public void consume(Chord chord)
+	{
+		chord.notaStream().forEach(n -> {
+			if (!myTuneQueue().contains(n.getTune() % 12)) {
+				if (n.isEbony()) {
+					// treating as bemol
+					// TODO: maybe taking same symbol as signature direction would be better (see eflen lied)
+					myFlatSignature.add(flatIvoryMask(n.getTune()));
+				} else {
+					// becar
+					mySharpSignature.remove(sharpIvoryMask(n.getTune()));
+					myFlatSignature.remove(flatIvoryMask(n.getTune()));
+				}
+			}
+		});
 	}
 
 	private Boolean matches(int tuneMask) {
@@ -36,9 +76,10 @@ public class KeySignature
 		List<Integer> result = new LinkedList<>();
 		for (int i = 0; i <= TI; ++i) {
 			int tune = defaultTuneQueue().get(i);
-			if (signature > 0 && sharpSignatures.get(signature - 1).contains(i)) {
+			if (mySharpSignature.contains(i)) {
 				++tune;
-			} else if (signature < 0 && flatSignatures.get(Math.abs(signature) - 1).contains(i)) {
+			}
+			if (myFlatSignature.contains(i)) {
 				--tune;
 			}
 			result.add(tune);
@@ -56,15 +97,15 @@ public class KeySignature
 		return Arrays.asList(0,1,1,2,2,3,4,4,5,5,6,6).get(tune % 12);
 	}
 
+	static int sharpIvoryMask(int tune) {
+		return Arrays.asList(0,0,1,1,2,3,3,4,4,5,5,6).get(tune % 12);
+	}
+
 	public Set<Integer> getAffectedIvorySet()
 	{
 		Set<Integer> result = new HashSet<>();
-
-		if (signature > 0) {
-			result.addAll(sharpSignatures.get(signature - 1));
-		} else if (signature < 0) {
-			result.addAll(flatSignatures.get(Math.abs(signature) - 1));
-		}
+		result.addAll(mySharpSignature);
+		result.addAll(myFlatSignature);
 
 		return result;
 	}

@@ -1,5 +1,7 @@
 package org.klesun_model;
 
+import org.sheet_midusic.stuff.graphics.Settings;
+
 import java.awt.*;
 import java.awt.event.FocusListener;
 
@@ -30,4 +32,11 @@ public interface IComponent
 	void addFocusListener(FocusListener focusListener);
 
 	// </editor-fold>
+
+	default int dx() {
+		return Settings.inst().getStepWidth();
+	}
+	default int dy() {
+		return Settings.inst().getStepHeight();
+	}
 }

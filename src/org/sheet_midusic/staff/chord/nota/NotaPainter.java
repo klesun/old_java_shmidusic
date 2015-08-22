@@ -29,8 +29,8 @@ public class NotaPainter extends AbstractPainter
 				relative(paintEbony).accept(dx() * 3 / 4.0, notaCenterY);
 			} else {
 				// draw becar
-				BiConsumer<Double, Double> paintEbony = getShapeProvider()::drawBecarSign;
-				relative(paintEbony).accept(dx() * 3 / 4.0, notaCenterY);
+				BiConsumer<Double, Double> paintBecar = getShapeProvider()::drawBecarSign;
+				relative(paintBecar).accept(dx() * 3 / 4.0, notaCenterY);
 			}
 		}
 
@@ -56,6 +56,7 @@ public class NotaPainter extends AbstractPainter
 		}
 
 		for (int i = 0; i < n.getDotCount(); ++i) {
+			// TODO: for some reason it draws only one dot even for multidot hujot
 			int x = dx() * 5/3 + dx() * i / n.getDotCount();
 			drawDot(new Pnt(x, notaCenterY), dy() / 2, Color.BLACK);
 		}

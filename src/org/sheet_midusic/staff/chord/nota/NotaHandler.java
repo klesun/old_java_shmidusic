@@ -23,10 +23,10 @@ public class NotaHandler extends AbstractHandler {
 	private static TruMap<Combo, ContextAction<NoteComponent>> actionMap = new TruMap<>();
 	static {
 		actionMap
-			.p(new Combo(0, k.VK_OPEN_BRACKET), mkAction(model(Nota::decLen)).setCaption("Decrease Length"))
-			.p(new Combo(0, k.VK_CLOSE_BRACKET), mkAction(model(Nota::incLen)).setCaption("Increase Length"))
-			.p(new Combo(0, k.VK_PERIOD), mkAction(model(Nota::putDot)).setCaption("Dot"))
-			.p(new Combo(0, k.VK_COMMA), mkAction(model(Nota::removeDot)).setCaption("Undot"))
+			.p(new Combo(0, k.VK_OPEN_BRACKET), mkAction(modelRecalcTacts(Nota::decLen)).setCaption("Decrease Length"))
+			.p(new Combo(0, k.VK_CLOSE_BRACKET), mkAction(modelRecalcTacts(Nota::incLen)).setCaption("Increase Length"))
+			.p(new Combo(0, k.VK_PERIOD), mkAction(modelRecalcTacts(Nota::putDot)).setCaption("Dot"))
+			.p(new Combo(0, k.VK_COMMA), mkAction(modelRecalcTacts(Nota::removeDot)).setCaption("Undot"))
 			.p(new Combo(0, k.VK_DELETE), mkAction(c -> c.getParentComponent().remove(c.note)).setCaption("Delete"))
 			.p(new Combo(0, k.VK_ENTER), mkAction(c -> PlayMusThread.playNotu(c.note)).setCaption("Play"))
 
@@ -53,7 +53,18 @@ public class NotaHandler extends AbstractHandler {
 
 	private static Consumer<NoteComponent> model(Consumer<Nota> modelLambda)
 	{
-		return c -> modelLambda.accept(c.note);
+		return c -> {
+			modelLambda.accept(c.note);
+			c.getParentComponent().repaint();
+		};
+	}
+
+	private static Consumer<NoteComponent> modelRecalcTacts(Consumer<Nota> modelLambda)
+	{
+		return c -> {
+			modelLambda.accept(c.note);
+			c.getParentComponent().recalcTacts();
+		};
 	}
 
 	@Override

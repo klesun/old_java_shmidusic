@@ -1,10 +1,7 @@
 
 package org.sheet_midusic.staff.chord;
 
-import org.klesun_model.AbstractHandler;
-import org.klesun_model.Combo;
-import org.klesun_model.ContextAction;
-import org.klesun_model.Explain;
+import org.klesun_model.*;
 import org.sheet_midusic.staff.chord.nota.Nota;
 import org.sheet_midusic.staff.chord.nota.NotaHandler;
 import org.sheet_midusic.staff.chord.nota.NoteComponent;
@@ -35,14 +32,14 @@ public class ChordHandler extends AbstractHandler {
 				.setCaption("Notas: " + entry.getValue().getCaption()));
 		}
 
-		actionMap.p(new Combo(ctrl, k.VK_PERIOD), mkAction(a -> a.chord.triggerIsDiminendo()).setCaption("Diminendo On/Off"))
-			.p(new Combo(0, k.VK_UP), mkFailableAction(a -> a.chord.moveFocus(-1)).setCaption("Up"))
-			.p(new Combo(0, k.VK_DOWN), mkFailableAction(a -> a.chord.moveFocus(1)).setCaption("Down"))
+		actionMap.p(new Combo(ctrl, k.VK_PERIOD), mkAction(a -> a.triggerIsDiminendo()).setCaption("Diminendo On/Off"))
+			.p(new Combo(0, k.VK_UP), mkFailableAction(a -> a.moveFocus(-1)).setCaption("Up"))
+			.p(new Combo(0, k.VK_DOWN), mkFailableAction(a -> a.moveFocus(1)).setCaption("Down"))
 			.p(new Combo(0, k.VK_DELETE), mkAction(a -> a.getParentComponent().removeChord(a.chord)).setCaption("Delete"))
 		;
 
 		for (Combo combo: Combo.getNumberComboList(0)) {
-			actionMap.p(combo, mkAction(a -> a.chord.setFocusedIndex(combo.getPressedNumber()))
+			actionMap.p(combo, mkAction(a -> a.setFocusedIndex(combo.getPressedNumber()))
 					.setOmitMenuBar(true)
 			);
 		}
@@ -72,5 +69,12 @@ public class ChordHandler extends AbstractHandler {
 	private static ContextAction<ChordComponent> mkFailableAction(Function<ChordComponent, Explain> lambda) {
 		ContextAction<ChordComponent> action = new ContextAction<>();
 		return action.setRedo(lambda);
+	}
+
+	@Override
+	public Boolean mousePressedFinal(ComboMouse combo)
+	{
+		getContext().getParentComponent().setFocus(getContext());
+		return true;
 	}
 }

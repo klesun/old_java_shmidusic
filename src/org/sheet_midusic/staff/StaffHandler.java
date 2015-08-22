@@ -40,14 +40,14 @@ public class StaffHandler extends AbstractHandler {
 				.setCaption("Settings").setPostfix(navigation))
 
 			// Navigation
-			.p(new Combo(0, k.VK_HOME), mkAction(p -> p.staff.setFocusedIndex(-1)).setCaption("To Start").setPostfix(navigation))
-			.p(new Combo(0, k.VK_END), mkAction(p -> p.staff.setFocusedIndex(p.staff.getChordList().size() - 1)).setCaption("To End").setPostfix(navigation))
+			.p(new Combo(0, k.VK_HOME), mkAction(p -> p.setFocus(-1)).setCaption("To Start").setPostfix(navigation))
+			.p(new Combo(0, k.VK_END), mkAction(p -> p.setFocus(p.staff.getChordList().size() - 1)).setCaption("To End").setPostfix(navigation))
 			.p(new Combo(ctrl, k.VK_LEFT), mkAction(p -> p.moveFocusTact(-1)).setCaption("Left Tact").setPostfix("Navigation"))
 			.p(new Combo(ctrl, k.VK_RIGHT), mkAction(p -> p.moveFocusTact(1)).setCaption("Right Tact").setPostfix("Navigation"))
 			.p(new Combo(0, k.VK_LEFT), mkFailableAction(s -> s.moveFocusWithPlayback(-1)).setCaption("Left").setPostfix(navigation))
 			.p(new Combo(0, k.VK_RIGHT), mkFailableAction(s -> s.moveFocusWithPlayback(1)).setCaption("Right").setPostfix(navigation))
-			.p(new Combo(0, k.VK_UP), mkFailableAction(s -> s.moveFocusRow(-1, s.getWidth())).setCaption("Up").setPostfix(navigation))
-			.p(new Combo(0, k.VK_DOWN), mkFailableAction(s -> s.moveFocusRow(1, s.getWidth())).setCaption("Down").setPostfix(navigation))
+			.p(new Combo(0, k.VK_UP), mkFailableAction(s -> s.moveFocusRow(-1)).setCaption("Up").setPostfix(navigation))
+			.p(new Combo(0, k.VK_DOWN), mkFailableAction(s -> s.moveFocusRow(1)).setCaption("Down").setPostfix(navigation))
 
 			// TODO: move it to StaffConfig
 			.p(new Combo(ctrl, k.VK_D), mkFailableAction(s -> DeviceEbun.changeOutDevice(s.staff.getConfig()))
@@ -74,7 +74,8 @@ public class StaffHandler extends AbstractHandler {
 		}
 	}
 
-	public void handleMidiEvent(Integer tune, int forca, int timestamp) {
+	public void handleMidiEvent(Integer tune, int forca, int timestamp)
+	{
 		if (forca > 0) {
 			// BEWARE: we get sometimes double messages when my synt has "LAYER/AUTO HARMONIZE" button on. That is button, that makes one key press sound with two instruments
 			this.handleKey(new Combo(Combo.getAsciiTuneMods(), Combo.tuneToAscii(tune))); // (11 -ctrl+shift+alt)+someKey

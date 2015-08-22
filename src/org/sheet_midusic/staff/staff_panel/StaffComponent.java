@@ -13,13 +13,15 @@ import org.sheet_midusic.staff.chord.ChordHandler;
 import org.sheet_midusic.stuff.Midi.DeviceEbun;
 import org.sheet_midusic.stuff.Midi.Playback;
 import org.sheet_midusic.stuff.graphics.Settings;
+import org.sheet_midusic.stuff.main.Main;
 import org.sheet_midusic.stuff.musica.PlayMusThread;
 import org.sheet_midusic.stuff.tools.Logger;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.List;
+import java.util.stream.Stream;
 
 // TODO: merge with AbstractPainter
 public class StaffComponent extends JPanel implements IComponent
@@ -29,7 +31,7 @@ public class StaffComponent extends JPanel implements IComponent
 
 	final private IComponent parent;
 	final private StaffHandler handler;
-	final private JPanel chordSpace = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+	final public JPanel chordSpace = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
 	final private Playback playback;
 
 	public StaffComponent(Staff staff, IComponent parent) {
@@ -58,21 +60,21 @@ public class StaffComponent extends JPanel implements IComponent
 
 		JPanel leftGap = new JPanel() {
 			public Dimension getPreferredSize() {
-				return new Dimension(staff.getMarginX() * 4, 10);
+				return new Dimension(getLeftMargin(), 10);
 			}
 		};
 		leftGap.setOpaque(false); // temporary solution
 
 		JPanel rightGap = new JPanel() {
 			public Dimension getPreferredSize() {
-				return new Dimension(staff.getMarginX() * 3, 10);
+				return new Dimension(getRightMargin(), 10);
 			}
 		};
 		rightGap.setOpaque(false); // temporary solution
 
 		JPanel topGap = new JPanel() { // TODO: deeds are wrong with this margin y - chords drawn wrong place'
 			public Dimension getPreferredSize() {
-				return new Dimension(10, staff.getMarginY() - 12 * Settings.inst().getStepHeight());
+				return new Dimension(10, getTopMargin());
 			}
 		};
 		topGap.setOpaque(false); // temporary solution
@@ -83,6 +85,19 @@ public class StaffComponent extends JPanel implements IComponent
 
 		this.add(chordSpace, BorderLayout.CENTER);
 		chordSpace.setOpaque(false);
+	}
+
+	/** @return - pixel count */
+	public static int getLeftMargin() {
+		return Settings.inst().getStepWidth() * 4;
+	}
+	/** @return - pixel count */
+	public static int getRightMargin() {
+		return Settings.inst().getStepWidth() * 3;
+	}
+	/** @return - pixel count */
+	public static int getTopMargin() {
+		return Settings.inst().getStepHeight() * 3;
 	}
 
 	public ChordComponent addNewChordWithPlayback()
@@ -126,6 +141,11 @@ public class StaffComponent extends JPanel implements IComponent
 		chordSpace.add(comp);
 		chordComponents.remove(comp);
 		revalidate();
+	}
+
+	public void refreshTacts(int fromIndex) {
+		staff.accordListChanged(fromIndex);
+		repaint();
 	}
 
 	public ChordComponent findChild(Chord chord)
@@ -173,6 +193,17 @@ public class StaffComponent extends JPanel implements IComponent
 	// event handles
 	//=============================
 
+	public Explain moveFocusTact(int sign) {
+		return new Explain(false, "Not Implemented Yet!");
+	}
+
+	public Explain moveFocusRow(int sign) {
+		int n = sign * getAccordInRowCount();
+		return staff.getFocusedIndex() + n < staff.getChordList().size() && staff.getFocusedIndex() + n >= 0
+				? moveFocusWithPlayback(n)
+				: new Explain("No more rows").setImplicit(true);
+	}
+
 	public Explain moveFocusWithPlayback(int sign) {
 		Explain result = moveFocus(sign);
 		if (staff.getFocusedAccord() != null && result.isSuccess()) {
@@ -184,29 +215,52 @@ public class StaffComponent extends JPanel implements IComponent
 		return result;
 	}
 
-	public Explain moveFocusTact(int sign) {
-		return new Explain(false, "Not Implemented Yet!");
-	}
-
-	public Explain moveFocusRow(int sign, int width) {
-		int n = sign * staff.getAccordInRowCount(width);
-		return moveFocusWithPlayback(n);
-	}
-
 	public Explain moveFocus(int n)
 	{
 		int wasIndex = staff.getFocusedIndex();
-		staff.setFocusedIndex(wasIndex + n);
-
-		if (staff.getFocusedIndex() != -1) { // does not repaint pointer for some reason
-			findChild(staff.getFocusedAccord()).repaint();
-		}
-		if (wasIndex != -1) {
-			findChild(staff.getChordList().get(wasIndex)).repaint(); // TODO: with Home/End not cleaned and piano grephic layout should be repainted each time
-		}
+		setFocus(wasIndex + n);
 
 		return staff.getFocusedIndex() != wasIndex
-				? new Explain(true)
-				: new Explain(false, "dead end").setImplicit(true);
+			? new Explain(true)
+			: new Explain(false, "dead end").setImplicit(true);
+	}
+
+	public StaffComponent setFocus(ChordComponent comp)
+	{
+		setFocus(staff.getChordList().indexOf(comp.chord));
+
+		PlayMusThread.shutTheFuckUp();
+		playback.interrupt();
+		PlayMusThread.playAccord(staff.getFocusedAccord());
+
+		return this;
+	}
+
+	public StaffComponent setFocus(int index)
+	{
+		ChordComponent was = getFocusedChild();
+		staff.setFocusedIndex(index);
+
+		if (was != null) {
+			was.setFocusedIndex(-1);
+			was.repaint();
+		}
+		if (staff.getFocusedIndex() != -1) {
+			getFocusedChild().repaint();
+		}
+
+		Main.window.staffPanel.pianoLayoutPanel.repaint();
+		Main.window.staffPanel.staffContainer.checkCam();
+
+		return this;
+	}
+
+	public int getAccordInRowCount() {
+		int result = chordSpace.getWidth() / (dx() * 2);
+		return Math.max(result, 1);
+	}
+
+	public int calcTrueHeight() {
+		return staff.getAccordRowList(getAccordInRowCount()).size() * Staff.SISDISPLACE * dy();
 	}
 }

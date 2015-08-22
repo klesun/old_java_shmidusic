@@ -42,6 +42,7 @@ public class Playback {
 		if (!staff.getChordList().isEmpty()) {
 			if (runningProcess != null) { interrupt(); }
 			if (staff.getConfig().useHardcoreSynthesizer.get()) {
+				// TODO: try to do it with two PlaybackTimer-s - one for music and other for repaint requests
 				runningProcess = new PlaybackTimer.KlesunthesizerTimer(staff.getConfig());
 			} else {
 				runningProcess = new PlaybackTimer(staff.getConfig());
@@ -50,11 +51,7 @@ public class Playback {
 			staffComp.moveFocus(-1);
 			int startFrom = staff.getFocusedIndex() + 1;
 
-			streamTo(runningProcess, startFrom, now -> runningProcess.addTask(now, () ->
-			{
-				staffComp.moveFocus(1);
-//				Main.window.staffPanel.staffContainer.checkCam();
-			}));
+			streamTo(runningProcess, startFrom, now -> runningProcess.addTask(now, () -> { staffComp.moveFocus(1); }));
 
 			runningProcess.appendTask(new Fraction(1), this::interrupt);
 			runningProcess.start();

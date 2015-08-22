@@ -7,6 +7,6 @@ cd bin
 
 libs_query="$(join : ../libs/*):."
 
-java -cp $libs_query main.Main
+java -cp $libs_query org.sheet_midusic.stuff.main.Main
 
 cd ..

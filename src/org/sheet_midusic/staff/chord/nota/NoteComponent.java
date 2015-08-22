@@ -40,9 +40,8 @@ public class NoteComponent extends MidianaComponent
 		return new NotaHandler(this);
 	}
 
-	public int drawOn(Graphics2D g, int x, int y, KeySignature siga) {
+	public void drawOn(Graphics2D g, int x, int y, KeySignature siga) {
 		new NotaPainter(this, g, x, y).draw(siga);
-		return -100;
 	}
 
 	public Explain triggerIsSharp()
