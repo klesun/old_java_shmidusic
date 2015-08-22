@@ -13,3 +13,4 @@ Thumbs.db
 /dist/
 /savedJustBeforeFatal/
 /test/
+/diff*
