@@ -6,6 +6,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.shmidusic.stuff.tools.Logger;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public interface IModel {
 
 	Helper getModelHelper();
@@ -32,6 +35,10 @@ public interface IModel {
 			}
 		}
 		return this;
+	}
+
+	default List<String> getFieldList() {
+		return getModelHelper().getFieldStorage().stream().map(f -> f.getName()).collect(Collectors.toList());
 	}
 
 	default <T> Field<T> addField(String name, T defaultValue) {

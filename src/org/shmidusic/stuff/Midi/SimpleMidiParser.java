@@ -1,12 +1,12 @@
 package org.shmidusic.stuff.Midi;
 
-import org.shmidusic.staff.Staff;
-import org.shmidusic.staff.staff_config.Channel;
+import org.shmidusic.sheet_music.staff.Staff;
+import org.shmidusic.sheet_music.staff.staff_config.Channel;
 import org.jm.midi.SMF;
 import org.jm.midi.Track;
 import org.jm.midi.event.*;
-import org.shmidusic.staff.staff_panel.SheetMusic;
-import org.shmidusic.staff.staff_panel.StaffComponent;
+import org.shmidusic.sheet_music.SheetMusic;
+import org.shmidusic.sheet_music.staff.StaffComponent;
 
 import java.util.*;
 import java.util.function.Function;
@@ -22,7 +22,7 @@ public class SimpleMidiParser
 		Staff staff = sheetMusic.staffList.get(0);
 
 		// tempo 480 - for tempo 120
-		// tempo 960 - for tempo 60 - taking it cuz it's really close to 1000: 960 beats are 1000 miliseconds
+		// tempo 960 - for tempo 60 - taking it for base cuz it's really close to 1000: 960 beats are 1000 miliseconds
 		SMF smf = new SMF((short)1, (short)(60 * 960 / staff.getConfig().getTempo())); // 1 i think means nothing, and tempo should be 480 by convention probably
 
 		// setting tempo. i suspect TimeSig and KeySig have absolute no influence on how things sound

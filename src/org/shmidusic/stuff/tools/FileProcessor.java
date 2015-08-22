@@ -3,10 +3,10 @@ package org.shmidusic.stuff.tools;
 import org.jm.midi.SMF;
 import org.json.JSONArray;
 import org.klesun_model.Explain;
-import org.shmidusic.staff.staff_panel.SheetMusic;
-import org.shmidusic.staff.staff_panel.SheetMusicComponent;
-import org.shmidusic.stuff.main.Main;
-import org.shmidusic.staff.Staff;
+import org.shmidusic.sheet_music.SheetMusic;
+import org.shmidusic.sheet_music.SheetMusicComponent;
+import org.shmidusic.Main;
+import org.shmidusic.sheet_music.staff.Staff;
 import org.klesun_model.IModel;
 
 import javax.imageio.ImageIO;
@@ -81,7 +81,7 @@ public class FileProcessor {
 		return chooseMidiJsonFile()
 			.ifSuccess(FileProcessor::openJsonFile)
 			.ifSuccess(js -> fillModelFromJson(js, new SheetMusic()))
-			.whenSuccess(comp.getModelParent()::replaceSheetMusic);
+			.whenSuccess(comp.mainPanel::replaceSheetMusic);
 	}
 
 	/** @legacy - from the time when we had only single Staff */
@@ -90,7 +90,7 @@ public class FileProcessor {
 		return chooseMidiJsonFile()
 			.ifSuccess(FileProcessor::openJsonFile)
 			.ifSuccess(js -> fillModelFromJson(toSheetFileJs(js), new SheetMusic()))
-			.whenSuccess(comp.getModelParent()::replaceSheetMusic);
+			.whenSuccess(comp.mainPanel::replaceSheetMusic);
 	}
 
 	// TODO: it's stupid that we store things in {SheetMusic: {sheetMusicState}} format instead of just {sheetMusicState}

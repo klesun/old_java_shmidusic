@@ -1,6 +1,6 @@
 package org.shmidusic.stuff.Midi;
 
-import org.shmidusic.staff.StaffHandler;
+import org.shmidusic.sheet_music.staff.StaffHandler;
 import org.shmidusic.stuff.tools.Logger;
 
 import	javax.sound.midi.MidiMessage;

@@ -1,7 +1,7 @@
 package org.shmidusic.stuff.Midi;
 
-import org.shmidusic.staff.staff_config.StaffConfig;
-import org.shmidusic.staff.chord.nota.Nota;
+import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
+import org.shmidusic.sheet_music.staff.chord.nota.Nota;
 import org.jm.midi.Track;
 import org.jm.midi.event.NoteOff;
 import org.jm.midi.event.NoteOn;

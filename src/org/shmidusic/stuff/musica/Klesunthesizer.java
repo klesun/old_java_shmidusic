@@ -1,6 +1,6 @@
 package org.shmidusic.stuff.musica;
 
-import org.shmidusic.staff.chord.nota.Nota;
+import org.shmidusic.sheet_music.staff.chord.nota.Nota;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;

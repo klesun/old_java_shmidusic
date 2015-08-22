@@ -3,7 +3,7 @@ package org.shmidusic.stuff.Midi;
 import javax.sound.midi.*;
 
 import org.klesun_model.Explain;
-import org.shmidusic.staff.staff_config.StaffConfig;
+import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 import org.shmidusic.stuff.musica.PlayMusThread;
 import org.shmidusic.stuff.tools.Logger;
 import org.shmidusic.stuff.tools.jmusic_integration.INota;

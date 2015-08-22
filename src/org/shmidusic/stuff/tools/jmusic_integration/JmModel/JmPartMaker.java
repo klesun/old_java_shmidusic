@@ -1,7 +1,7 @@
 package org.shmidusic.stuff.tools.jmusic_integration.JmModel;
 
-import org.shmidusic.staff.Staff;
-import org.shmidusic.staff.chord.Chord;
+import org.shmidusic.sheet_music.staff.Staff;
+import org.shmidusic.sheet_music.staff.chord.Chord;
 import org.jm.music.data.Part;
 
 import java.util.*;

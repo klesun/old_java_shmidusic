@@ -7,6 +7,6 @@ cd bin
 
 libs_query="$(join : ../libs/*):."
 
-java -cp $libs_query org.shmidusic.stuff.main.Main
+java -cp $libs_query org.shmidusic.Main
 
 cd ..

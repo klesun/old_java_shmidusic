@@ -1,7 +1,7 @@
 package org.shmidusic.stuff.tools.jmusic_integration;
 
-import org.shmidusic.staff.chord.nota.Nota;
-import org.shmidusic.staff.Staff;
+import org.shmidusic.sheet_music.staff.chord.nota.Nota;
+import org.shmidusic.sheet_music.staff.Staff;
 import org.shmidusic.stuff.graphics.ImageStorage;
 import org.shmidusic.stuff.tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;

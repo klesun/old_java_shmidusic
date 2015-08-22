@@ -1,9 +1,9 @@
 package org.shmidusic.stuff.tools.jmusic_integration.JmModel;
 
 
-import org.shmidusic.staff.Staff;
-import org.shmidusic.staff.chord.Chord;
-import org.shmidusic.staff.chord.nota.Nota;
+import org.shmidusic.sheet_music.staff.Staff;
+import org.shmidusic.sheet_music.staff.chord.Chord;
+import org.shmidusic.sheet_music.staff.chord.nota.Nota;
 import org.jm.music.data.Phrase;
 import org.shmidusic.stuff.tools.Logger;
 import org.shmidusic.stuff.tools.jmusic_integration.INota;

@@ -8,6 +8,7 @@ import java.awt.event.FocusListener;
 public interface IComponent
 {
 	IModel getModel();
+	@Deprecated // bad name and should not be needed (i'd like to watch into only one side)
 	IComponent getModelParent();
 	IComponent getFocusedChild();
 	AbstractHandler getHandler();

@@ -1,5 +1,6 @@
 package org.klesun_model;
 
+import org.shmidusic.PianoLayoutPanel;
 import org.shmidusic.stuff.OverridingDefaultClasses.TruMap;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -75,6 +76,7 @@ public class Combo
 //		return keyList;
 //	}
 
+	// be carefull, it contains only tunes from 34 to 128
 	public static Integer tuneToAscii(Integer tune) {
 		return getAsciTuneMap().inverse().get(tune);
 	}
@@ -144,7 +146,7 @@ public class Combo
 				map.put(keyboardArrangement[i][j], doOfSmallOctava + 12 * i + j);
 			}
 		}
-		for (Integer i = 32; i < 128; ++i) {
+		for (Integer i = PianoLayoutPanel.FIRST_TUNE; i < 128; ++i) {
 			if (!map.containsValue(i)) {
 				map.put(256 + i, i); // setting not existing (on generic keyboard) key
 				// TODO: not parsed back correctly

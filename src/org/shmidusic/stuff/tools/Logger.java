@@ -1,6 +1,6 @@
 package org.shmidusic.stuff.tools;
 
-import org.shmidusic.stuff.main.Main;
+import org.shmidusic.Main;
 import org.klesun_model.Explain;
 
 import javax.swing.*;
@@ -43,7 +43,7 @@ public class Logger {
 		new File(PRE_FATAL_BACKUP_FOLDER).mkdirs();
 		File file = new File(PRE_FATAL_BACKUP_FOLDER + "fatal_backup_" + dateFormat.format(new Date()) + ".bs.json");
 
-		Explain result = FileProcessor.saveModel(file, Main.window.staffPanel.staffContainer.sheetMusic);
+		Explain result = FileProcessor.saveModel(file, Main.window.shmidusicPanel.sheetContainer.sheetMusic);
 
 		JTextArea text = new JTextArea();
 		text.setEditable(false);
@@ -56,7 +56,7 @@ public class Logger {
 				"stack trace: \n\n" + traceString);
 		} else {
 			text.setText("Im really sorry, midiana crashed and backup of your project could not be saved to file because: {" + result.getExplanation() + "}\n" +
-				"But you can copypaste your project dump below to a json file manually: \n\n" + Main.window.staffPanel.getStaff().getJsonRepresentation().toString());
+					"But you can copypaste your project dump below to a json file manually: \n\n" + Main.window.shmidusicPanel.sheetContainer.sheetMusic.getJsonRepresentation().toString());
 		}
 
 		text.setCaretPosition(0);

@@ -1,10 +1,10 @@
 package org.shmidusic.stuff.Midi;
 
-import org.shmidusic.staff.chord.Chord;
-import org.shmidusic.staff.staff_panel.StaffComponent;
-import org.shmidusic.stuff.main.Main;
+import org.shmidusic.sheet_music.staff.chord.Chord;
+import org.shmidusic.sheet_music.staff.StaffComponent;
+import org.shmidusic.Main;
 import org.klesun_model.Explain;
-import org.shmidusic.staff.Staff;
+import org.shmidusic.sheet_music.staff.Staff;
 import org.apache.commons.math3.fraction.Fraction;
 import org.shmidusic.stuff.tools.jmusic_integration.INota;
 

@@ -16,8 +16,4 @@ public abstract class AbstractModel implements IModel {
 
 	@Override
 	final public Helper getModelHelper() { return h; }
-
-	public List<String> getFieldList() {
-		return getModelHelper().getFieldStorage().stream().map(f -> f.getName()).collect(Collectors.toList());
-	}
 }

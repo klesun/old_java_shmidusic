@@ -1,8 +1,8 @@
 package org.shmidusic.stuff.tools.jmusic_integration;
 
-import org.shmidusic.staff.staff_config.KeySignature;
+import org.shmidusic.sheet_music.staff.staff_config.KeySignature;
 import org.shmidusic.stuff.graphics.ImageStorage;
-import org.shmidusic.stuff.tools.Bin;
+import org.shmidusic.stuff.tools.Fp;
 import org.shmidusic.stuff.tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 
@@ -59,6 +59,11 @@ public interface INota extends Comparable<INota> {
 		return getOctave(tune) * 7 + siga.calcIvoryMask(tune);
 	}
 
+	/** @return tune */
+	static int fromIvory(int ivory) {
+		return (ivory / 7) * 12 + Arrays.asList(0,2,4,5,7,9,11).get(ivory % 7);
+	}
+
 	static int getOctave(int tune) { return tune /12; }
 
 	// 1/256 + 1/128 + 1/64 + 1/32 + 1/16 + 1/8 + 1/4 + 1/2 = 1111 1111
@@ -82,8 +87,8 @@ public interface INota extends Comparable<INota> {
 				Logger.fatal("Providen fraction is greater than 1 even after deviding it to gretest possible nota length! We'll all die!!!" + length);
 			}
 
-			if (Bin.isPowerOf2(length.getDenominator())) { // will be false for triols
-				return Bin.isPowerOf2(length.getNumerator() + 1); // not sure... but, ok, kinda sure
+			if (Fp.isPowerOf2(length.getDenominator())) { // will be false for triols
+				return Fp.isPowerOf2(length.getNumerator() + 1); // not sure... but, ok, kinda sure
 			} else {
 				return false;
 			}

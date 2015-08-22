@@ -1,6 +1,6 @@
 package org.klesun_model;
 
-import org.shmidusic.stuff.main.Main;
+import org.shmidusic.Main;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,23 +27,13 @@ abstract public class AbstractHandler implements KeyListener, MouseListener, Mou
 	// implemented methods
 	final public void keyPressed(KeyEvent e)
 	{
-		AbstractHandler bsh = getRootHandler();
-		Explain result = bsh.handleKey(new Combo(e));
+		Explain result = this.handleKey(new Combo(e));
 		if (!result.isSuccess() && !result.isImplicit()) {
 			JOptionPane.showMessageDialog(getContext().getFirstAwtParent(), result.getExplanation());
 		}
 	}
 	final public void keyTyped(KeyEvent e) {}
 	final public void keyReleased(KeyEvent e) {}
-
-	public AbstractHandler getRootHandler() {
-		IComponent rootContext = getContext();
-		while (rootContext.getModelParent() != null) {
-			rootContext = rootContext.getModelParent();
-		}
-
-		return rootContext.getHandler();
-	}
 
 	final public Explain handleKey(Combo combo) {
 		Explain result = null;

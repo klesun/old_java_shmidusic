@@ -1,6 +1,6 @@
 package org.klesun_model.field;
 
-import org.shmidusic.staff.MidianaComponent;
+import org.shmidusic.sheet_music.staff.MidianaComponent;
 import org.klesun_model.AbstractModel;
 import org.klesun_model.IModel;
 import org.shmidusic.stuff.tools.Logger;
@@ -14,7 +14,7 @@ import java.util.List;
 
 // this class represents our model field that stores collections of AbstractModel-z
 // TODO: it's not array anymore, it's collection - rename it!
-public class Arr<ELEM_CLASS extends AbstractModel> extends Field<Collection<ELEM_CLASS>>
+public class Arr<ELEM_CLASS extends IModel> extends Field<Collection<ELEM_CLASS>>
 {
 	Class<ELEM_CLASS> elemClass;
 	Class<? extends Collection<ELEM_CLASS>> collectionClass;
@@ -28,7 +28,7 @@ public class Arr<ELEM_CLASS extends AbstractModel> extends Field<Collection<ELEM
 	@Override
 	public JSONArray getJsonValue() {
 		JSONArray arr = new JSONArray("[]");
-		for (AbstractModel el: get()) {
+		for (IModel el: get()) {
 			if (el.getJsonRepresentation().keySet().size() != 0 || !omitDefaultFromJson()) {
 				arr.put(el.getJsonRepresentation());
 			}

@@ -2,13 +2,36 @@ package org.shmidusic.stuff.tools;
 
 import org.klesun_model.Explain;
 
+import java.awt.event.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class Fp
 {
+	public static Boolean isPowerOf2(int n) {
+		return (n & (n - 1)) == 0;
+	}
+
+	public static KeyListener onKey(Consumer<KeyEvent> lambda) {
+		return new KeyAdapter() {
+			public void keyPressed(KeyEvent e) {
+				lambda.accept(e);
+			}
+		};
+	}
+
+	public static MouseListener onClick(Consumer<MouseEvent> lambda) {
+		return new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				lambda.accept(e);
+			}
+		};
+	}
+
 	public static String splitCamelCase(String s) {
 		return "<html><center>" + s.replaceAll(
 				String.format("%s|%s|%s",

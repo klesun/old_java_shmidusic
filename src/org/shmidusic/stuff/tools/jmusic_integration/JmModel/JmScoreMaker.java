@@ -1,6 +1,6 @@
 package org.shmidusic.stuff.tools.jmusic_integration.JmModel;
 
-import org.shmidusic.staff.Staff;
+import org.shmidusic.sheet_music.staff.Staff;
 import org.jm.music.data.Score;
 
 public class JmScoreMaker {

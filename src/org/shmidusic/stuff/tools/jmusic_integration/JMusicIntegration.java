@@ -1,6 +1,6 @@
 package org.shmidusic.stuff.tools.jmusic_integration;
 
-import org.shmidusic.staff.Staff;
+import org.shmidusic.sheet_music.staff.Staff;
 import org.klesun_model.Explain;
 import org.json.JSONArray;
 import org.json.JSONObject;

@@ -1,7 +1,7 @@
 package org.shmidusic.stuff.Midi;
 
-import org.shmidusic.staff.chord.nota.Nota;
-import org.shmidusic.staff.staff_config.StaffConfig;
+import org.shmidusic.sheet_music.staff.chord.nota.Nota;
+import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 import org.shmidusic.stuff.musica.Klesunthesizer;
 import org.shmidusic.stuff.tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
