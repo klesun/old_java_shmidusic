@@ -68,6 +68,7 @@ public class MajesticWindow extends JFrame {
 		addMenuBar();
 		switchTo(cardEnum.CARDS_SHEET_MIDUSIC);
 		shmidusicPanel.sheetContainer.requestFocus();
+		DumpReceiver.eventHandler = (StaffHandler) shmidusicPanel.sheetContainer.getFocusedChild().getHandler();
 
 		updateMenuBar();
 	}
@@ -128,7 +129,7 @@ public class MajesticWindow extends JFrame {
 	// retarded language does not support overridable class methods
 	private static List<IComponent> makeFakePossibleChildListForClassMethods(IComponent parent) {
 		if (parent.getClass() == SheetMusicComponent.class) {
-			return Arrays.asList(new StaffComponent(new Staff(), parent.getModelParent()));
+			return Arrays.asList(new StaffComponent(new Staff(), (SheetMusicComponent)parent));
 		} else if (parent.getClass() == StaffComponent.class) {
 			return Arrays.asList(new ChordComponent(new Chord(), parent));
 		} else if (parent.getClass() == ChordComponent.class) {

@@ -32,7 +32,6 @@ final public class MainPanel extends JPanel {
 
 		this.add(sheetScroll, BorderLayout.CENTER);
 		sheetScroll.getVerticalScrollBar().setUnitIncrement(Staff.SISDISPLACE);
-		DumpReceiver.eventHandler = (StaffHandler) sheetContainer.getFocusedChild().getHandler();
 
 		northPanel.add(pianoLayoutPanel = new PianoLayoutPanel(this), BorderLayout.CENTER);
 	}

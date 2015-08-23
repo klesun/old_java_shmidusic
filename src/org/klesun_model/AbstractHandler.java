@@ -1,6 +1,7 @@
 package org.klesun_model;
 
 import org.shmidusic.Main;
+import org.shmidusic.stuff.tools.Logger;
 
 import javax.swing.*;
 import java.awt.*;

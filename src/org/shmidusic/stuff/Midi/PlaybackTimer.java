@@ -1,5 +1,6 @@
 package org.shmidusic.stuff.Midi;
 
+import org.shmidusic.Main;
 import org.shmidusic.sheet_music.staff.chord.nota.Nota;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 import org.shmidusic.stuff.musica.Klesunthesizer;
@@ -7,6 +8,8 @@ import org.shmidusic.stuff.tools.Logger;
 import org.apache.commons.math3.fraction.Fraction;
 import org.shmidusic.stuff.tools.jmusic_integration.INota;
 
+import javax.swing.*;
+import javax.swing.Timer;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,34 +50,36 @@ public class PlaybackTimer implements IMidiScheduler {
 	public void start() {
 		this.timerThread = new Thread(() -> {
 			long startTime = System.currentTimeMillis();
-			while (!tasks.isEmpty() && !stop) {
-
-				long now = System.currentTimeMillis();
-
-				/** @experimenting for performance */
-				Fraction from = new Fraction(0);
-				Fraction to = tasks.navigableKeySet().stream().filter(f -> startTime + toMillis(f) > now).findFirst().orElse(from);
-				Set<Fraction> keys = tasks.navigableKeySet().subSet(from, to);
-
-				for (Fraction key : keys) {
-					List<Runnable> taskList = tasks.remove(key);
-					taskList.forEach(Runnable::run);
-				}
-
-				if (tasks.size() > 0) {
-
-					Fraction nextOn = Collections.min(tasks.navigableKeySet());
-
-					long sleepAnother = startTime + toMillis(nextOn) - System.currentTimeMillis();
-
-					if (sleepAnother > 0) {
-						try { Thread.sleep(sleepAnother); }
-						catch (InterruptedException exc) { Logger.FYI("Playback finished"); }
-					}
-				}
-			}
+			iterate(startTime);
 		});
 		this.timerThread.start();
+	}
+
+	private void iterate(long startTime)
+	{
+
+		long now = System.currentTimeMillis();
+
+		Fraction from = new Fraction(0);
+		Fraction to = tasks.navigableKeySet().stream().filter(f -> startTime + toMillis(f) > now).findFirst().orElse(from);
+		Set<Fraction> keys = tasks.navigableKeySet().subSet(from, to);
+
+		for (Fraction key : keys) {
+			List<Runnable> taskList = tasks.remove(key);
+			taskList.forEach(Runnable::run);
+		}
+
+		if (tasks.size() > 0 && !stop) {
+
+			Fraction nextOn = Collections.min(tasks.navigableKeySet());
+
+			int sleepAnother = (int)(startTime + toMillis(nextOn) - System.currentTimeMillis());
+			sleepAnother = sleepAnother > 0 ? sleepAnother : 0;
+
+			Timer swingTimer =  new Timer(sleepAnother, a -> iterate(startTime));
+			swingTimer.setRepeats(false); // we would be dead now if not this flag =3
+			swingTimer.start();
+		}
 	}
 
 	synchronized public void interrupt() {

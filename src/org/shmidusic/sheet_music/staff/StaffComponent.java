@@ -3,6 +3,7 @@ package org.shmidusic.sheet_music.staff;
 import org.klesun_model.AbstractHandler;
 import org.klesun_model.Explain;
 import org.klesun_model.IComponent;
+import org.shmidusic.sheet_music.SheetMusicComponent;
 import org.shmidusic.sheet_music.staff.chord.Chord;
 import org.shmidusic.sheet_music.staff.chord.ChordComponent;
 import org.shmidusic.sheet_music.staff.chord.ChordHandler;
@@ -23,12 +24,12 @@ public class StaffComponent extends JPanel implements IComponent
 	final public Staff staff;
 	private Set<ChordComponent> chordComponents = new HashSet<>();
 
-	final private IComponent parent;
+	final private SheetMusicComponent parent;
 	final private StaffHandler handler;
 	final public JPanel chordSpace = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
 	final private Playback playback;
 
-	public StaffComponent(Staff staff, IComponent parent) {
+	public StaffComponent(Staff staff, SheetMusicComponent parent) {
 		this.parent = parent;
 		this.staff = staff;
 		this.handler = new StaffHandler(this);
@@ -180,7 +181,7 @@ public class StaffComponent extends JPanel implements IComponent
 	}
 
 	@Override
-	public IComponent getModelParent() {
+	public SheetMusicComponent getModelParent() {
 		return this.parent;
 	}
 

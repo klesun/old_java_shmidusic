@@ -1,13 +1,17 @@
 package org.shmidusic.stuff.Midi;
 
+import javafx.scene.input.KeyCode;
 import org.shmidusic.sheet_music.staff.chord.Chord;
 import org.shmidusic.sheet_music.staff.StaffComponent;
 import org.shmidusic.Main;
 import org.klesun_model.Explain;
 import org.shmidusic.sheet_music.staff.Staff;
 import org.apache.commons.math3.fraction.Fraction;
+import org.shmidusic.stuff.tools.Logger;
 import org.shmidusic.stuff.tools.jmusic_integration.INota;
 
+import javax.swing.*;
+import java.awt.event.KeyEvent;
 import java.util.function.Consumer;
 
 public class Playback {

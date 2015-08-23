@@ -2,6 +2,7 @@ package org.shmidusic;
 
 //import com.sun.deploy.util.SystemUtils;
 import org.shmidusic.stuff.Midi.DeviceEbun;
+import org.shmidusic.stuff.Midi.PlaybackTimer;
 import org.shmidusic.stuff.tools.Logger;
 
 public class Main
@@ -14,10 +15,11 @@ public class Main
 	 */
 
 	public static Boolean isLinux = false;
-
 	public static MajesticWindow window = null;
 
-	public static void main(String[] args) {
+	public static void main(String[] args)
+	{
+		// TODO: i'm tired of those non-final properties - do things through instance!
 
 		// linux requires hacks for awt performance (maybe it's not awt's fault, fuck you nvidia)
 		Main.isLinux = (System.getProperty("os.name").equals("Linux"));

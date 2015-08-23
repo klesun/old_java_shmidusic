@@ -13,6 +13,7 @@ public class MajesticListener implements WindowListener {
 
 	@Override
 	public void windowClosing(WindowEvent e) {
+		// TODO: closing process freezes when midi device was busy with musescore - investigate
 		DeviceEbun.closeMidiDevices();
 	}
 

@@ -48,7 +48,7 @@ public class Arr<ELEM_CLASS extends IModel> extends Field<Collection<ELEM_CLASS>
 				} catch (Exception e) {
 					Logger.fatal(e, "Failed to make instance of {" + elemClass.getSimpleName() + "}");
 				}
-			} else if (AbstractModel.class.isAssignableFrom(elemClass)) {
+			} else if (IModel.class.isAssignableFrom(elemClass)) {
 				try {
 					el = elemClass.newInstance();
 				} catch (Exception e) {

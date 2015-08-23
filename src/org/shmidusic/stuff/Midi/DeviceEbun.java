@@ -71,12 +71,23 @@ public class DeviceEbun {
 
 				// opening output device
 				MidiDevice.Info outputInfo = MidiCommon.getMidiDeviceInfo(device.getDeviceInfo().getName(), true);
-				try {
-					MidiDevice midiOutputDevice = MidiSystem.getMidiDevice(outputInfo);
-					midiOutputDevice.open();
-					hardwareReceiver = midiOutputDevice.getReceiver();
-					changeOutDevice();
-				} catch (MidiUnavailableException e) { Logger.warning("Failed to use MIDI device as OUT. Its weird, cuz with input of this device everything is alright =D"); }
+
+				if (outputInfo != null) {
+
+					try {
+						MidiDevice midiOutputDevice = MidiSystem.getMidiDevice(outputInfo);
+						midiOutputDevice.open();
+						hardwareReceiver = midiOutputDevice.getReceiver();
+						changeOutDevice();
+					} catch (MidiUnavailableException e) {
+						Logger.warning("Failed to use MIDI device as OUT. Its weird, cuz with input of this device everything is alright =D");
+					}
+
+				} else {
+					// TODO: do things not 4erez zhopu here
+					Logger.logForUser("Sorry. I dunno why, but your first MIDI IN device name does not match any MIDI OUT devices." + "" +
+						" You can type sheet music with your device, but you wont be able to playback it to it");
+				}
 
 			} catch (MidiUnavailableException e) { Logger.logForUser("Midi-Port is already being used by other program or something like that; so no midi for you today"); }
 		} else {
