@@ -30,7 +30,7 @@ public class NotaHandler extends AbstractHandler {
 			.p(new Combo(0, k.VK_DELETE), mkAction(c -> c.getParentComponent().remove(c.note)).setCaption("Delete"))
 			.p(new Combo(0, k.VK_ENTER), mkAction(c -> PlayMusThread.playNotu(c.note)).setCaption("Play"))
 
-			.p(new Combo(k.CTRL_MASK, k.VK_3), mkAction(model(Nota::triggerTupletDenominator)).setCaption("Switch Triplet/Normal"))
+			.p(new Combo(k.CTRL_MASK, k.VK_3), mkAction(modelRecalcTacts(Nota::triggerTupletDenominator)).setCaption("Switch Triplet/Normal"))
 			.p(new Combo(k.CTRL_MASK, k.VK_H), mkAction(model(Nota::triggerIsMuted)).setCaption("Mute/Unmute"))
 			.p(new Combo(k.SHIFT_MASK, k.VK_3), mkFailableAction(NoteComponent::triggerIsSharp).setCaption("Switch Sharp/Flat"))
 		.

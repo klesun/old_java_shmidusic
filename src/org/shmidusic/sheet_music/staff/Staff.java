@@ -101,6 +101,7 @@ public class Staff extends AbstractModel
 		for (Chord chord : chordList) {
 			currentTact.accordList.add(chord);
 			if (measurer.inject(chord)) {
+				currentTact.setPrecedingRest(measurer.sumFraction);
 				result.add(currentTact);
 				currentTact = new Tact(i++);
 			}

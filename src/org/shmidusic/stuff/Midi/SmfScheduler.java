@@ -29,6 +29,6 @@ public class SmfScheduler implements IMidiScheduler
 	}
 
 	private int time(Fraction f) {
-		return Nota.getTimeMilliseconds(f, config.getTempo());
+		return Nota.getTimeBeats(f, config.getTempo());
 	}
 }

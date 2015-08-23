@@ -245,8 +245,7 @@ public class StaffComponent extends JPanel implements IComponent
 			getFocusedChild().repaint();
 		}
 
-		Main.window.shmidusicPanel.pianoLayoutPanel.repaint();
-		Main.window.shmidusicPanel.sheetContainer.checkCam();
+		getModelParent().mainPanel.chordChanged();
 
 		return this;
 	}

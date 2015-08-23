@@ -65,9 +65,19 @@ public class Nota extends AbstractModel implements INota
 		return getTimeMilliseconds(getRealLength(), tempo);
 	}
 
+	// TODO: separate it into two parts. What we pass to SMF are not milliseconds, they are beats!
+	// playback should be 1000 and what we show in status bar - too
 	public static int getTimeMilliseconds(Fraction length, int tempo) {
-//		int minute = 60 * 1000;
-		int minute = 60 * 960; /** @debug */
+		return getTimeUnits(length, tempo, 1000);
+	}
+
+	public static int getTimeBeats(Fraction length, int tempo) {
+		// 960 is hardcoded, i don't completely understand what this number means
+		return getTimeUnits(length, tempo, 960);
+	}
+
+	private static int getTimeUnits(Fraction length, int tempo, int unitsInMinute) {
+		int minute = 60 * unitsInMinute;
 		int semibreveTime = 4 * minute / tempo;
 		return length.multiply(semibreveTime).intValue();
 	}

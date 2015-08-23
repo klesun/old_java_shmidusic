@@ -8,6 +8,7 @@ import org.shmidusic.sheet_music.staff.StaffComponent;
 import org.shmidusic.stuff.OverridingDefaultClasses.TruMap;
 import org.shmidusic.stuff.graphics.Settings;
 import org.shmidusic.stuff.tools.FileProcessor;
+import org.shmidusic.stuff.tools.Fp;
 
 import javax.swing.*;
 import java.awt.*;
@@ -58,6 +59,7 @@ public class SheetMusicComponent extends JPanel implements IComponent
 			}
 		};
 		this.addKeyListener(handler);
+		addMouseListener(Fp.onClick(e -> requestFocus()));
 	}
 
 	public void triggerPlayback() {

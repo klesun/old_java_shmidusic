@@ -75,6 +75,7 @@ public class ChordHandler extends AbstractHandler {
 	public Boolean mousePressedFinal(ComboMouse combo)
 	{
 		getContext().getParentComponent().setFocus(getContext());
+		getContext().getParentComponent().getModelParent().requestFocus();
 		return true;
 	}
 }

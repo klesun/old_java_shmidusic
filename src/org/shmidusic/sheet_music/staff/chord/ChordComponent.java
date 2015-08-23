@@ -1,5 +1,6 @@
 package org.shmidusic.sheet_music.staff.chord;
 
+import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONObject;
 import org.klesun_model.AbstractHandler;
 import org.klesun_model.Explain;
@@ -10,12 +11,15 @@ import org.shmidusic.sheet_music.staff.chord.nota.Nota;
 import org.shmidusic.sheet_music.staff.chord.nota.NoteComponent;
 import org.shmidusic.sheet_music.staff.staff_config.KeySignature;
 import org.shmidusic.sheet_music.staff.StaffComponent;
+import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 import org.shmidusic.stuff.graphics.Settings;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Stream;
 
 public class ChordComponent extends JComponent implements IComponent
@@ -121,6 +125,30 @@ public class ChordComponent extends JComponent implements IComponent
 		}); // it may not be success when we delete chords
 
 		return siga;
+	}
+
+	/** @return timestamp in seconds */
+	public Double determineStartTimestamp()
+	{
+		StaffConfig config = getParentComponent().staff.getConfig();
+		Explain<Tact> opt = getParentComponent().staff.findTact(chord);
+
+		if (opt.isSuccess()) {
+			Tact tact = opt.getData();
+			Fraction precedingChords = new LinkedList<>(tact.accordList.get())
+				.subList(0, tact.accordList.indexOf(chord))
+				.stream().map(c -> c.getFraction())
+				.reduce(Fraction::add).orElse(new Fraction(0));
+
+			Fraction startFraction = config.getTactSize().multiply(tact.tactNumber.get()).add(precedingChords);
+			if (!tact.getIsCorrect()) {
+				startFraction = startFraction.add(tact.getPrecedingRest());
+			}
+
+			return Nota.getTimeMilliseconds(startFraction, config.getTempo()) / 1000.0;
+		} else {
+			return - 100.0;
+		}
 	}
 
 	// ========================
