@@ -96,7 +96,7 @@ public class Logger {
 		}
 
 		long newTime = System.nanoTime();
-		logForUser("==== " + (newTime - time)/1e9 + " - " + msg);
+		logForUser("==== " + (newTime - time)/1e6 + " - " + msg); // 1.0 - one millisecond
 		time = newTime;
 	}
 

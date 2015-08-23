@@ -18,7 +18,7 @@ public class PlaybackTimer implements IMidiScheduler {
 	private Boolean stop = false;
 
 	// please, note that with this implementation we may have only one task per iteration. i hope it's exactly what we need
-	private Map<Fraction, List<Runnable>> tasks = new HashMap<>();
+	private TreeMap<Fraction, List<Runnable>> tasks = new TreeMap<>();
 
 	public PlaybackTimer(StaffConfig config) {
 		this.config = config;
@@ -39,29 +39,33 @@ public class PlaybackTimer implements IMidiScheduler {
 
 	// adds task right after last with delta gap
 	public void appendTask(Fraction delta, Runnable task) {
-		addTask(Collections.max(tasks.keySet()).add(delta), task);
+		if (tasks.keySet().size() > 0) {
+			addTask(Collections.max(tasks.navigableKeySet()).add(delta), task);
+		}
 	}
 
 	public void start() {
 		this.timerThread = new Thread(() -> {
 			long startTime = System.currentTimeMillis();
 			while (!tasks.isEmpty() && !stop) {
+
 				long now = System.currentTimeMillis();
 
-				Set<Fraction> keys = tasks.keySet().stream()
-					.filter(f -> startTime + toMillis(f) <= now)
-					.collect(Collectors.toSet());
+				/** @experimenting for performance */
+				Fraction from = new Fraction(0);
+				Fraction to = tasks.navigableKeySet().stream().filter(f -> startTime + toMillis(f) > now).findFirst().orElse(from);
+				Set<Fraction> keys = tasks.navigableKeySet().subSet(from, to);
 
 				for (Fraction key : keys) {
 					List<Runnable> taskList = tasks.remove(key);
-					new Thread(() -> taskList.forEach(Runnable::run)).start();
+					taskList.forEach(Runnable::run);
 				}
 
 				if (tasks.size() > 0) {
 
-					Fraction nextOn = Collections.min(tasks.keySet());
+					Fraction nextOn = Collections.min(tasks.navigableKeySet());
 
-					long sleepAnother = toMillis(nextOn) - System.currentTimeMillis();
+					long sleepAnother = startTime + toMillis(nextOn) - System.currentTimeMillis();
 
 					if (sleepAnother > 0) {
 						try { Thread.sleep(sleepAnother); }

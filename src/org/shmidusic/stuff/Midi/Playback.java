@@ -50,7 +50,7 @@ public class Playback {
 			staffComp.moveFocus(-1);
 			int startFrom = staff.getFocusedIndex() + 1;
 
-			streamTo(runningProcess, startFrom, now -> runningProcess.addTask(now, () -> { staffComp.moveFocus(1); }));
+			streamTo(runningProcess, startFrom, now -> runningProcess.addTask(now, () -> staffComp.moveFocus(1)));
 
 			runningProcess.appendTask(new Fraction(1), this::interrupt);
 			runningProcess.start();

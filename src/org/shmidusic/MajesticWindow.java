@@ -68,7 +68,6 @@ public class MajesticWindow extends JFrame {
 		addMenuBar();
 		switchTo(cardEnum.CARDS_SHEET_MIDUSIC);
 		shmidusicPanel.sheetContainer.requestFocus();
-		DumpReceiver.eventHandler = (StaffHandler) shmidusicPanel.sheetContainer.getFocusedChild().getHandler();;
 
 		updateMenuBar();
 	}

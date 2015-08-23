@@ -3,6 +3,8 @@ package org.shmidusic;
 import org.shmidusic.sheet_music.staff.Staff;
 import org.shmidusic.sheet_music.SheetMusic;
 import org.shmidusic.sheet_music.SheetMusicComponent;
+import org.shmidusic.sheet_music.staff.StaffHandler;
+import org.shmidusic.stuff.Midi.DumpReceiver;
 import org.shmidusic.stuff.OverridingDefaultClasses.Scroll;
 
 import java.awt.*;
@@ -30,6 +32,7 @@ final public class MainPanel extends JPanel {
 
 		this.add(sheetScroll, BorderLayout.CENTER);
 		sheetScroll.getVerticalScrollBar().setUnitIncrement(Staff.SISDISPLACE);
+		DumpReceiver.eventHandler = (StaffHandler) sheetContainer.getFocusedChild().getHandler();
 
 		northPanel.add(pianoLayoutPanel = new PianoLayoutPanel(this), BorderLayout.CENTER);
 	}
@@ -40,6 +43,8 @@ final public class MainPanel extends JPanel {
 		this.remove(sheetScroll);
 		this.add(sheetScroll = new Scroll(sheetContainer), BorderLayout.CENTER);
 		sheetScroll.getVerticalScrollBar().setUnitIncrement(Staff.SISDISPLACE);
+		DumpReceiver.eventHandler = (StaffHandler) sheetContainer.getFocusedChild().getHandler();
+
 		this.revalidate();
 	}
 }
