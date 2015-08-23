@@ -57,28 +57,30 @@ public class PlaybackTimer implements IMidiScheduler {
 
 	private void iterate(long startTime)
 	{
+		if (!stop) {
 
-		long now = System.currentTimeMillis();
+			long now = System.currentTimeMillis();
 
-		Fraction from = new Fraction(0);
-		Fraction to = tasks.navigableKeySet().stream().filter(f -> startTime + toMillis(f) > now).findFirst().orElse(from);
-		Set<Fraction> keys = tasks.navigableKeySet().subSet(from, to);
+			Fraction from = new Fraction(0);
+			Fraction to = tasks.navigableKeySet().stream().filter(f -> startTime + toMillis(f) > now).findFirst().orElse(new Fraction(Integer.MAX_VALUE));
+			Set<Fraction> keys = tasks.navigableKeySet().subSet(from, to);
 
-		for (Fraction key : keys) {
-			List<Runnable> taskList = tasks.remove(key);
-			taskList.forEach(Runnable::run);
-		}
+			for (Fraction key : keys) {
+				List<Runnable> taskList = tasks.remove(key);
+				taskList.forEach(Runnable::run);
+			}
 
-		if (tasks.size() > 0 && !stop) {
+			if (tasks.size() > 0) {
 
-			Fraction nextOn = Collections.min(tasks.navigableKeySet());
+				Fraction nextOn = Collections.min(tasks.navigableKeySet());
 
-			int sleepAnother = (int)(startTime + toMillis(nextOn) - System.currentTimeMillis());
-			sleepAnother = sleepAnother > 0 ? sleepAnother : 0;
+				int sleepAnother = (int) (startTime + toMillis(nextOn) - System.currentTimeMillis());
+				sleepAnother = sleepAnother > 0 ? sleepAnother : 0;
 
-			Timer swingTimer =  new Timer(sleepAnother, a -> iterate(startTime));
-			swingTimer.setRepeats(false); // we would be dead now if not this flag =3
-			swingTimer.start();
+				Timer swingTimer = new Timer(sleepAnother, a -> iterate(startTime));
+				swingTimer.setRepeats(false);
+				swingTimer.start(); // be carefull. make sure tasks will be emptied eventually!
+			}
 		}
 	}
 
