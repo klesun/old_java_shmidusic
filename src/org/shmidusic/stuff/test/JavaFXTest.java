@@ -21,12 +21,7 @@ public class JavaFXTest {
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		Platform.runLater(new Runnable() {
-			@Override
-			public void run() {
-				initFX(fxPanel);
-			}
-		});
+		Platform.runLater(() -> initFX(fxPanel));
 	}
 
 	private static void initFX(JFXPanel fxPanel) {
@@ -51,11 +46,6 @@ public class JavaFXTest {
 	}
 
 	public static void main(String[] args) {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				initAndShowGUI();
-			}
-		});
+		SwingUtilities.invokeLater(() -> initAndShowGUI());
 	}
 }

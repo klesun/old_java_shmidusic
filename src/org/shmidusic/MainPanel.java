@@ -55,8 +55,10 @@ final public class MainPanel extends JPanel {
 	}
 
 	public void chordChanged() {
-		pianoLayoutPanel.repaint();
+		pianoLayoutPanel.paintImmediately(pianoLayoutPanel.getVisibleRect()); // simple repaint() would sometimes lag for a half second, what was not likable
+		// this may also start lagging, but only if you unfocus window
 		statusField.setText(getStatusText());
+		statusField.paintImmediately(statusField.getVisibleRect());
 		sheetContainer.checkCam();
 	}
 

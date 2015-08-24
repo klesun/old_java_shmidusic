@@ -241,10 +241,12 @@ public class StaffComponent extends JPanel implements IComponent
 
 		if (was != null) {
 			was.setFocusedIndex(-1);
-			was.repaint();
+			was.paintImmediately(was.getVisibleRect()); // simple repaint() would sometimes lag for a half second, what was not likable
+//			was.repaint();
 		}
 		if (staff.getFocusedIndex() != -1) {
-			getFocusedChild().repaint();
+//			getFocusedChild().repaint();
+			getFocusedChild().paintImmediately(getFocusedChild().getVisibleRect()); // simple repaint() would sometimes lag for a half second, what was not likable
 		}
 
 		getModelParent().mainPanel.chordChanged();
