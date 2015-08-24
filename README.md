@@ -24,7 +24,7 @@ Shortcuts for interacting with program are listed in ["SheetMusic", "Staff", "Ch
 | shortcut      | action        |
 | ------------- |:-------------:|
 | [0-9]      | Change focused Note channel if a Note is focused; move focus to Note with corresponding number elsewhere |
-| alt-[a-z0-9] <b>OR</b> {a key on midi keyboard} | Change focused Note channel if a Note is focused; move focus to Note with corresponding number elsewhere |
+| alt-[a-z0-9] <b>OR</b> {a key on midi keyboard} | Add Note into the Chord if a Note is focused; Add Note-s into new Chord elsewhere |
 
 <br />
 Some music you can find at https://drive.google.com/folderview?id=0B_PiTxsew2JrV3prNFR6QUdZQ2M&usp=sharing
