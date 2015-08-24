@@ -20,10 +20,11 @@ To create music you'll have to have some midi-piano plugged into your midi-port 
 
 Shortcuts for interacting with program are listed in ["SheetMusic", "Staff", "Chord", "Note"] menu entries. The only absent shortcuts are:
 <br />
-| shortcut | action |
- -------- | ------ |
-| [0-9] | Change focused Note channel if a Note is focused; move focus to Note with corresponding number elsewhere |
-| alt-[a-z0-9] <b>OR</b> {a key on midi keyboard} | Add Note into the Chord if a Note is focused; Add Note-s into new Chord elsewhere;  |
+
+| shortcut      | action        |
+| ------------- |:-------------:|
+| [0-9]      | Change focused Note channel if a Note is focused; move focus to Note with corresponding number elsewhere |
+| alt-[a-z0-9] <b>OR</b> {a key on midi keyboard} | Change focused Note channel if a Note is focused; move focus to Note with corresponding number elsewhere |
 
 <br />
 Some music you can find at https://drive.google.com/folderview?id=0B_PiTxsew2JrV3prNFR6QUdZQ2M&usp=sharing
