@@ -35,7 +35,7 @@ public class ChordHandler extends AbstractHandler {
 		actionMap.p(new Combo(ctrl, k.VK_PERIOD), mkAction(a -> a.triggerIsDiminendo()).setCaption("Diminendo On/Off"))
 			.p(new Combo(0, k.VK_UP), mkFailableAction(a -> a.moveFocus(-1)).setCaption("Focus Next Note"))
 			.p(new Combo(0, k.VK_DOWN), mkFailableAction(a -> a.moveFocus(1)).setCaption("Focus Previous Note"))
-			.p(new Combo(0, k.VK_DELETE), mkAction(a -> a.getParentComponent().removeChord(a.chord)).setCaption("Delete"))
+//			.p(new Combo(0, k.VK_DELETE), mkAction(a -> a.getParentComponent().removeChord(a.chord)).setCaption("Delete"))
 		;
 
 		for (Combo combo: Combo.getNumberComboList(0)) {

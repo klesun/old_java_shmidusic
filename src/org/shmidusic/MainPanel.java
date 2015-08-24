@@ -25,7 +25,7 @@ final public class MainPanel extends JPanel {
 	public Scroll sheetScroll = new Scroll(sheetContainer);
 
 	final private PianoLayoutPanel pianoLayoutPanel;
-	final private JTextField statusField = new JTextField(null, "status text", 20);
+	final private JLabel statusField = new JLabel("status text");
 
 	public MainPanel() {
 		super();
@@ -39,7 +39,6 @@ final public class MainPanel extends JPanel {
 
 		northPanel.add(pianoLayoutPanel = new PianoLayoutPanel(this), BorderLayout.CENTER);
 
-		statusField.setEditable(false);
 		northPanel.add(statusField, BorderLayout.EAST);
 	}
 
@@ -63,7 +62,11 @@ final public class MainPanel extends JPanel {
 
 	private String getStatusText()
 	{
-		String result = "status | ";
+		String result = "" +
+			"" +
+			"" +
+			"" +
+			"";
 
 		StaffComponent staffComp = sheetContainer.getFocusedChild();
 		if (staffComp.getFocusedChild() != null) {

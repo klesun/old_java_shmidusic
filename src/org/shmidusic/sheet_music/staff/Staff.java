@@ -77,11 +77,6 @@ public class Staff extends AbstractModel
 		this.tactList = recalcTactList(); // TODO: maybe do some optimization using repaintAllFromIndex
 	}
 
-//	public synchronized int drawOn(Graphics2D g, int x, int y) {
-//		new StaffPainter(this, g, x, y).draw(true);
-//		return getHeightIf(getWidth());
-//	}
-
 	@Override
 	public JSONObject getJsonRepresentation() {
 		return new JSONObject()
@@ -123,9 +118,6 @@ public class Staff extends AbstractModel
 			t.accordList.get().contains(chord) ? 0 : chordIdx - chordList.indexOf(t.accordList.get(0));
 
 		return Fp.findBinary(tactList, pred);
-
-		// SLOOOOOOOOOOOOOOOOOOOOOOW
-//		return tactList.stream().filter(t -> t.accordList.get().contains(chord)).findAny();
 	}
 
 	// TODO: model, mazafaka!

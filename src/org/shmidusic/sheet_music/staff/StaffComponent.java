@@ -135,6 +135,8 @@ public class StaffComponent extends JPanel implements IComponent
 		ChordComponent comp = findChild(chord);
 		chordSpace.remove(comp);
 		chordComponents.remove(comp);
+		moveFocus(-1);
+
 		revalidate();
 		repaint();
 	}

@@ -46,7 +46,8 @@ public class SheetMusicComponent extends JPanel implements IComponent
 			public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() {
 				return new TruMap<>()
 					.p(new Combo(ctrl, k.VK_L), mkFailableAction(SheetMusicComponent::splitFocusedStaff))
-					.p(new Combo(ctrl, k.VK_P), mkAction(SheetMusicComponent::triggerPlayback).setCaption("Play/Stop"))
+//					.p(new Combo(ctrl, k.VK_P), mkAction(SheetMusicComponent::triggerPlayback).setCaption("Play/Stop"))
+					.p(new Combo(0, k.VK_SPACE), mkAction(SheetMusicComponent::triggerPlayback).setCaption("Play/Stop"))
 						// File
 					.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel).setCaption("Save midi.json"))
 					.p(new Combo(ctrl, k.VK_M), mkFailableAction(FileProcessor::saveMidi).setCaption("Save midi"))
