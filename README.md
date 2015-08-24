@@ -10,7 +10,7 @@ $ ./run.sh
 ```
 (or you can also find some jar in project root. it will be a bit outdated: )<br />
 ```sh
-$ java -jar midiana.jar
+$ java -jar shmidusic.jar
 ```
 <br />
 List of available midi devices will be printed into console.<br />
