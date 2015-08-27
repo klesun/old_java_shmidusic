@@ -18,7 +18,7 @@ public class Channel extends AbstractModel implements Comparable<Channel>  {
 	public Channel setIsMuted(Boolean value) { isMuted.set(value); return this; }
 
 	public Integer getInstrument() { return instrument.get(); }
-	public int getVolume() { return volume.get(); }
+	public Integer getVolume() { return volume.get(); }
 	public Boolean getIsMuted() { return isMuted.get(); }
 
 	@Override

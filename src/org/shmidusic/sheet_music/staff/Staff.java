@@ -73,7 +73,6 @@ public class Staff extends AbstractModel
 
 	public void accordListChanged(int repaintAllFromIndex)
 	{
-		setFocusedIndex(limit(getFocusedIndex(), -1, chordList.size() - 1));
 		this.tactList = recalcTactList(); // TODO: maybe do some optimization using repaintAllFromIndex
 	}
 
@@ -156,7 +155,7 @@ public class Staff extends AbstractModel
 	// getters
 
 	public Chord getFocusedAccord() {
-		if (this.getFocusedIndex() > -1) {
+		if (this.getFocusedIndex() > -1 && this.getFocusedIndex() < this.chordList.size()) {
 			return getChordList().get(getFocusedIndex());
 		} else {
 			return null;

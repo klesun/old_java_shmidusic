@@ -101,13 +101,10 @@ public class StaffConfig extends AbstractModel
 	}
 
 	public void syncSyntChannels() {
-		ShortMessage instrMess = new ShortMessage();
-		try {
-			for (int i = 0; i < getChannelList().size(); ++i) {
-				instrMess.setMessage(ShortMessage.PROGRAM_CHANGE, i, channelList.get(i).getInstrument(), 0);
-				DeviceEbun.getPlaybackReceiver().send(instrMess, -1);
-			}
-		} catch (InvalidMidiDataException exc) { System.out.println("Midi error, could not sync channel instruments!"); }
+		for (int i = 0; i < getChannelList().size(); ++i) {
+			DeviceEbun.setInstrument(i, channelList.get(i).getInstrument());
+			DeviceEbun.setVolume(i, channelList.get(i).getVolume());
+		}
 	}
 
 	public static void syncSyntChannels(AbstractModel c) { ((StaffConfig)c).syncSyntChannels(); }

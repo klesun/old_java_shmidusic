@@ -29,8 +29,10 @@ public class Chord extends AbstractModel
 		return getNotaSet().stream().filter(filterLambda);
 	}
 
+	// TODO: add parameter to Chord: "explicitLength" and use it instead of our fake-note-pauses
+	/** @return stream of real notes... maybe should store pause list separately? */
 	public Stream<Nota> notaStream() {
-		return getNotaSet().stream();
+		return notaStream(n -> !n.isPause());
 	}
 
 	public long getEarliestKeydown() {

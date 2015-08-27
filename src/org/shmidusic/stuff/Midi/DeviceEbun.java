@@ -15,7 +15,7 @@ public class DeviceEbun {
 
 	// data1 of ShortMessage.CONTROL_CHANGE
 	final static int PAN = 10;
-	final static int VOLUME = 7;
+	final static short CONTROL_CHANGE_VOLUME = 7;
 	final static int RESET_ALL_CONTROLLERS = 121;
 
 	// the first byte (status)
@@ -131,11 +131,19 @@ public class DeviceEbun {
 	}
 
 	public static void setVolume(int channel, int value) {
-		sendMessage(ShortMessage.CONTROL_CHANGE, channel, VOLUME, value);
+		sendMessage(ShortMessage.CONTROL_CHANGE, channel, CONTROL_CHANGE_VOLUME, value);
+	}
+
+	public static void setInstrument(int channel, int value) {
+		sendMessage(ShortMessage.PROGRAM_CHANGE, channel, value, 0);
 	}
 
 	synchronized public static void openNota(INota nota)
 	{
+		if (openNotaSet.contains(nota)) {
+			closeNota(nota);
+		}
+
 		openNotaSet.add(nota);
 		if (nota.getChannel() != DRUM_CHANNEL) {
 			sendMessage(ShortMessage.NOTE_ON, nota.getChannel(), nota.getTune(), 63); // 63 volume seems kinda hacky
