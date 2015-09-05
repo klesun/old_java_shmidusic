@@ -2,6 +2,7 @@ package org.shmidusic.sheet_music.staff.staff_config;
 
 import org.shmidusic.sheet_music.staff.chord.Chord;
 import org.shmidusic.stuff.OverridingDefaultClasses.TruMap;
+import org.shmidusic.stuff.tools.INota;
 
 import java.util.*;
 
@@ -48,21 +49,24 @@ public class KeySignature
 	}
 
 	// add bemols/becars/diezes of this chord Note-s
-	public void consume(Chord chord)
+	public void consume(Chord chord) {
+		chord.notaStream().forEach(this::consume);
+	}
+
+	// add bemols/becars/diezes of this Note
+	public void consume(INota n)
 	{
-		chord.notaStream().forEach(n -> {
-			if (!myTuneQueue().contains(n.getTune() % 12)) {
-				if (n.isEbony()) {
-					// treating as bemol
-					// TODO: maybe taking same symbol as signature direction would be better (see eflen lied)
-					myFlatSignature.add(flatIvoryMask(n.getTune()));
-				} else {
-					// becar
-					mySharpSignature.remove(sharpIvoryMask(n.getTune()));
-					myFlatSignature.remove(flatIvoryMask(n.getTune()));
-				}
+		if (!myTuneQueue().contains(n.getTune() % 12)) {
+			if (n.isEbony()) {
+				// treating as bemol
+				// TODO: maybe taking same symbol as signature direction would be better (see eflen lied)
+				myFlatSignature.add(flatIvoryMask(n.getTune()));
+			} else {
+				// becar
+				mySharpSignature.remove(sharpIvoryMask(n.getTune()));
+				myFlatSignature.remove(flatIvoryMask(n.getTune()));
 			}
-		});
+		}
 	}
 
 	private Boolean matches(int tuneMask) {

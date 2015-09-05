@@ -11,4 +11,10 @@ public class MutableInt
 	public int incr(int n) { return (this.value += n) - n; }
 
 	public int incr() { return value++; }
+
+    public int decr() { return value--; }
+
+    public int get() {
+        return value;
+    }
 }

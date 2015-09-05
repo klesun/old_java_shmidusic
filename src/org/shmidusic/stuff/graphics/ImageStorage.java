@@ -2,7 +2,7 @@ package org.shmidusic.stuff.graphics;
 
 import org.shmidusic.sheet_music.staff.staff_config.Channel;
 import org.shmidusic.stuff.tools.Logger;
-import org.shmidusic.stuff.tools.jmusic_integration.INota;
+import org.shmidusic.stuff.tools.INota;
 import org.apache.commons.math3.fraction.Fraction;
 
 import javax.imageio.ImageIO;

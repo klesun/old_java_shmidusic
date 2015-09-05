@@ -9,7 +9,6 @@ import org.klesun_model.IModel;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.shmidusic.MainPanel;
@@ -21,7 +20,7 @@ import java.util.stream.Stream;
 
 
 import org.shmidusic.stuff.tools.Fp;
-import org.shmidusic.stuff.tools.jmusic_integration.INota;
+import org.shmidusic.stuff.tools.INota;
 import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -127,17 +126,13 @@ public class Staff extends AbstractModel
 		JSONObject configJson = jsObject.getJSONObject("staffConfig");
 		this.getConfig().reconstructFromJson(configJson);
 
-		if (jsObject.has("chordList")) {
-			toStream(jsObject.getJSONArray("chordList")).forEach(
-				childJs -> this.addNewAccord().reconstructFromJson(childJs));
+		Stream<JSONObject> jsChords = jsObject.has("chordList")
+				? toStream(jsObject.getJSONArray("chordList"))
+				: toStream(jsObject.getJSONArray("tactList"))
+						.map(t -> toStream(t.getJSONArray("chordList")))
+						.flatMap(s -> s);
 
-		} else if (jsObject.has("tactList")) {
-			toStream(jsObject.getJSONArray("tactList")).forEach(
-				childJs -> toStream(childJs.getJSONArray("chordList")).forEach(
-					a -> addNewAccord().reconstructFromJson(a)));
-		} else {
-			throw new JSONException("Staff Json Has No Valid Children! It got only: " + Arrays.toString(jsObject.keySet().toArray()));
-		}
+		jsChords.forEach(childJs -> this.addNewAccord().reconstructFromJson(childJs));
 
 		return this;
 	}
@@ -212,71 +207,6 @@ public class Staff extends AbstractModel
 	}
 
 	// action handles
-
-	/** @return - nota that we just put */
-	public Nota putAt(Fraction desiredPos, INota nota)
-	{
-		// TODO: it's broken somehow. Bakemonogatari can be opent with Noteworthy, but cant with midiana
-		// and yu-no, maybe move this method into some specialized class? it seems to be something serious
-		// what this method does, yes it's definitely should be move into some MidiSheetMusicCalculator or so...
-
-		Fraction curPos = new Fraction(0);
-		for (int i = 0; i < getChordList().size(); ++i) {
-
-			if (curPos.equals(desiredPos)) {
-				Chord chord = getChordList().get(i);
-
-				Fraction wasAccordLength = chord.getFraction();
-				Nota newNota = chord.addNewNota(nota);
-
-				if (!wasAccordLength.equals(chord.getFraction())) {
-					// putting filler in case when chord length became smaller to preserve timing
-					Fraction dl = wasAccordLength.subtract(chord.getFraction());
-					this.addNewAccord(i + 1).addNewNota(0, 0).setLength(dl);
-				}
-				return newNota;
-			} else if (curPos.compareTo(desiredPos) > 0) {
-
-				Chord chord = getChordList().get(i - 1);
-				Fraction offset = new Fraction(curPos.doubleValue() - desiredPos.doubleValue());
-				Fraction onset = new Fraction(chord.getFraction().doubleValue() - offset.doubleValue());
-
-				/** @debug */
-//				if (onset.equals(new Fraction(0))) {
-//					Logger.fatal("How came ?! " + chord.getFraction() + " " + offset + " " + curPos + " " + desiredPos);
-//				}
-
-				chord.addNewNota(0, 0).setLength(onset);
-
-				Chord newChord = this.addNewAccord(i);
-				Nota newNota = newChord.addNewNota(nota);
-				if (newNota.getLength().compareTo(offset) > 0) {
-					// TODO: maybe if last chord in org.shmidusic.staff then no need
-					// put nota with onset length into newNota's chord to preserve timing
-					newChord.addNewNota(0, 0).setLength(offset);
-				} else if (newNota.getLength().compareTo(offset) < 0) {
-					// TODO: maybe if last chord in org.shmidusic.staff then no need
-					// put an empty nota after and set it's length(onset - newNota.getLength())
-					this.addNewAccord(i + 1).addNewNota(0, 0).setLength(offset.subtract(newNota.getLength()));
-				}
-
-				return newNota;
-			}
-
-			Fraction accordFraction = getChordList().get(i).getFraction();
-
-			curPos = new Fraction(curPos.doubleValue() + accordFraction.doubleValue());
-		}
-
-		Fraction rest = desiredPos.subtract(curPos);
-		if (!rest.equals(new Fraction(0))) {
-			this.addNewAccord().addNewNota(0,0).setLength(rest);
-		}
-
-		// TODO: we don't handle here pause prefix! (i.e when desired start is more than end) !!!
-		// if not returned already
-		return this.addNewAccord().addNewNota(nota);
-	}
 
 	public static class TactMeasurer {
 

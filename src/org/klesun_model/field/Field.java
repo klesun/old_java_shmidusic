@@ -43,7 +43,7 @@ public class Field<E> {
 		this(name, cls, isFinal, owner, a -> a);
 	}
 
-	private Field(String name, Class<E> cls, Boolean isFinal, IModel owner, Function<E, E> normalizeLambda) {
+	public Field(String name, Class<E> cls, Boolean isFinal, IModel owner, Function<E, E> normalizeLambda) {
 		checkValueClass(cls);
 		this.elemClass = cls;
 		this.owner = owner;

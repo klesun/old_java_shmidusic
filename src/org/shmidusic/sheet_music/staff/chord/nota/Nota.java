@@ -6,7 +6,7 @@ import org.shmidusic.sheet_music.staff.staff_config.KeySignature;
 import org.shmidusic.stuff.graphics.ImageStorage;
 import org.klesun_model.field.Field;
 
-import org.shmidusic.stuff.tools.jmusic_integration.INota;
+import org.shmidusic.stuff.tools.INota;
 import org.apache.commons.math3.fraction.Fraction;
 
 import org.json.JSONObject;
@@ -17,8 +17,8 @@ public class Nota extends AbstractModel implements INota
 	// <editor-fold desc="model field declaration">
 
 	// TODO: normalization rules maybe ???
-	final public Field<Integer> tune = new Field<>("tune", Integer.class, true, this);
-	final protected Field<Integer> channel = new Field<>("channel", Integer.class, true, this);
+	final public Field<Integer> tune = new Field<>("tune", Integer.class, true, this, n -> limit(n, 0, 127));
+	final protected Field<Integer> channel = new Field<>("channel", Integer.class, true, this, n -> limit(n, 1, 16));
 
 	final public Field<Fraction> length = new Field<>("length", new Fraction(1, 4), this, INota::legnthNorm);
 	final public Field<Boolean> isTriplet = new Field<>("isTriplet", false, this);
@@ -50,7 +50,7 @@ public class Nota extends AbstractModel implements INota
 	@Override
 	public Nota reconstructFromJson(JSONObject dict) {
 		super.reconstructFromJson(dict);
-		/** @deprecated */
+		/** @legacy */
 		if (dict.has("numerator")) {
 			this.setLength(new Fraction(dict.getInt("numerator"), 64));
 		}

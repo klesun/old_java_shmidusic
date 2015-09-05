@@ -9,7 +9,7 @@ import org.shmidusic.sheet_music.staff.chord.nota.NoteComponent;
 import org.shmidusic.sheet_music.SheetMusic;
 import org.shmidusic.sheet_music.SheetMusicComponent;
 import org.shmidusic.sheet_music.staff.StaffComponent;
-import org.shmidusic.stuff.Midi.DumpReceiver;
+import org.shmidusic.stuff.midi.DumpReceiver;
 import org.shmidusic.stuff.graphics.ImageStorage;
 import org.klesun_model.Combo;
 import org.klesun_model.ContextAction;
@@ -20,8 +20,6 @@ import org.shmidusic.stuff.OverridingDefaultClasses.TruMenuItem;
 import javax.swing.*;
 
 import java.awt.*;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.util.*;
 import java.util.List;
 

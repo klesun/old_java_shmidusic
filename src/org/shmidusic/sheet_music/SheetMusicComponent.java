@@ -49,11 +49,10 @@ public class SheetMusicComponent extends JPanel implements IComponent
 //					.p(new Combo(ctrl, k.VK_P), mkAction(SheetMusicComponent::triggerPlayback).setCaption("Play/Stop"))
 					.p(new Combo(0, k.VK_SPACE), mkAction(SheetMusicComponent::triggerPlayback).setCaption("Play/Stop"))
 						// File
-					.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel).setCaption("Save midi.json"))
+					.p(new Combo(ctrl, k.VK_S), mkFailableAction(FileProcessor::saveMusicPanel).setCaption("Save mid.js"))
 					.p(new Combo(ctrl, k.VK_M), mkFailableAction(FileProcessor::saveMidi).setCaption("Save midi"))
 					.p(new Combo(ctrl, k.VK_O), mkFailableAction(FileProcessor::openSheetMusic).setCaption("Open"))
-					/** @legacy */
-					.p(new Combo(ctrl, k.VK_U), mkFailableAction(FileProcessor::openStaffOld).setCaption("Open Old (When Staff Coul Be Only One)"))
+					.p(new Combo(ctrl, k.VK_I), mkFailableAction(FileProcessor::openMidi).setCaption("Open midi"))
 
 					.p(new Combo(ctrl, k.VK_E), mkFailableAction(FileProcessor::savePNG).setCaption("Export png"))
 						;
@@ -70,20 +69,22 @@ public class SheetMusicComponent extends JPanel implements IComponent
 	/** creating two staffs from one: to pointer pos and from pointer pos */
 	public Explain splitFocusedStaff()
 	{
-		Staff s = getFocusedChild().staff;
-		return new Explain(s.getFocusedIndex() > 0, "im not plitting here").runIfSuccess(() -> {
-			Staff newStaff = this.sheetMusic.addNewStaffAfter(s);
+		return new Explain(false, "Implementation not ready yet");
 
-			List<Chord> staff2Chords = s.getChordList().subList(s.getFocusedIndex(), s.getChordList().size());
-
-			staff2Chords.stream().forEach(c -> {
-				s.remove(c);
-				newStaff.addNewAccord().reconstructFromJson(c.getJsonRepresentation());
-			});
-			this.revalidate();
-
-			newStaff.getConfig().reconstructFromJson(newStaff.getJsonRepresentation());
-		});
+//		Staff s = getFocusedChild().staff;
+//		return new Explain(s.getFocusedIndex() > 0, "im not plitting here").runIfSuccess(() -> {
+//			Staff newStaff = this.sheetMusic.addNewStaffAfter(s);
+//
+//			List<Chord> staff2Chords = s.getChordList().subList(s.getFocusedIndex(), s.getChordList().size());
+//
+//			staff2Chords.stream().forEach(c -> {
+//				s.remove(c);
+//				newStaff.addNewAccord().reconstructFromJson(c.getJsonRepresentation());
+//			});
+//			this.revalidate();
+//
+//			newStaff.getConfig().reconstructFromJson(newStaff.getJsonRepresentation());
+//		});
 	}
 
 	private int getFocusedSystemY() {

@@ -5,7 +5,7 @@ import org.klesun_model.Combo;
 import org.klesun_model.ContextAction;
 import org.klesun_model.Explain;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
-import org.shmidusic.stuff.Midi.DeviceEbun;
+import org.shmidusic.stuff.midi.DeviceEbun;
 import org.shmidusic.sheet_music.staff.chord.Chord;
 import org.shmidusic.sheet_music.staff.chord.nota.Nota;
 import org.shmidusic.stuff.OverridingDefaultClasses.TruMap;

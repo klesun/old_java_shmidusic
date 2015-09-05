@@ -2,12 +2,13 @@ package org.shmidusic.sheet_music.staff.chord;
 
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.klesun_model.AbstractModel;
 import org.klesun_model.field.Arr;
 import org.klesun_model.field.Field;
-import org.shmidusic.stuff.tools.jmusic_integration.INota;
+import org.shmidusic.stuff.tools.INota;
 import org.apache.commons.math3.fraction.Fraction;
 
 import org.shmidusic.sheet_music.staff.chord.nota.Nota;
@@ -49,7 +50,7 @@ public class Chord extends AbstractModel
 	}
 
 	public Fraction getFraction() {
-		Nota nota = this.getNotaSet().stream().reduce(null, (a, b) -> a != null && !a.isLongerThan(b) && !a.getIsMuted() ? a : b);
+		Nota nota = getShortest().orElse(null);
 		return nota != null ? nota.getRealLength() : new Fraction(0);
 	}
 
@@ -87,4 +88,18 @@ public class Chord extends AbstractModel
 		notaList.remove(nota);
 	}
 
+    public void removeRedundantPauseIfAny()
+    {
+        getShortest().ifPresent(n -> {
+            if (!n.isPause()) {
+                notaList.get().stream().filter(Nota::isPause)
+                    .collect(Collectors.toList())
+                    .forEach(this::remove);
+            }
+        });
+    }
+
+    private Optional<Nota> getShortest() {
+        return notaList.get().stream().sorted((a, b) -> a.isLongerThan(b) ? 1 : -1).findFirst();
+    }
 }

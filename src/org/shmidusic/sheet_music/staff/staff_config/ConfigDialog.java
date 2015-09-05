@@ -14,6 +14,7 @@ import org.shmidusic.stuff.tools.Fp;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -50,11 +51,13 @@ public class ConfigDialog extends JPanel {
 		}
 	}
 
-	private void addChannelSetupGrid() {
+	private void addChannelSetupGrid()
+	{
 
+		// hate java for not having class methods
 		List<String> fieldList = parent.channelList.get(0).getFieldList();
 
-		JPanel channelGridPanel = new JPanel(new GridLayout(Channel.CHANNEL_COUNT + 1, fieldList.size(), 4, 4));
+		JPanel channelGridPanel = new JPanel(new GridLayout(Channel.CHANNEL_COUNT + 2, fieldList.size(), 4, 4)); // + 2 чтоб наверняка
 		channelGridPanel.setPreferredSize(new Dimension(fieldList.size() * CELL_WIDTH, (Channel.CHANNEL_COUNT + 1) * CELL_HEIGHT));
 		channelGridPanel.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.DARK_GRAY));
 		this.add(channelGridPanel);

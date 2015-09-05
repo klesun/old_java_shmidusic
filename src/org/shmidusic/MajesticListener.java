@@ -1,6 +1,6 @@
 package org.shmidusic;
 
-import org.shmidusic.stuff.Midi.DeviceEbun;
+import org.shmidusic.stuff.midi.DeviceEbun;
 
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;

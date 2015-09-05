@@ -6,13 +6,10 @@ import org.klesun_model.AbstractModel;
 import org.klesun_model.field.Arr;
 import org.klesun_model.field.Field;
 import org.json.JSONArray;
-import org.shmidusic.stuff.Midi.DeviceEbun;
+import org.shmidusic.stuff.midi.DeviceEbun;
 import org.shmidusic.sheet_music.staff.Staff;
 
 import java.util.*;
-
-import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.ShortMessage;
 
 import org.apache.commons.math3.fraction.Fraction;
 
@@ -43,7 +40,7 @@ public class StaffConfig extends AbstractModel
 		TreeSet<Channel> list = new TreeSet<>();
 
 		for (int i = 0; i < Channel.CHANNEL_COUNT; ++i) {
-			JSONObject state = new JSONObject().put("channelNumber", i);
+			JSONObject state = new JSONObject().put("channelNumber", i + 1);
 			Channel channel = new Channel();
 			channel.reconstructFromJson(state);
 
@@ -79,7 +76,7 @@ public class StaffConfig extends AbstractModel
 			JSONArray channelArray = jsObject.getJSONArray("channelList");
 			if (channelArray.length() > 0 && !channelArray.getJSONObject(0).has("channelNumber")) {
 				for (int i = 0; i < channelArray.length(); ++i) {
-					channelArray.put(i, channelArray.getJSONObject(i).put("channelNumber", i));
+					channelArray.put(i, channelArray.getJSONObject(i).put("channelNumber", i + 1));
 				}
 			}
 			jsObject.put("channelList", channelArray);

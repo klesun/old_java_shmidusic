@@ -6,11 +6,12 @@ import org.json.JSONObject;
 
 public class Channel extends AbstractModel implements Comparable<Channel>  {
 
-	final public static int CHANNEL_COUNT = 16;
+	final public static int CHANNEL_COUNT = 15; // 1-15. 0th ignores volume change; 16th throws MidiDataChannelOutOfRangeBlaBla exception
 
+	// TODO: 0-th channel does not exist - do something with that
 	final public Field<Integer> channelNumber = new Field<>("channelNumber", Integer.class, true, this);
 	final private Field<Integer> instrument = new Field<>("instrument", 0, this, i -> limit(i, 0, 127)).setOmitDefaultFromJson(true);
-	final private Field<Integer> volume = new Field<>("volume", 60, this, v -> limit(v, 0, 127)).setOmitDefaultFromJson(true);
+	final private Field<Integer> volume = new Field<>("volume", 50, this, v -> limit(v, 0, 127)).setOmitDefaultFromJson(true);
 	final private Field<Boolean> isMuted = new Field<>("isMuted", false, this);
 
 	public Channel setInstrument(int value) { instrument.set(value); return this; }

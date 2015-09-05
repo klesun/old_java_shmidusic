@@ -2,7 +2,7 @@
 package org.shmidusic.stuff.test;
 
 import org.shmidusic.sheet_music.staff.chord.nota.Nota;
-import org.shmidusic.stuff.Midi.MidiCommon;
+import org.shmidusic.stuff.midi.MidiCommon;
 import org.shmidusic.stuff.tools.Logger;
 
 import javax.sound.midi.InvalidMidiDataException;

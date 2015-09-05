@@ -7,10 +7,9 @@ import org.shmidusic.sheet_music.SheetMusicComponent;
 import org.shmidusic.sheet_music.staff.chord.Chord;
 import org.shmidusic.sheet_music.staff.chord.ChordComponent;
 import org.shmidusic.sheet_music.staff.chord.ChordHandler;
-import org.shmidusic.stuff.Midi.DeviceEbun;
-import org.shmidusic.stuff.Midi.Playback;
+import org.shmidusic.stuff.midi.DeviceEbun;
+import org.shmidusic.stuff.musica.Playback;
 import org.shmidusic.stuff.graphics.Settings;
-import org.shmidusic.Main;
 import org.shmidusic.stuff.musica.PlayMusThread;
 import org.shmidusic.stuff.tools.Logger;
 

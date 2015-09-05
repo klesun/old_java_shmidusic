@@ -33,6 +33,7 @@ public class ChordPainter extends AbstractPainter {
 
 			NoteComponent noteComp = comp.findChild(nota);
 			drawModel((g, x, y) -> noteComp.drawOn(g, x, y, siga), notaX, notaY);
+			siga.consume(noteComp.note);
 		}
 
 		if (comp.getParentComponent().getFocusedChild() == comp) {

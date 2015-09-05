@@ -2,8 +2,7 @@ package org.shmidusic.stuff.musica;
 
 import org.shmidusic.sheet_music.staff.chord.nota.Nota;
 import org.shmidusic.sheet_music.staff.chord.Chord;
-import org.shmidusic.stuff.Midi.DeviceEbun;
-import org.shmidusic.stuff.Midi.Playback;
+import org.shmidusic.stuff.midi.DeviceEbun;
 import org.apache.commons.math3.fraction.Fraction;
 
 import java.util.Map;

@@ -42,19 +42,24 @@ public class ChordComponent extends JComponent implements IComponent
 	}
 
 	public NoteComponent addNewNota(int tune, int channel) {
-		return addComponent(chord.addNewNota(tune, channel));
+		return addComponentAndRepaint(chord.addNewNota(tune, channel));
 	}
 
 	public NoteComponent addNewNota(JSONObject newNotaJs) {
-		return addComponent(chord.addNewNota(newNotaJs));
+		return addComponentAndRepaint(chord.addNewNota(newNotaJs));
 	}
+
+    private NoteComponent addComponentAndRepaint(Nota note)
+    {
+        NoteComponent cmp = addComponent(note);
+        recalcTacts();
+        return cmp;
+    }
 
 	private NoteComponent addComponent(Nota note)
 	{
 		NoteComponent noteComp = new NoteComponent(note, this);
 		noteComponents.add(noteComp);
-		recalcTacts();
-
 		return noteComp;
 	}
 

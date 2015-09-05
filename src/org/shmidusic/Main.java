@@ -1,8 +1,7 @@
 package org.shmidusic;
 
 //import com.sun.deploy.util.SystemUtils;
-import org.shmidusic.stuff.Midi.DeviceEbun;
-import org.shmidusic.stuff.Midi.PlaybackTimer;
+import org.shmidusic.stuff.midi.DeviceEbun;
 import org.shmidusic.stuff.tools.Logger;
 
 public class Main

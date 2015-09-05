@@ -4,13 +4,11 @@ package org.shmidusic;
 import org.klesun_model.Combo;
 import org.shmidusic.sheet_music.staff.Staff;
 import org.shmidusic.sheet_music.staff.chord.Chord;
-import org.shmidusic.sheet_music.staff.staff_config.KeySignature;
 import org.shmidusic.stuff.graphics.Constants;
 import org.shmidusic.stuff.graphics.ImageStorage;
 import org.apache.commons.math3.fraction.Fraction;
-import org.shmidusic.stuff.graphics.Settings;
 import org.shmidusic.stuff.tools.Fp;
-import org.shmidusic.stuff.tools.jmusic_integration.INota;
+import org.shmidusic.stuff.tools.INota;
 
 import javax.swing.*;
 import java.awt.*;
