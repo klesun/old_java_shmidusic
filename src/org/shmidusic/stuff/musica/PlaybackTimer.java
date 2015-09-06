@@ -5,7 +5,7 @@ import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 import org.shmidusic.stuff.midi.DeviceEbun;
 import org.shmidusic.stuff.midi.IMidiScheduler;
 import org.apache.commons.math3.fraction.Fraction;
-import org.shmidusic.stuff.tools.INota;
+import org.shmidusic.stuff.tools.INote;
 
 import javax.swing.Timer;
 import java.util.*;
@@ -24,7 +24,7 @@ public class PlaybackTimer implements IMidiScheduler {
 		this.config = config;
 	}
 
-	public void addNoteTask(Fraction when, INota nota) {
+	public void addNoteTask(Fraction when, INote nota) {
 		addTask(when, () -> DeviceEbun.openNota(nota));
 		addTask(when.add(nota.getRealLength()), () -> DeviceEbun.closeNota(nota));
 	}
@@ -102,7 +102,7 @@ public class PlaybackTimer implements IMidiScheduler {
 		}
 
 		@Override
-		public void addNoteTask(Fraction when, INota nota) {
+		public void addNoteTask(Fraction when, INote nota) {
 			addTask(when, () -> Klesunthesizer.send(nota.getTune(), (int)toMillis(nota.getRealLength())));
 		}
 	}

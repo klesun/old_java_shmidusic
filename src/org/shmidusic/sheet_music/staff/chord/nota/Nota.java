@@ -6,13 +6,13 @@ import org.shmidusic.sheet_music.staff.staff_config.KeySignature;
 import org.shmidusic.stuff.graphics.ImageStorage;
 import org.klesun_model.field.Field;
 
-import org.shmidusic.stuff.tools.INota;
+import org.shmidusic.stuff.tools.INote;
 import org.apache.commons.math3.fraction.Fraction;
 
 import org.json.JSONObject;
 
 // TODO: rename to Note
-public class Nota extends AbstractModel implements INota
+public class Nota extends AbstractModel implements INote
 {
 	// <editor-fold desc="model field declaration">
 
@@ -20,7 +20,7 @@ public class Nota extends AbstractModel implements INota
 	final public Field<Integer> tune = new Field<>("tune", Integer.class, true, this, n -> limit(n, 0, 127));
 	final protected Field<Integer> channel = new Field<>("channel", Integer.class, true, this, n -> limit(n, 1, 16));
 
-	final public Field<Fraction> length = new Field<>("length", new Fraction(1, 4), this, INota::legnthNorm);
+	final public Field<Fraction> length = new Field<>("length", new Fraction(1, 4), this, INote::legnthNorm);
 	final public Field<Boolean> isTriplet = new Field<>("isTriplet", false, this);
 	final public Field<Boolean> isSharp = new Field<>("isSharp", false, this);
 	final private Field<Boolean> isMuted = new Field<>("isMuted", false, this);
@@ -121,7 +121,7 @@ public class Nota extends AbstractModel implements INota
 		if (isPause()) {
 			return PAUSE_POSITION;
 		} else {
-			return INota.super.ivoryIndex(siga)/* - (isEbony() && isSharp.get() ? 1 : 0)*/; /** @debug, but i suppose, we should get rid of this */
+			return INote.super.ivoryIndex(siga)/* - (isEbony() && isSharp.get() ? 1 : 0)*/; /** @debug, but i suppose, we should get rid of this */
 		}
 	}
 

@@ -6,14 +6,14 @@ import org.apache.commons.math3.fraction.Fraction;
 
 import java.util.Arrays;
 
-public interface INota extends Comparable<INota> {
+public interface INote extends Comparable<INote> {
 
 	Integer getTune();
 	Integer getChannel();
 	Fraction getLength();
 	Boolean isTriplet();
 
-	default int compareTo(INota n) {
+	default int compareTo(INote n) {
 		return ((n.getTune() - this.getTune()) << 4) + (n.getChannel() - this.getChannel());
 	}
 

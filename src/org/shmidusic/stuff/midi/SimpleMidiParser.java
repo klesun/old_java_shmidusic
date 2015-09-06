@@ -10,7 +10,7 @@ import org.shmidusic.sheet_music.SheetMusic;
 import org.shmidusic.sheet_music.staff.StaffComponent;
 import org.shmidusic.stuff.musica.Playback;
 import org.shmidusic.stuff.screwed.MidiFileData;
-import org.shmidusic.stuff.tools.INota;
+import org.shmidusic.stuff.tools.INote;
 
 import java.util.*;
 import java.util.function.Function;
@@ -39,7 +39,7 @@ public class SimpleMidiParser
 		Function<Channel, Event> mapChannelVolume = c -> new CChange(DeviceEbun.CONTROL_CHANGE_VOLUME, c.getVolume().shortValue(), c.channelNumber.get().shortValue(), 0);
 
 		Set<Integer> usedChannels = staff.chordStream()
-							.map(c -> c.notaStream().map(INota::getChannel))
+							.map(c -> c.notaStream().map(INote::getChannel))
 							.flatMap(s -> s)
 							.distinct()
 							.collect(Collectors.toSet());

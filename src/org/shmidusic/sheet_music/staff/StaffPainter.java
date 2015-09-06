@@ -6,7 +6,7 @@ import org.klesun_model.AbstractPainter;
 import org.apache.commons.math3.fraction.Fraction;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfigComponent;
 import org.shmidusic.stuff.graphics.ImageStorage;
-import org.shmidusic.stuff.tools.INota;
+import org.shmidusic.stuff.tools.INote;
 
 import java.awt.*;
 
@@ -70,11 +70,11 @@ public class StaffPainter extends AbstractPainter
 		StaffComponent comp = (StaffComponent)context;
 		Staff s = comp.staff;
 
-		int tune = INota.nextIvoryTune(INota.nextIvoryTune(Nota.FA + 12 * 2));
+		int tune = INote.nextIvoryTune(INote.nextIvoryTune(Nota.FA + 12 * 2));
 
 		// normal Nota height lines
 		for (int j = 0; j < 11; ++j) {
-			tune = INota.prevIvoryTune(INota.prevIvoryTune(tune));
+			tune = INote.prevIvoryTune(INote.prevIvoryTune(tune));
 			if (j == 5) continue;
 			int lineY = y + j * dy() * 2;
 			drawLine(-3 * dx(), lineY, comp.getWidth() - s.getMarginX() * 6, lineY, new Color(128,128,255));

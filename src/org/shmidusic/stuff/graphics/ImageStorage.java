@@ -2,7 +2,7 @@ package org.shmidusic.stuff.graphics;
 
 import org.shmidusic.sheet_music.staff.staff_config.Channel;
 import org.shmidusic.stuff.tools.Logger;
-import org.shmidusic.stuff.tools.INota;
+import org.shmidusic.stuff.tools.INote;
 import org.apache.commons.math3.fraction.Fraction;
 
 import javax.imageio.ImageIO;
@@ -46,9 +46,9 @@ public class ImageStorage {
 	}
 
 	public BufferedImage getNotaImg(Fraction length, int channel) {
-		if (INota.isTooLong(length)) {
+		if (INote.isTooLong(length)) {
 			return getTooLongImage(); // TODO: color!
-		} else if (INota.isTooShort(length)) {
+		} else if (INote.isTooShort(length)) {
 			return getTooShortImage(); // TODO: color!
 		} else {
 			return coloredNotas[channel].get(length);

@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 import org.klesun_model.AbstractModel;
 import org.klesun_model.field.Arr;
 import org.klesun_model.field.Field;
-import org.shmidusic.stuff.tools.INota;
+import org.shmidusic.stuff.tools.INote;
 import org.apache.commons.math3.fraction.Fraction;
 
 import org.shmidusic.sheet_music.staff.chord.nota.Nota;
@@ -50,8 +50,7 @@ public class Chord extends AbstractModel
 	}
 
 	public Fraction getFraction() {
-		Nota nota = getShortest().orElse(null);
-		return nota != null ? nota.getRealLength() : new Fraction(0);
+		return getShortest().map(INote::getRealLength).orElse(new Fraction(0));
 	}
 
 	// field getters/setters
@@ -62,11 +61,20 @@ public class Chord extends AbstractModel
 	public Boolean getIsDiminendo() { return isDiminendo.get(); }
 	public void setIsDiminendo(Boolean value) { isDiminendo.set(value); }
 
+    public Chord setExplicitLength(Fraction length) {
+        addNewNota(0, 0).setLength(length);
+
+        removeRedundantPauseIfAny();
+        return this;
+    }
+
 	// event handles
 
-	public Nota addNewNota(INota source) {
+	public Nota addNewNota(INote source) {
 		Nota newNota = addNewNota(source.getTune(), source.getChannel()).setLength(source.getLength());
 		newNota.isTriplet.set(source.isTriplet());
+        removeRedundantPauseIfAny();
+
 		return newNota;
 	}
 
@@ -90,13 +98,14 @@ public class Chord extends AbstractModel
 
     public void removeRedundantPauseIfAny()
     {
-        getShortest().ifPresent(n -> {
-            if (!n.isPause()) {
-                notaList.get().stream().filter(Nota::isPause)
-                    .collect(Collectors.toList())
-                    .forEach(this::remove);
-            }
-        });
+        getShortest().ifPresent(
+            n -> notaList.get().stream()
+                .filter(k -> k.getRealLength().equals(n.getRealLength()) && !k.isPause())
+                .findAny().ifPresent(
+                    k -> notaList.get().stream().filter(Nota::isPause)
+                        .collect(Collectors.toList())
+                        .forEach(this::remove)
+        ));
     }
 
     private Optional<Nota> getShortest() {

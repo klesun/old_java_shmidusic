@@ -2,7 +2,7 @@ package org.shmidusic.sheet_music.staff.staff_config;
 
 import org.shmidusic.sheet_music.staff.chord.Chord;
 import org.shmidusic.stuff.OverridingDefaultClasses.TruMap;
-import org.shmidusic.stuff.tools.INota;
+import org.shmidusic.stuff.tools.INote;
 
 import java.util.*;
 
@@ -54,7 +54,7 @@ public class KeySignature
 	}
 
 	// add bemols/becars/diezes of this Note
-	public void consume(INota n)
+	public void consume(INote n)
 	{
 		if (!myTuneQueue().contains(n.getTune() % 12)) {
 			if (n.isEbony()) {

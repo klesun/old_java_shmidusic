@@ -22,7 +22,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package org.shmidusic.stuff.midi.standard_midi_file.event;
 
 import org.shmidusic.stuff.midi.standard_midi_file.MidiUtil;
-import org.shmidusic.stuff.tools.INota;
+import org.shmidusic.stuff.tools.INote;
 
 import java.io.DataOutputStream;
 import java.io.DataInputStream;
@@ -62,7 +62,7 @@ public final class NoteOn implements VoiceEvt, Cloneable, INoteEvent {
 		this.time = time;
 	}
 
-	public NoteOn(INota nota, int time)
+	public NoteOn(INote nota, int time)
 	{
 		this(nota.getTune().shortValue(), (short)127, nota.getChannel().shortValue(), time);
 	}

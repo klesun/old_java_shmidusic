@@ -6,7 +6,7 @@ import org.shmidusic.stuff.midi.standard_midi_file.Track;
 import org.shmidusic.stuff.midi.standard_midi_file.event.NoteOff;
 import org.shmidusic.stuff.midi.standard_midi_file.event.NoteOn;
 import org.apache.commons.math3.fraction.Fraction;
-import org.shmidusic.stuff.tools.INota;
+import org.shmidusic.stuff.tools.INote;
 
 import java.util.Map;
 
@@ -20,7 +20,7 @@ public class SmfScheduler implements IMidiScheduler
 		this.config = config;
 	}
 
-	public void addNoteTask(Fraction when, INota nota) {
+	public void addNoteTask(Fraction when, INote nota) {
 		if (!trackDict.containsKey(nota.getChannel())) {
 			trackDict.put(nota.getChannel(), new Track());
 		}

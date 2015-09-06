@@ -6,6 +6,7 @@ import java.awt.event.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -43,9 +44,9 @@ public class Fp
 		) + "</center></html>";
 	}
 
-	public static <T> Explain<T> findBinary(List<T> list, Function<T, Integer> pred)
+	public static <T> Optional<T> findBinary(List<T> list, Function<T, Integer> pred)
 	{
-		Explain<T> result = new Explain<>(false, "No one element matched predicate");
+		Optional<T> result = Optional.empty();
 
 		int l = 0;
 		int r = list.size() - 1;
@@ -58,7 +59,7 @@ public class Fp
 			} else if (cmpResult < 0) {
 				r = middle - 1;
 			} else {
-				result = new Explain<>(list.get(middle));
+				result = Optional.of(list.get(middle));
 				break;
 			}
 		}

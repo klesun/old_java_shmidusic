@@ -62,6 +62,7 @@ public class StaffConfig extends AbstractModel
 		return new StaffConfigComponent(parentForComponent, this);
 	}
 
+    // TODO: MUAHHH! recalcTacts on change!!!!
 	public Fraction getTactSize() {
 		int tactNumerator = getNumerator() * 8;
 		int tactDenominator = Staff.DEFAULT_ZNAM;

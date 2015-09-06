@@ -9,7 +9,7 @@ import org.apache.commons.math3.fraction.Fraction;
 import org.shmidusic.stuff.midi.DeviceEbun;
 import org.shmidusic.stuff.midi.IMidiScheduler;
 import org.shmidusic.stuff.midi.SmfScheduler;
-import org.shmidusic.stuff.tools.INota;
+import org.shmidusic.stuff.tools.INote;
 
 import java.util.function.Consumer;
 
@@ -80,7 +80,7 @@ public class Playback {
 		}
 	}
 
-	private static void playNota(INota nota, Fraction start, IMidiScheduler scheduler)
+	private static void playNota(INote nota, Fraction start, IMidiScheduler scheduler)
 	{
 		if (nota.getTune() != 0) { // 0 means pause in my world
 			if (!Main.isLinux || scheduler instanceof SmfScheduler || true) { /** @debug */

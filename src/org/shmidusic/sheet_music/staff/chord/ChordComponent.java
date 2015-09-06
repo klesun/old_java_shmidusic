@@ -123,11 +123,11 @@ public class ChordComponent extends JComponent implements IComponent
 	private KeySignature determineSignature()
 	{
 		KeySignature siga = getParentComponent().staff.getConfig().getSignature();
-		getParentComponent().staff.findTact(chord).whenSuccess(tact -> {
-			for (int i = 0; i < tact.accordList.indexOf(chord); ++i) {
-				siga.consume(tact.accordList.get(i));
-			}
-		}); // it may not be success when we delete chords
+		getParentComponent().staff.findTact(chord).ifPresent(tact -> {
+            for (int i = 0; i < tact.chordList.indexOf(chord); ++i) {
+                siga.consume(tact.chordList.get(i));
+            }
+        }); // it may not be success when we delete chords
 
 		return siga;
 	}
@@ -135,25 +135,10 @@ public class ChordComponent extends JComponent implements IComponent
 	/** @return timestamp in seconds */
 	public Double determineStartTimestamp()
 	{
-		StaffConfig config = getParentComponent().staff.getConfig();
-		Explain<Tact> opt = getParentComponent().staff.findTact(chord);
+        StaffConfig config = getParentComponent().staff.getConfig();
+        Fraction chordStart = getParentComponent().staff.findChordStart(chord).orElse(new Fraction(-100));
 
-		if (opt.isSuccess()) {
-			Tact tact = opt.getData();
-			Fraction precedingChords = new LinkedList<>(tact.accordList.get())
-				.subList(0, tact.accordList.indexOf(chord))
-				.stream().map(c -> c.getFraction())
-				.reduce(Fraction::add).orElse(new Fraction(0));
-
-			Fraction startFraction = config.getTactSize().multiply(tact.tactNumber.get()).add(precedingChords);
-			if (!tact.getIsCorrect()) {
-				startFraction = startFraction.add(tact.getPrecedingRest());
-			}
-
-			return Nota.getTimeMilliseconds(startFraction, config.getTempo()) / 1000.0;
-		} else {
-			return - 100.0;
-		}
+        return Nota.getTimeMilliseconds(chordStart, config.getTempo()) / 1000.0;
 	}
 
 	// ========================

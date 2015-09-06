@@ -8,7 +8,7 @@ import org.shmidusic.stuff.graphics.Constants;
 import org.shmidusic.stuff.graphics.ImageStorage;
 import org.apache.commons.math3.fraction.Fraction;
 import org.shmidusic.stuff.tools.Fp;
-import org.shmidusic.stuff.tools.INota;
+import org.shmidusic.stuff.tools.INote;
 
 import javax.swing.*;
 import java.awt.*;
@@ -45,7 +45,7 @@ public class PianoLayoutPanel extends JPanel
 	/** @return - tune of piano key pressed */
 	private int getPressed(MouseEvent e)
 	{
-		int tune = FIRST_TUNE + INota.fromIvory(e.getX() / IVORY_WIDTH);
+		int tune = FIRST_TUNE + INote.fromIvory(e.getX() / IVORY_WIDTH);
 		if (e.getY() < EBONY_LENGTH) {
 			tune -= e.getX() % IVORY_WIDTH < EBONY_WIDTH / 2 ? 1 : 0;
 			tune += e.getX() % IVORY_WIDTH > IVORY_WIDTH - EBONY_WIDTH / 2 ? 1 : 0;
@@ -57,7 +57,7 @@ public class PianoLayoutPanel extends JPanel
 	@Override
 	public Dimension getPreferredSize()
 	{
-		return new Dimension(IVORY_WIDTH * INota.ivoryIndex(TUNE_COUNT), IVORY_LENGTH);
+		return new Dimension(IVORY_WIDTH * INote.ivoryIndex(TUNE_COUNT), IVORY_LENGTH);
 	};
 
 	@Override
@@ -69,9 +69,9 @@ public class PianoLayoutPanel extends JPanel
 	}
 
 	// draws such piano layout so it fitted to Rectangle r
-	private static void drawVanBascoLikePianoLayout(Graphics g, Set<INota> highlightEm)
+	private static void drawVanBascoLikePianoLayout(Graphics g, Set<INote> highlightEm)
 	{
-		Rectangle baseRect = new Rectangle(0, 0, IVORY_WIDTH * INota.ivoryIndex(TUNE_COUNT), IVORY_LENGTH);
+		Rectangle baseRect = new Rectangle(0, 0, IVORY_WIDTH * INote.ivoryIndex(TUNE_COUNT), IVORY_LENGTH);
 
 		// performance
 		g.setColor(Color.WHITE);
@@ -80,11 +80,11 @@ public class PianoLayoutPanel extends JPanel
 		g.setColor(new Color(225,225,225));
 		g.fillRect(baseRect.x, baseRect.y + baseRect.height - 3, baseRect.width, 3);
 
-		IntStream ivoryTunes = IntStream.range(FIRST_TUNE, FIRST_TUNE + TUNE_COUNT).filter(t -> !INota.isEbony(t));
-		IntStream ebonyTunes = IntStream.range(FIRST_TUNE, FIRST_TUNE + TUNE_COUNT).filter(INota::isEbony);
+		IntStream ivoryTunes = IntStream.range(FIRST_TUNE, FIRST_TUNE + TUNE_COUNT).filter(t -> !INote.isEbony(t));
+		IntStream ebonyTunes = IntStream.range(FIRST_TUNE, FIRST_TUNE + TUNE_COUNT).filter(INote::isEbony);
 
 		ivoryTunes.forEach(tune -> {
-			int ivoryIndex = INota.ivoryIndex(tune) - INota.ivoryIndex(FIRST_TUNE);
+			int ivoryIndex = INote.ivoryIndex(tune) - INote.ivoryIndex(FIRST_TUNE);
 			int pos = baseRect.x + ivoryIndex * IVORY_WIDTH;
 
 			Rectangle keyRect = new Rectangle(pos, baseRect.x, IVORY_WIDTH, baseRect.height);
@@ -100,7 +100,7 @@ public class PianoLayoutPanel extends JPanel
 		});
 
 		ebonyTunes.forEach(tune -> {
-			int ivoryNeighborIndex = INota.ivoryIndex(tune) - INota.ivoryIndex(FIRST_TUNE);
+			int ivoryNeighborIndex = INote.ivoryIndex(tune) - INote.ivoryIndex(FIRST_TUNE);
 			int pos = baseRect.x + ivoryNeighborIndex * IVORY_WIDTH - EBONY_WIDTH / 2;
 
 			Rectangle keyRect = new Rectangle(pos, baseRect.x, EBONY_WIDTH, EBONY_LENGTH);
@@ -118,9 +118,9 @@ public class PianoLayoutPanel extends JPanel
 		});
 	}
 
-	synchronized private Set<INota> getNotaSet()
+	synchronized private Set<INote> getNotaSet()
 	{
-		Set<INota> result = new TreeSet<>();
+		Set<INote> result = new TreeSet<>();
 
 		Staff staff = mainPanel.sheetContainer.getFocusedChild().staff;
 

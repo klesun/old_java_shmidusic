@@ -3,24 +3,24 @@ package org.shmidusic.sheet_music.staff;
 import org.klesun_model.AbstractModel;
 import org.shmidusic.sheet_music.staff.chord.Chord;
 import org.shmidusic.sheet_music.staff.chord.Tact;
-import org.shmidusic.sheet_music.staff.chord.nota.Nota;
-import org.klesun_model.Explain;
 import org.klesun_model.IModel;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.shmidusic.MainPanel;
 import org.shmidusic.stuff.graphics.Settings;
 
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 
 import org.shmidusic.stuff.tools.Fp;
-import org.shmidusic.stuff.tools.INota;
+import org.shmidusic.stuff.tools.INote;
 import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -39,7 +39,8 @@ public class Staff extends AbstractModel
 
 	// TODO: MUAAAAH, USE FIELD CLASS MAZAFAKA AAAAAA!
 	private List<Chord> chordList = new ArrayList<>();
-	private List<Tact> tactList = new ArrayList<>();
+	/** @debug - public for debug - return private once done! */
+    public List<Tact> tactList = new ArrayList<>();
 	public int focusedIndex = -1;
 
 	public Staff()
@@ -90,33 +91,92 @@ public class Staff extends AbstractModel
 		TactMeasurer measurer = new TactMeasurer(getConfig().getTactSize());
 
 		int i = 0;
-		Tact currentTact = new Tact(i++);
+		Tact currentTact = new Tact(i++, getConfig().getTactSize());
 		for (Chord chord : chordList) {
-			currentTact.accordList.add(chord);
+			currentTact.chordList.add(chord);
 			if (measurer.inject(chord)) {
 				currentTact.setPrecedingRest(measurer.sumFraction);
 				result.add(currentTact);
-				currentTact = new Tact(i++);
+				currentTact = new Tact(i++, getConfig().getTactSize());
 			}
 		}
-		if (currentTact.accordList.size() > 0) {
+		if (currentTact.chordList.size() > 0) {
 			result.add(currentTact);
 		}
 
 		return result;
 	}
 
-	public Explain<Tact> findTact(Chord chord)
+	public Optional<Tact> findTact(Chord chord)
 	{
 		// for now i'll use binary search, but this probably may be resolved with something efficientier
 		// like storing owner tact in each accord... nda...
 
 		int chordIdx = chordList.indexOf(chord);
 		Function<Tact, Integer> pred = t ->
-			t.accordList.get().contains(chord) ? 0 : chordIdx - chordList.indexOf(t.accordList.get(0));
+			t.chordList.get().contains(chord) ? 0 : chordIdx - chordList.indexOf(t.chordList.get(0));
 
 		return Fp.findBinary(tactList, pred);
 	}
+
+    public Optional<Fraction> findChordStart(Chord chord)
+    {
+        return findTact(chord).map(tact -> {
+            Fraction precedingChords = new LinkedList<Chord>(tact.chordList.get())
+                    .subList(0, tact.chordList.indexOf(chord))
+                    .stream().map(c -> c.getFraction())
+                    .reduce(Fraction::add).orElse(new Fraction(0));
+
+            Fraction startFraction = getConfig().getTactSize().multiply(tact.tactNumber.get()).add(precedingChords);
+            if (!tact.getIsCorrect()) {
+                startFraction = startFraction.add(tact.getPrecedingRest());
+            }
+
+            return startFraction;
+        });
+    }
+
+    public Optional<Chord> findChord(Fraction start)
+    {
+        int tactNum = start.divide(getConfig().getTactSize()).intValue();
+        return getTact(tactNum).flatMap(tact -> {
+            Fraction chordPos = start.subtract(getConfig().getTactSize().multiply(tactNum));
+            return tact.findChord(chordPos);
+        });
+    }
+
+    public Optional<Chord> findClosestBefore(Fraction start)
+    {
+        if (chordList.size() == 0) {
+            return Optional.empty();
+        } else {
+            int tactNum = start.divide(getConfig().getTactSize()).intValue();
+            if (start.compareTo(getConfig().getTactSize().multiply(tactNum)) > 0) { // start is in the latter tact
+
+                Fraction chordPos = start.subtract(getConfig().getTactSize().multiply(tactNum));
+                return getTact(tactNum).flatMap(t -> t.findClosestBefore(chordPos));
+            } else {
+                Fraction chordPos = start.subtract(getConfig().getTactSize().multiply(tactNum - 1));
+                return getTact(tactNum - 1).flatMap(t -> t.findClosestBefore(chordPos));
+            }
+        }
+    }
+
+    private Optional<Tact> getTact(int index) {
+        return index >= 0 && index < tactList.size() ? Optional.of(tactList.get(index)) : Optional.empty();
+    }
+
+    public Optional<Chord> getChord(int index) {
+        if (index < 0) {
+            return chordList.size() + index >= 0
+                    ? Optional.of(chordList.get(chordList.size() + index))
+                    : Optional.empty();
+        } else {
+            return chordList.size() > index
+                    ? Optional.of(chordList.get(index))
+                    : Optional.empty();
+        }
+    }
 
 	// TODO: model, mazafaka!
 	@Override
@@ -222,7 +282,7 @@ public class Staff extends AbstractModel
 
 		/** @returns true if chord finished the tact */
 		public Boolean inject(Chord chord) {
-			if (INota.isDotable(chord.getFraction())) {
+			if (INote.isDotable(chord.getFraction())) {
 				sumFraction = sumFraction.add(chord.getFraction());
 			} else {
 				sumFraction = new Fraction(sumFraction.doubleValue() + chord.getFraction().doubleValue());

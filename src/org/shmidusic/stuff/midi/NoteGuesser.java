@@ -6,21 +6,22 @@ package org.shmidusic.stuff.midi;
 import org.apache.commons.math3.fraction.Fraction;
 import org.shmidusic.Main;
 import org.shmidusic.sheet_music.SheetMusic;
-import org.shmidusic.sheet_music.SheetMusicComponent;
 import org.shmidusic.sheet_music.staff.Staff;
 import org.shmidusic.sheet_music.staff.chord.Chord;
-import org.shmidusic.sheet_music.staff.chord.nota.Nota;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 import org.shmidusic.stuff.midi.standard_midi_file.SMF;
 import org.shmidusic.stuff.midi.standard_midi_file.Track;
 import org.shmidusic.stuff.midi.standard_midi_file.event.*;
-import org.shmidusic.stuff.tools.INota;
+import org.shmidusic.stuff.tools.INote;
 import org.shmidusic.stuff.tools.Logger;
 
 import javax.swing.*;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /** this class generates shmidusic SheetMusic from Standard Midi File data */
 public class NoteGuesser
@@ -43,11 +44,11 @@ public class NoteGuesser
         SheetMusic sheetMusic = new SheetMusic();
         Staff staff = sheetMusic.staffList.get(0);
 
-        List<Note> notes = new ArrayList<>();
+        List<GuessingNote> notes = new ArrayList<>();
 
         for (Track track: midiFile.getTrackList()) {
 
-            List<Note> opened = new ArrayList<>();
+            List<GuessingNote> opened = new ArrayList<>();
             int time = 0;
             for (Event event : track.getEvtList()) {
 
@@ -57,7 +58,7 @@ public class NoteGuesser
                 if (event instanceof NoteOn && ((NoteOn)event).getVelocity() > 0) {
 
                     NoteOn noteOn = (NoteOn)event;
-                    opened.add(new Note(noteOn.getPitch(), noteOn.getMidiChannel(), time));
+                    opened.add(new GuessingNote(noteOn.getPitch(), noteOn.getMidiChannel(), time));
 
                 } else if (event instanceof NoteOff || (event instanceof NoteOn && ((NoteOn)event).getVelocity() == 0)) {
 
@@ -83,7 +84,7 @@ public class NoteGuesser
 
         notes.stream().sorted((n1,n2) -> n1.time - n2.time).forEach(n -> {
             /** @debug */
-            System.out.println(guessPos(n.time) + " " + n.strMe());
+//            System.out.println(guessPos(n.time) + " " + n.strMe());
             putAt(guessPos(n.time), n, staff);
 
             /** @debug */
@@ -107,64 +108,59 @@ public class NoteGuesser
         }
     }
 
-
-    /** @return - nota that we just put */
-    private static Nota putAt(Fraction desiredPos, INota nota, Staff staff)
+    private void putAt(Fraction desiredPos, INote note, Staff staff)
     {
-        // TODO: it's broken somehow. Bakemonogatari can be opent with Noteworthy, but cant with midiana
+        BiFunction<Fraction, Integer, Integer> putRest = (rest, idx) -> {
+            while (rest.compareTo(fr(0,1)) > 0) {
 
-        Fraction curPos = new Fraction(0);
-        for (int i = 0; i < staff.getChordList().size(); ++i) {
-
-            if (curPos.equals(desiredPos)) {
-                Chord chord = staff.getChordList().get(i);
-
-                Fraction wasAccordLength = chord.getFraction();
-                Nota newNota = chord.addNewNota(nota);
-                chord.removeRedundantPauseIfAny();
-
-                if (!wasAccordLength.equals(chord.getFraction())) {
-                    // putting filler in case when chord length became smaller to preserve timing
-                    Fraction dl = wasAccordLength.subtract(chord.getFraction());
-                    staff.addNewAccord(i + 1).addNewNota(0, 0).setLength(dl);
-                }
-                return newNota;
-            } else if (curPos.compareTo(desiredPos) > 0) {
-
-                Chord chord = staff.getChordList().get(i - 1);
-                Fraction offset = new Fraction(curPos.doubleValue() - desiredPos.doubleValue());
-                Fraction onset = new Fraction(chord.getFraction().doubleValue() - offset.doubleValue());
-
-                chord.addNewNota(0, 0).setLength(onset);
-
-                Chord newChord = staff.addNewAccord(i);
-                Nota newNota = newChord.addNewNota(nota);
-                if (newNota.getLength().compareTo(offset) > 0) {
-                    // TODO: maybe if last chord in staff then no need
-                    // put nota with onset length into newNota's chord to preserve timing
-                    newChord.addNewNota(0, 0).setLength(offset);
-                } else if (newNota.getLength().compareTo(offset) < 0) {
-                    // TODO: maybe if last chord in staff then no need
-                    // put an empty nota after and set it's length(onset - newNota.getLength())
-                    staff.addNewAccord(i + 1).addNewNota(0, 0).setLength(offset.subtract(newNota.getLength()));
-                }
-
-                return newNota;
+                Fraction greatest = greatest(rest);
+                rest = rest.subtract(greatest);
+                staff.addNewAccord(idx++).setExplicitLength(greatest);
+                staff.accordListChanged(idx - 1);
             }
+            return idx;
+        };
 
-            Fraction accordFraction = staff.getChordList().get(i).getFraction();
+        Optional<Chord> opt = staff.findChord(desiredPos);
+        if (opt.isPresent()) {
 
-            curPos = new Fraction(curPos.doubleValue() + accordFraction.doubleValue());
+            Chord chord = opt.get();
+            Fraction pauseRest = chord.getFraction().subtract(note.getRealLength());
+            chord.addNewNota(note);
+            staff.accordListChanged(-100);
+
+            // putting filler in case when chord length became smaller to preserve timing
+            putRest.apply(pauseRest, staff.getChordList().indexOf(chord) + 1);
+
+        } else {
+            Optional<Chord> lastChord = staff.getChord(-1);
+            Fraction lastChordStart = lastChord.flatMap(c -> staff.findChordStart(c)).orElse(fr(0, 1));
+            Fraction lastChordEnd = lastChord.map(c -> c.getFraction()).orElse(fr(0, 1)).add(lastChordStart);
+
+            if (desiredPos.compareTo(lastChordEnd) < 0) {
+
+                // putting preceding pauses
+                Chord chord = staff.findClosestBefore(desiredPos).get(); // TODO: for some reason, may return exactly requested, (you request 3/2 and get chord on 3/2) it's wrong
+                Fraction preRest = desiredPos.subtract(staff.findChordStart(chord).get());
+                Fraction postRest = chord.getFraction().subtract(preRest);
+
+                chord.setExplicitLength(greatest(preRest));
+                int index = staff.getChordList().indexOf(chord) + 1;
+                index = putRest.apply(preRest.subtract(greatest(postRest)), index);
+                // putting note
+                staff.addNewAccord(index++).setExplicitLength(postRest).addNewNota(note);
+                // putting following pauses
+                putRest.apply(postRest.subtract(note.getRealLength()), index);
+
+            } else {
+                // put enough pauses
+                putRest.apply(desiredPos.subtract(lastChordEnd), staff.getChordList().size());
+                // append chord
+                staff.addNewAccord().addNewNota(note);
+            }
         }
 
-        Fraction rest = desiredPos.subtract(curPos);
-        if (!rest.equals(new Fraction(0))) {
-            staff.addNewAccord().addNewNota(0,0).setLength(rest);
-        }
-
-        // TODO: we don't handle here pause prefix! (i.e when desired start is more than end) !!!
-        // if not returned already
-        return staff.addNewAccord().addNewNota(nota);
+        // TODO: it's broken somehow. Bakemonogatari can be opent with Noteworthy, but cant with midiana
     }
 
     private Fraction guessPos(int unitsArg)
@@ -172,12 +168,11 @@ public class NoteGuesser
         Cont<Integer> unitsLeft = new Cont<>(unitsArg);
         Cont<Fraction> result = new Cont<>(fr(0, 1));
 
-        while (unitsLeft.get() > toUnits(fr(2,1))) {
-            unitsLeft.set(unitsLeft.get() - toUnits(fr(2,1)));
-            result.set(result.get().add(fr(2, 1)));
-        }
+        int tactNum = unitsLeft.get() /  toUnits(fr(2,1));
+        unitsLeft.set(unitsLeft.get() - tactNum * toUnits(fr(2,1)));
+        result.set(result.get().add(fr(2, 1).multiply(tactNum)));
 
-        getPossibleLengths()
+        lengths()
         .stream()
         .sorted()
         .collect(Collectors.toCollection(LinkedList::new))
@@ -192,35 +187,59 @@ public class NoteGuesser
         return result.get();
     }
 
+//    private Fraction guessPos(int units)
+//    {
+//        Fraction result = fr(0, 1);
+//
+//        int tactNum = units /  toUnits(fr(2,1));
+//        result = result.add(fr(2, 1).multiply(tactNum));
+//
+//        // TODO: it's fishy, we don't guarantee, that we add greatest firstly. we may end up
+//        // with 3 x 3/16 with leak where it actually was 3 x 1/6. Fix ASAP! I don't wanna rely on correctness of midi event times
+//        while (units > toUnits(shortest().subtract(result))) {
+//            Fraction largestFit = guessLength(units - toUnits(result));
+//            result = result.add(largestFit);
+//        }
+//
+//        return result;
+//    }
+
+
     private Fraction guessLength(int units)
     {
-        List<Fraction> lengths = getPossibleLengths();
+        List<Fraction> lengths = lengths();
 
         // plus handle possibility that it is two linked Note-s... or may be even no...
         int error = lengths.stream().map(f -> Math.abs(units - toUnits(f))).sorted().findFirst().get();
         return lengths.stream().filter(f -> Math.abs(units - toUnits(f)) == error).findAny().get();
     }
 
-    private static List<Fraction> getPossibleLengths()
-    {
-        List<Fraction> lengths = asList(fr(2, 1));
-        // all accepted variations of semibreve: clean | triplet| with dot | with two dots
-        List<Fraction> semibreves = asList(fr(1, 1), fr(1, 3), fr(3, 2), fr(7, 4));
-        lengths.addAll(semibreves);
-        // half
-        lengths.addAll(asList(fr(1, 2), fr(1, 6), fr(3, 4), fr(7, 8)));
-        // quarter
-        lengths.addAll(asList(fr(1, 2), fr(1, 12), fr(3, 8), fr(7, 16)));
-        // 1/8 does not have triplet and two dots
-        lengths.addAll(asList(fr(1, 8), fr(3, 16)));
-        // 1/16 does not need triplet and dots
-        lengths.addAll(asList(fr(1,16)));
-
-        return lengths;
+    private Fraction greatest(Fraction length) {
+        Iterable<Fraction> iterable = () -> lengths().descendingIterator();
+        return StreamSupport.stream(iterable.spliterator(), false)
+                .filter(f -> f.compareTo(length) <= 0)
+                .findFirst().get();
     }
 
-    public static <T> ArrayList<T> asList(T... a) {
-        ArrayList<T> list = new ArrayList<>();
+    private static LinkedList<Fraction> lengths()
+    {
+        return Stream.of(
+            fr(2, 1),
+            // all accepted variations of semibreve: clean | triplet| with dot | with two dots
+            fr(1, 1), fr(1, 3), fr(3, 2), fr(7, 4),
+            // half
+            fr(1, 2), fr(1, 6), fr(3, 4), fr(7, 8),
+            // quarter
+            fr(1, 2), fr(1, 12), fr(3, 8), fr(7, 16),
+            // 1/8 does not have triplet and two dots
+            fr(1, 8), fr(3, 16), // TODO: apparently needs triplet...
+            // 1/16 does not need triplet and dots
+            fr(1,16))
+         .sorted(Fraction::compareTo).collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    public static <T> LinkedList<T> asList(T... a) {
+        LinkedList<T> list = new LinkedList<>();
         for (T elem: a) {
             list.add(elem);
         }
@@ -235,20 +254,20 @@ public class NoteGuesser
         return new Fraction(num, den);
     }
 
-    private class Note implements INota
+    private class GuessingNote implements INote
     {
         final int time;
         final int tune;
         final int channel;
         int duration = -100;
 
-        public Note(int tune, int channel, int time) {
+        public GuessingNote(int tune, int channel, int time) {
             this.time = time;
             this.tune = tune;
             this.channel = channel;
         }
 
-        public Note setDuration(int value) {
+        public GuessingNote setDuration(int value) {
             this.duration = value;
             return this;
         }

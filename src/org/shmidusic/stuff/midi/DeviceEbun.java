@@ -6,7 +6,7 @@ import org.klesun_model.Explain;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 import org.shmidusic.stuff.musica.PlayMusThread;
 import org.shmidusic.stuff.tools.Logger;
-import org.shmidusic.stuff.tools.INota;
+import org.shmidusic.stuff.tools.INote;
 
 import java.util.TreeSet;
 
@@ -29,7 +29,7 @@ public class DeviceEbun {
 	static DeviceEbun instance = null;
 
 	// TODO: It's very bad that we have one set for both devices. Try pressing ctrl-d while something is sounding, it will be fun ^_^.
-	private static TreeSet<INota> openNotaSet = new TreeSet<>();
+	private static TreeSet<INote> openNotaSet = new TreeSet<>();
 
 	private static MidiDevice device;
 	private static MidiDevice gervill;
@@ -138,7 +138,7 @@ public class DeviceEbun {
 		sendMessage(ShortMessage.PROGRAM_CHANGE, channel, value, 0);
 	}
 
-	synchronized public static void openNota(INota nota)
+	synchronized public static void openNota(INote nota)
 	{
 		if (openNotaSet.contains(nota)) {
 			closeNota(nota);
@@ -152,7 +152,7 @@ public class DeviceEbun {
 		}
 	}
 
-	synchronized public static void closeNota(INota nota)
+	synchronized public static void closeNota(INote nota)
 	{
 		openNotaSet.remove(nota);
 		if (nota.getChannel() != DRUM_CHANNEL) {
