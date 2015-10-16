@@ -6,7 +6,7 @@ import org.json.JSONObject;
 
 public class Channel extends AbstractModel implements Comparable<Channel>  {
 
-	final public static int CHANNEL_COUNT = 15; // 1-15. 0th ignores volume change; 16th throws MidiDataChannelOutOfRangeBlaBla exception
+	final public static int CHANNEL_COUNT = 16; // 1-15. 0th ignores volume change; 16th throws MidiDataChannelOutOfRangeBlaBla exception
 
 	// TODO: 0-th channel does not exist - do something with that
 	final public Field<Integer> channelNumber = new Field<>("channelNumber", Integer.class, true, this);

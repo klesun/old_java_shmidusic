@@ -31,8 +31,6 @@ public class StaffConfig extends AbstractModel
 	final public Field<Integer> keySignature = addField("keySignature", 0);
 	final public Field<Boolean> useHardcoreSynthesizer = addField("useHardcoreSynthesizer", false);
 
-	final private Staff staff;
-
 	// TODO: make it ordered Set instead of List
 	final public Arr<Channel> channelList = new Arr<>("channelList", makeChannelList(), this, Channel.class).setOmitDefaultFromJson(true);
 
@@ -40,7 +38,7 @@ public class StaffConfig extends AbstractModel
 		TreeSet<Channel> list = new TreeSet<>();
 
 		for (int i = 0; i < Channel.CHANNEL_COUNT; ++i) {
-			JSONObject state = new JSONObject().put("channelNumber", i + 1);
+			JSONObject state = new JSONObject().put("channelNumber", i);
 			Channel channel = new Channel();
 			channel.reconstructFromJson(state);
 
@@ -48,10 +46,6 @@ public class StaffConfig extends AbstractModel
 		}
 
 		return list;
-	}
-
-	public StaffConfig(Staff staff) {
-		this.staff = staff;
 	}
 
 	public ConfigDialog getDialog() { return new ConfigDialog(this); }

@@ -18,7 +18,7 @@ public class Nota extends AbstractModel implements INote
 
 	// TODO: normalization rules maybe ???
 	final public Field<Integer> tune = new Field<>("tune", Integer.class, true, this, n -> limit(n, 0, 127));
-	final protected Field<Integer> channel = new Field<>("channel", Integer.class, true, this, n -> limit(n, 1, 16));
+	final protected Field<Integer> channel = new Field<>("channel", Integer.class, true, this, n -> limit(n, 0, 15));
 
 	final public Field<Fraction> length = new Field<>("length", new Fraction(1, 4), this, INote::legnthNorm);
 	final public Field<Boolean> isTriplet = new Field<>("isTriplet", false, this);

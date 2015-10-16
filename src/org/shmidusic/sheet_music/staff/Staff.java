@@ -45,7 +45,7 @@ public class Staff extends AbstractModel
 
 	public Staff()
 	{
-		this.staffConfig = new StaffConfig(this);
+		this.staffConfig = new StaffConfig();
 	}
 
 	public Chord addNewAccord()
