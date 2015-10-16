@@ -91,9 +91,15 @@ public class NotaHandler extends AbstractHandler {
 	}
 
 	synchronized private static void changeChannel(NoteComponent nota, int channel) {
-		JSONObject js = nota.note.getJsonRepresentation();
-		js.put(nota.note.channel.getName(), channel);
-		nota.getParentComponent().addNewNota(js);
-		nota.getParentComponent().remove(nota.note);
+
+        Boolean canChange = nota.getParentComponent().chord.notaStream()
+                .noneMatch(n -> n.channel.get() == channel && n.tune.get() == nota.note.tune.get());
+
+        if (canChange) {
+            JSONObject js = nota.note.getJsonRepresentation();
+            js.put(nota.note.channel.getName(), channel);
+            nota.getParentComponent().addNewNota(js);
+            nota.getParentComponent().remove(nota.note);
+        }
 	}
 }

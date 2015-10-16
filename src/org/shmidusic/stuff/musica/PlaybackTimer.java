@@ -13,7 +13,6 @@ import java.util.*;
 public class PlaybackTimer implements IMidiScheduler {
 
 	final private StaffConfig config;
-	private Thread timerThread = null;
 
 	private Boolean stop = false;
 
@@ -45,27 +44,23 @@ public class PlaybackTimer implements IMidiScheduler {
 	}
 
 	public void start() {
-		this.timerThread = new Thread(() -> {
-			long startTime = System.currentTimeMillis();
-			iterate(startTime);
-		});
-		this.timerThread.start();
+        long startTime = System.currentTimeMillis();
+        iterate(startTime);
 	}
 
 	private void iterate(long startTime)
 	{
 		if (!stop) {
-            synchronized (tasks) {
-                long now = System.currentTimeMillis();
 
-                Fraction from = new Fraction(0);
-                Fraction to = tasks.navigableKeySet().stream().filter(f -> startTime + toMillis(f) > now).findFirst().orElse(new Fraction(Integer.MAX_VALUE));
-                Set<Fraction> keys = tasks.navigableKeySet().subSet(from, to);
+            long now = System.currentTimeMillis();
 
-                for (Fraction key : keys) {
-                    List<Runnable> taskList = tasks.remove(key);
-                    taskList.forEach(Runnable::run);
-                }
+            Fraction from = new Fraction(0);
+            Fraction to = tasks.navigableKeySet().stream().filter(f -> startTime + toMillis(f) > now).findFirst().orElse(new Fraction(Integer.MAX_VALUE));
+            Set<Fraction> keys = tasks.navigableKeySet().subSet(from, to);
+
+            for (Fraction key : keys) {
+                List<Runnable> taskList = tasks.remove(key);
+                taskList.forEach(Runnable::run);
             }
 
 			if (tasks.size() > 0) {
@@ -84,9 +79,6 @@ public class PlaybackTimer implements IMidiScheduler {
 
 	synchronized public void interrupt() {
 		this.stop = true;
-		if (this.timerThread != null) {
-			this.timerThread.interrupt();
-		}
 	}
 
 	protected long toMillis(Fraction f) {
