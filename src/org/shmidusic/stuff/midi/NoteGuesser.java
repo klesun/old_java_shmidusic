@@ -4,6 +4,7 @@ package org.shmidusic.stuff.midi;
 // obvious from name, it guesses note lengths from event timestamp and unitsPerSecond
 
 import org.apache.commons.math3.fraction.Fraction;
+import org.json.JSONObject;
 import org.shmidusic.Main;
 import org.shmidusic.sheet_music.SheetMusic;
 import org.shmidusic.sheet_music.staff.Staff;
@@ -14,6 +15,7 @@ import org.shmidusic.stuff.midi.standard_midi_file.Track;
 import org.shmidusic.stuff.midi.standard_midi_file.event.*;
 import org.shmidusic.stuff.tools.INote;
 import org.shmidusic.stuff.tools.Logger;
+import org.shmidusic.stuff.tools.Triplet;
 
 import javax.swing.*;
 import java.util.*;
@@ -39,12 +41,75 @@ public class NoteGuesser
         this.unitsPerSecond = smf.getPPQN();
 	}
 
+    public JSONObject generateMidiJson()
+    {
+        // TODO: investigate. i suspect that there are no midi-s with variable tempo and program per channel on practice
+        // if so - tempo should be just single double value (first event probably) - not list and no times. same with program change - just probably dict channel -> instrumentId
+        // cuz some files ("Banjo kazooie - Rusty Bucket Bay Duet.mid", "Terranigma - Europe (1).mid") have obviously trashy countless duplicate messages
+        Triplet<List<GuessingNote>, List<TempoEvent>, List<PChange>> extracted = getNotes();
+
+        return new JSONObject()
+            .put("division", unitsPerSecond)
+
+            .put("tempoEventList", extracted.elem2.stream()
+                    .map(e -> new JSONObject()
+                            .put("time", e.getTime())
+                            .put("tempo", e.getTempo()))
+                    .collect(Collectors.toList()).toArray())
+
+            .put("instrumentDict", extracted.elem3.stream()
+                    .sorted(Comparator.comparing(Event::getTime))
+                    .collect(Collectors.toMap(
+                            PChange::getMidiChannel,
+                            PChange::getValue,
+                            (dup1, dup2) -> dup1 == dup2
+                                    ? dup1
+                                    : (Math.random() < 0.5 ? dup1 : dup2) // ибо нехуй
+                    )))
+
+            .put("noteList", extracted.elem1.stream()
+                    .map(n -> new JSONObject()
+                            .put("tune", n.tune)
+                            .put("time", n.time)
+                            .put("duration", n.duration)
+                            .put("channel", n.channel))
+                    .collect(Collectors.toList()).toArray())
+            ;
+
+    }
+
     public SheetMusic generateSheetMusic(Consumer<SheetMusic> rebuild)
     {
         SheetMusic sheetMusic = new SheetMusic();
         Staff staff = sheetMusic.staffList.get(0);
 
+        Triplet<List<GuessingNote>, List<TempoEvent>, List<PChange>> extracted = getNotes();
+
+        List<GuessingNote> notes = extracted.elem1;
+        staff.getConfig().setTempo(extracted.elem2.stream()
+                .min(Comparator.comparing(TempoEvent::getTime))
+                .map(TempoEvent::getTempo).map(Integer.class::cast).orElse(120));
+        extracted.elem3.forEach(e -> staff.getConfig().channelList.get(e.getMidiChannel()).setInstrument(e.getValue()));
+
+        notes.stream().sorted((n1,n2) -> n1.time - n2.time).forEach(n -> {
+            /** @debug */
+//            System.out.println(guessPos(n.time) + " " + n.strMe());
+            putAt(guessPos(n.time), n, staff);
+
+            /** @debug */
+//            rebuild.accept(sheetMusic);
+//            JOptionPane.showMessageDialog(Main.window, "zhopa");
+        });
+
+        return sheetMusic;
+    }
+
+    // all delta-times are rewrited with absolute times!
+    private Triplet<List<GuessingNote>, List<TempoEvent>, List<PChange>> getNotes()
+    {
         List<GuessingNote> notes = new ArrayList<>();
+        List<TempoEvent> tempos = new ArrayList<>();
+        Collection<PChange> instruments = new ArrayList<>();
 
         for (Track track: midiFile.getTrackList()) {
 
@@ -64,7 +129,7 @@ public class NoteGuesser
 
                     INoteEvent noteOff = (INoteEvent)event;
                     opened.stream().filter(n -> n.tune == noteOff.getPitch() && n.channel == noteOff.getMidiChannel())
-                    .findAny().ifPresent(n ->
+                        .findAny().ifPresent(n ->
                     {
                         n.setDuration(finalTime - n.time);
                         notes.add(n);
@@ -72,40 +137,30 @@ public class NoteGuesser
                     });
 
                 } else {
-                    // handle staff config event
-                    if (time == 0) {
-                        consumeConfigEvent(event, staff.getConfig());
+                    event.setTime(time);
+                    if (event instanceof TempoEvent) {
+                        tempos.add((TempoEvent) event);
+                    } else if (event instanceof PChange) {
+                        instruments.add((PChange)event);
                     } else {
-                        Logger.warning("Config event not at the start of midi: " + event.getClass().getSimpleName() + " " + event.getTime() + ". Should we split Staff in future on this case?");
+                        // apohuj
                     }
                 }
             }
         }
 
-        notes.stream().sorted((n1,n2) -> n1.time - n2.time).forEach(n -> {
-            /** @debug */
-//            System.out.println(guessPos(n.time) + " " + n.strMe());
-            putAt(guessPos(n.time), n, staff);
+        notes.sort(Comparator.comparing(GuessingNote::getTime));
 
-            /** @debug */
-//            rebuild.accept(sheetMusic);
-//            JOptionPane.showMessageDialog(Main.window, "zhopa");
-        });
+        // some .mid files in my collections (for example 0_c5_Final Fantasy XI - Sanctuary of Zi'tah.mid.js)
+        // have different program events with same time and channel... i suppose in such case should be used the latter
+        instruments = instruments.stream()
+                .collect(Collectors.toMap(
+                        i -> Arrays.asList(new Integer(i.getTime()), new Short(i.getMidiChannel())),
+                        i -> i,
+                        (dup1, dup2) -> dup2))
+                .values();
 
-        return sheetMusic;
-    }
-
-    private void consumeConfigEvent(Event event, StaffConfig config)
-    {
-        if (event instanceof TempoEvent) {
-            tempo = (int)((TempoEvent) event).getTempo();
-//            config.setTempo(tempo);
-        } else if (event instanceof PChange) {
-            PChange instrument = (PChange) event;
-            config.channelList.get(instrument.getMidiChannel()).setInstrument(instrument.getValue());
-        } else {
-            // ...
-        }
+        return new Triplet<>(notes, tempos, new ArrayList<>(instruments));
     }
 
     private void putAt(Fraction desiredPos, INote note, Staff staff)
@@ -247,7 +302,7 @@ public class NoteGuesser
     }
 
     private int toUnits(Fraction length) {
-        return length.multiply(unitsPerSecond).intValue();
+        return length.multiply(unitsPerSecond * 4).intValue(); // * 4 because semibreveEventLength/division = 1/4
     }
 
     private static Fraction fr(int num, int den) {
@@ -285,6 +340,10 @@ public class NoteGuesser
 
         private Fraction getActualLength() {
             return guessLength(this.duration);
+        }
+
+        public int getTime() {
+            return this.time;
         }
 
         public String strMe() {

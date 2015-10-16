@@ -154,9 +154,14 @@ public final class SMF {
 		}
 		*/
 		//Read all track chunks
-		for(int i = 0; i < numOfTracks; i++){
-			readTrackChunk( dis);
-		}
+        try {
+            for (int i = 0; i < numOfTracks; i++) {
+                readTrackChunk(dis);
+            }
+        } catch (EOFException exc) {
+            // 0_c5_Sailor Moon - Romance- Heartbeats on a Falling Star Night - Excerpt from SMR Symphonic Poem -.mid
+            System.out.println("Unexpected eof - proceeding");
+        }
 		is.close();
 		dis.close();
 	}

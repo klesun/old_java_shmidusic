@@ -17,7 +17,7 @@ public class Logger {
 
 	final private static String PRE_FATAL_BACKUP_FOLDER = "savedJustBeforeFatal/";
 
-	public static int getFatal(String msg) {
+	public static Integer getFatal(String msg) {
 		fatal(msg);
 		return -100;
 	}
