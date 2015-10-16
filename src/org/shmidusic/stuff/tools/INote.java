@@ -82,7 +82,7 @@ public interface INote extends Comparable<INote> {
 		} else {
 			length = length.divide(ImageStorage.getTallLimit().multiply(2)); // to make sure, that the length is less than 1
 			if (length.compareTo(new Fraction(1)) >= 0) {
-				Logger.fatal("Providen fraction is greater than 1 even after deviding it to gretest possible nota length! We'll all die!!!" + length);
+				Logger.fatal("Providen fraction is greater than 1 even after deviding it to gretest possible note length! We'll all die!!!" + length);
 			}
 
 			if (Fp.isPowerOf2(length.getDenominator())) { // will be false for triols

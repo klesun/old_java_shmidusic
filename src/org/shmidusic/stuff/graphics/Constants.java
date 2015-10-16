@@ -10,8 +10,8 @@ public class Constants {
 	public static final int FONT_WIDTH = g().getFontMetrics().stringWidth("i");
 	public static final int FONT_HEIGHT = (int)g().getFontMetrics().getLineMetrics("i", g()).getHeight();
 
-	final public static int NORMAL_NOTA_HEIGHT = 40;
-	final public static int NORMAL_NOTA_WIDTH = 25;
+	final public static int NORMAL_NOTE_HEIGHT = 40;
+	final public static int NORMAL_NOTE_WIDTH = 25;
 
 	private static Graphics g() {
 		Graphics g = new BufferedImage(1,1, BufferedImage.TYPE_INT_ARGB).getGraphics();

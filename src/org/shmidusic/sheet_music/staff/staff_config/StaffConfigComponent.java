@@ -41,7 +41,7 @@ public class StaffConfigComponent extends MidianaComponent
 	}
 
 	public int drawOn(Graphics2D g, int x, int y) {
-		int dX = dx()/5, dY = Settings.inst().getNotaHeight() * 2;
+		int dX = dx()/5, dY = Settings.inst().getNoteHeight() * 2;
 		drawImage(g, x - dX, y - dY);
 
 		drawSignature(g, x + dX / 4, y);
@@ -81,7 +81,7 @@ public class StaffConfigComponent extends MidianaComponent
 	public void drawImage(Graphics2D g, int x, int y)
 	{
 		g.setColor(Color.black);
-		int inches = Settings.inst().getNotaHeight()*5/8, taktY = Settings.inst().getNotaHeight()*2; // 25, 80
+		int inches = Settings.inst().getNoteHeight()*5/8, taktY = Settings.inst().getNoteHeight()*2; // 25, 80
 		g.setFont(new Font(Font.MONOSPACED, Font.BOLD, inches)); // 12 - 7px width
 
 		int tz = 8, tc = staffConfig.getNumerator(); // tz - denominator, tc - numerator
@@ -91,12 +91,12 @@ public class StaffConfigComponent extends MidianaComponent
 		}
 
 		g.drawString(tc+"", x - dx() / 2, y + inches*4/5 + taktY);
-		g.drawString(tz+"", x - dx() / 2, y + 2 * inches*4/5 + taktY);
+		g.drawString(tz + "", x - dx() / 2, y + 2 * inches * 4 / 5 + taktY);
 
 		int tpx = x, tpy = y + dy() * 2;
 		g.drawImage(ImageStorage.inst().getQuarterImage(), tpx, tpy, null);
-		inches = Settings.inst().getNotaHeight() * 9/20;
+		inches = Settings.inst().getNoteHeight() * 9/20;
 		g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, inches)); // 12 - 7px width
-		g.drawString(" = " + staffConfig.getTempo(), tpx + dx() * 4 / 5, tpy + inches * 4 / 5 + Settings.inst().getNotaHeight() * 13 / 20);
+		g.drawString(" = " + staffConfig.getTempo(), tpx + dx() * 4 / 5, tpy + inches * 4 / 5 + Settings.inst().getNoteHeight() * 13 / 20);
 	}
 }

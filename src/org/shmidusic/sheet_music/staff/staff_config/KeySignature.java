@@ -44,13 +44,13 @@ public class KeySignature
 		if (matches(tuneMask)) {
 			return myTuneQueue().indexOf(tuneMask);
 		} else {
-			return flatIvoryMask(tune); // for now we will draw all unknown Nota-s as bemol
+			return flatIvoryMask(tune); // for now we will draw all unknown Note-s as bemol
 		}
 	}
 
 	// add bemols/becars/diezes of this chord Note-s
 	public void consume(Chord chord) {
-		chord.notaStream().forEach(this::consume);
+		chord.noteStream().forEach(this::consume);
 	}
 
 	// add bemols/becars/diezes of this Note

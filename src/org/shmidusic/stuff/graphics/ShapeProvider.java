@@ -1,7 +1,7 @@
 package org.shmidusic.stuff.graphics;
 
 // i'm tired of being attached to pixels of image files
-// let's draw Nota-s and signs with vectors!
+// let's draw Note-s and signs with vectors!
 
 import org.shmidusic.stuff.OverridingDefaultClasses.Straight;
 

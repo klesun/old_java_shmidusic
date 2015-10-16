@@ -5,5 +5,5 @@ import org.shmidusic.stuff.tools.INote;
 
 public interface IMidiScheduler
 {
-	void addNoteTask(Fraction when, INote nota);
+	void addNoteTask(Fraction when, INote note);
 }

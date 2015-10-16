@@ -8,45 +8,45 @@ import java.util.stream.Stream;
 import org.klesun_model.AbstractModel;
 import org.klesun_model.field.Arr;
 import org.klesun_model.field.Field;
+import org.shmidusic.sheet_music.staff.chord.note.Note;
 import org.shmidusic.stuff.tools.INote;
 import org.apache.commons.math3.fraction.Fraction;
 
-import org.shmidusic.sheet_music.staff.chord.nota.Nota;
 import org.json.JSONObject;
 
 public class Chord extends AbstractModel
 {
 	private Field<Boolean> isDiminendo = new Field<>("isDiminendo", false, this).setPaintingLambda(ChordPainter::diminendoPainting);
 	public Field<String> slog = new Field<>("slog", "", this).setPaintingLambda(ChordPainter::slogPainting).setOmitDefaultFromJson(true);
-	public Arr<Nota> notaList = new Arr<>("notaList", new TreeSet<>(), this, Nota.class);
+	public Arr<Note> noteList = new Arr<>("notaList", new TreeSet<>(), this, Note.class);
 
 	// getters/setters
 
-	public TreeSet<Nota> getNotaSet() {
-		return (TreeSet)notaList.get();
+	public TreeSet<Note> getNoteSet() {
+		return (TreeSet) noteList.get();
 	}
 
-	public Stream<Nota> notaStream(Predicate<Nota> filterLambda) {
-		return getNotaSet().stream().filter(filterLambda);
+	public Stream<Note> noteStream(Predicate<Note> filterLambda) {
+		return getNoteSet().stream().filter(filterLambda);
 	}
 
 	// TODO: add parameter to Chord: "explicitLength" and use it instead of our fake-note-pauses
 	/** @return stream of real notes... maybe should store pause list separately? */
-	public Stream<Nota> notaStream() {
-		return notaStream(n -> !n.isPause());
+	public Stream<Note> noteStream() {
+		return noteStream(n -> !n.isPause());
 	}
 
 	public long getEarliestKeydown() {
-		Nota nota = this.getNotaSet().stream().reduce(null, (a, b) -> a != null && a.keydownTimestamp < b.keydownTimestamp ? a : b);
-		return nota != null ? nota.keydownTimestamp : 0;
+		Note note = this.getNoteSet().stream().reduce(null, (a, b) -> a != null && a.keydownTimestamp < b.keydownTimestamp ? a : b);
+		return note != null ? note.keydownTimestamp : 0;
 	}
 
-	public Nota findByTuneAndChannel(int tune, int channel) {
-		return this.getNotaSet().stream().filter(n -> n.tune.get() == tune && n.getChannel() == channel).findFirst().orElse(null);
+	public Note findByTuneAndChannel(int tune, int channel) {
+		return this.getNoteSet().stream().filter(n -> n.tune.get() == tune && n.getChannel() == channel).findFirst().orElse(null);
 	}
 
 	public int getShortestTime(int tempo) {
-		return Nota.getTimeMilliseconds(getFraction(),tempo);
+		return Note.getTimeMilliseconds(getFraction(), tempo);
 	}
 
 	public Fraction getFraction() {
@@ -62,7 +62,7 @@ public class Chord extends AbstractModel
 	public void setIsDiminendo(Boolean value) { isDiminendo.set(value); }
 
     public Chord setExplicitLength(Fraction length) {
-        addNewNota(0, 0).setLength(length);
+        addNewNote(0, 0).setLength(length);
 
         removeRedundantPauseIfAny();
         return this;
@@ -70,45 +70,45 @@ public class Chord extends AbstractModel
 
 	// event handles
 
-	public Nota addNewNota(INote source) {
-		Nota newNota = addNewNota(source.getTune(), source.getChannel()).setLength(source.getLength());
-		newNota.isTriplet.set(source.isTriplet());
+	public Note addNewNote(INote source) {
+		Note newNote = addNewNote(source.getTune(), source.getChannel()).setLength(source.getLength());
+		newNote.isTriplet.set(source.isTriplet());
         removeRedundantPauseIfAny();
 
-		return newNota;
+		return newNote;
 	}
 
-	public Nota addNewNota(int tune, int channel) {
-		return add(new Nota().setTune(tune).setChannel(channel)
+	public Note addNewNote(int tune, int channel) {
+		return add(new Note().setTune(tune).setChannel(channel)
 			.setKeydownTimestamp(System.currentTimeMillis()));
 	}
 
-	public Nota addNewNota(JSONObject newNotaJs) {
-		return add(new Nota().reconstructFromJson(newNotaJs)
+	public Note addNewNote(JSONObject newNoteJs) {
+		return add(new Note().reconstructFromJson(newNoteJs)
 			.setKeydownTimestamp(System.currentTimeMillis()));
 	}
 
-	synchronized public Nota add(Nota nota) {
-		return notaList.add(nota);
+	synchronized public Note add(Note note) {
+		return noteList.add(note);
 	}
 
-	synchronized public void remove(Nota nota) {
-		notaList.remove(nota);
+	synchronized public void remove(Note note) {
+		noteList.remove(note);
 	}
 
     public void removeRedundantPauseIfAny()
     {
         getShortest().ifPresent(
-            n -> notaList.get().stream()
+            n -> noteList.get().stream()
                 .filter(k -> k.getRealLength().equals(n.getRealLength()) && !k.isPause())
                 .findAny().ifPresent(
-                    k -> notaList.get().stream().filter(Nota::isPause)
+                    k -> noteList.get().stream().filter(Note::isPause)
                         .collect(Collectors.toList())
                         .forEach(this::remove)
         ));
     }
 
-    private Optional<Nota> getShortest() {
-        return notaList.get().stream().sorted((a, b) -> a.isLongerThan(b) ? 1 : -1).findFirst();
+    private Optional<Note> getShortest() {
+        return noteList.get().stream().sorted((a, b) -> a.isLongerThan(b) ? 1 : -1).findFirst();
     }
 }

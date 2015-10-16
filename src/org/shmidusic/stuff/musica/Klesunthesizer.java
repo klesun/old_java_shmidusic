@@ -1,6 +1,6 @@
 package org.shmidusic.stuff.musica;
 
-import org.shmidusic.sheet_music.staff.chord.nota.Nota;
+import org.shmidusic.sheet_music.staff.chord.note.Note;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -37,7 +37,7 @@ public class Klesunthesizer
 	  * @param - midi message tune */
 	private static double tuneToFreq(int tune)
 	{
-		int shift = tune - Nota.LA;
+		int shift = tune - Note.LA;
 		double la = 440.0;
 		return la * Math.pow(2, shift / 12.0);
 	}

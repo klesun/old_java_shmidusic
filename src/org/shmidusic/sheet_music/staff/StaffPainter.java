@@ -1,7 +1,7 @@
 package org.shmidusic.sheet_music.staff;
 
 import org.shmidusic.sheet_music.staff.chord.Chord;
-import org.shmidusic.sheet_music.staff.chord.nota.Nota;
+import org.shmidusic.sheet_music.staff.chord.note.Note;
 import org.klesun_model.AbstractPainter;
 import org.apache.commons.math3.fraction.Fraction;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfigComponent;
@@ -27,7 +27,7 @@ public class StaffPainter extends AbstractPainter
 		int i = 0;
 		for (java.util.List<Chord> row : s.getAccordRowList(comp.getAccordInRowCount())) {
 
-			int y = i * Staff.SISDISPLACE * dy(); // bottommest y nota may be drawn on
+			int y = i * Staff.SISDISPLACE * dy(); // bottommest y note may be drawn on
 
 			drawStaffLines(y);
 
@@ -70,9 +70,9 @@ public class StaffPainter extends AbstractPainter
 		StaffComponent comp = (StaffComponent)context;
 		Staff s = comp.staff;
 
-		int tune = INote.nextIvoryTune(INote.nextIvoryTune(Nota.FA + 12 * 2));
+		int tune = INote.nextIvoryTune(INote.nextIvoryTune(Note.FA + 12 * 2));
 
-		// normal Nota height lines
+		// normal Note height lines
 		for (int j = 0; j < 11; ++j) {
 			tune = INote.prevIvoryTune(INote.prevIvoryTune(tune));
 			if (j == 5) continue;
@@ -83,7 +83,7 @@ public class StaffPainter extends AbstractPainter
 			drawString(tune + "", measureFrame, Color.BLUE);
 		}
 
-		// hidden Nota height lines fot way too high Nota-s
+		// hidden Note height lines fot way too high Note-s
 		for (int j = -3; j >= -5; --j) { // -3 - Mi; -5 -si
 			int lineY = y + j * dy() * 2;
 			drawLine(- 3 * dx(), lineY, comp.getWidth() - s.getMarginX() * 6, lineY, Color.LIGHT_GRAY);

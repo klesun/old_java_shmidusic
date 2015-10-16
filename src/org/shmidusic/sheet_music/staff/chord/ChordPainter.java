@@ -1,8 +1,8 @@
 package org.shmidusic.sheet_music.staff.chord;
 
 import org.klesun_model.AbstractPainter;
-import org.shmidusic.sheet_music.staff.chord.nota.Nota;
-import org.shmidusic.sheet_music.staff.chord.nota.NoteComponent;
+import org.shmidusic.sheet_music.staff.chord.note.Note;
+import org.shmidusic.sheet_music.staff.chord.note.NoteComponent;
 import org.shmidusic.sheet_music.staff.staff_config.KeySignature;
 import org.shmidusic.stuff.graphics.ImageStorage;
 
@@ -20,19 +20,19 @@ public class ChordPainter extends AbstractPainter {
 		ChordComponent comp = (ChordComponent)context;
 		Chord a = comp.chord;
 
-		for (int i = 0; i < a.getNotaSet().size(); ++i) {
-			Nota nota = a.notaList.get(i);
-			int notaY = getLowestPossibleNotaY() - dy() * nota.ivoryIndex(siga);
-			int notaX = i > 0 && a.notaList.get(i - 1).ivoryIndex(siga) == nota.ivoryIndex(siga)
+		for (int i = 0; i < a.getNoteSet().size(); ++i) {
+			Note note = a.noteList.get(i);
+			int noteY = getLowestPossibleNoteY() - dy() * note.ivoryIndex(siga);
+			int noteX = i > 0 && a.noteList.get(i - 1).ivoryIndex(siga) == note.ivoryIndex(siga)
 				? dx() / 3 // TODO: draw them flipped
 				: 0;
 
-			if (comp.getFocusedIndex() != -1 && nota == comp.getFocusedChild().note) {
-				fillRect(new Rectangle(0, notaY + 6 * dy(), 2 * dx(), 2 * dy()), new Color(0,255,0,127));
+			if (comp.getFocusedIndex() != -1 && note == comp.getFocusedChild().note) {
+				fillRect(new Rectangle(0, noteY + 6 * dy(), 2 * dx(), 2 * dy()), new Color(0,255,0,127));
 			}
 
-			NoteComponent noteComp = comp.findChild(nota);
-			drawModel((g, x, y) -> noteComp.drawOn(g, x, y, siga), notaX, notaY);
+			NoteComponent noteComp = comp.findChild(note);
+			drawModel((g, x, y) -> noteComp.drawOn(g, x, y, siga), noteX, noteY);
 			siga.consume(noteComp.note);
 		}
 
@@ -43,7 +43,7 @@ public class ChordPainter extends AbstractPainter {
 		drawFields();
 	}
 
-	private int getLowestPossibleNotaY() {
+	private int getLowestPossibleNoteY() {
 		return 50 * dy();
 	}
 

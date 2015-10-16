@@ -34,7 +34,7 @@ public class Playback {
 		if (this.runningProcess != null) {
 			this.runningProcess.interrupt();
 			this.runningProcess = null;
-			DeviceEbun.closeAllNotas();
+			DeviceEbun.closeAllNotes();
 		}
 		return true;
 	}
@@ -74,21 +74,21 @@ public class Playback {
 		for (Chord chord : staffComp.staff.getChordList().subList(startFrom, staffComp.staff.getChordList().size())) {
 			final Fraction finalStart = sumFraction;
 
-			chord.notaStream(n -> true).forEach(n -> playNota(n, finalStart, scheduler));
+			chord.noteStream(n -> true).forEach(n -> playNote(n, finalStart, scheduler));
 			onAccord.accept(sumFraction);
 			sumFraction = sumFraction.add(chord.getFraction());
 		}
 	}
 
-	private static void playNota(INote nota, Fraction start, IMidiScheduler scheduler)
+	private static void playNote(INote note, Fraction start, IMidiScheduler scheduler)
 	{
-		if (nota.getTune() != 0) { // 0 means pause in my world
+		if (note.getTune() != 0) { // 0 means pause in my world
 			if (!Main.isLinux || scheduler instanceof SmfScheduler || true) { /** @debug */
-				scheduler.addNoteTask(start, nota);
+				scheduler.addNoteTask(start, note);
 			} else {
 				// making sound lag a bit, so it fitted lagging graphics ^_^
 				// TODO: maybe move this hack into preferences with parameter one day...
-				scheduler.addNoteTask(start.add(new Fraction(1, 16)), nota);
+				scheduler.addNoteTask(start.add(new Fraction(1, 16)), note);
 			}
 		}
 	}

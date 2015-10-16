@@ -21,7 +21,7 @@ public class ImageStorage {
 
 //	final private BlockSpace parentBlockSpace;
 
-	private Map<Fraction, BufferedImage>[] coloredNotas = new Map[Channel.CHANNEL_COUNT];
+	private Map<Fraction, BufferedImage>[] coloredNotes = new Map[Channel.CHANNEL_COUNT];
 
 	private Map<Fraction, Map<Color, BufferedImage>> coloredImages = new HashMap<>();
 
@@ -32,7 +32,7 @@ public class ImageStorage {
 	public ImageStorage() {
 //		this.parentBlockSpace = parentBlockSpace;
 		for (int i = 0; i < Channel.CHANNEL_COUNT; ++i) {
-			coloredNotas[i] = new HashMap<>();
+			coloredNotes[i] = new HashMap<>();
 		}
 		refreshImageSizes();
 	}
@@ -45,13 +45,13 @@ public class ImageStorage {
 		return inst;
 	}
 
-	public BufferedImage getNotaImg(Fraction length, int channel) {
+	public BufferedImage getNoteImg(Fraction length, int channel) {
 		if (INote.isTooLong(length)) {
 			return getTooLongImage(); // TODO: color!
 		} else if (INote.isTooShort(length)) {
 			return getTooShortImage(); // TODO: color!
 		} else {
-			return coloredNotas[channel].get(length);
+			return coloredNotes[channel].get(length);
 		}
 	}
 
@@ -61,7 +61,7 @@ public class ImageStorage {
 
 	public void refreshImageSizes() {
 		sizedDefaultImageMap.clear();
-		refreshNotaSizes(); // TODO: maybe make nota-s lazy too ?
+		refreshNoteSizes(); // TODO: maybe make note-s lazy too ?
 	}
 
 	private static BufferedImage strToImg(String str) {
@@ -73,26 +73,26 @@ public class ImageStorage {
 		return img;
 	}
 
-	private void refreshNotaSizes() {
+	private void refreshNoteSizes() {
 
 		int w1, h1; Graphics2D g;
-		w1 = Settings.inst().getNotaWidth();
-		h1 = Settings.inst().getNotaHeight();
+		w1 = Settings.inst().getNoteWidth();
+		h1 = Settings.inst().getNoteHeight();
 
-		// resizing first base color nota
-		for (Fraction length: getAvailableNotaLengthList()) {
-			coloredNotas[0].put(length, changeSize(openDefaultImage(getNotaImageFile(length))));
+		// resizing first base color note
+		for (Fraction length: getAvailableNoteLengthList()) {
+			coloredNotes[0].put(length, changeSize(openDefaultImage(getNoteImageFile(length))));
 		}
 
-		// renewing other colored notas
+		// renewing other colored notes
 		for (int chan = 1; chan < Channel.CHANNEL_COUNT; ++chan) {
-			for (Fraction length: getAvailableNotaLengthList()) {
-				coloredNotas[chan].put(length, new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB));
-				g = (Graphics2D)coloredNotas[chan].get(length).getGraphics();
+			for (Fraction length: getAvailableNoteLengthList()) {
+				coloredNotes[chan].put(length, new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB));
+				g = (Graphics2D) coloredNotes[chan].get(length).getGraphics();
 				g.setColor(getColorByChannel(chan));
-				g.fillRect(0, 0, Settings.inst().getNotaWidth(), Settings.inst().getNotaHeight());
+				g.fillRect(0, 0, Settings.inst().getNoteWidth(), Settings.inst().getNoteHeight());
 				g.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN, 1.0f));
-				g.drawImage(coloredNotas[0].get(length), 0, 0, w1, h1, null); // not sure that need
+				g.drawImage(coloredNotes[0].get(length), 0, 0, w1, h1, null); // not sure that need
 			}
 		}
 	}
@@ -101,29 +101,29 @@ public class ImageStorage {
 
 	// it's 2/1
 	public static Fraction getTallLimit() {
-		return getAvailableNotaLengthList().get(0);
+		return getAvailableNoteLengthList().get(0);
 	}
 
 	// it's 1/32
 	public static Fraction getShortLimit() {
-		return getAvailableNotaLengthList().get(getAvailableNotaLengthList().size() - 1);
+		return getAvailableNoteLengthList().get(getAvailableNoteLengthList().size() - 1);
 	}
 
 	// from 2/1 downto 1/16
-	public static List<Fraction> getAvailableNotaLengthList() {
+	public static List<Fraction> getAvailableNoteLengthList() {
 		List<Fraction> result = new ArrayList<>();
 		for (int idx = 0; idx < 7; ++idx) { result.add(new Fraction(2, pow2(idx))); }
 		return result;
 	}
 
-	private URL getNotaImageFile(Fraction length) {
+	private URL getNoteImageFile(Fraction length) {
 		int fileStupidIndex = length.equals(new Fraction(2)) ? 0 : length.getDenominator();
 		String fileName = fileStupidIndex + ".png";
 
 		return getClass().getResource(DEFAULT_IMAGE_FOLDER + fileName);
 	}
 
-	public BufferedImage getQuarterImage() { return coloredNotas[0].get(new Fraction(1, 4)); }
+	public BufferedImage getQuarterImage() { return coloredNotes[0].get(new Fraction(1, 4)); }
 
 	public BufferedImage getTooLongImage() { return openSizedDefaultImage("star.png"); }
 	public BufferedImage getTooShortImage() { return openSizedDefaultImage("star_empty.png"); }
@@ -214,8 +214,8 @@ public class ImageStorage {
 	}
 
 	private BufferedImage changeSize(BufferedImage originalImage) {
-		int w1 = originalImage.getWidth() * Settings.inst().getNotaWidth() / Constants.NORMAL_NOTA_WIDTH;
-		int h1 = originalImage.getHeight() * Settings.inst().getNotaHeight() / Constants.NORMAL_NOTA_HEIGHT;
+		int w1 = originalImage.getWidth() * Settings.inst().getNoteWidth() / Constants.NORMAL_NOTE_WIDTH;
+		int h1 = originalImage.getHeight() * Settings.inst().getNoteHeight() / Constants.NORMAL_NOTE_HEIGHT;
 
 		Image tmpImage = originalImage.getScaledInstance(w1, h1, Image.SCALE_SMOOTH);
 		BufferedImage newImage = new BufferedImage(w1, h1, BufferedImage.TYPE_INT_ARGB);

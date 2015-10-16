@@ -30,14 +30,14 @@ public class Settings {
 		ImageStorage.inst().refreshImageSizes();
 	}
 
-	public int getStepWidth() { return getNotaWidth(); } // nota image width (the one OS would display when you click on file->properties)
-	public int getStepHeight() { return getNotaHeight() / 8; } // half-space between two org.shmidusic.staff's lines
+	public int getStepWidth() { return getNoteWidth(); } // note image width (the one OS would display when you click on file->properties)
+	public int getStepHeight() { return getNoteHeight() / 8; } // half-space between two staff's lines
 
-	/** @return - scaled nota image from file width */
-	public int getNotaWidth() {
-		return Constants.NORMAL_NOTA_WIDTH + 5 * scaleKoefficient;
+	/** @return - scaled note image from file width */
+	public int getNoteWidth() {
+		return Constants.NORMAL_NOTE_WIDTH + 5 * scaleKoefficient;
 	}
-	public int getNotaHeight() {
-		return Constants.NORMAL_NOTA_HEIGHT + 8 * scaleKoefficient;
+	public int getNoteHeight() {
+		return Constants.NORMAL_NOTE_HEIGHT + 8 * scaleKoefficient;
 	}
 }

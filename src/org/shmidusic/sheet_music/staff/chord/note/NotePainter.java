@@ -1,4 +1,4 @@
-package org.shmidusic.sheet_music.staff.chord.nota;
+package org.shmidusic.sheet_music.staff.chord.note;
 
 import org.shmidusic.sheet_music.staff.staff_config.KeySignature;
 import org.shmidusic.stuff.graphics.ImageStorage;
@@ -9,28 +9,28 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.function.BiConsumer;
 
-public class NotaPainter extends AbstractPainter
+public class NotePainter extends AbstractPainter
 {
-	public NotaPainter(NoteComponent context, Graphics2D g, int x, int y) {
+	public NotePainter(NoteComponent context, Graphics2D g, int x, int y) {
 		super(context, g, x, y);
 	}
 
 	public void draw(KeySignature siga)
 	{
 		NoteComponent comp = (NoteComponent)context;
-		Nota n = comp.note;
+		Note n = comp.note;
 
-		double notaCenterY = 7 * dy();
+		double noteCenterY = 7 * dy();
 
 		if (!siga.myTuneQueue().contains(n.tune.get() % 12)) {
 			if (n.isEbony()) {
 				// draw bemol cuz i decided to draw bemols in comment from KeySignature class
 				BiConsumer<Double, Double> paintEbony = getShapeProvider()::drawFlatSign;
-				relative(paintEbony).accept(dx() * 3 / 4.0, notaCenterY);
+				relative(paintEbony).accept(dx() * 3 / 4.0, noteCenterY);
 			} else {
 				// draw becar
 				BiConsumer<Double, Double> paintBecar = getShapeProvider()::drawBecarSign;
-				relative(paintBecar).accept(dx() * 3 / 4.0, notaCenterY);
+				relative(paintBecar).accept(dx() * 3 / 4.0, noteCenterY);
 			}
 		}
 
@@ -41,11 +41,11 @@ public class NotaPainter extends AbstractPainter
 		} else if (n.isTooLong()) {
 			tmpImg = ImageStorage.inst().getTooLongImage();
 		} else {
-			tmpImg = ImageStorage.inst().getNotaImg(n.getCleanLength(), colorChannel);
+			tmpImg = ImageStorage.inst().getNoteImg(n.getCleanLength(), colorChannel);
 		}
 
 		if (n.getIsLinkedToNext()) {
-			drawParabola(new Rectangle(dx() * 3 / 2, (int) notaCenterY, dx() * 2, dy() * 2));
+			drawParabola(new Rectangle(dx() * 3 / 2, (int) noteCenterY, dx() * 2, dy() * 2));
 		}
 
 		drawImage(tmpImg, dx(), 0);
@@ -58,11 +58,11 @@ public class NotaPainter extends AbstractPainter
 		for (int i = 0; i < n.getDotCount(); ++i) {
 			// TODO: for some reason it draws only one dot even for multidot hujot
 			int x = dx() * 5/3 + dx() * i / n.getDotCount();
-			drawDot(new Pnt(x, notaCenterY), dy() / 2, Color.BLACK);
+			drawDot(new Pnt(x, noteCenterY), dy() / 2, Color.BLACK);
 		}
 
 		if (n.ivoryIndex(siga) % 2 == 1) {
-			drawLine(dx() * 2/3, notaCenterY, dx() * 2, notaCenterY);
+			drawLine(dx() * 2/3, noteCenterY, dx() * 2, noteCenterY);
 		}
 	}
 }

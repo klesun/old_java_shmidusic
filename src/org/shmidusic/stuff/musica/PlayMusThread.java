@@ -1,6 +1,6 @@
 package org.shmidusic.stuff.musica;
 
-import org.shmidusic.sheet_music.staff.chord.nota.Nota;
+import org.shmidusic.sheet_music.staff.chord.note.Note;
 import org.shmidusic.sheet_music.staff.chord.Chord;
 import org.shmidusic.stuff.midi.DeviceEbun;
 import org.apache.commons.math3.fraction.Fraction;
@@ -11,9 +11,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @Deprecated
 final public class PlayMusThread {
 
-	final private static long DIMINDENDO_STEP_TIME = Nota.getTimeMilliseconds(new Fraction(1, 16), 120); // 0.0625 sec
+	final private static long DIMINDENDO_STEP_TIME = Note.getTimeMilliseconds(new Fraction(1, 16), 120); // 0.0625 sec
 
-    public static Map<Nota, Thread> opentNotas = new ConcurrentHashMap<>();
+    public static Map<Note, Thread> opentNotes = new ConcurrentHashMap<>();
 
 	public static boolean stop = true;
 
@@ -22,17 +22,17 @@ final public class PlayMusThread {
 	@Deprecated // move it to Playback class
 	public static void playAccord(Chord chord) {
 		Playback.resetDiminendo();
-		chord.getNotaSet().forEach(PlayMusThread::playNotu);
+		chord.getNoteSet().forEach(PlayMusThread::playNote);
 		if (chord.getIsDiminendo()) {
 			runDiminendoThread(chord.getShortestTime(120), 127, 0); //yeah, yeah, TODO: i should've pased here property of StaffConfig
 		}
 	}
 
-	// TODO: say NO to a thread for each single Nota in Playback
-	public static void playNotu(Nota newNota)
+	// TODO: say NO to a thread for each single Note in Playback
+	public static void playNote(Note newNote)
 	{
-		if (!newNota.isPause() && !newNota.getIsMuted()) {
-			Thread oldThread = opentNotas.get(newNota);
+		if (!newNote.isPause() && !newNote.getIsMuted()) {
+			Thread oldThread = opentNotes.get(newNote);
 
 			if (oldThread != null) {
 				oldThread.interrupt();
@@ -43,28 +43,28 @@ final public class PlayMusThread {
 				}
 			}
 
-			runNotaThread(newNota);
+			runNoteThread(newNote);
 		}
     }
 
 	public static void shutTheFuckUp() {
-		opentNotas.values().stream().filter(thread -> thread.isAlive()).forEach(java.lang.Thread::interrupt);
-		opentNotas.clear();
+		opentNotes.values().stream().filter(thread -> thread.isAlive()).forEach(java.lang.Thread::interrupt);
+		opentNotes.clear();
     }
 
-	private static void runNotaThread(Nota nota) {
+	private static void runNoteThread(Note note) {
 		Thread thread = new Thread(() -> {
-			DeviceEbun.openNota(nota);
+			DeviceEbun.openNote(note);
 
-			try { Thread.sleep(nota.getTimeMilliseconds(120)); } //yeah, yeah, TODO: i should've pased here property of StaffConfig
+			try { Thread.sleep(note.getTimeMilliseconds(120)); } //yeah, yeah, TODO: i should've pased here property of StaffConfig
 			catch (InterruptedException e) {}
 
-			DeviceEbun.closeNota(nota);
+			DeviceEbun.closeNote(note);
 
-			opentNotas.remove(nota);
+			opentNotes.remove(note);
 		});
 
-		opentNotas.put(nota, thread);
+		opentNotes.put(note, thread);
 		thread.start();
 	}
 

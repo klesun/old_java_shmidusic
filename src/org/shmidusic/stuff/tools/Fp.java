@@ -27,7 +27,7 @@ public class Fp
 	public static MouseListener onClick(Consumer<MouseEvent> lambda) {
 		return new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				lambda.accept(e);
 			}
 		};

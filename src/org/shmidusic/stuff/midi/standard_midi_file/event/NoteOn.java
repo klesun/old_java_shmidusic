@@ -62,9 +62,9 @@ public final class NoteOn implements VoiceEvt, Cloneable, INoteEvent {
 		this.time = time;
 	}
 
-	public NoteOn(INote nota, int time)
+	public NoteOn(INote note, int time)
 	{
-		this(nota.getTune().shortValue(), (short)127, nota.getChannel().shortValue(), time);
+		this(note.getTune().shortValue(), (short)127, note.getChannel().shortValue(), time);
 	}
 
 	//------------------------------------------

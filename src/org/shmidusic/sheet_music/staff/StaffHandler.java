@@ -4,10 +4,10 @@ import org.klesun_model.AbstractHandler;
 import org.klesun_model.Combo;
 import org.klesun_model.ContextAction;
 import org.klesun_model.Explain;
+import org.shmidusic.sheet_music.staff.chord.note.Note;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 import org.shmidusic.stuff.midi.DeviceEbun;
 import org.shmidusic.sheet_music.staff.chord.Chord;
-import org.shmidusic.sheet_music.staff.chord.nota.Nota;
 import org.shmidusic.stuff.OverridingDefaultClasses.TruMap;
 import org.shmidusic.stuff.graphics.Settings;
 
@@ -64,7 +64,7 @@ public class StaffHandler extends AbstractHandler {
 			actionMap.p(entry.getKey(), action
 				.setRedo(s -> {
 					if (s.staff.mode != Staff.aMode.passive) {
-						s.addNewChordWithPlayback().addNewNota(entry.getValue(), Settings.inst().getDefaultChannel());
+						s.addNewChordWithPlayback().addNewNote(entry.getValue(), Settings.inst().getDefaultChannel());
 						return new Explain(true);
 					} else {
 						return new Explain("Cant do, passive mode is on!");
@@ -89,10 +89,10 @@ public class StaffHandler extends AbstractHandler {
 	/** @legacy */
 	private static void updateDeprecatedPauses(Staff staff) {
 		for (Chord chord : staff.getChordList()) {
-			Nota oldPause = chord.findByTuneAndChannel(36, 0);
+			Note oldPause = chord.findByTuneAndChannel(36, 0);
 			if (oldPause != null) {
 				chord.remove(oldPause);
-				chord.addNewNota(0, 0).setLength(oldPause.length.get()).isTriplet.set(oldPause.isTriplet.get());
+				chord.addNewNote(0, 0).setLength(oldPause.length.get()).isTriplet.set(oldPause.isTriplet.get());
 			}
 		}
 	}

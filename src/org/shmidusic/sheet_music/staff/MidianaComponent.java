@@ -9,7 +9,7 @@ import org.klesun_model.IComponent;
 import java.awt.*;
 import java.awt.event.FocusListener;
 
-@Deprecated
+@Deprecated // sorry, forgot the reason
 abstract public class MidianaComponent implements IComponent
 {
 
@@ -20,7 +20,7 @@ abstract public class MidianaComponent implements IComponent
 	abstract protected AbstractHandler makeHandler();
 	/** @return int - position of bottomest drawn pixel */
 
-	// TODO: separate Model from Event handler, i wanna be able to instantiate Nota without Staff!
+	// TODO: separate Model from Event handler, i wanna be able to instantiate Note without Staff!
 	public MidianaComponent(IComponent parent) {
 		this.parent = parent;
 		this.eventHandler = this.makeHandler();
@@ -32,7 +32,7 @@ abstract public class MidianaComponent implements IComponent
 
 	@Override
 	final public void setCursor(Cursor cursor) {
-		// TODO: make it correct one day, if you need this (it could be the first step to invoke mouse into midiana, like changing cursor when hovering notas...)
+		// TODO: make it correct one day, if you need this (it could be the first step to invoke mouse into midiana, like changing cursor when hovering notes...)
 		getFirstAwtParent().setCursor(cursor);
 	}
 	@Override

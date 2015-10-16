@@ -1,6 +1,6 @@
 package org.shmidusic.stuff.musica;
 
-import org.shmidusic.sheet_music.staff.chord.nota.Nota;
+import org.shmidusic.sheet_music.staff.chord.note.Note;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 import org.shmidusic.stuff.midi.DeviceEbun;
 import org.shmidusic.stuff.midi.IMidiScheduler;
@@ -23,9 +23,9 @@ public class PlaybackTimer implements IMidiScheduler {
 		this.config = config;
 	}
 
-	public void addNoteTask(Fraction when, INote nota) {
-		addTask(when, () -> DeviceEbun.openNota(nota));
-		addTask(when.add(nota.getRealLength()), () -> DeviceEbun.closeNota(nota));
+	public void addNoteTask(Fraction when, INote note) {
+		addTask(when, () -> DeviceEbun.openNote(note));
+		addTask(when.add(note.getRealLength()), () -> DeviceEbun.closeNote(note));
 	}
 
 	public void addTask(Fraction fraction, Runnable task)
@@ -83,7 +83,7 @@ public class PlaybackTimer implements IMidiScheduler {
 
 	protected long toMillis(Fraction f) {
 		int tempo = config.getTempo();
-		return Nota.getTimeMilliseconds(f, tempo);
+		return Note.getTimeMilliseconds(f, tempo);
 	}
 
 	// it's bad
@@ -94,8 +94,8 @@ public class PlaybackTimer implements IMidiScheduler {
 		}
 
 		@Override
-		public void addNoteTask(Fraction when, INote nota) {
-			addTask(when, () -> Klesunthesizer.send(nota.getTune(), (int)toMillis(nota.getRealLength())));
+		public void addNoteTask(Fraction when, INote note) {
+			addTask(when, () -> Klesunthesizer.send(note.getTune(), (int) toMillis(note.getRealLength())));
 		}
 	}
 }

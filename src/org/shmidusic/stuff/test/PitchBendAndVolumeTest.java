@@ -1,7 +1,7 @@
 
 package org.shmidusic.stuff.test;
 
-import org.shmidusic.sheet_music.staff.chord.nota.Nota;
+import org.shmidusic.sheet_music.staff.chord.note.Note;
 import org.shmidusic.stuff.midi.MidiCommon;
 import org.shmidusic.stuff.tools.Logger;
 
@@ -51,24 +51,24 @@ public class PitchBendAndVolumeTest {
 
 		setInstrument(81);
 
-		int tune = b(Nota.TI);
-		int tune2 = b(Nota.MI) + Nota.OCTAVA;
+		int tune = b(Note.TI);
+		int tune2 = b(Note.MI) + Note.OCTAVA;
 
 		resetAllControllers();
 
-		openNota(tune, 127);
+		openNote(tune, 127);
 		try { Thread.sleep(1000); } catch (InterruptedException exc) {}
 
 		for (int i = 0; i < 4; ++i) {
 			doCrescendo(0, 127, 1000);
 		}
 
-		closeNota(tune);
-		openNota(tune2, 63);
+		closeNote(tune);
+		openNote(tune2, 63);
 
 		try { Thread.sleep(1000); } catch (InterruptedException exc) {}
 		resetAllControllers();
-		closeNota(tune2);
+		closeNote(tune2);
 	}
 
 	private static int b(int tune) {
@@ -86,17 +86,17 @@ public class PitchBendAndVolumeTest {
 		}
 	}
 	
-	private static void closeNota(int n) {
+	private static void closeNote(int n) {
 		sendMessage(ShortMessage.NOTE_OFF, 0, n, 0);
 	}
 	
-	private static void closeAllNotas() {
+	private static void closeAllNotes() {
 		for (int i = 36; i < 128; ++i) {
-			closeNota(i);
+			closeNote(i);
 		}
 	}
 	
-	private static void openNota(int n, int volume) {
+	private static void openNote(int n, int volume) {
 		sendMessage(ShortMessage.NOTE_ON, 0, n, volume);
 	}
 	

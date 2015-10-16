@@ -1,7 +1,7 @@
 package org.shmidusic.stuff.midi;
 
+import org.shmidusic.sheet_music.staff.chord.note.Note;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
-import org.shmidusic.sheet_music.staff.chord.nota.Nota;
 import org.shmidusic.stuff.midi.standard_midi_file.Track;
 import org.shmidusic.stuff.midi.standard_midi_file.event.NoteOff;
 import org.shmidusic.stuff.midi.standard_midi_file.event.NoteOn;
@@ -20,15 +20,15 @@ public class SmfScheduler implements IMidiScheduler
 		this.config = config;
 	}
 
-	public void addNoteTask(Fraction when, INote nota) {
-		if (!trackDict.containsKey(nota.getChannel())) {
-			trackDict.put(nota.getChannel(), new Track());
+	public void addNoteTask(Fraction when, INote note) {
+		if (!trackDict.containsKey(note.getChannel())) {
+			trackDict.put(note.getChannel(), new Track());
 		}
-		trackDict.get(nota.getChannel()).addEvent(new NoteOn(nota, time(when)));
-		trackDict.get(nota.getChannel()).addEvent(new NoteOff(nota, time(when.add(nota.getRealLength()))));
+		trackDict.get(note.getChannel()).addEvent(new NoteOn(note, time(when)));
+		trackDict.get(note.getChannel()).addEvent(new NoteOff(note, time(when.add(note.getRealLength()))));
 	}
 
 	private int time(Fraction f) {
-		return Nota.getTimeBeats(f, config.getTempo());
+		return Note.getTimeBeats(f, config.getTempo());
 	}
 }

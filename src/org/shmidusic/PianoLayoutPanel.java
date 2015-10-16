@@ -26,7 +26,7 @@ public class PianoLayoutPanel extends JPanel
 	final private static int IVORY_WIDTH = 10;
 	final private static int EBONY_WIDTH = IVORY_WIDTH * 3/5;
 
-	final private static int IVORY_LENGTH = Constants.NORMAL_NOTA_HEIGHT * 3/5;
+	final private static int IVORY_LENGTH = Constants.NORMAL_NOTE_HEIGHT * 3/5;
 	final private static int EBONY_LENGTH = IVORY_LENGTH * 3/5;
 
 	final private MainPanel mainPanel;
@@ -65,7 +65,7 @@ public class PianoLayoutPanel extends JPanel
 	{
 		super.paintComponent(g);
 
-		drawVanBascoLikePianoLayout(g, getNotaSet());
+		drawVanBascoLikePianoLayout(g, getNoteSet());
 	}
 
 	// draws such piano layout so it fitted to Rectangle r
@@ -118,7 +118,7 @@ public class PianoLayoutPanel extends JPanel
 		});
 	}
 
-	synchronized private Set<INote> getNotaSet()
+	synchronized private Set<INote> getNoteSet()
 	{
 		Set<INote> result = new TreeSet<>();
 
@@ -134,7 +134,7 @@ public class PianoLayoutPanel extends JPanel
 				sum = sum.add(chord.getFraction());
 
 				final Fraction finalSum = sum;
-				chord.notaStream(n -> n.getRealLength().compareTo(finalSum) > 0).forEach(result::add);
+				chord.noteStream(n -> n.getRealLength().compareTo(finalSum) > 0).forEach(result::add);
 
 				--index;
 			}

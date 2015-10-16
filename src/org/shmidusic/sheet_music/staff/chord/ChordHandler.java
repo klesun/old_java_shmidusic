@@ -2,9 +2,9 @@
 package org.shmidusic.sheet_music.staff.chord;
 
 import org.klesun_model.*;
-import org.shmidusic.sheet_music.staff.chord.nota.Nota;
-import org.shmidusic.sheet_music.staff.chord.nota.NotaHandler;
-import org.shmidusic.sheet_music.staff.chord.nota.NoteComponent;
+import org.shmidusic.sheet_music.staff.chord.note.Note;
+import org.shmidusic.sheet_music.staff.chord.note.NoteHandler;
+import org.shmidusic.sheet_music.staff.chord.note.NoteComponent;
 import org.shmidusic.stuff.OverridingDefaultClasses.TruMap;
 import org.apache.commons.math3.fraction.Fraction;
 import org.shmidusic.stuff.graphics.Settings;
@@ -14,7 +14,7 @@ import java.util.function.*;
 
 public class ChordHandler extends AbstractHandler {
 
-	final public static int ACCORD_EPSILON = Nota.getTimeMilliseconds(new Fraction(1, 16), 120); // 0.125 sec
+	final public static int ACCORD_EPSILON = Note.getTimeMilliseconds(new Fraction(1, 16), 120); // 0.125 sec
 
 	public ChordHandler(ChordComponent context) {
 		super(context);
@@ -27,9 +27,9 @@ public class ChordHandler extends AbstractHandler {
 
 	private static TruMap<Combo, ContextAction<ChordComponent>> actionMap = new TruMap<>();
 	static {
-		for (Map.Entry<Combo, ContextAction<NoteComponent>> entry: NotaHandler.getClassActionMap().entrySet()) {
+		for (Map.Entry<Combo, ContextAction<NoteComponent>> entry: NoteHandler.getClassActionMap().entrySet()) {
 			actionMap.p(entry.getKey(), mkAction(c -> c.childStream().forEach(entry.getValue()::redo))
-				.setCaption("Notas: " + entry.getValue().getCaption()));
+				.setCaption("Notes: " + entry.getValue().getCaption()));
 		}
 
 		actionMap.p(new Combo(ctrl, k.VK_PERIOD), mkAction(a -> a.triggerIsDiminendo()).setCaption("Diminendo On/Off"))
@@ -49,8 +49,8 @@ public class ChordHandler extends AbstractHandler {
 			ContextAction<ChordComponent> action = new ContextAction<>();
 			actionMap.p(entry.getKey(), action
 					.setRedo(a -> System.currentTimeMillis() - a.chord.getEarliestKeydown() < ACCORD_EPSILON
-						? new Explain(a.addNewNota(entry.getValue(), Settings.inst().getDefaultChannel()))
-						: new Explain(false, "too slow. to collect nota-s into single chord, they have to be pressed in " + ACCORD_EPSILON + " milliseconds"))
+						? new Explain(a.addNewNote(entry.getValue(), Settings.inst().getDefaultChannel()))
+						: new Explain(false, "too slow. to collect note-s into single chord, they have to be pressed in " + ACCORD_EPSILON + " milliseconds"))
 					.setOmitMenuBar(true)
 			);
 		}

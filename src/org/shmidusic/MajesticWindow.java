@@ -4,8 +4,8 @@ import org.shmidusic.sheet_music.staff.Staff;
 import org.shmidusic.sheet_music.staff.StaffHandler;
 import org.shmidusic.sheet_music.staff.chord.Chord;
 import org.shmidusic.sheet_music.staff.chord.ChordComponent;
-import org.shmidusic.sheet_music.staff.chord.nota.Nota;
-import org.shmidusic.sheet_music.staff.chord.nota.NoteComponent;
+import org.shmidusic.sheet_music.staff.chord.note.Note;
+import org.shmidusic.sheet_music.staff.chord.note.NoteComponent;
 import org.shmidusic.sheet_music.SheetMusic;
 import org.shmidusic.sheet_music.SheetMusicComponent;
 import org.shmidusic.sheet_music.staff.StaffComponent;
@@ -131,7 +131,7 @@ public class MajesticWindow extends JFrame {
 		} else if (parent.getClass() == StaffComponent.class) {
 			return Arrays.asList(new ChordComponent(new Chord(), parent));
 		} else if (parent.getClass() == ChordComponent.class) {
-			return Arrays.asList(new NoteComponent(new Nota(), (ChordComponent)parent));
+			return Arrays.asList(new NoteComponent(new Note(), (ChordComponent)parent));
 		} else {
 			return new ArrayList<>();
 		}
@@ -151,7 +151,7 @@ public class MajesticWindow extends JFrame {
 	}
 
 	// the Great idea behind this is to refresh menu bar each time we change focus
-	// i.e. when we're pointing nota we have Menus: [BlockSpace, Scroll, org.shmidusic.staff, chord, nota], when Paragraph - [BlockSpace, Scroll, article, Paragraph] etc
+	// i.e. when we're pointing note we have Menus: [BlockSpace, Scroll, staff, chord, note], when Paragraph - [BlockSpace, Scroll, article, Paragraph] etc
 	public void updateMenuBar() {
 
 		menus.values().forEach(m -> {

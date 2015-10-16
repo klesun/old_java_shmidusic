@@ -29,7 +29,7 @@ public class DeviceEbun {
 	static DeviceEbun instance = null;
 
 	// TODO: It's very bad that we have one set for both devices. Try pressing ctrl-d while something is sounding, it will be fun ^_^.
-	private static TreeSet<INote> openNotaSet = new TreeSet<>();
+	private static TreeSet<INote> openNoteSet = new TreeSet<>();
 
 	private static MidiDevice device;
 	private static MidiDevice gervill;
@@ -96,7 +96,7 @@ public class DeviceEbun {
 	}
 
 	public static void closeMidiDevices() {
-		// close all opent Notas
+		// close all opened Notes
 		PlayMusThread.shutTheFuckUp();
 
 		// close devices
@@ -120,7 +120,7 @@ public class DeviceEbun {
 		return isPlaybackSoftware ? softwareReceiver : hardwareReceiver;
 	}
 
-	private static String MORAL_SUPPORT_MESSAGE = "You kinda don't have MIDI IN device, so you can only type notas from qwerty-keyboard holding alt. Pity you.";
+	private static String MORAL_SUPPORT_MESSAGE = "You kinda don't have MIDI IN device, so you can only type notes from qwerty-keyboard holding alt. Pity you.";
 
 	// event handles
 
@@ -138,33 +138,33 @@ public class DeviceEbun {
 		sendMessage(ShortMessage.PROGRAM_CHANGE, channel, value, 0);
 	}
 
-	synchronized public static void openNota(INote nota)
+	synchronized public static void openNote(INote note)
 	{
-		if (openNotaSet.contains(nota)) {
-			closeNota(nota);
+		if (openNoteSet.contains(note)) {
+			closeNote(note);
 		}
 
-		openNotaSet.add(nota);
-		if (nota.getChannel() != DRUM_CHANNEL) {
-			sendMessage(ShortMessage.NOTE_ON, nota.getChannel(), nota.getTune(), 127);
+		openNoteSet.add(note);
+		if (note.getChannel() != DRUM_CHANNEL) {
+			sendMessage(ShortMessage.NOTE_ON, note.getChannel(), note.getTune(), 127);
 		} else {
-			sendMessage(DRUM_NOTE_ON, nota.getTune(), 127);
+			sendMessage(DRUM_NOTE_ON, note.getTune(), 127);
 		}
 	}
 
-	synchronized public static void closeNota(INote nota)
+	synchronized public static void closeNote(INote note)
 	{
-		openNotaSet.remove(nota);
-		if (nota.getChannel() != DRUM_CHANNEL) {
-			sendMessage(ShortMessage.NOTE_OFF, nota.getChannel(), nota.getTune(), 0);
+		openNoteSet.remove(note);
+		if (note.getChannel() != DRUM_CHANNEL) {
+			sendMessage(ShortMessage.NOTE_OFF, note.getChannel(), note.getTune(), 0);
 		} else {
-			sendMessage(DRUM_NOTE_OFF, nota.getTune(), 0);
+			sendMessage(DRUM_NOTE_OFF, note.getTune(), 0);
 		}
 	}
 
-	synchronized public static void closeAllNotas() {
+	synchronized public static void closeAllNotes() {
 		// we do it through new set to avoid concurrent modification
-		new TreeSet<>(openNotaSet).forEach(DeviceEbun::closeNota);
+		new TreeSet<>(openNoteSet).forEach(DeviceEbun::closeNote);
 	}
 
 	private static void sendMessage(int status, int channel, int data1, int data2) {

@@ -39,7 +39,7 @@ public class SimpleMidiParser
 		Function<Channel, Event> mapChannelVolume = c -> new CChange(DeviceEbun.CONTROL_CHANGE_VOLUME, c.getVolume().shortValue(), c.channelNumber.get().shortValue(), 0);
 
 		Set<Integer> usedChannels = staff.chordStream()
-							.map(c -> c.notaStream().map(INote::getChannel))
+							.map(c -> c.noteStream().map(INote::getChannel))
 							.flatMap(s -> s)
 							.distinct()
 							.collect(Collectors.toSet());
@@ -61,7 +61,7 @@ public class SimpleMidiParser
 
 		new Playback(new StaffComponent(staff, null) /* XD */).streamTo(new SmfScheduler(trackDict, staff.getConfig()));
 
-		// TODO: handle our hack with drums (they are not general Nota-s even though they are stored like that with 10 channel)
+		// TODO: handle our hack with drums (they are not general Note-s even though they are stored like that with 10 channel)
 
 
 		trackDict.values().forEach(t ->

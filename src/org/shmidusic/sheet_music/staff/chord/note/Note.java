@@ -1,4 +1,4 @@
-package org.shmidusic.sheet_music.staff.chord.nota;
+package org.shmidusic.sheet_music.staff.chord.note;
 
 
 import org.klesun_model.AbstractModel;
@@ -12,7 +12,7 @@ import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONObject;
 
 // TODO: rename to Note
-public class Nota extends AbstractModel implements INote
+public class Note extends AbstractModel implements INote
 {
 	// <editor-fold desc="model field declaration">
 
@@ -33,7 +33,7 @@ public class Nota extends AbstractModel implements INote
 
 	public long keydownTimestamp;
 
-	public Boolean isLongerThan(Nota rival) { return getRealLength().compareTo(rival.getRealLength()) > 0; }
+	public Boolean isLongerThan(Note rival) { return getRealLength().compareTo(rival.getRealLength()) > 0; }
 
 	// <editor-fold desc="implementing abstract model">
 
@@ -43,12 +43,12 @@ public class Nota extends AbstractModel implements INote
 	}
 
 	@Override
-	public boolean equals(Object rival) { 	// it's a bit arguable. this equals is supposed to be used only in context of one chord or Playback (two equal nota-s cant sound simulatenously)
-		return rival instanceof Nota && ((Nota)rival).tune.get() == this.tune.get() && ((Nota)rival).channel.get() == this.channel.get();
+	public boolean equals(Object rival) { 	// it's a bit arguable. this equals is supposed to be used only in context of one chord or Playback (two equal note-s cant sound simulatenously)
+		return rival instanceof Note && ((Note)rival).tune.get() == this.tune.get() && ((Note)rival).channel.get() == this.channel.get();
 	}
 
 	@Override
-	public Nota reconstructFromJson(JSONObject dict) {
+	public Note reconstructFromJson(JSONObject dict) {
 		super.reconstructFromJson(dict);
 		/** @legacy */
 		if (dict.has("numerator")) {
@@ -141,41 +141,41 @@ public class Nota extends AbstractModel implements INote
 	public Boolean getIsMuted() { return isMuted.get(); }
 	public Boolean getIsLinkedToNext() { return isLinkedToNext.get(); }
 	// model setters
-	public Nota setTune(int value) {
+	public Note setTune(int value) {
 		this.tune.set(value);
 		return this;
 	}
-	public Nota setLength(Fraction value){ this.length.set(value); return this; }
-	/** @Bug - nota is immutable, this will blow with fatal !!! */
-	public Nota setChannel(int value) { this.channel.set(value); return this; }
-	public Nota setIsSharp(Boolean value) { this.isSharp.set(value); return this; }
-	public Nota setIsMuted(Boolean value) { this.isMuted.set(value); return this; }
-	public Nota setIsLinkedToNext(Boolean value) { this.isLinkedToNext.set(value); return this; }
+	public Note setLength(Fraction value){ this.length.set(value); return this; }
+	/** @Bug - note is immutable, this will blow with fatal !!! */
+	public Note setChannel(int value) { this.channel.set(value); return this; }
+	public Note setIsSharp(Boolean value) { this.isSharp.set(value); return this; }
+	public Note setIsMuted(Boolean value) { this.isMuted.set(value); return this; }
+	public Note setIsLinkedToNext(Boolean value) { this.isLinkedToNext.set(value); return this; }
 
 	// </editor-fold>
 
-	public Nota setKeydownTimestamp(long value) { this.keydownTimestamp = value; return this; }
+	public Note setKeydownTimestamp(long value) { this.keydownTimestamp = value; return this; }
 
 	// <editor-fold desc="event handles">
 
-	public Nota triggerIsSharp() {
+	public Note triggerIsSharp() {
 		setIsSharp(!getIsSharp()); return this; }
-	public Nota triggerIsMuted() {
+	public Note triggerIsMuted() {
 		setIsMuted(!getIsMuted()); return this; }
 	public void triggerIsLinkedToNext() {
 		isLinkedToNext.set(!isLinkedToNext.get());
 	}
-	public Nota triggerTupletDenominator() {
+	public Note triggerTupletDenominator() {
 		isTriplet.set(!isTriplet.get());
 		return this;
 	}
 
-	public Nota incLen() {
+	public Note incLen() {
 		setLength(new Fraction(length.get().getNumerator() * 2, length.get().getDenominator()));
 		return this;
 	}
 
-	public Nota decLen() {
+	public Note decLen() {
 		setLength(new Fraction(length.get().getNumerator(), length.get().getDenominator() * 2));
 		return this;
 	}

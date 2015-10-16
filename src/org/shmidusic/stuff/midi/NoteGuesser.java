@@ -5,19 +5,15 @@ package org.shmidusic.stuff.midi;
 
 import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONObject;
-import org.shmidusic.Main;
 import org.shmidusic.sheet_music.SheetMusic;
 import org.shmidusic.sheet_music.staff.Staff;
 import org.shmidusic.sheet_music.staff.chord.Chord;
-import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 import org.shmidusic.stuff.midi.standard_midi_file.SMF;
 import org.shmidusic.stuff.midi.standard_midi_file.Track;
 import org.shmidusic.stuff.midi.standard_midi_file.event.*;
 import org.shmidusic.stuff.tools.INote;
-import org.shmidusic.stuff.tools.Logger;
 import org.shmidusic.stuff.tools.Triplet;
 
-import javax.swing.*;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -181,7 +177,7 @@ public class NoteGuesser
 
             Chord chord = opt.get();
             Fraction pauseRest = chord.getFraction().subtract(note.getRealLength());
-            chord.addNewNota(note);
+            chord.addNewNote(note);
             staff.accordListChanged(-100);
 
             // putting filler in case when chord length became smaller to preserve timing
@@ -203,7 +199,7 @@ public class NoteGuesser
                 int index = staff.getChordList().indexOf(chord) + 1;
                 index = putRest.apply(preRest.subtract(greatest(postRest)), index);
                 // putting note
-                staff.addNewAccord(index++).setExplicitLength(postRest).addNewNota(note);
+                staff.addNewAccord(index++).setExplicitLength(postRest).addNewNote(note);
                 // putting following pauses
                 putRest.apply(postRest.subtract(note.getRealLength()), index);
 
@@ -211,7 +207,7 @@ public class NoteGuesser
                 // put enough pauses
                 putRest.apply(desiredPos.subtract(lastChordEnd), staff.getChordList().size());
                 // append chord
-                staff.addNewAccord().addNewNota(note);
+                staff.addNewAccord().addNewNote(note);
             }
         }
 

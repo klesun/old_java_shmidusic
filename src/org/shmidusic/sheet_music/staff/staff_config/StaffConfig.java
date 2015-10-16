@@ -21,13 +21,14 @@ public class StaffConfig extends AbstractModel
 	final private static int MIN_TEMPO = 15; // i doubt you would need longer. with this 1/16 lasts one second
 	final private static int MAX_TEMPO = 480; // i hope no one needs more
 
-	final private static int MAX_TACT_NUMERATOR = 32; // four whole notas
+	final private static int MAX_TACT_NUMERATOR = 32; // four whole notes
 
-	// tempo 60 => quarter nota = 1 second
+	// tempo 60 => quarter note = 1 second
+    // tempo 240 => note fraction = second fraction
 
 	// TODO: use Fraction
-	final private Field<Integer> numerator = new Field<>("numerator", 8, this, n -> limit(n, 1, MAX_TACT_NUMERATOR)); // h.addField("numerator", 8); // because 8x8 = 64; 64/64 = 1; obvious
-	final private Field<Integer> tempo = new Field<>("tempo", 120, this, n -> limit(n, MIN_TEMPO, MAX_TEMPO)); // h.addField("tempo", 120);
+	final private Field<Integer> numerator = new Field<>("numerator", 8, this, n -> limit(n, 1, MAX_TACT_NUMERATOR)); // because 8x8 = 64; 64/64 = 1; obvious
+	final private Field<Integer> tempo = new Field<>("tempo", 120, this, n -> limit(n, MIN_TEMPO, MAX_TEMPO));
 	final public Field<Integer> keySignature = addField("keySignature", 0);
 	final public Field<Boolean> useHardcoreSynthesizer = addField("useHardcoreSynthesizer", false);
 
@@ -100,9 +101,6 @@ public class StaffConfig extends AbstractModel
 	}
 
 	public static void syncSyntChannels(AbstractModel c) { ((StaffConfig)c).syncSyntChannels(); }
-
-	final private int dx() { return Settings.inst().getStepWidth(); }
-	final private int dy() { return Settings.inst().getStepHeight(); }
 
 	// field getters
 

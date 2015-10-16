@@ -62,9 +62,9 @@ public final class NoteOff implements VoiceEvt, Cloneable, INoteEvent {
 		this(pitch, midiChannel, time);
 	}
 
-	public NoteOff(INote nota, int time)
+	public NoteOff(INote note, int time)
 	{
-		this(nota.getTune().shortValue(), nota.getChannel().shortValue(), time);
+		this(note.getTune().shortValue(), note.getChannel().shortValue(), time);
 	}
 
 	private NoteOff(short pitch, short midiChannel, int time)
@@ -135,7 +135,7 @@ public final class NoteOff implements VoiceEvt, Cloneable, INoteEvent {
 	// Write data out to disk
 	public int write(DataOutputStream dos) throws IOException{
 		// thanks for not commenting it, it was so obvious that this event was used only for reading,
-		// but to write nota off we use NotaOn event!
+		// but to write note off we use NoteOn event!
 		int bytes_out = MidiUtil.writeVarLength(this.time, dos);
 		dos.writeByte((byte) (0x80 + midiChannel));
 		dos.writeByte((byte) pitch);
