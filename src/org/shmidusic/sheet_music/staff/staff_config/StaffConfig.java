@@ -10,6 +10,7 @@ import org.shmidusic.stuff.midi.DeviceEbun;
 import org.shmidusic.sheet_music.staff.Staff;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.math3.fraction.Fraction;
 
@@ -87,6 +88,12 @@ public class StaffConfig extends AbstractModel
 			// cuz i wanna overwrite old key
 		}
 
+        // legacy, i used to believe that they are numbered 1..16 (but they are 0..15 in fact)
+        resultChannelSet.stream()
+                .filter(c -> c.channelNumber.get() > 15)
+                .collect(Collectors.toList())
+                .forEach(resultChannelSet::remove);
+
 		this.channelList.set(resultChannelSet);
 
 		syncSyntChannels();
@@ -94,7 +101,7 @@ public class StaffConfig extends AbstractModel
 	}
 
 	public void syncSyntChannels() {
-		for (int i = 0; i < getChannelList().size(); ++i) {
+		for (int i = 0; i < Channel.CHANNEL_COUNT; ++i) {
 			DeviceEbun.setInstrument(i, channelList.get(i).getInstrument());
 			DeviceEbun.setVolume(i, channelList.get(i).getVolume());
 		}

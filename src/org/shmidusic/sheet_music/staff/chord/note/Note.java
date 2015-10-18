@@ -19,11 +19,15 @@ public class Note extends AbstractModel implements INote
 	// TODO: normalization rules maybe ???
 	final public Field<Integer> tune = new Field<>("tune", Integer.class, true, this, n -> limit(n, 0, 127));
 	final protected Field<Integer> channel = new Field<>("channel", Integer.class, true, this, n -> limit(n, 0, 15));
-
 	final public Field<Fraction> length = new Field<>("length", new Fraction(1, 4), this, INote::legnthNorm);
-	final public Field<Boolean> isTriplet = new Field<>("isTriplet", false, this);
-	final public Field<Boolean> isSharp = new Field<>("isSharp", false, this);
+
+    /** @TODO: forbid more than two dots and move tripletness into length */
+    final public Field<Boolean> isTriplet = new Field<>("isTriplet", false, this);
+	/** @unused */
+    final public Field<Boolean> isSharp = new Field<>("isSharp", false, this);
+    /** @unused */
 	final private Field<Boolean> isMuted = new Field<>("isMuted", false, this);
+    /** @broken */
 	final private Field<Boolean> isLinkedToNext = new Field<>("isLinkedToNext", false, this);
 
 	final private static int MAX_DOT_COUNT = 3;

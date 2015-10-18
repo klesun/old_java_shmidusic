@@ -32,7 +32,9 @@ public interface IModel {
 				field.setValueFromJsObject(jsObject);
 			} else if (field.isFinal) {
 				Logger.fatal("Source does not have final field [" + field.getName() + "] for class {" + getClass().getSimpleName() + "}");
-			}
+			} else {
+                // TODO: DIE HORRIBLY. it was bad idea to omit default values. at least it should be list of fields that can be omitted, no allowing omit anything!
+            }
 		}
 		return this;
 	}

@@ -18,7 +18,7 @@ public class Chord extends AbstractModel
 {
 	private Field<Boolean> isDiminendo = new Field<>("isDiminendo", false, this).setPaintingLambda(ChordPainter::diminendoPainting);
 	public Field<String> slog = new Field<>("slog", "", this).setPaintingLambda(ChordPainter::slogPainting).setOmitDefaultFromJson(true);
-	public Arr<Note> noteList = new Arr<>("notaList", new TreeSet<>(), this, Note.class);
+	public Arr<Note> noteList = new Arr<>("noteList", new TreeSet<>(), this, Note.class);
 
 	// getters/setters
 
