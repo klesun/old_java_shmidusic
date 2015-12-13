@@ -28,10 +28,12 @@ public class MidiToReadableMidi
 		String base = "/home/klesun/Dropbox/midiCollection/";
 
         MutableInt counter = new MutableInt(0);
+        
+        String pattern = args.length > 0 ? args[0] : ".mid";
 
 		dirNames.stream()
 		.map(d -> base + d).map(File::new).flatMap(f -> Arrays.stream(f.listFiles()))
-		.filter(f -> f.getPath().endsWith(".mid")).forEach(source -> {
+		.filter(f -> f.getPath().endsWith(pattern)).forEach(source -> {
 
 			/** @debug */
 			System.out.println(counter.incr() + " Processing " + source);
