@@ -1,9 +1,10 @@
 
 package org.klesun_model;
 
+// AbstractModel is an IModel with attached Helper instance the Helper
+// is used to store field list, since an interface can't have properties...
 
-import java.util.List;
-import java.util.stream.Collectors;
+// TODO: probably no need for Helper anymore - move the fieldStorage here
 
 public abstract class AbstractModel implements IModel {
 

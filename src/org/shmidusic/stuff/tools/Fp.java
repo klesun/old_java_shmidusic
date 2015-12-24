@@ -10,6 +10,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+// TODO: rename. Fp stands for "Functional Programming", not "Funkcii Poleznie"
+
 public class Fp
 {
 	public static Boolean isPowerOf2(int n) {
@@ -94,5 +96,18 @@ public class Fp
 		}
 
 		return result;
+	}
+
+	private static void sleep(int millis) {
+		try {
+			Thread.sleep(millis);
+		} catch (InterruptedException exc) {
+			Logger.fatal(exc, "Dont call this method when thread may be interrupted!");
+		}
+	}
+
+	// an equivalent of Javascript's setTimeout
+	public static void setTimeout(Runnable callback, int millis) {
+		new Thread(() -> { sleep(millis); callback.run(); }).start();
 	}
 }

@@ -4,7 +4,6 @@ import javax.sound.midi.*;
 
 import org.klesun_model.Explain;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
-import org.shmidusic.stuff.musica.PlayMusThread;
 import org.shmidusic.stuff.tools.Logger;
 import org.shmidusic.stuff.tools.INote;
 
@@ -97,7 +96,7 @@ public class DeviceEbun {
 
 	public static void closeMidiDevices() {
 		// close all opened Notes
-		PlayMusThread.shutTheFuckUp();
+		DeviceEbun.closeAllNotes();
 
 		// close devices
 		if (device != null) {
@@ -152,6 +151,8 @@ public class DeviceEbun {
 		}
 	}
 
+	// TODO: when a note was opened more than one time: blink
+	// sounding and don't close till all are closed (like on the site)
 	synchronized public static void closeNote(INote note)
 	{
 		openNoteSet.remove(note);

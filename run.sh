@@ -1,5 +1,9 @@
 #cd bin
-#java -cp "../libs/guava-18.0.jar:../libs/commons-math3-3.5.jar:." main.Main
+# linux
+# java -cp "../libs/guava-18.0.jar:../libs/commons-math3-3.5.jar:." org.shmidusic.Main
+# windows
+# java -cp .;../libs/guava-18.0.jar;../libs/commons-math3-3.5.jar org.shmidusic.Main
+
 
 function join { local IFS="$1"; shift; echo "$*"; }
 

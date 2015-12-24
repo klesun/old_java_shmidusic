@@ -9,10 +9,13 @@ import org.klesun_model.IModel;
 import org.shmidusic.sheet_music.staff.Staff;
 import org.shmidusic.sheet_music.staff.chord.note.Note;
 import org.shmidusic.sheet_music.staff.chord.note.NoteComponent;
+import org.shmidusic.sheet_music.staff.chord.note.NoteHandler;
 import org.shmidusic.sheet_music.staff.staff_config.KeySignature;
 import org.shmidusic.sheet_music.staff.StaffComponent;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 import org.shmidusic.stuff.graphics.Settings;
+import org.shmidusic.stuff.midi.DeviceEbun;
+import org.shmidusic.stuff.tools.Fp;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,8 +42,16 @@ public class ChordComponent extends JComponent implements IComponent
 		this.addMouseListener(handler);
 	}
 
-	public NoteComponent addNewNote(int tune, int channel) {
-		return addComponentAndRepaint(chord.addNewNote(tune, channel));
+	public NoteComponent addNewNote(int tune, int channel)
+	{
+		NoteComponent noteComp = addComponentAndRepaint(chord.addNewNote(tune, channel));
+
+		// TODO: we better check "if input is not midi device"
+		if (DeviceEbun.isPlaybackSoftware()) {
+			NoteHandler.play(noteComp);
+		}
+
+		return noteComp;
 	}
 
 	public NoteComponent addNewNote(JSONObject newNoteJs) {

@@ -5,9 +5,10 @@ import org.klesun_model.Combo;
 import org.klesun_model.ContextAction;
 import org.klesun_model.Explain;
 import org.shmidusic.stuff.graphics.Settings;
-import org.shmidusic.stuff.musica.PlayMusThread;
+import org.shmidusic.stuff.midi.DeviceEbun;
 import org.shmidusic.stuff.OverridingDefaultClasses.TruMap;
 import org.json.JSONObject;
+import org.shmidusic.stuff.tools.Fp;
 
 import javax.swing.*;
 import java.util.LinkedHashMap;
@@ -28,7 +29,7 @@ public class NoteHandler extends AbstractHandler {
 			.p(new Combo(0, k.VK_PERIOD), mkAction(modelRecalcTacts(Note::putDot)).setCaption("Dot"))
 			.p(new Combo(0, k.VK_COMMA), mkAction(modelRecalcTacts(Note::removeDot)).setCaption("Undot"))
 			.p(new Combo(0, k.VK_DELETE), mkAction(c -> c.getParentComponent().remove(c.note)).setCaption("Delete"))
-			.p(new Combo(0, k.VK_ENTER), mkAction(c -> PlayMusThread.playNote(c.note)).setCaption("Play"))
+			.p(new Combo(0, k.VK_ENTER), mkAction(NoteHandler::play).setCaption("Play"))
 
 			.p(new Combo(k.CTRL_MASK, k.VK_3), mkAction(modelRecalcTacts(Note::triggerTupletDenominator)).setCaption("Switch Triplet/Normal"))
 			.p(new Combo(k.CTRL_MASK, k.VK_H), mkAction(model(Note::triggerIsMuted)).setCaption("Mute/Unmute"))
@@ -101,5 +102,13 @@ public class NoteHandler extends AbstractHandler {
             note.getParentComponent().addNewNote(js);
             note.getParentComponent().remove(note.note);
         }
+	}
+
+	public static void play(NoteComponent comp) {
+		DeviceEbun.openNote(comp.note);
+		int tempo = comp.getParentComponent().getParentComponent().staff.getConfig().getTempo();
+		int millis = comp.note.getTimeMilliseconds(tempo);
+
+		Fp.setTimeout(() -> DeviceEbun.closeNote(comp.note), millis);
 	}
 }

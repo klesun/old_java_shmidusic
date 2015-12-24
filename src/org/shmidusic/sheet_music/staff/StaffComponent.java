@@ -7,11 +7,11 @@ import org.shmidusic.sheet_music.SheetMusicComponent;
 import org.shmidusic.sheet_music.staff.chord.Chord;
 import org.shmidusic.sheet_music.staff.chord.ChordComponent;
 import org.shmidusic.sheet_music.staff.chord.ChordHandler;
+import org.shmidusic.sheet_music.staff.chord.note.NoteHandler;
 import org.shmidusic.stuff.midi.DeviceEbun;
 import org.shmidusic.stuff.musica.Playback;
 import org.shmidusic.stuff.graphics.Settings;
-import org.shmidusic.stuff.musica.PlayMusThread;
-import org.shmidusic.stuff.tools.Logger;
+import org.shmidusic.stuff.tools.Fp;
 
 import javax.swing.*;
 import java.awt.*;
@@ -100,16 +100,6 @@ public class StaffComponent extends JPanel implements IComponent
 		ChordComponent chordComp = this.addComponent(chord, staff.getFocusedIndex() + 1);
 
 		moveFocus(1);
-		if (DeviceEbun.isPlaybackSoftware()) { // i.e. when playback is not done with piano - no need to play pressed chord, user hears it anyways
-			new Thread(() -> {
-				try {
-					Thread.sleep(ChordHandler.ACCORD_EPSILON);
-					PlayMusThread.playAccord(chord);
-				} catch (InterruptedException exc) {
-					Logger.error("okay...");
-				}
-			}).start();
-		}
 
 		revalidate();
 		return chordComp;
@@ -204,10 +194,8 @@ public class StaffComponent extends JPanel implements IComponent
 	public Explain moveFocusWithPlayback(int sign) {
 		Explain result = moveFocus(sign);
 		if (staff.getFocusedAccord() != null && result.isSuccess()) {
-
-			PlayMusThread.shutTheFuckUp();
 			playback.interrupt();
-			PlayMusThread.playAccord(staff.getFocusedAccord());
+			getFocusedChild().childStream().forEach(NoteHandler::play);
 		}
 		return result;
 	}
@@ -226,9 +214,8 @@ public class StaffComponent extends JPanel implements IComponent
 	{
 		setFocus(staff.getChordList().indexOf(comp.chord));
 
-		PlayMusThread.shutTheFuckUp();
 		playback.interrupt();
-		PlayMusThread.playAccord(staff.getFocusedAccord());
+		getFocusedChild().childStream().forEach(NoteHandler::play);
 
 		return this;
 	}

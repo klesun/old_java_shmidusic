@@ -86,17 +86,6 @@ public class StaffHandler extends AbstractHandler {
 	@Override
 	public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() { return actionMap; }
 
-	/** @legacy */
-	private static void updateDeprecatedPauses(Staff staff) {
-		for (Chord chord : staff.getChordList()) {
-			Note oldPause = chord.findByTuneAndChannel(36, 0);
-			if (oldPause != null) {
-				chord.remove(oldPause);
-				chord.addNewNote(0, 0).setLength(oldPause.length.get()).isTriplet.set(oldPause.isTriplet.get());
-			}
-		}
-	}
-
 	private static ContextAction<StaffComponent> mkAction(Consumer<StaffComponent> lambda) {
 		ContextAction<StaffComponent> action = new ContextAction<>();
 		return action.setRedo(lambda);

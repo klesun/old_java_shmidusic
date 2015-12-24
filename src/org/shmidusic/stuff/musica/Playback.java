@@ -26,16 +26,18 @@ public class Playback {
 	}
 
 	public void trigger() {
-		if (this.runningProcess != null) { interrupt(); }
-		else { play(); }
+		interrupt();
+		if (this.runningProcess == null) {
+			play();
+		}
 	}
 
 	public Boolean interrupt() {
 		if (this.runningProcess != null) {
 			this.runningProcess.interrupt();
 			this.runningProcess = null;
-			DeviceEbun.closeAllNotes();
 		}
+		DeviceEbun.closeAllNotes();
 		return true;
 	}
 

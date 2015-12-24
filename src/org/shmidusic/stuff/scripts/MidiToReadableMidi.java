@@ -20,6 +20,10 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+// TODO: i believe i saw some alternative to this ugly 15-year old SMF class under python
+// since this is a script, i suppose a good thing would be to rewrite it and put into the .lv project
+// where it actually is executed from
+
 public class MidiToReadableMidi
 {
     public static void main(String[] args) throws IOException

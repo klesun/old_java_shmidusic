@@ -16,6 +16,7 @@ import org.apache.commons.math3.fraction.Fraction;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.shmidusic.stuff.tools.INote;
 
 public class StaffConfig extends AbstractModel
 {

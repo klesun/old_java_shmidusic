@@ -39,8 +39,7 @@ public class Staff extends AbstractModel
 
 	// TODO: MUAAAAH, USE FIELD CLASS MAZAFAKA AAAAAA!
 	private List<Chord> chordList = new ArrayList<>();
-	/** @debug - public for debug - return private once done! */
-    public List<Tact> tactList = new ArrayList<>();
+    private List<Tact> tactList = new ArrayList<>();
 	public int focusedIndex = -1;
 
 	public Staff()
@@ -204,9 +203,6 @@ public class Staff extends AbstractModel
 		return this;
 	}
 
-//	public Chord getFocusedChild() { return getFocusedAccord(); }
-//	protected StaffHandler makeHandler() { return new StaffHandler(this); }
-
 	// getters
 
 	public Chord getFocusedAccord() {
@@ -250,12 +246,11 @@ public class Staff extends AbstractModel
 	final private int dx() { return Settings.inst().getStepWidth(); }
 	final private int dy() { return Settings.inst().getStepHeight(); }
 
-	// field getters/setters
-
 	public StaffConfig getConfig() {
 		return this.staffConfig;
 	}
 
+	// TODO: it's not IModel's deal what is focused
 	public int getFocusedIndex() {
 		return this.focusedIndex;
 	}
@@ -265,8 +260,6 @@ public class Staff extends AbstractModel
 		this.focusedIndex = limit(value, -1, getChordList().size() - 1);
 		return this;
 	}
-
-	// action handles
 
 	public static class TactMeasurer {
 
@@ -299,7 +292,7 @@ public class Staff extends AbstractModel
 		}
 	}
 
-	private Stream<JSONObject> toStream(JSONArray jsArray) throws JSONException
+	private static Stream<JSONObject> toStream(JSONArray jsArray) throws JSONException
 	{
 		return IntStream.range(0, jsArray.length()).boxed().map(i -> jsArray.getJSONObject(i));
 	}

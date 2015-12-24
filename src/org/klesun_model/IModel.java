@@ -9,6 +9,8 @@ import org.shmidusic.stuff.tools.Logger;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// IModel can store itself to json and be reconstructed from json
+
 public interface IModel {
 
 	Helper getModelHelper();
