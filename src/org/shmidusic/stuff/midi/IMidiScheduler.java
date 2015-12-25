@@ -5,5 +5,11 @@ import org.shmidusic.stuff.tools.INote;
 
 public interface IMidiScheduler
 {
-	void addNoteTask(Fraction when, INote note);
+	// read "final"
+	default void addNoteTask(Fraction when, INote note) {
+		addNoteOnTask(when, note.getTune(), note.getChannel());
+		addNoteOffTask(when.add(note.getRealLength()), note.getTune(), note.getChannel());
+	}
+	void addNoteOnTask(Fraction when, int tune, int channel);
+	void addNoteOffTask(Fraction when, int tune, int channel);
 }

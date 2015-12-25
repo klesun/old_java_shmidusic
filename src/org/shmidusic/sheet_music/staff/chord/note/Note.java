@@ -11,7 +11,6 @@ import org.apache.commons.math3.fraction.Fraction;
 
 import org.json.JSONObject;
 
-// TODO: rename to Note
 public class Note extends AbstractModel implements INote
 {
 	// <editor-fold desc="model field declaration">
@@ -27,13 +26,19 @@ public class Note extends AbstractModel implements INote
     final public Field<Boolean> isSharp = new Field<>("isSharp", false, this);
     /** @unused */
 	final private Field<Boolean> isMuted = new Field<>("isMuted", false, this);
-    /** @broken */
-	final private Field<Boolean> isLinkedToNext = new Field<>("isLinkedToNext", false, this);
+	final public Field<Boolean> isLinkedToNext = new Field<>("isLinkedToNext", false, this);
 
 	final private static int MAX_DOT_COUNT = 3;
 	final private static int PAUSE_POSITION = 3 * 7;
 
 	// </editor-fold>
+
+	public Note() {}
+
+	public Note(int tuneValue, int channelValue) {
+		tune.set(tuneValue);
+		channel.set(channelValue);
+	}
 
 	public long keydownTimestamp;
 
@@ -153,8 +158,8 @@ public class Note extends AbstractModel implements INote
 	/** @Bug - note is immutable, this will blow with fatal !!! */
 	public Note setChannel(int value) { this.channel.set(value); return this; }
 	public Note setIsSharp(Boolean value) { this.isSharp.set(value); return this; }
+	public Note setIsTriplet(Boolean value) { this.isTriplet.set(value); return this; }
 	public Note setIsMuted(Boolean value) { this.isMuted.set(value); return this; }
-	public Note setIsLinkedToNext(Boolean value) { this.isLinkedToNext.set(value); return this; }
 
 	// </editor-fold>
 

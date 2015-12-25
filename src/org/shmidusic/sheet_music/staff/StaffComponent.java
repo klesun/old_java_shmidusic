@@ -16,6 +16,8 @@ import org.shmidusic.stuff.tools.Fp;
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
+import java.util.List;
+import java.util.stream.Stream;
 
 // TODO: merge with AbstractPainter
 public class StaffComponent extends JPanel implements IComponent

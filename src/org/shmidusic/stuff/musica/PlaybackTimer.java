@@ -23,9 +23,12 @@ public class PlaybackTimer implements IMidiScheduler {
 		this.config = config;
 	}
 
-	public void addNoteTask(Fraction when, INote note) {
-		addTask(when, () -> DeviceEbun.openNote(note));
-		addTask(when.add(note.getRealLength()), () -> DeviceEbun.closeNote(note));
+	public void addNoteOnTask(Fraction when, int tune, int channel) {
+		addTask(when, () -> DeviceEbun.openNote(new Note(tune, channel)));
+	}
+
+	public void addNoteOffTask(Fraction when, int tune, int channel) {
+		addTask(when, () -> DeviceEbun.closeNote(new Note(tune, channel)));
 	}
 
 	public void addTask(Fraction fraction, Runnable task)

@@ -6,16 +6,10 @@ import org.apache.commons.math3.fraction.Fraction;
 
 import java.util.Arrays;
 
-public interface INote extends Comparable<INote> {
+public interface INote extends ISound {
 
-	Integer getTune();
-	Integer getChannel();
 	Fraction getLength();
 	Boolean isTriplet();
-
-	default int compareTo(INote n) {
-		return ((n.getTune() - this.getTune()) << 4) + (n.getChannel() - this.getChannel());
-	}
 
 	static Fraction legnthNorm(Fraction value) {
 		// Commented for now, but not sure that made right thing

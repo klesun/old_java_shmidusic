@@ -4,6 +4,7 @@ import javax.sound.midi.*;
 
 import org.klesun_model.Explain;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
+import org.shmidusic.stuff.tools.ISound;
 import org.shmidusic.stuff.tools.Logger;
 import org.shmidusic.stuff.tools.INote;
 
@@ -28,7 +29,7 @@ public class DeviceEbun {
 	static DeviceEbun instance = null;
 
 	// TODO: It's very bad that we have one set for both devices. Try pressing ctrl-d while something is sounding, it will be fun ^_^.
-	private static TreeSet<INote> openNoteSet = new TreeSet<>();
+	private static TreeSet<ISound> openNoteSet = new TreeSet<>();
 
 	private static MidiDevice device;
 	private static MidiDevice gervill;
@@ -137,7 +138,7 @@ public class DeviceEbun {
 		sendMessage(ShortMessage.PROGRAM_CHANGE, channel, value, 0);
 	}
 
-	synchronized public static void openNote(INote note)
+	synchronized public static void openNote(ISound note)
 	{
 		if (openNoteSet.contains(note)) {
 			closeNote(note);
@@ -153,7 +154,7 @@ public class DeviceEbun {
 
 	// TODO: when a note was opened more than one time: blink
 	// sounding and don't close till all are closed (like on the site)
-	synchronized public static void closeNote(INote note)
+	synchronized public static void closeNote(ISound note)
 	{
 		openNoteSet.remove(note);
 		if (note.getChannel() != DRUM_CHANNEL) {

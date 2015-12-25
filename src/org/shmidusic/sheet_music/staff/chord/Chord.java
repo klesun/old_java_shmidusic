@@ -79,7 +79,7 @@ public class Chord extends AbstractModel
 	}
 
 	public Note addNewNote(int tune, int channel) {
-		return add(new Note().setTune(tune).setChannel(channel)
+		return add(new Note(tune, channel)
 			.setKeydownTimestamp(System.currentTimeMillis()));
 	}
 

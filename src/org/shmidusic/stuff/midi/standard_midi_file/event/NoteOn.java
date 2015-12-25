@@ -23,6 +23,7 @@ package org.shmidusic.stuff.midi.standard_midi_file.event;
 
 import org.shmidusic.stuff.midi.standard_midi_file.MidiUtil;
 import org.shmidusic.stuff.tools.INote;
+import org.shmidusic.stuff.tools.ISound;
 
 import java.io.DataOutputStream;
 import java.io.DataInputStream;
@@ -62,7 +63,7 @@ public final class NoteOn implements VoiceEvt, Cloneable, INoteEvent {
 		this.time = time;
 	}
 
-	public NoteOn(INote note, int time)
+	public NoteOn(ISound note, int time)
 	{
 		this(note.getTune().shortValue(), (short)127, note.getChannel().shortValue(), time);
 	}
