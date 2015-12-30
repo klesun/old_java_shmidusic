@@ -18,17 +18,15 @@ public class Note extends AbstractModel implements INote
 	// TODO: normalization rules maybe ???
 	final public Field<Integer> tune = new Field<>("tune", Integer.class, true, this, n -> limit(n, 0, 127));
 	final protected Field<Integer> channel = new Field<>("channel", Integer.class, true, this, n -> limit(n, 0, 15));
-	final public Field<Fraction> length = new Field<>("length", new Fraction(1, 4), this, INote::legnthNorm);
+	final public Field<Fraction> length = new Field<>("length", new Fraction(1, 4), this);
 
-    /** @TODO: forbid more than two dots and move tripletness into length */
-    final public Field<Boolean> isTriplet = new Field<>("isTriplet", false, this);
 	/** @unused */
     final public Field<Boolean> isSharp = new Field<>("isSharp", false, this);
     /** @unused */
 	final private Field<Boolean> isMuted = new Field<>("isMuted", false, this);
 	final public Field<Boolean> isLinkedToNext = new Field<>("isLinkedToNext", false, this);
 
-	final private static int MAX_DOT_COUNT = 3;
+	final private static int MAX_DOT_COUNT = 2; // 3 dots would screw triplets - use linking
 	final private static int PAUSE_POSITION = 3 * 7;
 
 	// </editor-fold>
@@ -42,7 +40,7 @@ public class Note extends AbstractModel implements INote
 
 	public long keydownTimestamp;
 
-	public Boolean isLongerThan(Note rival) { return getRealLength().compareTo(rival.getRealLength()) > 0; }
+	public Boolean isLongerThan(Note rival) { return getLength().compareTo(rival.getLength()) > 0; }
 
 	// <editor-fold desc="implementing abstract model">
 
@@ -71,7 +69,7 @@ public class Note extends AbstractModel implements INote
 	// <editor-fold desc="getters">
 
 	public int getTimeMilliseconds(int tempo) {
-		return getTimeMilliseconds(getRealLength(), tempo);
+		return getTimeMilliseconds(getLength(), tempo);
 	}
 
 	// TODO: separate it into two parts. What we pass to SMF are not milliseconds, they are beats!
@@ -113,10 +111,11 @@ public class Note extends AbstractModel implements INote
 		return e == 0 ? 1 : n * pow(n, e - 1);
 	}
 
-	public Fraction getCleanLength() { // i.e. length without dots: 1/4, 1/2
-		return length.get().getDenominator() == 1
-				? new Fraction(length.get().getNumerator() * 2, length.get().getDenominator() + 1)
-				: new Fraction(length.get().getNumerator() + 1, length.get().getDenominator() * 2);
+	public Fraction getCleanLength() { // i.e. length without dots: 1/4, 1/2, 1/6
+		Fraction r = length.get();
+		return r.getDenominator() == 1
+				? new Fraction(r.getNumerator() * 2, 2) // i have doubts for this line. think about numberOfTrailingZeros()
+				: new Fraction(r.getNumerator() + 1, r.getDenominator() * 2);
 	}
 
 	// </editor-fold>
@@ -145,7 +144,7 @@ public class Note extends AbstractModel implements INote
 	public Integer getTune() { return tune.get(); }
 	public Integer getChannel() { return channel.get(); }
 	public Fraction getLength() { return length.get(); }
-	public Boolean isTriplet() { return isTriplet.get(); }
+	public Boolean isTriplet() { return getLength().getDenominator() % 3 == 0; }
 	public Boolean getIsSharp() { return isSharp.get(); }
 	public Boolean getIsMuted() { return isMuted.get(); }
 	public Boolean getIsLinkedToNext() { return isLinkedToNext.get(); }
@@ -158,7 +157,6 @@ public class Note extends AbstractModel implements INote
 	/** @Bug - note is immutable, this will blow with fatal !!! */
 	public Note setChannel(int value) { this.channel.set(value); return this; }
 	public Note setIsSharp(Boolean value) { this.isSharp.set(value); return this; }
-	public Note setIsTriplet(Boolean value) { this.isTriplet.set(value); return this; }
 	public Note setIsMuted(Boolean value) { this.isMuted.set(value); return this; }
 
 	// </editor-fold>
@@ -175,7 +173,9 @@ public class Note extends AbstractModel implements INote
 		isLinkedToNext.set(!isLinkedToNext.get());
 	}
 	public Note triggerTupletDenominator() {
-		isTriplet.set(!isTriplet.get());
+		length.set(isTriplet()
+				? length.get().multiply(3)
+				: length.get().divide(3));
 		return this;
 	}
 

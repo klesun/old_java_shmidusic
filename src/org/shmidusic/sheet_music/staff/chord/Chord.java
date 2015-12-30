@@ -50,7 +50,7 @@ public class Chord extends AbstractModel
 	}
 
 	public Fraction getFraction() {
-		return getShortest().map(INote::getRealLength).orElse(new Fraction(0));
+		return getShortest().map(INote::getLength).orElse(new Fraction(0));
 	}
 
 	// field getters/setters
@@ -72,7 +72,6 @@ public class Chord extends AbstractModel
 
 	public Note addNewNote(INote source) {
 		Note newNote = addNewNote(source.getTune(), source.getChannel()).setLength(source.getLength());
-		newNote.isTriplet.set(source.isTriplet());
         removeRedundantPauseIfAny();
 
 		return newNote;
@@ -100,7 +99,7 @@ public class Chord extends AbstractModel
     {
         getShortest().ifPresent(
             n -> noteList.get().stream()
-                .filter(k -> k.getRealLength().equals(n.getRealLength()) && !k.isPause())
+                .filter(k -> k.getLength().equals(n.getLength()) && !k.isPause())
                 .findAny().ifPresent(
                     k -> noteList.get().stream().filter(Note::isPause)
                         .collect(Collectors.toList())

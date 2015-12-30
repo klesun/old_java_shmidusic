@@ -6,28 +6,9 @@ import org.apache.commons.math3.fraction.Fraction;
 
 import java.util.Arrays;
 
-public interface INote extends ISound {
-
+public interface INote extends ISound
+{
 	Fraction getLength();
-	Boolean isTriplet();
-
-	static Fraction legnthNorm(Fraction value) {
-		// Commented for now, but not sure that made right thing
-//		if (value.equals(new Fraction(0))) {
-//			Logger.fatal("zero length NO WAI");
-//		}
-		if (!isDotable(value) && !isTooShort(value) && !isTooLong(value)) {
-			Logger.warning("Not Dotable Fraction: " + value);
-		}
-
-		return value;
-//		return Helper.limit(value, new Fraction(1, 256), new Fraction(4)); // sometimes need to fill diff between triplet and straight
-//		return Helper.limit(value, new Fraction(1, 16), new Fraction(2));
-	}
-
-	default Boolean isDotable() {
-		return isDotable(getLength());
-	}
 
 	default Boolean isTooLong() {
 		return isTooLong(getLength());
@@ -35,10 +16,6 @@ public interface INote extends ISound {
 
 	default Boolean isTooShort() {
 		return isTooShort(getLength());
-	}
-
-	default Fraction getRealLength() { // that includes tuplet denominator
-		return getLength().divide(isTriplet() ? 3 : 1);
 	}
 
 	default Boolean isEbony() { return isEbony(getTune()); }

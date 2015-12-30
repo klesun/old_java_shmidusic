@@ -98,7 +98,7 @@ public class PlaybackTimer implements IMidiScheduler {
 
 		@Override
 		public void addNoteTask(Fraction when, INote note) {
-			addTask(when, () -> Klesunthesizer.send(note.getTune(), (int) toMillis(note.getRealLength())));
+			addTask(when, () -> Klesunthesizer.send(note.getTune(), (int) toMillis(note.getLength())));
 		}
 	}
 }

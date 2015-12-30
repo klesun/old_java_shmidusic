@@ -134,7 +134,7 @@ public class PianoLayoutPanel extends JPanel
 				sum = sum.add(chord.getFraction());
 
 				final Fraction finalSum = sum;
-				chord.noteStream(n -> n.getRealLength().compareTo(finalSum) > 0).forEach(result::add);
+				chord.noteStream(n -> n.getLength().compareTo(finalSum) > 0).forEach(result::add);
 
 				--index;
 			}

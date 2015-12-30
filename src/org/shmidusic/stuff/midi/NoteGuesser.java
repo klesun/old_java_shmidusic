@@ -176,7 +176,7 @@ public class NoteGuesser
         if (opt.isPresent()) {
 
             Chord chord = opt.get();
-            Fraction pauseRest = chord.getFraction().subtract(note.getRealLength());
+            Fraction pauseRest = chord.getFraction().subtract(note.getLength());
             chord.addNewNote(note);
             staff.accordListChanged(-100);
 
@@ -201,7 +201,7 @@ public class NoteGuesser
                 // putting note
                 staff.addNewAccord(index++).setExplicitLength(postRest).addNewNote(note);
                 // putting following pauses
-                putRest.apply(postRest.subtract(note.getRealLength()), index);
+                putRest.apply(postRest.subtract(note.getLength()), index);
 
             } else {
                 // put enough pauses
@@ -325,25 +325,14 @@ public class NoteGuesser
 
         public Integer getTune() { return tune; }
         public Integer getChannel() { return channel; }
-        public Fraction getLength() {
-            return isTriplet()
-                    ? getActualLength().multiply(3)
-                    : getActualLength();
-        }
-        public Boolean isTriplet() {
-            return getActualLength().getDenominator() % 3 == 0;
-        }
-
-        private Fraction getActualLength() {
-            return guessLength(this.duration);
-        }
+        public Fraction getLength() { return guessLength(this.duration); }
 
         public int getTime() {
             return this.time;
         }
 
         public String strMe() {
-            return "time: " + time + "; tune: " + tune + "; channel: " + channel + "; duration: " + duration + "; length: " + getActualLength();
+            return "time: " + time + "; tune: " + tune + "; channel: " + channel + "; duration: " + duration + "; length: " + getLength();
         }
     }
 

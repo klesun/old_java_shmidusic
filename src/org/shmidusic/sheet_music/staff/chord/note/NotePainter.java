@@ -1,5 +1,6 @@
 package org.shmidusic.sheet_music.staff.chord.note;
 
+import org.apache.commons.math3.fraction.Fraction;
 import org.shmidusic.sheet_music.staff.staff_config.KeySignature;
 import org.shmidusic.stuff.graphics.ImageStorage;
 import org.klesun_model.AbstractPainter;
@@ -41,7 +42,8 @@ public class NotePainter extends AbstractPainter
 		} else if (n.isTooLong()) {
 			tmpImg = ImageStorage.inst().getTooLongImage();
 		} else {
-			tmpImg = ImageStorage.inst().getNoteImg(n.getCleanLength(), colorChannel);
+			Fraction l = n.getCleanLength().multiply(n.isTriplet() ? 3 : 1);
+			tmpImg = ImageStorage.inst().getNoteImg(l, colorChannel);
 		}
 
 		if (n.getIsLinkedToNext()) {
@@ -50,15 +52,15 @@ public class NotePainter extends AbstractPainter
 
 		drawImage(tmpImg, dx(), 0);
 
-		if (n.isTriplet.get()) {
+		if (n.isTriplet()) {
 			Rectangle rect = new Rectangle(dx() /4, 6 * dy(), dx() / 2, dy() * 2);
 			drawString("3", rect, ImageStorage.getColorByChannel(n.channel.get()));
 		}
 
 		for (int i = 0; i < n.getDotCount(); ++i) {
-			// TODO: for some reason it draws only one dot even for multidot hujot
-			int x = dx() * 5/3 + dx() * i / n.getDotCount();
-			drawDot(new Pnt(x, noteCenterY), dy() / 2, Color.BLACK);
+			double r = dy() / 2;
+			int x = (int)(dx() * 5/3 + r * 4 * i / n.getDotCount());
+			drawDot(new Pnt(x, noteCenterY), r, Color.BLACK);
 		}
 
 		if (n.ivoryIndex(siga) % 2 == 1) {

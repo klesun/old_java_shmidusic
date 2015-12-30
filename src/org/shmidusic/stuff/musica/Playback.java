@@ -2,22 +2,16 @@ package org.shmidusic.stuff.musica;
 
 import org.shmidusic.sheet_music.staff.chord.Chord;
 import org.shmidusic.sheet_music.staff.StaffComponent;
-import org.shmidusic.Main;
 import org.klesun_model.Explain;
 import org.shmidusic.sheet_music.staff.Staff;
 import org.apache.commons.math3.fraction.Fraction;
-import org.shmidusic.sheet_music.staff.chord.ChordComponent;
 import org.shmidusic.sheet_music.staff.chord.note.Note;
-import org.shmidusic.sheet_music.staff.chord.note.NoteComponent;
 import org.shmidusic.stuff.midi.DeviceEbun;
 import org.shmidusic.stuff.midi.IMidiScheduler;
-import org.shmidusic.stuff.midi.SmfScheduler;
-import org.shmidusic.stuff.tools.INote;
 import org.shmidusic.stuff.tools.Logger;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class Playback {
 
@@ -103,7 +97,7 @@ public class Playback {
 					}
 
 					if (!note.isLinkedToNext.get()) {
-						scheduler.addNoteOffTask(noteStart.add(note.getRealLength()), note.tune.get(), note.getChannel());
+						scheduler.addNoteOffTask(noteStart.add(note.getLength()), note.tune.get(), note.getChannel());
 						openedLinks.remove(note);
 					}
 				}
