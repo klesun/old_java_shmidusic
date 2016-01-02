@@ -29,7 +29,7 @@ public class MidiToReadableMidi
     public static void main(String[] args) throws IOException
     {
 		List<String> dirNames = Arrays.asList(".", "watched", "random_good_stuff");
-		String base = "/home/klesun/Dropbox/midiCollection/";
+		String base = "/home/klesun/mounted_fat/progas/shmidusic.lv/midiCollection/";
 
         MutableInt counter = new MutableInt(0);
         
@@ -42,7 +42,7 @@ public class MidiToReadableMidi
 			/** @debug */
 			System.out.println(counter.incr() + " Processing " + source);
 
-			File destination = new File("/home/klesun/Dropbox/midiCollection_smf/" + source.getName() + ".js"); // hoping that file names does not repeat...
+			File destination = new File("/home/klesun/mounted_fat/progas/shmidusic.lv/midiCollectionDecoded/" + source.getName() + ".js"); // hoping that file names does not repeat...
 
 			try {
 				SMF smf = new SMF();
