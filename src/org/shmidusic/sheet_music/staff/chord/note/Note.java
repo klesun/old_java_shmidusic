@@ -50,7 +50,7 @@ public class Note extends AbstractModel implements INote
 	}
 
 	@Override
-	public boolean equals(Object rival) { 	// it's a bit arguable. this equals is supposed to be used only in context of one chord or Playback (two equal note-s cant sound simulatenously)
+	public boolean equals(Object rival) { 	// this equals is supposed to be used only in context of one chord or Playback (two equal note-s cant sound simulatenously)
 		return rival instanceof Note && ((Note)rival).tune.get() == this.tune.get() && ((Note)rival).channel.get() == this.channel.get();
 	}
 

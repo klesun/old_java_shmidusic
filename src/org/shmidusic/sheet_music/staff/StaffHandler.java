@@ -1,17 +1,26 @@
 
 package org.shmidusic.sheet_music.staff;
-import org.klesun_model.AbstractHandler;
-import org.klesun_model.Combo;
-import org.klesun_model.ContextAction;
-import org.klesun_model.Explain;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.klesun_model.*;
 import org.shmidusic.sheet_music.staff.chord.note.Note;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 import org.shmidusic.stuff.midi.DeviceEbun;
 import org.shmidusic.sheet_music.staff.chord.Chord;
 import org.shmidusic.stuff.OverridingDefaultClasses.TruMap;
 import org.shmidusic.stuff.graphics.Settings;
+import org.shmidusic.stuff.tools.Logger;
 
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.util.*;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.swing.*;
@@ -39,10 +48,12 @@ public class StaffHandler extends AbstractHandler {
 				.setCaption("Settings").setPostfix(navigation))
 
 			// Navigation
-			.p(new Combo(0, k.VK_HOME), mkAction(p -> p.setFocus(-1)).setCaption("To Start").setPostfix(navigation))
-			.p(new Combo(0, k.VK_END), mkAction(p -> p.setFocus(p.staff.getChordList().size() - 1)).setCaption("To End").setPostfix(navigation))
+			.p(new Combo(0, k.VK_HOME), mkAction(p -> { p.cancelSelection(); p.setFocus(-1); }).setCaption("To Start").setPostfix(navigation))
+			.p(new Combo(0, k.VK_END), mkAction(p -> { p.cancelSelection();; p.setFocus(p.staff.getChordList().size() - 1); }).setCaption("To End").setPostfix(navigation))
 			.p(new Combo(ctrl, k.VK_LEFT), mkAction(p -> p.moveFocusTact(-1)).setCaption("Left Tact").setPostfix("Navigation"))
 			.p(new Combo(ctrl, k.VK_RIGHT), mkAction(p -> p.moveFocusTact(1)).setCaption("Right Tact").setPostfix("Navigation"))
+			.p(new Combo(k.SHIFT_MASK, k.VK_LEFT), mkAction(s -> s.moveSelectionEnd(-1)).setCaption("Setlect Left"))
+			.p(new Combo(k.SHIFT_MASK, k.VK_RIGHT), mkAction(s -> s.moveSelectionEnd(1)).setCaption("Setlect Left"))
 			.p(new Combo(0, k.VK_LEFT), mkFailableAction(s -> s.moveFocusWithPlayback(-1)).setCaption("Left").setPostfix(navigation))
 			.p(new Combo(0, k.VK_RIGHT), mkFailableAction(s -> s.moveFocusWithPlayback(1)).setCaption("Right").setPostfix(navigation))
 			.p(new Combo(0, k.VK_UP), mkFailableAction(s -> s.moveFocusRow(-1)).setCaption("Up").setPostfix(navigation))
@@ -53,6 +64,9 @@ public class StaffHandler extends AbstractHandler {
 				.setCaption("Change Playback Device"))
 			.p(new Combo(ctrl, k.VK_0), mkAction(s -> s.staff.mode = Staff.aMode.passive).setCaption("Disable Input From MIDI Device"))
 			.p(new Combo(ctrl, k.VK_9), mkAction(s -> s.staff.mode = Staff.aMode.insert).setCaption("Enable Input From MIDI Device"))
+
+			.p(new Combo(ctrl, k.VK_C), mkAction(StaffHandler::copySelectedChords).setCaption("Copy Selected"))
+			.p(new Combo(ctrl, k.VK_V), mkFailableAction(StaffHandler::pasteChords).setCaption("Copy Selected"))
 
 			/** @legacy */
 //			.p(new Combo(ctrl, k.VK_W), mkAction(StaffHandler::updateDeprecatedPauses).setCaption("Convert Deprecated Pauses"))
@@ -80,6 +94,59 @@ public class StaffHandler extends AbstractHandler {
 			this.handleKey(new Combo(Combo.getAsciiTuneMods(), Combo.tuneToAscii(tune))); // (11 -ctrl+shift+alt)+someKey
 		} else {
 			// keyup event
+		}
+	}
+
+	private static void copySelectedChords(StaffComponent comp)
+	{
+		JSONArray childListJs = new JSONArray(comp.getSelectedChords().stream().map(IModel::getJsonRepresentation).toArray());
+		StringSelection selection = new StringSelection(childListJs.toString(2));
+		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, selection);
+	}
+
+	private static Explain pasteChords(StaffComponent comp)
+	{
+		return getTextFromClipboard()
+			.ifSuccess(StaffHandler::constructChordList)
+			.whenSuccess(chordList -> { chordList.forEach(comp::addChord); comp.repaint(); });
+	}
+
+	private static Explain<String> getTextFromClipboard()
+	{
+		try {
+			String text = (String)Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
+			return new Explain<>(text);
+		} catch (IOException exc) {
+			return new Explain<>(false, "OS Clipboard error: " + exc.getMessage());
+		} catch (UnsupportedFlavorException exc) {
+			Logger.fatal(exc, "Ololololo!");
+			return new Explain<>(false, "Ololololo");
+		}
+	}
+
+	private static Explain<List<Chord>> constructChordList(String chordListJs)
+	{
+		return parseJsonArray(chordListJs).ifSuccess(jsArr ->
+		{
+			List<Chord> result = new ArrayList<>();
+			try {
+				for (int i = 0; i < jsArr.length(); ++i) {
+					result.add((Chord)new Chord().reconstructFromJson(jsArr.getJSONObject(i)));
+				}
+				return new Explain<>(result);
+			} catch (JSONException exc) {
+				return new Explain<>(false, "Json in your clipboard is not a chord list!");
+			}
+		});
+	}
+
+	private static Explain<JSONArray> parseJsonArray(String jsString)
+	{
+		try {
+			JSONArray jsonParse = new JSONArray(jsString);
+			return new Explain(jsonParse);
+		} catch (JSONException exc) {
+			return new Explain(false, "Failed to parse json from your clipboard - [" + exc.getMessage() + "]");
 		}
 	}
 

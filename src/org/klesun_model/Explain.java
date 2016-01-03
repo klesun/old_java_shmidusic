@@ -84,10 +84,7 @@ public class Explain<C> {
 
     }
 
-	public Explain<C> runIfSuccess(Runnable lambda) {
-		lambda.run();
-		return this;
-	}
+	public Explain<C> runIfSuccess(Runnable lambda) { return whenSuccess(r -> lambda.run()); }
 
 	public C dieIfFailure()
 	{

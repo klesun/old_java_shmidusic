@@ -145,14 +145,16 @@ public class FileProcessor {
 	}
 
 	private static Explain<JSONObject> openJsonFile(File f) {
-		return readTextFromFile(f).ifSuccess(jsString -> {
-			try {
-				JSONObject jsonParse = new JSONObject(jsString);
-				return new Explain(jsonParse);
-			} catch (JSONException exc) {
-				return new Explain(false, "Failed to parse json - [" + exc.getMessage() + "]");
-			}
-		});
+		return readTextFromFile(f).ifSuccess(FileProcessor::parseJson);
+	}
+
+	private static Explain<JSONObject> parseJson(String jsString) {
+		try {
+			JSONObject jsonParse = new JSONObject(jsString);
+			return new Explain(jsonParse);
+		} catch (JSONException exc) {
+			return new Explain(false, "Failed to parse json - [" + exc.getMessage() + "]");
+		}
 	}
 
 	private static Explain<File> makeSaveFileDialog(String ext, String description) {

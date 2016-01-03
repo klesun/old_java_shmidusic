@@ -150,6 +150,17 @@ public class ChordComponent extends JComponent implements IComponent
         return Note.getTimeMilliseconds(chordStart, config.getTempo()) / 1000.0;
 	}
 
+	public boolean isPartOfSelection()
+	{
+		StaffComponent s = getParentComponent();
+		int index = s.staff.getChordList().indexOf(this.chord);
+
+		return s.isSelectionActive() && (
+			(index > s.getSelectionStart() && index <= s.staff.getFocusedIndex()) ||
+			(index > s.staff.getFocusedIndex() && index <= s.getSelectionStart())
+		);
+	}
+
 	// ========================
 	// Implementing IComponent methods
 	// ========================

@@ -6,18 +6,15 @@ import org.klesun_model.IComponent;
 import org.shmidusic.sheet_music.SheetMusicComponent;
 import org.shmidusic.sheet_music.staff.chord.Chord;
 import org.shmidusic.sheet_music.staff.chord.ChordComponent;
-import org.shmidusic.sheet_music.staff.chord.ChordHandler;
 import org.shmidusic.sheet_music.staff.chord.note.NoteHandler;
 import org.shmidusic.stuff.midi.DeviceEbun;
 import org.shmidusic.stuff.musica.Playback;
 import org.shmidusic.stuff.graphics.Settings;
-import org.shmidusic.stuff.tools.Fp;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Stream;
 
 // TODO: merge with AbstractPainter
 public class StaffComponent extends JPanel implements IComponent
@@ -29,6 +26,9 @@ public class StaffComponent extends JPanel implements IComponent
 	final private StaffHandler handler;
 	final public JPanel chordSpace = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
 	final private Playback playback;
+
+	private boolean isSelectionActive = false;
+	private int selectionStart = -1;
 
 	public StaffComponent(Staff staff, SheetMusicComponent parent) {
 		this.parent = parent;
@@ -98,7 +98,12 @@ public class StaffComponent extends JPanel implements IComponent
 
 	public ChordComponent addNewChordWithPlayback()
 	{
-		Chord chord = staff.addNewAccord(staff.getFocusedIndex() + 1);
+		return addChord(new Chord());
+	}
+
+	public ChordComponent addChord(Chord chord)
+	{
+		staff.add(chord, staff.getFocusedIndex() + 1);
 		ChordComponent chordComp = this.addComponent(chord, staff.getFocusedIndex() + 1);
 
 		moveFocus(1);
@@ -193,13 +198,34 @@ public class StaffComponent extends JPanel implements IComponent
 				: new Explain("No more rows").setImplicit(true);
 	}
 
-	public Explain moveFocusWithPlayback(int sign) {
+	public void cancelSelection()
+	{
+		getSelectedChords().forEach(c -> findChild(c).repaint());
+		this.isSelectionActive = false;
+	}
+
+	public Explain moveFocusWithPlayback(int sign)
+	{
+		cancelSelection();
 		Explain result = moveFocus(sign);
 		if (staff.getFocusedAccord() != null && result.isSuccess()) {
+			DeviceEbun.closeAllNotes();
 			playback.interrupt();
 			getFocusedChild().childStream().forEach(NoteHandler::play);
 		}
 		return result;
+	}
+
+	public Explain moveSelectionEnd(int sign) {
+		selectionStart = isSelectionActive ? selectionStart : staff.getFocusedIndex();
+		isSelectionActive = true;
+		return moveFocus(sign).runIfSuccess(() -> {
+			if (staff.getFocusedAccord() != null) {
+				DeviceEbun.closeAllNotes();
+				playback.interrupt();
+				getFocusedChild().childStream().forEach(NoteHandler::play);
+			}
+		});
 	}
 
 	public Explain moveFocus(int n)
@@ -245,6 +271,18 @@ public class StaffComponent extends JPanel implements IComponent
 	public int getAccordInRowCount() {
 		int result = chordSpace.getWidth() / (dx() * 2);
 		return Math.max(result, 1);
+	}
+
+	public boolean isSelectionActive() { return isSelectionActive; }
+	public int getSelectionStart() { return selectionStart; }
+
+	public List<Chord> getSelectedChords() {
+		return isSelectionActive
+				? staff.getChordList().subList(
+						Math.min(selectionStart, staff.getFocusedIndex()) + 1,
+						Math.max(selectionStart, staff.getFocusedIndex()) + 1
+					)
+				: new ArrayList<>();
 	}
 
 	public int calcTrueHeight() {

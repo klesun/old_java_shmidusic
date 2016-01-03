@@ -1,10 +1,12 @@
 package org.shmidusic.sheet_music.staff.chord;
 
 import org.klesun_model.AbstractPainter;
+import org.shmidusic.sheet_music.staff.Staff;
 import org.shmidusic.sheet_music.staff.chord.note.Note;
 import org.shmidusic.sheet_music.staff.chord.note.NoteComponent;
 import org.shmidusic.sheet_music.staff.staff_config.KeySignature;
 import org.shmidusic.stuff.graphics.ImageStorage;
+import org.shmidusic.stuff.graphics.Settings;
 
 import java.awt.*;
 import java.util.function.Consumer;
@@ -19,6 +21,10 @@ public class ChordPainter extends AbstractPainter {
 	{
 		ChordComponent comp = (ChordComponent)context;
 		Chord a = comp.chord;
+
+		if (comp.isPartOfSelection()) {
+			fillRect(new Rectangle(dx() * 2, Staff.SISDISPLACE * dy()), new Color(0,0,255,64));
+		}
 
 		for (int i = 0; i < a.getNoteSet().size(); ++i) {
 			Note note = a.noteList.get(i);
