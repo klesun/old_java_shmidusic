@@ -1,19 +1,17 @@
 package org.shmidusic.sheet_music.staff;
 
 import org.klesun_model.AbstractModel;
+import org.klesun_model.field.Arr;
 import org.shmidusic.sheet_music.staff.chord.Chord;
 import org.shmidusic.sheet_music.staff.chord.Tact;
 import org.klesun_model.IModel;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import org.shmidusic.MainPanel;
 import org.shmidusic.stuff.graphics.Settings;
 
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -77,7 +75,7 @@ public class Staff extends AbstractModel
 
 	@Override
 	public JSONObject getJsonRepresentation() {
-		return new JSONObject()
+		return super.getJsonRepresentation()
 			.put("staffConfig", this.getConfig().getJsonRepresentation())
 			.put("tactList", tactList.stream().map(IModel::getJsonRepresentation).toArray());
 	}
