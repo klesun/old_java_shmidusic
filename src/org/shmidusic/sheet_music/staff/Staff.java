@@ -36,7 +36,7 @@ public class Staff extends AbstractModel
 	public StaffConfig staffConfig = null;
 
 	// TODO: MUAAAAH, USE FIELD CLASS MAZAFAKA AAAAAA!
-	private List<Chord> chordList = new ArrayList<>();
+	public Arr<Chord> chordList = new Arr<>("chordList", new ArrayList<>(), this, Chord.class);
     private List<Tact> tactList = new ArrayList<>();
 	public int focusedIndex = -1;
 
@@ -56,8 +56,8 @@ public class Staff extends AbstractModel
 
 	/** TODO: public is temporary */
 	public synchronized Chord add(Chord chord, int index) {
-		getChordList().add(index, chord);
-		accordListChanged(index);
+		chordList.add(chord, index);
+		accordListChanged();
 		return chord;
 	}
 
@@ -65,10 +65,10 @@ public class Staff extends AbstractModel
 		int index = getChordList().indexOf(chord);
 		getChordList().remove(chord);
 
-		accordListChanged(index);
+		accordListChanged();
 	}
 
-	public void accordListChanged(int repaintAllFromIndex)
+	public void accordListChanged()
 	{
 		this.tactList = recalcTactList(); // TODO: maybe do some optimization using repaintAllFromIndex
 	}
@@ -76,8 +76,7 @@ public class Staff extends AbstractModel
 	@Override
 	public JSONObject getJsonRepresentation() {
 		return super.getJsonRepresentation()
-			.put("staffConfig", this.getConfig().getJsonRepresentation())
-			.put("tactList", tactList.stream().map(IModel::getJsonRepresentation).toArray());
+			.put("staffConfig", this.getConfig().getJsonRepresentation());
 	}
 
 	private List<Tact> recalcTactList()
@@ -88,13 +87,15 @@ public class Staff extends AbstractModel
 		TactMeasurer measurer = new TactMeasurer(getConfig().getTactSize());
 
 		int i = 0;
-		Tact currentTact = new Tact(i++, getConfig().getTactSize());
-		for (Chord chord : chordList) {
+		Tact currentTact = new Tact(getConfig().getTactSize());
+		for (Chord chord : chordList.get()) {
+			chord.tactNumber.set(i + "");
 			currentTact.chordList.add(chord);
 			if (measurer.inject(chord)) {
 				currentTact.setPrecedingRest(measurer.sumFraction);
 				result.add(currentTact);
-				currentTact = new Tact(i++, getConfig().getTactSize());
+				currentTact = new Tact(getConfig().getTactSize());
+				++i;
 			}
 		}
 		if (currentTact.chordList.size() > 0) {
@@ -111,7 +112,7 @@ public class Staff extends AbstractModel
 
 		int chordIdx = chordList.indexOf(chord);
 		Function<Tact, Integer> pred = t ->
-			t.chordList.get().contains(chord) ? 0 : chordIdx - chordList.indexOf(t.chordList.get(0));
+			t.chordList.contains(chord) ? 0 : chordIdx - chordList.indexOf(t.chordList.get(0));
 
 		return Fp.findBinary(tactList, pred);
 	}
@@ -119,12 +120,12 @@ public class Staff extends AbstractModel
     public Optional<Fraction> findChordStart(Chord chord)
     {
         return findTact(chord).map(tact -> {
-            Fraction precedingChords = new LinkedList<Chord>(tact.chordList.get())
+            Fraction precedingChords = tact.chordList
                     .subList(0, tact.chordList.indexOf(chord))
                     .stream().map(c -> c.getFraction())
                     .reduce(Fraction::add).orElse(new Fraction(0));
 
-            Fraction startFraction = getConfig().getTactSize().multiply(tact.tactNumber.get()).add(precedingChords);
+            Fraction startFraction = getConfig().getTactSize().multiply(tactList.indexOf(tact)).add(precedingChords);
             if (!tact.getIsCorrect()) {
                 startFraction = startFraction.add(tact.getPrecedingRest());
             }
@@ -174,29 +175,16 @@ public class Staff extends AbstractModel
                     : Optional.empty();
         }
     }
-
-	// TODO: model, mazafaka!
+	
 	@Override
-	public Staff reconstructFromJson(JSONObject jsObject) throws JSONException {
-		this.clearStan();
+	public Staff reconstructFromJson(JSONObject jsObject) throws JSONException
+	{
+		super.reconstructFromJson(jsObject);
 
 		JSONObject configJson = jsObject.getJSONObject("staffConfig");
 		this.getConfig().reconstructFromJson(configJson);
 
-		Stream<JSONObject> jsChords = jsObject.has("chordList")
-				? toStream(jsObject.getJSONArray("chordList"))
-				: toStream(jsObject.getJSONArray("tactList"))
-						.map(t -> toStream(t.getJSONArray("chordList")))
-						.flatMap(s -> s);
-
-		jsChords.forEach(childJs -> this.addNewAccord().reconstructFromJson(childJs));
-
-		return this;
-	}
-
-	public Staff clearStan() {
-		this.getChordList().clear();
-		this.focusedIndex = -1;
+		accordListChanged();
 
 		return this;
 	}
@@ -212,12 +200,12 @@ public class Staff extends AbstractModel
 	}
 
 	public List<Chord> getChordList() {
-		return this.chordList;
+		return (List<Chord>)this.chordList.get();
 	}
 
 	public Stream<Chord> chordStream()
 	{
-		return chordList.stream();
+		return chordList.get().stream();
 	}
 
 	public List<List<Chord>> getAccordRowList(int rowSize)

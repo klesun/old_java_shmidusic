@@ -16,9 +16,11 @@ import org.json.JSONObject;
 
 public class Chord extends AbstractModel
 {
+	public Field<String> tactNumber = new Field<>("tactNumber", "-1.-1", this); // just decorational field for json readability
 	private Field<Boolean> isDiminendo = new Field<>("isDiminendo", false, this).setPaintingLambda(ChordPainter::diminendoPainting);
 	public Field<String> slog = new Field<>("slog", "", this).setPaintingLambda(ChordPainter::slogPainting).setOmitDefaultFromJson(true);
 	public Arr<Note> noteList = new Arr<>("noteList", new TreeSet<>(), this, Note.class);
+
 
 	// getters/setters
 

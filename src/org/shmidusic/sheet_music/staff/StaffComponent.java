@@ -138,7 +138,7 @@ public class StaffComponent extends JPanel implements IComponent
 	}
 
 	public void refreshTacts(int fromIndex) {
-		staff.accordListChanged(fromIndex);
+		staff.accordListChanged();
 		repaint();
 	}
 

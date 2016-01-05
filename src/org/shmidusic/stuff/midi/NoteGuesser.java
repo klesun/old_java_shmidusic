@@ -167,7 +167,7 @@ public class NoteGuesser
                 Fraction greatest = greatest(rest);
                 rest = rest.subtract(greatest);
                 staff.addNewAccord(idx++).setExplicitLength(greatest);
-                staff.accordListChanged(idx - 1);
+                staff.accordListChanged();
             }
             return idx;
         };
@@ -178,7 +178,7 @@ public class NoteGuesser
             Chord chord = opt.get();
             Fraction pauseRest = chord.getFraction().subtract(note.getLength());
             chord.addNewNote(note);
-            staff.accordListChanged(-100);
+            staff.accordListChanged();
 
             // putting filler in case when chord length became smaller to preserve timing
             putRest.apply(pauseRest, staff.getChordList().indexOf(chord) + 1);
