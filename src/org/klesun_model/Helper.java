@@ -1,6 +1,7 @@
 package org.klesun_model;
 
 import org.klesun_model.field.Field;
+import org.klesun_model.field.IField;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,7 @@ public class Helper
 
 	// field getters
 
-	private List<Field> fieldStorage = new ArrayList<>();
+	private List<IField> fieldStorage = new ArrayList<>();
 
-	public List<Field> getFieldStorage() { return fieldStorage; }
+	public List<IField> getFieldStorage() { return fieldStorage; }
 }

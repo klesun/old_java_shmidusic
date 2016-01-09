@@ -4,6 +4,8 @@ import org.klesun_model.AbstractHandler;
 import org.klesun_model.Combo;
 import org.klesun_model.ContextAction;
 import org.klesun_model.Explain;
+import org.klesun_model.field.Field;
+import org.klesun_model.field.IField;
 import org.shmidusic.stuff.graphics.Settings;
 import org.shmidusic.stuff.midi.DeviceEbun;
 import org.shmidusic.stuff.OverridingDefaultClasses.TruMap;
@@ -13,6 +15,7 @@ import org.shmidusic.stuff.tools.Fp;
 import javax.swing.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -97,9 +100,7 @@ public class NoteHandler extends AbstractHandler {
                 .noneMatch(n -> n.channel.get() == channel && n.tune.get() == note.note.tune.get());
 
         if (canChange) {
-            JSONObject js = note.note.getJsonRepresentation();
-            js.put(note.note.channel.getName(), channel);
-            note.getParentComponent().addNewNote(js);
+            note.getParentComponent().addNewNote(new Note(note.note.tune.get(), channel).updateFrom(note.note));
             note.getParentComponent().remove(note.note);
         }
 	}

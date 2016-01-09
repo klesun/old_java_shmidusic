@@ -45,7 +45,7 @@ public class Playback {
 
 	private Explain play() {
 		Staff staff = staffComp.staff;
-		if (!staff.getChordList().isEmpty()) {
+		if (staff.chordList.size() != 0) {
 
 			runningProcess = staff.getConfig().useHardcoreSynthesizer.get()
 					? new PlaybackTimer.KlesunthesizerTimer(staff.getConfig())
@@ -73,7 +73,7 @@ public class Playback {
 		Fraction sumFraction = new Fraction(0);
 		Set<Note> openedLinks = new HashSet<>();
 
-		for (Chord chord : staffComp.staff.getChordList().subList(startFrom, staffComp.staff.getChordList().size())) {
+		for (Chord chord : staffComp.staff.getChordList().subList(startFrom, staffComp.staff.chordList.size())) {
 
 			final Fraction noteStart = sumFraction;
 

@@ -137,7 +137,7 @@ public class StaffComponent extends JPanel implements IComponent
 		repaint();
 	}
 
-	public void refreshTacts(int fromIndex) {
+	public void refreshTacts() {
 		staff.accordListChanged();
 		repaint();
 	}
@@ -193,7 +193,7 @@ public class StaffComponent extends JPanel implements IComponent
 
 	public Explain moveFocusRow(int sign) {
 		int n = sign * getAccordInRowCount();
-		return staff.getFocusedIndex() + n < staff.getChordList().size() && staff.getFocusedIndex() + n >= 0
+		return staff.getFocusedIndex() + n < staff.chordList.size() && staff.getFocusedIndex() + n >= 0
 				? moveFocusWithPlayback(n)
 				: new Explain("No more rows").setImplicit(true);
 	}
@@ -240,7 +240,7 @@ public class StaffComponent extends JPanel implements IComponent
 
 	public StaffComponent setFocus(ChordComponent comp)
 	{
-		setFocus(staff.getChordList().indexOf(comp.chord));
+		setFocus(staff.chordList.indexOf(comp.chord));
 
 		playback.interrupt();
 		getFocusedChild().childStream().forEach(NoteHandler::play);

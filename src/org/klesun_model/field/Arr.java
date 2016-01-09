@@ -1,34 +1,37 @@
 package org.klesun_model.field;
 
-import org.shmidusic.sheet_music.staff.MidianaComponent;
-import org.klesun_model.AbstractModel;
 import org.klesun_model.IModel;
 import org.shmidusic.stuff.tools.Logger;
 import org.json.JSONArray;
-import org.json.JSONObject;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 // this class represents our model field that stores collections of AbstractModel-z
 // TODO: it's not array anymore, it's collection - rename it!
-public class Arr<ELEM_CLASS extends IModel> extends Field<Collection<ELEM_CLASS>>
+public class Arr<ELEM_CLASS extends IModel> implements IField, Iterable<ELEM_CLASS>
 {
 	Class<ELEM_CLASS> elemClass;
-	Class<? extends Collection<ELEM_CLASS>> collectionClass;
 
-	public Arr(String name, Collection<ELEM_CLASS> value, IModel owner, Class<ELEM_CLASS> elemClass) {
-		super(name, value, owner);
+	final Collection<ELEM_CLASS> elements;
+
+	private Boolean omitDefaultFromJson = false;
+
+	public Arr(Collection<ELEM_CLASS> value, Class<ELEM_CLASS> elemClass)
+	{
+		elements = value;
 		this.elemClass = elemClass;
-		this.collectionClass = (Class<Collection<ELEM_CLASS>>)value.getClass();
 	}
 
 	@Override
 	public JSONArray getJsonValue() {
 		JSONArray arr = new JSONArray("[]");
-		for (IModel el: get()) {
+		for (IModel el: elements) {
 			if (el.getJsonRepresentation().keySet().size() != 0 || !omitDefaultFromJson()) {
 				arr.put(el.getJsonRepresentation());
 			}
@@ -37,83 +40,79 @@ public class Arr<ELEM_CLASS extends IModel> extends Field<Collection<ELEM_CLASS>
 	}
 
 	@Override
-	public void setValueFromJsObject(JSONObject jsObject) {
-		get().clear();
-		JSONArray arr = jsObject.getJSONArray(getName());
+	public void setJsonValue(Object jsonValue) {
+		elements.clear();
+		JSONArray arr = (JSONArray)jsonValue;
 		for (int i = 0; i < arr.length(); ++i) {
 			ELEM_CLASS el = null;
-			if (MidianaComponent.class.isAssignableFrom(elemClass)) {
-				try {
-					el = elemClass.getDeclaredConstructor(owner.getClass()).newInstance(owner);
-				} catch (Exception e) {
-					Logger.fatal(e, "Failed to make instance of {" + elemClass.getSimpleName() + "}");
-				}
-			} else if (IModel.class.isAssignableFrom(elemClass)) {
-				try {
-					el = elemClass.newInstance();
-				} catch (Exception e) {
-					Logger.fatal(e, "Common, every class has an empty constructor in java! {" + elemClass.getSimpleName() + "}");
-				}
-			} else {
-				Logger.fatal("Should never happen, right?");
+			try {
+				el = elemClass.newInstance();
+			} catch (Exception e) {
+				Logger.fatal(e, "Come on, every class has an empty constructor in java! {" + elemClass.getSimpleName() + "}");
 			}
 
 			el.reconstructFromJson(arr.getJSONObject(i)); // it's important to do reconstructFromJson before add, cuz the Collection may be a set
-			get().add(el);
+			elements.add(el);
 		}
 	}
 
 	public ELEM_CLASS get(int index) {
-		return elemClass.cast(get().toArray()[index]);
+		return elemClass.cast(elements.toArray()[index]);
 	}
 
 	public ELEM_CLASS add(ELEM_CLASS elem) {
-		get().add(elem);
-		set(get()); // problem? ... it's for onChange() lambda to be called
+		elements.add(elem);
 		return elem;
 	}
 	public ELEM_CLASS add(ELEM_CLASS elem, int index) {
-		List<ELEM_CLASS> newList = new ArrayList<>(get());
+		List<ELEM_CLASS> newList = new ArrayList<>(elements);
 		newList.add(index, elem);
 		setFromList(newList);
 		return elem;
 	}
 
 	public void remove(ELEM_CLASS elem) {
-		get().remove(elem);
-		set(get()); // problem? ... it's for onChange() lambda to be called
+		elements.remove(elem);
 	}
 
 	public int size() {
-		return get().size();
+		return elements.size();
 	}
 
 	public int indexOf(ELEM_CLASS elem) {
-		return new ArrayList<>(get()).indexOf(elem);
+		return IntStream.range(0, size()).boxed().filter(i -> get(i) == elem).findAny().get();
 	}
 
-	private void setFromList(List<ELEM_CLASS> list)
+	public void setFromList(Collection<ELEM_CLASS> list)
 	{
-		try { set(collectionClass.getDeclaredConstructor(Collection.class).newInstance(list)); }
-		catch (NoSuchMethodException exc) { Logger.fatal(exc, "I dont believe you! What is it a Collection, that cannot be created from another Collection?"); }
-		catch (InstantiationException exc) { Logger.fatal(exc, "Abstract class? NO WAI!"); }
-		catch (InvocationTargetException exc) { Logger.fatal(exc, "Bet it wont occur evar? I dont even know what this exception means"); }
-		catch (IllegalAccessException exc) { Logger.fatal(exc, "Shouldn't private methods be private only on compilation time, like generics?"); } // heretic
+		elements.clear();
+		list.forEach(elements::add);
 	}
 
-	@Override
 	public Arr<ELEM_CLASS> setOmitDefaultFromJson(Boolean value) {
-		return (Arr<ELEM_CLASS>)super.setOmitDefaultFromJson(value);
-	}
-
-	@Override
-	protected void checkValueClass(Class cls) {
-		// nothing can go wrong i suppose =P
-	}
-
-	@Override
-	public Field setValueFromString(String str) {
-		Logger.fatal("Not supported " + str);
+		this.omitDefaultFromJson = value;
 		return this;
+	}
+
+	public Boolean omitDefaultFromJson() {
+		return this.omitDefaultFromJson;
+	}
+
+	public Boolean mustBeStored() {
+		return true;
+	}
+
+	public Stream<ELEM_CLASS> stream() {
+		return StreamSupport.stream(this.spliterator(), false);
+	}
+
+	@Override
+	public Iterator<ELEM_CLASS> iterator() {
+		return elements.iterator();
+	}
+
+	// it's not supposed to call setJsonValue twice
+	public Boolean isFinal() {
+		return true;
 	}
 }

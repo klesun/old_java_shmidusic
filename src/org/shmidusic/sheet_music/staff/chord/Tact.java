@@ -2,9 +2,6 @@ package org.shmidusic.sheet_music.staff.chord;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.math3.fraction.Fraction;
-import org.klesun_model.AbstractModel;
-import org.klesun_model.field.Arr;
-import org.klesun_model.field.Field;
 
 import java.util.ArrayList;
 import java.util.List;

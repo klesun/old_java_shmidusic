@@ -126,11 +126,11 @@ public class PianoLayoutPanel extends JPanel
 
 		int index = staff.getFocusedIndex();
 		if (index > -1) {
-			Fraction sum = staff.getChordList().get(index).getFraction().negate();
+			Fraction sum = staff.chordList.get(index).getFraction().negate();
 
 			while (sum.compareTo(ImageStorage.getTallLimit()) < 0 && index > -1) {
 
-				Chord chord = staff.getChordList().get(index);
+				Chord chord = staff.chordList.get(index);
 				sum = sum.add(chord.getFraction());
 
 				final Fraction finalSum = sum;

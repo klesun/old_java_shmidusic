@@ -1,7 +1,6 @@
 package org.shmidusic.sheet_music.staff.staff_config;
 
 import org.shmidusic.sheet_music.staff.StaffComponent;
-import org.shmidusic.stuff.graphics.Settings;
 import org.klesun_model.AbstractModel;
 import org.klesun_model.field.Arr;
 import org.klesun_model.field.Field;
@@ -10,13 +9,11 @@ import org.shmidusic.stuff.midi.DeviceEbun;
 import org.shmidusic.sheet_music.staff.Staff;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import org.apache.commons.math3.fraction.Fraction;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.shmidusic.stuff.tools.INote;
 
 public class StaffConfig extends AbstractModel
 {
@@ -29,13 +26,12 @@ public class StaffConfig extends AbstractModel
     // tempo 240 => note fraction = second fraction
 
 	// TODO: use Fraction
-	final private Field<Integer> numerator = new Field<>("numerator", 8, this, n -> limit(n, 1, MAX_TACT_NUMERATOR)); // because 8x8 = 64; 64/64 = 1; obvious
-	final private Field<Integer> tempo = new Field<>("tempo", 120, this, n -> limit(n, MIN_TEMPO, MAX_TEMPO));
-	final public Field<Integer> keySignature = addField("keySignature", 0);
-	final public Field<Boolean> useHardcoreSynthesizer = addField("useHardcoreSynthesizer", false);
+	final private Field<Integer> numerator = add("numerator", 8, n -> limit(n, 1, MAX_TACT_NUMERATOR)); // because 8x8 = 64; 64/64 = 1; obvious
+	final private Field<Integer> tempo = add("tempo", 120, n -> limit(n, MIN_TEMPO, MAX_TEMPO));
+	final public Field<Integer> keySignature = add("keySignature", 0);
+	final public Field<Boolean> useHardcoreSynthesizer = add("useHardcoreSynthesizer", false);
 
-	// TODO: make it ordered Set instead of List
-	final public Arr<Channel> channelList = new Arr<>("channelList", makeChannelList(), this, Channel.class).setOmitDefaultFromJson(true);
+	final public Arr<Channel> channelList = add("channelList", makeChannelList(), Channel.class).setOmitDefaultFromJson(true);
 
 	private TreeSet<Channel> makeChannelList() {
 		TreeSet<Channel> list = new TreeSet<>();
@@ -83,19 +79,13 @@ public class StaffConfig extends AbstractModel
 		super.reconstructFromJson(jsObject);
 
 		TreeSet<Channel> resultChannelSet = this.makeChannelList();
-		for (Channel channelFromJson: channelList.get()) {
+		for (Channel channelFromJson: channelList) {
 			resultChannelSet.remove(channelFromJson); // =D
 			resultChannelSet.add(channelFromJson); // =D
 			// cuz i wanna overwrite old key
 		}
 
-        // legacy, i used to believe that they are numbered 1..16 (but they are 0..15 in fact)
-        resultChannelSet.stream()
-                .filter(c -> c.channelNumber.get() > 15)
-                .collect(Collectors.toList())
-                .forEach(resultChannelSet::remove);
-
-		this.channelList.set(resultChannelSet);
+		this.channelList.setFromList(resultChannelSet);
 
 		syncSyntChannels();
 		return this;
@@ -116,14 +106,8 @@ public class StaffConfig extends AbstractModel
 	public StaffConfig setTempo(int value) { this.tempo.set(value); return this; }
 	public Integer getNumerator() { return this.numerator.get(); }
 	public StaffConfig setNumerator(int value) { this.numerator.set(value); return this; }
-	public TreeSet<Channel> getChannelList() { return (TreeSet<Channel>)this.channelList.get(); }
 
 	public KeySignature getSignature() {
 		return new KeySignature(keySignature.get());
-	}
-
-	public int getVolume(int channel) {
-		Channel chan = channelList.get(channel);
-		return chan.getIsMuted() ? 0 : chan.getVolume();
 	}
 }

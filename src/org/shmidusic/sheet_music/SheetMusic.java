@@ -9,7 +9,7 @@ import java.util.ArrayList;
 /** SheetMusic is container of Staff-s */
 public class SheetMusic extends AbstractModel
 {
-	public Arr<Staff> staffList = new Arr<>("staffList", new ArrayList<>(), this, Staff.class);
+	public Arr<Staff> staffList = add("staffList", new ArrayList<>(), Staff.class);
 
 	public SheetMusic()
 	{

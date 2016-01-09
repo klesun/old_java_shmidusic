@@ -20,7 +20,7 @@ public class NoteComponent extends MidianaComponent
 
 	public ChordComponent getParentComponent()
 	{
-		return (ChordComponent)getModelParent();
+		return (ChordComponent) getModelParent();
 	}
 
 	@Override

@@ -13,50 +13,41 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class Field<E> {
+// primitive field
+// E generic may be only of [Number, String, Boolean]
 
-	final private String name;
-	final protected IModel owner;
-	final public Boolean isFinal;
-	final public Class<E> elemClass;
-
+public class Field<E> implements IField<E>
+{
 	private E value;
 
-	public E defaultValue = null;
+	private E defaultValue = null;
 	private Boolean isValueSet = false;
+	final public Class<E> elemClass;
 	final public Function<E, E> normalize;
-	@Deprecated // i used it to repaint, but now we have separate repinting lambda
-	private Runnable onChange = null;
 	private Boolean omitDefaultFromJson = false;
-	private BiFunction<Rectangle, E, Consumer<Graphics>> paintingLambda = null;
-	public Boolean changedSinceLastRepaint = true;
 
-    public Field(String name, E value, IModel owner) { this(name, value, owner, a -> a); }
+	final private Boolean isFinal;
 
-	public Field(String name, E value, IModel owner, Function<E, E> normalizeLambda) {
-        this(name, (Class<E>)value.getClass(), false, owner, normalizeLambda);
+    public Field(E value) { this(value, a -> a); }
+
+	public Field(E value, Function<E, E> normalize) {
+		this((Class<E>)value.getClass(), normalize, false);
 		this.defaultValue = value;
-        set(value);
+		set(value);
 	}
 
-	public Field(String name, Class<E> cls, Boolean isFinal, IModel owner) {
-		this(name, cls, isFinal, owner, a -> a);
+	public Field(Class<E> elemClass) {
+		this(elemClass, a -> a, true);
 	}
 
-	public Field(String name, Class<E> cls, Boolean isFinal, IModel owner, Function<E, E> normalizeLambda) {
-		checkValueClass(cls);
-		this.elemClass = cls;
-		this.owner = owner;
-		this.name = name;
-		this.normalize = normalizeLambda;
-
-		owner.getModelHelper().getFieldStorage().add(this);
+	private Field(Class<E> elemClass, Function<E, E> normalize, Boolean isFinal) {
+		checkValueClass(elemClass);
+		this.elemClass = elemClass;
+		this.normalize = normalize;
 		this.isFinal = isFinal;
 	}
 
-	// field getters/setters
-
-	public Field setOmitDefaultFromJson(Boolean value) {
+	public Field<E> setOmitDefaultFromJson(Boolean value) {
 		this.omitDefaultFromJson = value;
 		return this;
 	}
@@ -65,62 +56,40 @@ public class Field<E> {
 		return this.omitDefaultFromJson;
 	}
 
-	public E get() { return value; }
-
-	public String getName() { return name; }
-
-	public Field<E> set(E value) {
-		if (this.isFinal && isValueSet) {
-			Logger.fatal("You are trying to change immutable field! " + getName() + " " + get() + " " + value);
+	public E get() {
+		if (!isValueSet) {
+			Logger.fatal("You are trying to get not initialized field! " + (value == null ? "null" : value));
+			return null;
 		} else {
-
-			E normalizedValue = normalize.apply(value);
-			if (!normalizedValue.equals(value)) {
-				Logger.warning("Tried to set invalid value: [" + value + "] for field [" + getName() + "] of [" + owner.getClass().getSimpleName() + "]");
-			}
-
-			this.changedSinceLastRepaint |= this.value != normalizedValue;
-			this.value = normalizedValue;
-			isValueSet = true;
-
-			if (onChange != null) {
-				onChange.run();
-			}
-		}
-		return this;
-	}
-
-	public Field<E> setPaintingLambda(BiFunction<Rectangle, E, Consumer<Graphics>> paintingLambda) {
-		this.paintingLambda = paintingLambda;
-		return this;
-	}
-
-	public Boolean hasPaintingLambda() {
-		return this.paintingLambda != null;
-	}
-
-	public void repaint(Graphics g, Rectangle r) {
-		if (hasPaintingLambda()) {
-			this.paintingLambda.apply(r, get()).accept(g);
-			this.changedSinceLastRepaint = false;
+			return value;
 		}
 	}
 
-	// TODO: do something similar for Arr when need to add/remove element
-	public void setOnChange(Runnable onChange) {
-		this.onChange = onChange;
-	}
-
-	// override me please!
-	public Object getJsonValue() { return get().toString(); };
-
-	// override me please!
-	public void setValueFromJsObject(JSONObject jsObject)
+	public Field<E> set(E value)
 	{
-		this.setValueFromString(jsObject.get(getName()).toString());
+		E normalizedValue = normalize.apply(value);
+		if (!normalizedValue.equals(value)) {
+			Logger.warning("Tried to set invalid value: [" + value + "] for field");
+		}
+
+		if (isFinal && isValueSet) {
+			Logger.fatal("You are trying to change immutable field! " + get() + " " + value);
+		} else {
+			this.value = normalizedValue;
+		};
+		isValueSet = true;
+
+		return this;
 	}
 
-	public Field setValueFromString(String str)
+	public Object getJsonValue() { return get().toString(); };
+	public void setJsonValue(Object jsonValue) { this.setValueFromString(jsonValue.toString()); };
+
+	protected Boolean hasAssignedValue() {
+		return get() != defaultValue;
+	}
+
+	private Field<E> setValueFromString(String str)
 	{
 		set((E)getParserMap().get(elemClass).apply(str));
 		return this;
@@ -129,16 +98,26 @@ public class Field<E> {
 	private static Map<Class, Function<String, Object>> getParserMap() {
 		TruMap<Class, Function<String, Object>> map = new TruMap<>();
 		map.p(Integer.class, Integer::parseInt)
-			.p(Boolean.class, Boolean::parseBoolean)
-			.p(Fraction.class, new FractionFormat()::parse)
-			.p(String.class, s -> s);
+				.p(Boolean.class, Boolean::parseBoolean)
+				.p(Fraction.class, new FractionFormat()::parse)
+				.p(String.class, s -> s);
 		return map;
 	}
 
 	/** dies if class is wrong */
-	protected void checkValueClass(Class cls) {
+	private void checkValueClass(Class cls) {
 		if (!getParserMap().containsKey(cls)) {
 			Logger.fatal("Unsupported field Value Class! [" + cls.getSimpleName() + "]");
 		}
+	}
+
+	final public Boolean mustBeStored() {
+		Boolean isOmmitable = elemClass == Boolean.class || omitDefaultFromJson;
+		return !isOmmitable || hasAssignedValue();
+	}
+
+	// setJsonValue may be called if field is not marked as final
+	public Boolean isFinal() {
+		return isFinal;
 	}
 }

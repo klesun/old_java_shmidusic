@@ -30,24 +30,6 @@ abstract public class MidianaComponent implements IComponent
 	public IComponent getModelParent() { return this.parent; }
 	public AbstractHandler getHandler() { return this.eventHandler; }
 
-	@Override
-	final public void setCursor(Cursor cursor) {
-		// TODO: make it correct one day, if you need this (it could be the first step to invoke mouse into midiana, like changing cursor when hovering notes...)
-		getFirstAwtParent().setCursor(cursor);
-	}
-	@Override
-	final public void requestFocus() {
-		// TODO: soon. something like parent.setFocusedIndex(indexOf(this)); parent.requestFocus();
-	}
-	@Override
-	final public void addFocusListener(FocusListener focusListener) {
-		// TODO: soon. something like setFocusedIndex(indexO(this)) { old.focusListener.handleLostFocus(); blablabla; focusListener.handleGainedFocus(); }
-	}
-
-	public MainPanel getPanel() {
-		return (MainPanel)this.getFirstAwtParent();
-	}
-
 	final public Settings getSettings() {
 		return Settings.inst();
 	}

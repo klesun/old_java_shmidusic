@@ -15,16 +15,15 @@ public class Note extends AbstractModel implements INote
 {
 	// <editor-fold desc="model field declaration">
 
-	// TODO: normalization rules maybe ???
-	final public Field<Integer> tune = new Field<>("tune", Integer.class, true, this, n -> limit(n, 0, 127));
-	final protected Field<Integer> channel = new Field<>("channel", Integer.class, true, this, n -> limit(n, 0, 15));
-	final public Field<Fraction> length = new Field<>("length", new Fraction(1, 4), this);
+	final public Field<Integer> tune = add("tune", Integer.class);
+	final protected Field<Integer> channel = add("channel", Integer.class);
+	final public Field<Fraction> length = add("length", new Fraction(1, 4));
 
 	/** @unused */
-    final public Field<Boolean> isSharp = new Field<>("isSharp", false, this);
+    final public Field<Boolean> isSharp = add("isSharp", false);
     /** @unused */
-	final private Field<Boolean> isMuted = new Field<>("isMuted", false, this);
-	final public Field<Boolean> isLinkedToNext = new Field<>("isLinkedToNext", false, this);
+	final private Field<Boolean> isMuted = add("isMuted", false);
+	final public Field<Boolean> isLinkedToNext = add("isLinkedToNext", false);
 
 	final private static int MAX_DOT_COUNT = 2; // 3 dots would screw triplets - use linking
 	final private static int PAUSE_POSITION = 3 * 7;
@@ -54,13 +53,12 @@ public class Note extends AbstractModel implements INote
 		return rival instanceof Note && ((Note)rival).tune.get() == this.tune.get() && ((Note)rival).channel.get() == this.channel.get();
 	}
 
-	@Override
-	public Note reconstructFromJson(JSONObject dict) {
-		super.reconstructFromJson(dict);
-		/** @legacy */
-		if (dict.has("numerator")) {
-			this.setLength(new Fraction(dict.getInt("numerator"), 64));
-		}
+	public Note updateFrom(Note another) {
+		another.getFieldStorage().forEach((k,v) -> {
+			if (!v.isFinal()) {
+				getFieldStorage().get(k).setJsonValue(v.getJsonValue());
+			}
+		});
 		return this;
 	}
 
@@ -161,6 +159,7 @@ public class Note extends AbstractModel implements INote
 
 	// </editor-fold>
 
+	@Deprecated // it should be in NoteComponent
 	public Note setKeydownTimestamp(long value) { this.keydownTimestamp = value; return this; }
 
 	// <editor-fold desc="event handles">

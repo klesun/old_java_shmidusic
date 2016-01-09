@@ -6,6 +6,7 @@ import org.klesun_model.AbstractHandler;
 import org.klesun_model.Explain;
 import org.klesun_model.IComponent;
 import org.klesun_model.IModel;
+import org.klesun_model.field.IField;
 import org.shmidusic.sheet_music.staff.Staff;
 import org.shmidusic.sheet_music.staff.chord.note.Note;
 import org.shmidusic.sheet_music.staff.chord.note.NoteComponent;
@@ -15,12 +16,13 @@ import org.shmidusic.sheet_music.staff.StaffComponent;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 import org.shmidusic.stuff.graphics.Settings;
 import org.shmidusic.stuff.midi.DeviceEbun;
-import org.shmidusic.stuff.tools.Fp;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class ChordComponent extends JComponent implements IComponent
@@ -37,7 +39,7 @@ public class ChordComponent extends JComponent implements IComponent
 	{
 		this.parent = parent;
 		this.chord = chord;
-		chord.noteList.get().forEach(this::addComponent);
+		chord.noteList.forEach(this::addComponent);
 
 		this.addMouseListener(handler);
 	}
@@ -54,8 +56,8 @@ public class ChordComponent extends JComponent implements IComponent
 		return noteComp;
 	}
 
-	public NoteComponent addNewNote(JSONObject newNoteJs) {
-		return addComponentAndRepaint(chord.addNewNote(newNoteJs));
+	public NoteComponent addNewNote(Note note) {
+		return addComponentAndRepaint(chord.add(note.setKeydownTimestamp(System.currentTimeMillis())));
 	}
 
     private NoteComponent addComponentAndRepaint(Note note)
@@ -74,13 +76,13 @@ public class ChordComponent extends JComponent implements IComponent
 
 	public void remove(Note note)
 	{
-		int index = chord.getNoteSet().headSet(note).size();
+		int index = chord.noteList.indexOf(note);
 		if (index <= getFocusedIndex()) { setFocusedIndex(getFocusedIndex() - 1); }
 
 		chord.remove(note);
 		noteComponents.remove(findChild(note));
 
-		if (chord.getNoteSet().size() == 0) {
+		if (chord.noteList.size() == 0) {
 			getParentComponent().removeChord(chord);
 		}
 
@@ -88,7 +90,7 @@ public class ChordComponent extends JComponent implements IComponent
 	}
 
 	public void setFocusedIndex(int value) {
-		value = value >= chord.getNoteSet().size() ? chord.getNoteSet().size() - 1 : value;
+		value = value >= chord.noteList.size() ? chord.noteList.size() - 1 : value;
 		value = value < -1 ? -1 : value;
 		this.focusedIndex = value;
 		repaint();
@@ -100,7 +102,7 @@ public class ChordComponent extends JComponent implements IComponent
 
 	public void recalcTacts() {
 		repaint();
-		getParentComponent().refreshTacts(getParentComponent().staff.getChordList().indexOf(chord));
+		getParentComponent().refreshTacts();
 	}
 
 	public NoteComponent findChild(Note note)
@@ -153,7 +155,7 @@ public class ChordComponent extends JComponent implements IComponent
 	public boolean isPartOfSelection()
 	{
 		StaffComponent s = getParentComponent();
-		int index = s.staff.getChordList().indexOf(this.chord);
+		int index = s.staff.chordList.indexOf(this.chord);
 
 		return s.isSelectionActive() && (
 			(index > s.getSelectionStart() && index <= s.staff.getFocusedIndex()) ||
@@ -198,12 +200,12 @@ public class ChordComponent extends JComponent implements IComponent
 	{
 		Explain result;
 
-		if (getFocusedIndex() + n > chord.getNoteSet().size() - 1 || getFocusedIndex() + n < 0) {
+		if (getFocusedIndex() + n > chord.noteList.size() - 1 || getFocusedIndex() + n < 0) {
 			this.setFocusedIndex(-1);
 			result = new Explain<>(false, "End Of chord");
 		} else {
 			if (this.getFocusedIndex() + n < -1) {
-				this.setFocusedIndex(chord.getNoteSet().size() - 1);
+				this.setFocusedIndex(chord.noteList.size() - 1);
 			} else {
 				this.setFocusedIndex(this.getFocusedIndex() + n);
 			}

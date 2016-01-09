@@ -12,24 +12,16 @@ import org.shmidusic.sheet_music.staff.chord.note.Note;
 import org.shmidusic.stuff.tools.INote;
 import org.apache.commons.math3.fraction.Fraction;
 
-import org.json.JSONObject;
-
 public class Chord extends AbstractModel
 {
-	public Field<String> tactNumber = new Field<>("tactNumber", "-1.-1", this); // just decorational field for json readability
-	private Field<Boolean> isDiminendo = new Field<>("isDiminendo", false, this).setPaintingLambda(ChordPainter::diminendoPainting);
-	public Field<String> slog = new Field<>("slog", "", this).setPaintingLambda(ChordPainter::slogPainting).setOmitDefaultFromJson(true);
-	public Arr<Note> noteList = new Arr<>("noteList", new TreeSet<>(), this, Note.class);
-
+	public Field<String> tactNumber = add("tactNumber", "-1.-1"); // just decorational field for json readability
+	private Field<Boolean> isDiminendo = add("isDiminendo", false);
+	public Field<String> slog = add("slog", "").setOmitDefaultFromJson(true);
+	public Arr<Note> noteList = add("noteList", new TreeSet<>(), Note.class);
 
 	// getters/setters
-
-	public TreeSet<Note> getNoteSet() {
-		return (TreeSet) noteList.get();
-	}
-
 	public Stream<Note> noteStream(Predicate<Note> filterLambda) {
-		return getNoteSet().stream().filter(filterLambda);
+		return noteList.stream().filter(filterLambda);
 	}
 
 	// TODO: add parameter to Chord: "explicitLength" and use it instead of our fake-note-pauses
@@ -39,12 +31,12 @@ public class Chord extends AbstractModel
 	}
 
 	public long getEarliestKeydown() {
-		Note note = this.getNoteSet().stream().reduce(null, (a, b) -> a != null && a.keydownTimestamp < b.keydownTimestamp ? a : b);
+		Note note = this.noteList.stream().reduce(null, (a, b) -> a != null && a.keydownTimestamp < b.keydownTimestamp ? a : b);
 		return note != null ? note.keydownTimestamp : 0;
 	}
 
 	public Note findByTuneAndChannel(int tune, int channel) {
-		return this.getNoteSet().stream().filter(n -> n.tune.get() == tune && n.getChannel() == channel).findFirst().orElse(null);
+		return this.noteList.stream().filter(n -> n.tune.get() == tune && n.getChannel() == channel).findFirst().orElse(null);
 	}
 
 	public int getShortestTime(int tempo) {
@@ -84,11 +76,6 @@ public class Chord extends AbstractModel
 			.setKeydownTimestamp(System.currentTimeMillis()));
 	}
 
-	public Note addNewNote(JSONObject newNoteJs) {
-		return add(new Note().reconstructFromJson(newNoteJs)
-			.setKeydownTimestamp(System.currentTimeMillis()));
-	}
-
 	synchronized public Note add(Note note) {
 		return noteList.add(note);
 	}
@@ -100,16 +87,16 @@ public class Chord extends AbstractModel
     public void removeRedundantPauseIfAny()
     {
         getShortest().ifPresent(
-            n -> noteList.get().stream()
+            n -> noteList.stream()
                 .filter(k -> k.getLength().equals(n.getLength()) && !k.isPause())
                 .findAny().ifPresent(
-                    k -> noteList.get().stream().filter(Note::isPause)
+                    k -> noteList.stream().filter(Note::isPause)
                         .collect(Collectors.toList())
                         .forEach(this::remove)
         ));
     }
 
     private Optional<Note> getShortest() {
-        return noteList.get().stream().sorted((a, b) -> a.isLongerThan(b) ? 1 : -1).findFirst();
+        return noteList.stream().sorted((a, b) -> a.isLongerThan(b) ? 1 : -1).findFirst();
     }
 }

@@ -1,6 +1,7 @@
 package org.shmidusic.stuff.OverridingDefaultClasses;
 
 import org.klesun_model.field.Field;
+import org.klesun_model.field.IField;
 import org.shmidusic.stuff.tools.Logger;
 
 import javax.swing.*;
@@ -17,7 +18,7 @@ public class ModelFieldInput {
 	{
 		this.owner = owner;
 
-		if (!owner.isFinal) {
+		if (!owner.isFinal()) {
 			Tuple<JComponent, Function<JComponent, String>> compRepr = makeInputByField(owner);
 
 			comp = compRepr.first;

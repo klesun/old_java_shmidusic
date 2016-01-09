@@ -4,7 +4,6 @@ import org.klesun_model.AbstractModel;
 import org.klesun_model.field.Arr;
 import org.shmidusic.sheet_music.staff.chord.Chord;
 import org.shmidusic.sheet_music.staff.chord.Tact;
-import org.klesun_model.IModel;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 
 import java.util.*;
@@ -13,8 +12,10 @@ import org.shmidusic.MainPanel;
 import org.shmidusic.stuff.graphics.Settings;
 
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 
 import org.shmidusic.stuff.tools.Fp;
@@ -23,6 +24,8 @@ import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+/** @TODO: rename to Score */
 
 /** A Staff is part of SheetMusic with individual StaffConfig properties (keySignature/tempo/tactSize) */
 public class Staff extends AbstractModel
@@ -35,8 +38,7 @@ public class Staff extends AbstractModel
 
 	public StaffConfig staffConfig = null;
 
-	// TODO: MUAAAAH, USE FIELD CLASS MAZAFAKA AAAAAA!
-	public Arr<Chord> chordList = new Arr<>("chordList", new ArrayList<>(), this, Chord.class);
+	public Arr<Chord> chordList = add("chordList", new ArrayList<>(), Chord.class);
     private List<Tact> tactList = new ArrayList<>();
 	public int focusedIndex = -1;
 
@@ -62,8 +64,8 @@ public class Staff extends AbstractModel
 	}
 
 	public synchronized void remove(Chord chord) {
-		int index = getChordList().indexOf(chord);
-		getChordList().remove(chord);
+		int index = chordList.indexOf(chord);
+		chordList.remove(chord);
 
 		accordListChanged();
 	}
@@ -88,8 +90,8 @@ public class Staff extends AbstractModel
 
 		int i = 0;
 		Tact currentTact = new Tact(getConfig().getTactSize());
-		for (Chord chord : chordList.get()) {
-			chord.tactNumber.set(i + "");
+		for (Chord chord : chordList) {
+			chord.tactNumber.set(i + "." + currentTact.chordList.size());
 			currentTact.chordList.add(chord);
 			if (measurer.inject(chord)) {
 				currentTact.setPrecedingRest(measurer.sumFraction);
@@ -193,27 +195,28 @@ public class Staff extends AbstractModel
 
 	public Chord getFocusedAccord() {
 		if (this.getFocusedIndex() > -1 && this.getFocusedIndex() < this.chordList.size()) {
-			return getChordList().get(getFocusedIndex());
+			return chordList.get(getFocusedIndex());
 		} else {
 			return null;
 		}
 	}
 
+	@Deprecated // well, you see...
 	public List<Chord> getChordList() {
-		return (List<Chord>)this.chordList.get();
+		return chordStream().collect(Collectors.toList());
 	}
 
 	public Stream<Chord> chordStream()
 	{
-		return chordList.get().stream();
+		return StreamSupport.stream(chordList.spliterator(), false);
 	}
 
 	public List<List<Chord>> getAccordRowList(int rowSize)
 	{
 		List<List<Chord>> resultList = new ArrayList<>();
 
-		for (int fromIdx = 0; fromIdx < this.getChordList().size(); fromIdx += rowSize) {
-			int toIndex = Math.min(fromIdx + rowSize, this.getChordList().size());
+		for (int fromIdx = 0; fromIdx < this.chordList.size(); fromIdx += rowSize) {
+			int toIndex = Math.min(fromIdx + rowSize, this.chordList.size());
 			resultList.add(this.getChordList().subList(fromIdx, toIndex));
 		}
 

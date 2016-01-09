@@ -15,6 +15,7 @@ import org.shmidusic.stuff.tools.INote;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 // this class imitates MidiParser in org.jm package, but simpler and for midiana model
 // cuz i realized it would be pain in the ass to reuse their, Phrase-s was bad designer decision imho
@@ -44,7 +45,7 @@ public class SimpleMidiParser
 							.distinct()
 							.collect(Collectors.toSet());
 
-		List<Channel> channels = staff.getConfig().channelList.get().stream()
+		List<Channel> channels = StreamSupport.stream(staff.getConfig().channelList.spliterator(), false)
 							.filter(c -> usedChannels.contains(c.channelNumber.get()))
 							.collect(Collectors.toList());
 

@@ -181,7 +181,7 @@ public class NoteGuesser
             staff.accordListChanged();
 
             // putting filler in case when chord length became smaller to preserve timing
-            putRest.apply(pauseRest, staff.getChordList().indexOf(chord) + 1);
+            putRest.apply(pauseRest, staff.chordList.indexOf(chord) + 1);
 
         } else {
             Optional<Chord> lastChord = staff.getChord(-1);
@@ -196,7 +196,7 @@ public class NoteGuesser
                 Fraction postRest = chord.getFraction().subtract(preRest);
 
                 chord.setExplicitLength(greatest(preRest));
-                int index = staff.getChordList().indexOf(chord) + 1;
+                int index = staff.chordList.indexOf(chord) + 1;
                 index = putRest.apply(preRest.subtract(greatest(postRest)), index);
                 // putting note
                 staff.addNewAccord(index++).setExplicitLength(postRest).addNewNote(note);
@@ -205,7 +205,7 @@ public class NoteGuesser
 
             } else {
                 // put enough pauses
-                putRest.apply(desiredPos.subtract(lastChordEnd), staff.getChordList().size());
+                putRest.apply(desiredPos.subtract(lastChordEnd), staff.chordList.size());
                 // append chord
                 staff.addNewAccord().addNewNote(note);
             }

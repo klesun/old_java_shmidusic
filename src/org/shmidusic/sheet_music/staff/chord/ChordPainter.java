@@ -26,7 +26,7 @@ public class ChordPainter extends AbstractPainter {
 			fillRect(new Rectangle(dx() * 2, Staff.SISDISPLACE * dy()), new Color(0,0,255,64));
 		}
 
-		for (int i = 0; i < a.getNoteSet().size(); ++i) {
+		for (int i = 0; i < a.noteList.size(); ++i) {
 			Note note = a.noteList.get(i);
 			int noteY = getLowestPossibleNoteY() - dy() * note.ivoryIndex(siga);
 			int noteX = i > 0 && a.noteList.get(i - 1).ivoryIndex(siga) == note.ivoryIndex(siga)
@@ -45,34 +45,9 @@ public class ChordPainter extends AbstractPainter {
 		if (comp.getParentComponent().getFocusedChild() == comp) {
 			drawImage(ImageStorage.inst().getPointerImage(), dx(), 0);
 		}
-
-		drawFields();
 	}
 
 	private int getLowestPossibleNoteY() {
 		return 50 * dy();
-	}
-
-	public static Consumer<Graphics> diminendoPainting(Rectangle r, Boolean value) {
-		return g -> {
-			double stretch = 0.5;
-			g.setColor(Color.BLACK);
-			int x1 = (int)(r.x + r.width * stretch / 2);
-			int x2 = (int)(r.x - r.width * stretch / 2) + r.width;
-
-			if (value) {
-				g.drawLine(x1, r.y, x2, r.y + r.height / 2);
-				g.drawLine(x1, r.y + r.height, x2, r.y + r.height / 2);
-			}
-		};
-	}
-
-	public static Consumer<Graphics> slogPainting(Rectangle r, String value) {
-		return g -> {
-			if (g.getFontMetrics(g.getFont()).stringWidth(value) > 0) {
-				g.setColor(Color.BLACK);
-				fitTextIn(r, value, g);
-			}
-		};
 	}
 }

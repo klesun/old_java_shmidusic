@@ -2,6 +2,7 @@ package org.shmidusic.sheet_music.staff.staff_config;
 
 
 import org.klesun_model.IModel;
+import org.klesun_model.field.IField;
 import org.shmidusic.stuff.graphics.ImageStorage;
 import org.klesun_model.AbstractModel;
 import org.klesun_model.field.Arr;
@@ -14,8 +15,9 @@ import org.shmidusic.stuff.tools.Fp;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -52,9 +54,8 @@ public class ConfigDialog extends JPanel {
 
 	private void addChannelSetupGrid()
 	{
-
 		// hate java for not having class methods
-		List<String> fieldList = parent.channelList.get(0).getFieldList();
+		Set<String> fieldList = parent.channelList.get(0).getFieldList();
 
 		JPanel channelGridPanel = new JPanel(new GridLayout(Channel.CHANNEL_COUNT + 1, fieldList.size(), 4, 4)); // + 2 чтоб наверняка
 		channelGridPanel.setPreferredSize(new Dimension(fieldList.size() * CELL_WIDTH, (Channel.CHANNEL_COUNT + 1) * CELL_HEIGHT));
@@ -64,13 +65,14 @@ public class ConfigDialog extends JPanel {
 		// header grid row
 		for (String header: fieldList) { channelGridPanel.add(new TruLabel(Fp.splitCamelCase(header))); }
 
-		parent.getModelHelper().getFieldStorage().stream().filter(field -> field instanceof Arr).forEach(field -> {
-			Arr arr = (Arr)field;
+		parent.getFieldStorage().entrySet().stream().filter(e -> e.getValue() instanceof Arr).forEach(e ->
+		{
+			Arr arr = (Arr)e.getValue();
 			for (int i = 0; i < arr.size(); ++i) {
 
 				IModel model = arr.get(i);
-				for (Field channelField: model.getModelHelper().getFieldStorage()) {
-					JComponent input = checkEm(new ModelFieldInput(channelField));
+				for (Map.Entry<String,IField> ec: model.getFieldStorage().entrySet()) {
+					JComponent input = checkEm(new ModelFieldInput((Field)ec.getValue()));
 					input.setForeground(ImageStorage.getColorByChannel(i));
 					channelGridPanel.add(input);
 				}
@@ -80,7 +82,8 @@ public class ConfigDialog extends JPanel {
 
 	private void addPropertyGrid()
 	{
-		List<Field> propertyList = parent.getModelHelper().getFieldStorage().stream().filter(field -> !(field instanceof Arr)).collect(Collectors.toList());
+		List<Map.Entry<String,IField>> propertyList = parent.getFieldStorage().entrySet().stream()
+				.filter(e -> !(e.getValue() instanceof Arr)).collect(Collectors.toList());
 
 		JPanel propertyGridPanel = new JPanel(new GridLayout(propertyList.size() + 1, 2, 4, 4));
 		propertyGridPanel.setPreferredSize(new Dimension(2 * PROPERTY_CELL_WIDTH, (propertyList.size() + 1) * PROPERTY_CELL_HEIGHT));
@@ -91,16 +94,16 @@ public class ConfigDialog extends JPanel {
 		for (String header: gridHeaders) { propertyGridPanel.add(new TruLabel(header)); }
 
 		// filling grid with cells
-		for (Field field: propertyList) {
-			propertyGridPanel.add(new TruLabel(Fp.splitCamelCase(field.getName())));
-			propertyGridPanel.add(checkEm(new ModelFieldInput(field)));
+		for (Map.Entry<String,IField> field: propertyList) {
+			propertyGridPanel.add(new TruLabel(Fp.splitCamelCase(field.getKey())));
+			propertyGridPanel.add(checkEm(new ModelFieldInput((Field)field.getValue())));
 		}
 	}
 
 	private void confirmChanges() {
 		for (ModelFieldInput input: inputList) {
-			if (!input.getOwner().isFinal) {
-				input.getOwner().setValueFromString(input.getValue());
+			if (!input.getOwner().isFinal()) {
+				input.getOwner().setJsonValue(input.getValue());
 			}
 		}
 	}

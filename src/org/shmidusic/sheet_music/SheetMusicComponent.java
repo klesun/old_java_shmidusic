@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class SheetMusicComponent extends JPanel implements IComponent
 {
@@ -33,7 +34,7 @@ public class SheetMusicComponent extends JPanel implements IComponent
 
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-		sheetMusic.staffList.get().forEach(staff -> {
+		sheetMusic.staffList.forEach(staff -> {
 			StaffComponent staffComp = new StaffComponent(staff, this);
 			staffComponentSet.add(staffComp);
 			this.add(staffComp);
@@ -120,7 +121,7 @@ public class SheetMusicComponent extends JPanel implements IComponent
 
 	private Stream<StaffComponent> getStaffPanelStream()
 	{
-		return sheetMusic.staffList.get().stream().map(this::getComponentByStaff);
+		return sheetMusic.staffList.stream().map(this::getComponentByStaff);
 	}
 
 	private StaffComponent getComponentByStaff(Staff staff)

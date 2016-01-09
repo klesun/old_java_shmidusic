@@ -7,7 +7,6 @@ import org.shmidusic.stuff.graphics.Constants;
 import org.shmidusic.stuff.graphics.ImageStorage;
 import org.shmidusic.stuff.graphics.Settings;
 import org.shmidusic.stuff.graphics.ShapeProvider;
-import org.klesun_model.field.Field;
 import org.shmidusic.stuff.OverridingDefaultClasses.Pnt;
 import org.shmidusic.stuff.OverridingDefaultClasses.Straight;
 
@@ -16,7 +15,6 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 // even though it's abstract, his inheritors does not override nothing, they just use it's methods.
 // TODO: transform it into helper instead of abstract-hujact ?
@@ -99,21 +97,6 @@ abstract public class AbstractPainter { // like Picasso!
 
 		g.setColor(tmpColor);
 		g.setStroke(tmpStroke);
-	}
-
-	protected void drawFields() {
-		java.util.List<Field> drawableList = context.getModel().getModelHelper().getFieldStorage().stream()
-				.filter(f -> f.hasPaintingLambda()).collect(Collectors.toList());
-
-		int w = dx() * 2;
-		int dy = dy(); // TODO: it should be TOTAL_SPACE_FOR_THEM / THEIR_COUNT one day
-
-		for (int i = 0; i < drawableList.size(); ++i) {
-			Rectangle r = new Rectangle(x, y + dy, w, dy);
-			if (drawableList.get(i).changedSinceLastRepaint || true) {
-				drawableList.get(i).repaint(g, r);
-			}
-		}
 	}
 
 	final protected ShapeProvider getShapeProvider() {
