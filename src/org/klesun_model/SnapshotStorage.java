@@ -6,6 +6,7 @@ package org.klesun_model;
 
 import com.google.common.collect.EvictingQueue;
 import org.json.JSONObject;
+import org.shmidusic.sheet_music.SheetMusic;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -34,11 +35,13 @@ public class SnapshotStorage
 
 	public Explain<JSONObject> undo()
 	{
-		if (snapshots.size() >= 2) {
+		if (!snapshots.isEmpty()) {
 			JSONObject current = snapshots.pollLast();
 			redoSnapshots.add(current);
 
-			return new Explain<>(snapshots.peekLast());
+			return new Explain<>(!snapshots.isEmpty()
+					? snapshots.peekLast()
+					: new SheetMusic().getJsonRepresentation());
 		} else {
 			return new Explain<>(false, "Here History Starts");
 		}

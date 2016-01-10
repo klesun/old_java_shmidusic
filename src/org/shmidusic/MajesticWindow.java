@@ -20,6 +20,7 @@ import org.shmidusic.stuff.OverridingDefaultClasses.TruMenuItem;
 import javax.swing.*;
 
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.util.*;
 import java.util.List;
 
@@ -116,7 +117,12 @@ public class MajesticWindow extends JFrame {
 			if (context != null) {
 				Explain explain = action.redo(context);
 				if (explain.isSuccess()) {
-					shmidusicPanel.snapshotStorage.add(context.getModel().getJsonRepresentation());
+					// TODO: ctrl-z/ctrl-y probably should not be normal action at all!
+					if (!key.equals(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Z)) &&
+						!key.equals(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Y)))
+					{
+						shmidusicPanel.snapshotStorage.add(context.getModel().getJsonRepresentation());
+					}
 					updateMenuBar();
 				} else {
 					JOptionPane.showMessageDialog(this, explain.getExplanation());
@@ -156,8 +162,8 @@ public class MajesticWindow extends JFrame {
 
 	// the Great idea behind this is to refresh menu bar each time we change focus
 	// i.e. when we're pointing note we have Menus: [BlockSpace, Scroll, staff, chord, note], when Paragraph - [BlockSpace, Scroll, article, Paragraph] etc
-	public void updateMenuBar() {
-
+	public void updateMenuBar()
+	{
 		menus.values().forEach(m -> {
 			m.setEnabled(false);
 			m.setToolTipText("Instance Not Focused");
