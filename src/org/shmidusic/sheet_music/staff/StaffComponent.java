@@ -15,7 +15,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-// TODO: merge with AbstractPainter
+// TODO: merge with PaintHelper
 public class StaffComponent extends JPanel implements IComponent
 {
 	final public Staff staff;

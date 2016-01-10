@@ -18,55 +18,53 @@ import java.util.function.Function;
 
 // even though it's abstract, his inheritors does not override nothing, they just use it's methods.
 // TODO: transform it into helper instead of abstract-hujact ?
-abstract public class AbstractPainter { // like Picasso!
-
-	final protected IComponent context;
+final public class PaintHelper  // like Picasso!
+{
 	final private Graphics2D g;
 	final private int x, y;
 
-	public AbstractPainter(IComponent context, Graphics2D g, int x, int y) {
-		this.context = context;
+	public PaintHelper(Graphics2D g, int x, int y) {
 		this.g = g;
 		this.x = x;
 		this.y = y;
 	}
 
-	final protected void fillRect(Rectangle r, Color c) {
+	public void fillRect(Rectangle r, Color c) {
 		performWithColor(c, () -> g.fillRect(this.x + r.x, this.y + r.y, r.width, r.height));
 	}
-	final protected void drawRect(Rectangle r, Color c) {
+	public void drawRect(Rectangle r, Color c) {
 		performWithColor(c, () -> g.drawRect(this.x + r.x, this.y + r.y, r.width, r.height));
 	}
-	final protected void drawDot(Pnt p, double r, Color c) {
+	public void drawDot(Pnt p, double r, Color c) {
 		performWithColor(c, () -> g.fill(new Ellipse2D.Double(this.x + p.x, this.y + p.y, r * 2, r * 2)));
 	}
 
-	final protected void drawLine(Straight line) {
+	public void drawLine(Straight line) {
 		drawLine(line.p1, line.p2);
 	}
-	final protected void drawLine(Pnt p1, Pnt p2) {
+	public void drawLine(Pnt p1, Pnt p2) {
 		drawLine(p1.x, p1.y, p2.x, p2.y);
 	}
-	final protected void drawLine(double x0, double y0, double x1, double y1) {
+	public void drawLine(double x0, double y0, double x1, double y1) {
 		drawLine(x0, y0, x1, y1, Color.BLACK);
 	}
-	final protected void drawLine(double x0, double y0, double x1, double y1, Color color) {
+	public void drawLine(double x0, double y0, double x1, double y1, Color color) {
 		performWithColor(color, () -> g.draw(new Line2D.Double(x + x0, y + y0, x + x1, y + y1)));
 	}
 
-	final protected void drawString(String str, int x0, int y0, Color c) {
+	public void drawString(String str, int x0, int y0, Color c) {
 		performWithColor(c, () -> g.drawString(str, x + x0, y + y0));
 	}
-	final protected void drawString(String str, Rectangle rect, Color c) {
+	public void drawString(String str, Rectangle rect, Color c) {
 		Rectangle absoluteRect = new Rectangle(rect);
 		absoluteRect.translate(x,y);
 		performWithColor(c, () -> fitTextIn(absoluteRect, str, g));
 	}
 
-	final protected void drawModel(TriConsumer<Graphics2D, Integer, Integer> paintLambda, int x0, int y0) {
+	public void drawModel(TriConsumer<Graphics2D, Integer, Integer> paintLambda, int x0, int y0) {
 		paintLambda.accept(g, x + x0, y + y0);
 	}
-	final protected void drawImage(Image image, int x0, int y0) {
+	public void drawImage(Image image, int x0, int y0) {
 		g.drawImage(image, x + x0, y + y0, null);
 	}
 
@@ -99,23 +97,24 @@ abstract public class AbstractPainter { // like Picasso!
 		g.setStroke(tmpStroke);
 	}
 
-	final protected ShapeProvider getShapeProvider() {
+	public ShapeProvider getShapeProvider() {
 		return new ShapeProvider(Settings.inst(), g, ImageStorage.inst());
 	}
 
-	final protected BiConsumer<Double, Double> relative(BiConsumer<Double, Double> paintLambda) {
+	public BiConsumer<Double, Double> relative(BiConsumer<Double, Double> paintLambda) {
 		return (x, y) -> paintLambda.accept(x + this.x, y + this.y);
 	}
 
-	private void performWithColor(Color c, Runnable lambda) {
+	private void performWithColor(Color c, Runnable lambda)
+	{
 		Color tmp = g.getColor();
 		g.setColor(c);
 		lambda.run();
 		g.setColor(tmp);
 	}
 
-	protected static void fitTextIn(Rectangle rect, String text, Graphics g) {
-
+	public static void fitTextIn(Rectangle rect, String text, Graphics g)
+	{
 		Function<Integer, Double> toInches = pixels -> pixels * 1.25;
 		Function<Double, Double> toPixels = inches -> inches * 0.8;
 
@@ -131,6 +130,6 @@ abstract public class AbstractPainter { // like Picasso!
 		g.setFont(wasFont);
 	}
 
-	final protected static int dx() { return Settings.inst().getStepWidth(); }
-	final protected static int dy() { return Settings.inst().getStepHeight(); }
+	public static int dx() { return Settings.inst().getStepWidth(); }
+	public static int dy() { return Settings.inst().getStepHeight(); }
 }

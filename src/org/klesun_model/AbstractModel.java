@@ -1,10 +1,8 @@
 
 package org.klesun_model;
 
-// AbstractModel is an IModel with attached Helper instance the Helper
-// is used to store field list, since an interface can't have properties...
+// AbstractModel is used to store field list, since an interface can't have properties...
 
-// TODO: probably no need for Helper anymore - move the fieldStorage here
 
 import org.klesun_model.field.Arr;
 import org.klesun_model.field.Field;
@@ -15,10 +13,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
 
-public abstract class AbstractModel implements IModel {
-
-	protected Helper h = new Helper(this);
-
+public abstract class AbstractModel implements IModel
+{
 	private Map<String, IField> fieldStorage = new TreeMap<>();
 
 	@Override

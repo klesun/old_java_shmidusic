@@ -1,53 +1,55 @@
 package org.shmidusic.sheet_music.staff.chord;
 
-import org.klesun_model.AbstractPainter;
+import org.klesun_model.PaintHelper;
 import org.shmidusic.sheet_music.staff.Staff;
 import org.shmidusic.sheet_music.staff.chord.note.Note;
 import org.shmidusic.sheet_music.staff.chord.note.NoteComponent;
 import org.shmidusic.sheet_music.staff.staff_config.KeySignature;
 import org.shmidusic.stuff.graphics.ImageStorage;
-import org.shmidusic.stuff.graphics.Settings;
 
 import java.awt.*;
-import java.util.function.Consumer;
 
-public class ChordPainter extends AbstractPainter {
+public class ChordPainter
+{
+	final private PaintHelper h;
+	final private ChordComponent context;
 
 	public ChordPainter(ChordComponent context, Graphics2D g, int x, int y) {
-		super(context, g, x, y);
+		this.context = context;
+		this.h = new PaintHelper(g,x,y);
 	}
 
 	public void draw(KeySignature siga)
 	{
-		ChordComponent comp = (ChordComponent)context;
+		ChordComponent comp = context;
 		Chord a = comp.chord;
 
 		if (comp.isPartOfSelection()) {
-			fillRect(new Rectangle(dx() * 2, Staff.SISDISPLACE * dy()), new Color(0,0,255,64));
+			h.fillRect(new Rectangle(h.dx() * 2, Staff.SISDISPLACE * h.dy()), new Color(0,0,255,64));
 		}
 
 		for (int i = 0; i < a.noteList.size(); ++i) {
 			Note note = a.noteList.get(i);
-			int noteY = getLowestPossibleNoteY() - dy() * note.ivoryIndex(siga);
+			int noteY = getLowestPossibleNoteY() - h.dy() * note.ivoryIndex(siga);
 			int noteX = i > 0 && a.noteList.get(i - 1).ivoryIndex(siga) == note.ivoryIndex(siga)
-				? dx() / 3 // TODO: draw them flipped
+				? h.dx() / 3 // TODO: draw them flipped
 				: 0;
 
 			if (comp.getFocusedIndex() != -1 && note == comp.getFocusedChild().note) {
-				fillRect(new Rectangle(0, noteY + 6 * dy(), 2 * dx(), 2 * dy()), new Color(0,255,0,127));
+				h.fillRect(new Rectangle(0, noteY + 6 * h.dy(), 2 * h.dx(), 2 * h.dy()), new Color(0,255,0,127));
 			}
 
 			NoteComponent noteComp = comp.findChild(note);
-			drawModel((g, x, y) -> noteComp.drawOn(g, x, y, siga), noteX, noteY);
+			h.drawModel((g, x, y) -> noteComp.drawOn(g, x, y, siga), noteX, noteY);
 			siga.consume(noteComp.note);
 		}
 
 		if (comp.getParentComponent().getFocusedChild() == comp) {
-			drawImage(ImageStorage.inst().getPointerImage(), dx(), 0);
+			h.drawImage(ImageStorage.inst().getPointerImage(), h.dx(), 0);
 		}
 	}
 
 	private int getLowestPossibleNoteY() {
-		return 50 * dy();
+		return 50 * h.dy();
 	}
 }
