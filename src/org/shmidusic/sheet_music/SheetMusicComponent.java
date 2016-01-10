@@ -1,6 +1,7 @@
 package org.shmidusic.sheet_music;
 
 import org.klesun_model.*;
+import org.shmidusic.Main;
 import org.shmidusic.MainPanel;
 import org.shmidusic.sheet_music.staff.Staff;
 import org.shmidusic.sheet_music.staff.chord.Chord;
@@ -66,25 +67,25 @@ public class SheetMusicComponent extends JPanel implements IComponent
 			}
 			public IComponent getContext() { return self; };
 		};
-		this.addKeyListener(Fp.onKey(e ->
-		{
-			/** @TODO: same to menu */
-			Combo combo = new Combo(e);
-
-			Explain result = handler.handleKey(combo);
-			if (result.isSuccess()) {
-				// TODO: ctrl-z/ctrl-y probably should not be normal action at all!
-				if (!combo.equals(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Z)) &&
-					!combo.equals(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Y)))
-				{
-					mainPanel.snapshotStorage.add(sheetMusic.getJsonRepresentation());
-				}
-
-			} else if (!result.isImplicit()) {
-				JOptionPane.showMessageDialog(this, result.getExplanation());
-			}
-		}));
+		this.addKeyListener(Fp.onKey(e -> handleKeyCombination(new Combo(e))));
 		addMouseListener(Fp.onClick(e -> requestFocus()));
+	}
+
+	public void handleKeyCombination(Combo combo)
+	{
+		Explain result = handler.handleKey(combo);
+		if (result.isSuccess()) {
+			// TODO: ctrl-z/ctrl-y probably should not be normal action at all!
+			if (!combo.equals(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Z)) &&
+				!combo.equals(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Y)))
+			{
+				mainPanel.snapshotStorage.add(sheetMusic.getJsonRepresentation());
+				Main.window.updateMenuBar();
+			}
+
+		} else if (!result.isImplicit()) {
+			JOptionPane.showMessageDialog(this, result.getExplanation());
+		}
 	}
 
 	public void triggerPlayback() {

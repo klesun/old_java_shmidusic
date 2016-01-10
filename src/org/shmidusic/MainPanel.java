@@ -28,7 +28,8 @@ final public class MainPanel extends JPanel {
 	final private PianoLayoutPanel pianoLayoutPanel;
 	final private JLabel statusField = new JLabel("status text");
 
-	public MainPanel() {
+	public MainPanel()
+	{
 		super();
 
 		this.setLayout(new BorderLayout());

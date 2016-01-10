@@ -54,8 +54,8 @@ public class StaffHandler implements IKeyHandler
 			.p(new Combo(0, k.VK_END), mkAction(p -> { p.cancelSelection();; p.setFocus(p.staff.getChordList().size() - 1); }).setCaption("To End").setPostfix(navigation))
 			.p(new Combo(ctrl, k.VK_LEFT), mkAction(p -> p.moveFocusTact(-1)).setCaption("Left Tact").setPostfix("Navigation"))
 			.p(new Combo(ctrl, k.VK_RIGHT), mkAction(p -> p.moveFocusTact(1)).setCaption("Right Tact").setPostfix("Navigation"))
-			.p(new Combo(k.SHIFT_MASK, k.VK_LEFT), mkAction(s -> s.moveSelectionEnd(-1)).setCaption("Setlect Left"))
-			.p(new Combo(k.SHIFT_MASK, k.VK_RIGHT), mkAction(s -> s.moveSelectionEnd(1)).setCaption("Setlect Left"))
+			.p(new Combo(k.SHIFT_MASK, k.VK_LEFT), mkAction(s -> s.moveSelectionEnd(-1)).setCaption("Select Left"))
+			.p(new Combo(k.SHIFT_MASK, k.VK_RIGHT), mkAction(s -> s.moveSelectionEnd(1)).setCaption("Select Right"))
 			.p(new Combo(0, k.VK_LEFT), mkFailableAction(s -> s.moveFocusWithPlayback(-1)).setCaption("Left").setPostfix(navigation))
 			.p(new Combo(0, k.VK_RIGHT), mkFailableAction(s -> s.moveFocusWithPlayback(1)).setCaption("Right").setPostfix(navigation))
 			.p(new Combo(0, k.VK_UP), mkFailableAction(s -> s.moveFocusRow(-1)).setCaption("Up").setPostfix(navigation))
@@ -68,10 +68,7 @@ public class StaffHandler implements IKeyHandler
 			.p(new Combo(ctrl, k.VK_9), mkAction(s -> s.staff.mode = Staff.aMode.insert).setCaption("Enable Input From MIDI Device"))
 
 			.p(new Combo(ctrl, k.VK_C), mkAction(StaffHandler::copySelectedChords).setCaption("Copy Selected"))
-			.p(new Combo(ctrl, k.VK_V), mkFailableAction(StaffHandler::pasteChords).setCaption("Copy Selected"))
-
-			/** @legacy */
-//			.p(new Combo(ctrl, k.VK_W), mkAction(StaffHandler::updateDeprecatedPauses).setCaption("Convert Deprecated Pauses"))
+			.p(new Combo(ctrl, k.VK_V), mkFailableAction(StaffHandler::pasteChords).setCaption("Paste Selected"))
 		;
 
 		// MIDI-key press
@@ -92,8 +89,10 @@ public class StaffHandler implements IKeyHandler
 	public void handleMidiEvent(Integer tune, int forca, int timestamp)
 	{
 		if (forca > 0) {
-			// BEWARE: we get sometimes double messages when my synt has "LAYER/AUTO HARMONIZE" button on. That is button, that makes one key press sound with two instruments
-			this.handleKey(new Combo(Combo.getAsciiTuneMods(), Combo.tuneToAscii(tune))); // (11 -ctrl+shift+alt)+someKey
+			// BEWARE: we get sometimes double messages when my synt has "LAYER/AUTO HARMONIZE" button on.
+			// That is button, that makes one key press sound with two instruments
+
+			getContext().getModelParent().handleKeyCombination(new Combo(Combo.getAsciiTuneMods(), Combo.tuneToAscii(tune)));
 		} else {
 			// keyup event
 		}

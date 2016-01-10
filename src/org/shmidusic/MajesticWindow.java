@@ -92,7 +92,7 @@ public class MajesticWindow extends JFrame {
 
 			actionMap.entrySet().stream()
 					.filter(e -> !e.getValue().omitMenuBar())
-					.map(e -> makeActionMenuItem(e.getKey(), e.getValue(), contextClass))
+					.map(this::makeActionMenuItem)
 					.forEach(modelMenu::add);
 
 			menuBar.add(modelMenu);
@@ -104,33 +104,17 @@ public class MajesticWindow extends JFrame {
 		}
 	}
 
-	private JMenuItem makeActionMenuItem(Combo key, ContextAction action, Class<? extends IComponent> contextClass)
+	private JMenuItem makeActionMenuItem(Map.Entry<Combo, ContextAction> e)
 	{
+		Combo key = e.getKey();
+		ContextAction action = e.getValue();
+
 		String caption = action.getCaption() != null ? action.getCaption() : "Do Action:";
 		JMenuItem eMenuItem = new TruMenuItem(caption);
 		eMenuItem.setToolTipText("No description");
 		eMenuItem.setAccelerator(key.toKeystroke());
 
-		eMenuItem.addActionListener(event ->
-		{
-			IComponent context = findFocusedByClass(contextClass);
-			if (context != null) {
-				Explain explain = action.redo(context);
-				if (explain.isSuccess()) {
-					// TODO: ctrl-z/ctrl-y probably should not be normal action at all!
-					if (!key.equals(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Z)) &&
-						!key.equals(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Y)))
-					{
-						shmidusicPanel.snapshotStorage.add(context.getModel().getJsonRepresentation());
-					}
-					updateMenuBar();
-				} else {
-					JOptionPane.showMessageDialog(this, explain.getExplanation());
-				}
-			} else {
-				JOptionPane.showMessageDialog(this, "Cant perform action, " + contextClass.getSimpleName() + " class instance not focused!");
-			}
-		});
+		eMenuItem.addActionListener(event -> shmidusicPanel.sheetContainer.handleKeyCombination(key));
 
 		return eMenuItem;
 	}

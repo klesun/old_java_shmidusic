@@ -32,16 +32,13 @@ public interface IModel
 
 	default IModel reconstructFromJson(JSONObject jsObject) throws JSONException
 	{
-		/** @debug */
-		System.out.println("gonna reconstruct " + Arrays.toString(getFieldStorage().keySet().toArray()));
-
 		for (Map.Entry<String, IField> e: getFieldStorage().entrySet()) {
 			if (jsObject.has(e.getKey())) {
 				e.getValue().setJsonValue(jsObject.get(e.getKey()));
 			} else if (e.getValue().isFinal()) {
 				Logger.fatal("final field not present in json! " + e.getKey());
 			} else {
-				Logger.warning("field not present in json " + e.getKey());
+				// Logger.warning("field not present in json " + e.getKey());
                 // TODO: DIE HORRIBLY. it was bad idea to omit default values. at least it should be list of fields that can be omitted, no allowing omit anything!
             }
 		}
