@@ -203,12 +203,7 @@ public class Staff extends AbstractModel
 
 	@Deprecated // well, you see...
 	public List<Chord> getChordList() {
-		return chordStream().collect(Collectors.toList());
-	}
-
-	public Stream<Chord> chordStream()
-	{
-		return StreamSupport.stream(chordList.spliterator(), false);
+		return chordList.stream().collect(Collectors.toList());
 	}
 
 	public List<List<Chord>> getAccordRowList(int rowSize)

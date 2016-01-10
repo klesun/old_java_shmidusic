@@ -70,12 +70,4 @@ public class ChordHandler extends AbstractHandler {
 		ContextAction<ChordComponent> action = new ContextAction<>();
 		return action.setRedo(lambda);
 	}
-
-	@Override
-	public Boolean mousePressedFinal(ComboMouse combo)
-	{
-		getContext().getParentComponent().setFocus(getContext());
-		getContext().getParentComponent().getModelParent().requestFocus();
-		return true;
-	}
 }

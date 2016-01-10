@@ -39,13 +39,13 @@ public class SimpleMidiParser
 		Function<Channel, Event> mapChannelInstrument = c -> new PChange(c.getInstrument().shortValue(), c.channelNumber.get().shortValue(), 0);
 		Function<Channel, Event> mapChannelVolume = c -> new CChange(DeviceEbun.CONTROL_CHANGE_VOLUME, c.getVolume().shortValue(), c.channelNumber.get().shortValue(), 0);
 
-		Set<Integer> usedChannels = staff.chordStream()
+		Set<Integer> usedChannels = staff.chordList.stream()
 							.map(c -> c.noteStream().map(INote::getChannel))
 							.flatMap(s -> s)
 							.distinct()
 							.collect(Collectors.toSet());
 
-		List<Channel> channels = StreamSupport.stream(staff.getConfig().channelList.spliterator(), false)
+		List<Channel> channels = staff.getConfig().channelList.stream()
 							.filter(c -> usedChannels.contains(c.channelNumber.get()))
 							.collect(Collectors.toList());
 

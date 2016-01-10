@@ -38,7 +38,7 @@ public class StaffComponent extends JPanel implements IComponent
 
 		this.initLayout();
 
-		staff.chordStream().forEach(this::addComponent);
+		staff.chordList.forEach(this::addComponent);
 		this.setBackground(Color.WHITE);
 		this.revalidate();
 	}
@@ -240,6 +240,7 @@ public class StaffComponent extends JPanel implements IComponent
 
 	public StaffComponent setFocus(ChordComponent comp)
 	{
+		cancelSelection();
 		setFocus(staff.chordList.indexOf(comp.chord));
 
 		playback.interrupt();

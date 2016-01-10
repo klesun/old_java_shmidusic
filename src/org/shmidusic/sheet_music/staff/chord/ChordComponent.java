@@ -16,6 +16,7 @@ import org.shmidusic.sheet_music.staff.StaffComponent;
 import org.shmidusic.sheet_music.staff.staff_config.StaffConfig;
 import org.shmidusic.stuff.graphics.Settings;
 import org.shmidusic.stuff.midi.DeviceEbun;
+import org.shmidusic.stuff.tools.Fp;
 
 import javax.swing.*;
 import java.awt.*;
@@ -41,7 +42,10 @@ public class ChordComponent extends JComponent implements IComponent
 		this.chord = chord;
 		chord.noteList.forEach(this::addComponent);
 
-		this.addMouseListener(handler);
+		this.addMouseListener(Fp.onClick(e -> {
+			getParentComponent().setFocus(this);
+			getParentComponent().getModelParent().requestFocus();
+		}));
 	}
 
 	public NoteComponent addNewNote(int tune, int channel)
