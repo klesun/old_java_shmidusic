@@ -1,8 +1,6 @@
 package org.shmidusic.sheet_music.staff.staff_config;
 
-import org.klesun_model.AbstractHandler;
-import org.klesun_model.Combo;
-import org.klesun_model.ContextAction;
+import org.klesun_model.*;
 import org.shmidusic.sheet_music.staff.MidianaComponent;
 import org.shmidusic.sheet_music.staff.StaffComponent;
 import org.shmidusic.stuff.OverridingDefaultClasses.TruMap;
@@ -32,11 +30,14 @@ public class StaffConfigComponent extends MidianaComponent
 	public MidianaComponent getFocusedChild() { return null; }
 
 	@Override
-	protected AbstractHandler makeHandler() {
-		return new AbstractHandler(this) {
+	protected IKeyHandler makeHandler()
+	{
+		IComponent self = this;
+		return new IKeyHandler() {
 			public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() {
 				return new TruMap<>();
 			}
+			public IComponent getContext() { return self; }
 		};
 	}
 

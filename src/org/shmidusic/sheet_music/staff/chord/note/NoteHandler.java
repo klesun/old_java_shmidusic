@@ -1,9 +1,6 @@
 package org.shmidusic.sheet_music.staff.chord.note;
 
-import org.klesun_model.AbstractHandler;
-import org.klesun_model.Combo;
-import org.klesun_model.ContextAction;
-import org.klesun_model.Explain;
+import org.klesun_model.*;
 import org.klesun_model.field.Field;
 import org.klesun_model.field.IField;
 import org.shmidusic.stuff.graphics.Settings;
@@ -19,10 +16,12 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class NoteHandler extends AbstractHandler {
+public class NoteHandler implements IKeyHandler
+{
+	final private NoteComponent context;
 
 	public NoteHandler(NoteComponent context) {
-		super(context);
+		this.context = context;
 	}
 	private static TruMap<Combo, ContextAction<NoteComponent>> actionMap = new TruMap<>();
 	static {
@@ -71,12 +70,9 @@ public class NoteHandler extends AbstractHandler {
 		};
 	}
 
-	@Override
 	public NoteComponent getContext() {
-		return (NoteComponent)super.getContext();
+		return context;
 	}
-
-	@Override
 	public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() { return actionMap; }
 
 	public static LinkedHashMap<Combo, ContextAction<NoteComponent>> getClassActionMap() {

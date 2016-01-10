@@ -2,10 +2,7 @@ package org.shmidusic.sheet_music.staff.chord;
 
 import org.apache.commons.math3.fraction.Fraction;
 import org.json.JSONObject;
-import org.klesun_model.AbstractHandler;
-import org.klesun_model.Explain;
-import org.klesun_model.IComponent;
-import org.klesun_model.IModel;
+import org.klesun_model.*;
 import org.klesun_model.field.IField;
 import org.shmidusic.sheet_music.staff.Staff;
 import org.shmidusic.sheet_music.staff.chord.note.Note;
@@ -187,7 +184,7 @@ public class ChordComponent extends JComponent implements IComponent
 	}
 
 	@Override
-	public AbstractHandler getHandler() {
+	public IKeyHandler getHandler() {
 		return this.handler;
 	}
 

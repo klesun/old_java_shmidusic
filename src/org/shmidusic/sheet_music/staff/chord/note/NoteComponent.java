@@ -1,7 +1,7 @@
 package org.shmidusic.sheet_music.staff.chord.note;
 
-import org.klesun_model.AbstractHandler;
 import org.klesun_model.Explain;
+import org.klesun_model.IKeyHandler;
 import org.shmidusic.sheet_music.staff.MidianaComponent;
 import org.shmidusic.sheet_music.staff.chord.ChordComponent;
 import org.shmidusic.sheet_music.staff.staff_config.KeySignature;
@@ -34,7 +34,7 @@ public class NoteComponent extends MidianaComponent
 	}
 
 	@Override
-	protected AbstractHandler makeHandler() {
+	protected IKeyHandler makeHandler() {
 		return new NoteHandler(this);
 	}
 

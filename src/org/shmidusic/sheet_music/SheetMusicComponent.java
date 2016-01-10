@@ -23,7 +23,7 @@ public class SheetMusicComponent extends JPanel implements IComponent
 {
 	final public MainPanel mainPanel;
 	final public SheetMusic sheetMusic;
-	final AbstractHandler handler;
+	final IKeyHandler handler;
 
 	private Set<StaffComponent> staffComponentSet = new HashSet<>();
 
@@ -43,7 +43,8 @@ public class SheetMusicComponent extends JPanel implements IComponent
 
 		this.setFocusable(true);
 
-		this.handler = new AbstractHandler(this) {
+		IComponent self = this;
+		this.handler = new IKeyHandler() {
 			public LinkedHashMap<Combo, ContextAction> getMyClassActionMap() {
 				return new TruMap<>()
 					.p(new Combo(ctrl, k.VK_L), mkFailableAction(SheetMusicComponent::splitFocusedStaff))
@@ -58,8 +59,14 @@ public class SheetMusicComponent extends JPanel implements IComponent
 					.p(new Combo(ctrl, k.VK_E), mkFailableAction(FileProcessor::savePNG).setCaption("Export png"))
 						;
 			}
+			public IComponent getContext() { return self; };
 		};
-		this.addKeyListener(handler);
+		this.addKeyListener(Fp.onKey(e -> {
+			Explain result = handler.handleKey(new Combo(e));
+			if (!result.isSuccess() && !result.isImplicit()) {
+				JOptionPane.showMessageDialog(this, result.getExplanation());
+			}
+		}));
 		addMouseListener(Fp.onClick(e -> requestFocus()));
 	}
 
@@ -147,7 +154,7 @@ public class SheetMusicComponent extends JPanel implements IComponent
 	}
 
 	@Override
-	public AbstractHandler getHandler() {
+	public IKeyHandler getHandler() {
 		return this.handler;
 	}
 

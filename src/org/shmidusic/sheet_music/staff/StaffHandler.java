@@ -26,11 +26,13 @@ import java.util.function.Function;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-public class StaffHandler extends AbstractHandler {
+public class StaffHandler implements IKeyHandler
+{
+	final private StaffComponent context;
 
-	public StaffHandler(StaffComponent context) { super(context); }
+	public StaffHandler(StaffComponent context) { this.context = context; }
 	public StaffComponent getContext() {
-		return (StaffComponent)super.getContext();
+		return context;
 	}
 
 	private static TruMap<Combo, ContextAction<StaffComponent>> actionMap = new TruMap<>();

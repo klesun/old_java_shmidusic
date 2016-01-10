@@ -12,17 +12,17 @@ import org.shmidusic.stuff.graphics.Settings;
 import java.util.*;
 import java.util.function.*;
 
-public class ChordHandler extends AbstractHandler {
-
+public class ChordHandler implements IKeyHandler
+{
 	final public static int ACCORD_EPSILON = Note.getTimeMilliseconds(new Fraction(1, 16), 120); // 0.125 sec
 
-	public ChordHandler(ChordComponent context) {
-		super(context);
-	}
+	final private ChordComponent context;
 
-	@Override
+	public ChordHandler(ChordComponent context) {
+		this.context = context;
+	}
 	public ChordComponent getContext() {
-		return (ChordComponent)super.getContext();
+		return context;
 	}
 
 	private static TruMap<Combo, ContextAction<ChordComponent>> actionMap = new TruMap<>();

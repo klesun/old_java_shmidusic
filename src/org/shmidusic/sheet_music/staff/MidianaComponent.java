@@ -1,23 +1,19 @@
 package org.shmidusic.sheet_music.staff;
 
-import org.shmidusic.MainPanel;
+import org.klesun_model.IKeyHandler;
 import org.shmidusic.stuff.graphics.ImageStorage;
 import org.shmidusic.stuff.graphics.Settings;
-import org.klesun_model.AbstractHandler;
 import org.klesun_model.IComponent;
-
-import java.awt.*;
-import java.awt.event.FocusListener;
 
 @Deprecated // sorry, forgot the reason
 abstract public class MidianaComponent implements IComponent
 {
 
 	final private IComponent parent;
-	final private AbstractHandler eventHandler;
+	final private IKeyHandler eventHandler;
 
 	abstract public MidianaComponent getFocusedChild();
-	abstract protected AbstractHandler makeHandler();
+	abstract protected IKeyHandler makeHandler();
 	/** @return int - position of bottomest drawn pixel */
 
 	// TODO: separate Model from Event handler, i wanna be able to instantiate Note without Staff!
@@ -28,7 +24,7 @@ abstract public class MidianaComponent implements IComponent
 
 	// TODO: rename to getComponentParent()
 	public IComponent getModelParent() { return this.parent; }
-	public AbstractHandler getHandler() { return this.eventHandler; }
+	public IKeyHandler getHandler() { return this.eventHandler; }
 
 	final public Settings getSettings() {
 		return Settings.inst();

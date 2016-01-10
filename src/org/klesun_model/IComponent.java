@@ -9,7 +9,7 @@ public interface IComponent
 	IModel getModel();
 	IComponent getModelParent();
 	IComponent getFocusedChild();
-	AbstractHandler getHandler();
+	IKeyHandler getHandler();
 
 	default Component getFirstAwtParent() {
 		IComponent context = this;

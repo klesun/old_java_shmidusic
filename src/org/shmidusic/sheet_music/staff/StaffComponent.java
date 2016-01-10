@@ -1,6 +1,5 @@
 package org.shmidusic.sheet_music.staff;
 
-import org.klesun_model.AbstractHandler;
 import org.klesun_model.Explain;
 import org.klesun_model.IComponent;
 import org.shmidusic.sheet_music.SheetMusicComponent;
@@ -30,7 +29,8 @@ public class StaffComponent extends JPanel implements IComponent
 	private boolean isSelectionActive = false;
 	private int selectionStart = -1;
 
-	public StaffComponent(Staff staff, SheetMusicComponent parent) {
+	public StaffComponent(Staff staff, SheetMusicComponent parent)
+	{
 		this.parent = parent;
 		this.staff = staff;
 		this.handler = new StaffHandler(this);
@@ -174,7 +174,7 @@ public class StaffComponent extends JPanel implements IComponent
 	}
 
 	@Override
-	public AbstractHandler getHandler()	{
+	public StaffHandler getHandler()	{
 		return this.handler;
 	}
 
