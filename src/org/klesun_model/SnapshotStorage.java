@@ -49,11 +49,11 @@ public class SnapshotStorage
 
 	public Explain<JSONObject> redo()
 	{
-		if (redoSnapshots.size() >= 2) {
+		if (!redoSnapshots.isEmpty()) {
 			JSONObject current = redoSnapshots.pollLast();
 			snapshots.add(current);
 
-			return new Explain<>(redoSnapshots.peekLast());
+			return new Explain<>(current);
 		} else {
 			return new Explain<>(false, "Here History Ends");
 		}

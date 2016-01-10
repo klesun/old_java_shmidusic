@@ -60,7 +60,6 @@ public class SheetMusicComponent extends JPanel implements IComponent
 
 					.p(new Combo(ctrl, k.VK_E), mkFailableAction(FileProcessor::savePNG).setCaption("Export png"))
 
-					/** @debug */
 					.p(new Combo(ctrl, k.VK_Z), mkFailableAction(sm -> mainPanel.undo()).setCaption("Undo"))
 					.p(new Combo(ctrl, k.VK_Y), mkFailableAction(sm -> mainPanel.redo()).setCaption("Redo"))
 					;
