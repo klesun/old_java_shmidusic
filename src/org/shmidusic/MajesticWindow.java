@@ -116,6 +116,7 @@ public class MajesticWindow extends JFrame {
 			if (context != null) {
 				Explain explain = action.redo(context);
 				if (explain.isSuccess()) {
+					shmidusicPanel.snapshotStorage.add(context.getModel().getJsonRepresentation());
 					updateMenuBar();
 				} else {
 					JOptionPane.showMessageDialog(this, explain.getExplanation());

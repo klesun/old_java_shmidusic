@@ -12,6 +12,7 @@ import org.shmidusic.stuff.tools.Fp;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.util.*;
 import java.util.List;
 import java.util.function.Consumer;
@@ -57,13 +58,29 @@ public class SheetMusicComponent extends JPanel implements IComponent
 					.p(new Combo(ctrl, k.VK_I), mkFailableAction(FileProcessor::openMidi).setCaption("Open midi"))
 
 					.p(new Combo(ctrl, k.VK_E), mkFailableAction(FileProcessor::savePNG).setCaption("Export png"))
-						;
+
+					/** @debug */
+					.p(new Combo(ctrl, k.VK_Z), mkFailableAction(sm -> mainPanel.undo()).setCaption("Undo"))
+					.p(new Combo(ctrl, k.VK_Y), mkFailableAction(sm -> mainPanel.redo()).setCaption("Redo"))
+					;
 			}
 			public IComponent getContext() { return self; };
 		};
-		this.addKeyListener(Fp.onKey(e -> {
-			Explain result = handler.handleKey(new Combo(e));
-			if (!result.isSuccess() && !result.isImplicit()) {
+		this.addKeyListener(Fp.onKey(e ->
+		{
+			/** @TODO: same to menu */
+			Combo combo = new Combo(e);
+
+			Explain result = handler.handleKey(combo);
+			if (result.isSuccess()) {
+				// TODO: ctrl-z/ctrl-y probably should not be normal action at all!
+				if (!combo.equals(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Z)) &&
+					!combo.equals(new Combo(KeyEvent.CTRL_MASK, KeyEvent.VK_Y)))
+				{
+					mainPanel.snapshotStorage.add(sheetMusic.getJsonRepresentation());
+				}
+
+			} else if (!result.isImplicit()) {
 				JOptionPane.showMessageDialog(this, result.getExplanation());
 			}
 		}));

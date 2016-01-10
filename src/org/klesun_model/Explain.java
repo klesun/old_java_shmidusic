@@ -2,6 +2,7 @@ package org.klesun_model;
 
 import org.shmidusic.stuff.tools.Logger;
 
+import javax.xml.transform.Result;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -76,13 +77,9 @@ public class Explain<C> {
 		return ifSuccess(c -> { lambda.accept(c); return this; });
 	}
 
-    public Explain<C> whenFailure(Runnable onFailure) {
-        if (!this.isSuccess()) {
-            onFailure.run();
-        }
-        return this;
-
-    }
+    public <T> Explain<T> map(Function<C, T> mapLambda) {
+		return ifSuccess(result -> new Explain<T>(mapLambda.apply(result)));
+	}
 
 	public Explain<C> runIfSuccess(Runnable lambda) { return whenSuccess(r -> lambda.run()); }
 
@@ -114,9 +111,4 @@ public class Explain<C> {
 				? new Explain<>(func.apply(e))
 				: new Explain<>(false, "lox");
 	}
-
-    public Explain<C> whileIf(Supplier<Boolean> cond, Function<C, Explain<C>> iteration)
-    {
-        return cond.get() ? iteration.apply(this.data).whileIf(cond, iteration) : this;
-    }
 }

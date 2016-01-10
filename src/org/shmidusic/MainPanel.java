@@ -1,5 +1,7 @@
 package org.shmidusic;
 
+import org.klesun_model.Explain;
+import org.klesun_model.SnapshotStorage;
 import org.shmidusic.sheet_music.staff.Staff;
 import org.shmidusic.sheet_music.SheetMusic;
 import org.shmidusic.sheet_music.SheetMusicComponent;
@@ -21,6 +23,7 @@ final public class MainPanel extends JPanel {
 
 	public SheetMusicComponent sheetContainer = new SheetMusicComponent(new SheetMusic(), this);
 	public Scroll sheetScroll = new Scroll(sheetContainer);
+	final public SnapshotStorage snapshotStorage = new SnapshotStorage();
 
 	final private PianoLayoutPanel pianoLayoutPanel;
 	final private JLabel statusField = new JLabel("status text");
@@ -54,7 +57,7 @@ final public class MainPanel extends JPanel {
 		this.add(sheetScroll = new Scroll(sheetContainer), BorderLayout.CENTER);
 		sheetScroll.getVerticalScrollBar().setUnitIncrement(Staff.SISDISPLACE);
 		sheetContainer.requestFocus();
-		DumpReceiver.eventHandler = (StaffHandler) sheetContainer.getFocusedChild().getHandler();
+		DumpReceiver.eventHandler = sheetContainer.getFocusedChild().getHandler();
 		// removing stupid built-ins
 		InputMap im = sheetScroll.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		im.put(KeyStroke.getKeyStroke("UP"), "none");
@@ -91,6 +94,14 @@ final public class MainPanel extends JPanel {
 		}
 
 		return result;
+	}
+
+	public Explain undo() {
+		return snapshotStorage.undo().map(SheetMusic::new).whenSuccess(this::replaceSheetMusic);
+	}
+
+	public Explain redo() {
+		return snapshotStorage.redo().map(SheetMusic::new).whenSuccess(this::replaceSheetMusic);
 	}
 }
 
