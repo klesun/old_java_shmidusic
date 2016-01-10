@@ -46,6 +46,7 @@ final public class MainPanel extends JPanel {
 		northPanel.add(statusField, BorderLayout.EAST);
 	}
 
+	/** @TODO: muah. collect all this copypaste somewhere please */
 	public void replaceSheetMusic(SheetMusic sheetMusic)
 	{
 		this.sheetContainer = new SheetMusicComponent(sheetMusic, this);

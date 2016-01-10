@@ -42,7 +42,8 @@ public class MajesticWindow extends JFrame {
 	public MainPanel shmidusicPanel;
 	public JTextArea terminal;
 
-	public MajesticWindow() {
+	public MajesticWindow()
+	{
 		super("Да будет такая музыка!");
 		this.setIconImage(ImageStorage.openImageUncached("midusic.png"));
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -80,42 +81,21 @@ public class MajesticWindow extends JFrame {
 	private void addMenuItems(IComponent fakeModelForClassMethods)
 	{
 		LinkedHashMap<Combo, ContextAction> actionMap = fakeModelForClassMethods.getHandler().getMyClassActionMap();
+
+		Class<? extends IComponent> contextClass = fakeModelForClassMethods.getClass();
+
 		if (actionMap.values().stream().anyMatch(a -> !a.omitMenuBar())) {
 
 			JMenu modelMenu = new JMenu(fakeModelForClassMethods.getModel().getClass().getSimpleName());
 			modelMenu.setToolTipText("Enabled");
 
-			for (Combo key : actionMap.keySet()) {
-				ContextAction action = actionMap.get(key);
+			actionMap.entrySet().stream()
+					.filter(e -> !e.getValue().omitMenuBar())
+					.map(e -> makeActionMenuItem(e.getKey(), e.getValue(), contextClass))
+					.forEach(modelMenu::add);
 
-				if (action.omitMenuBar()) {
-					continue;
-				}
-
-				String caption = action.getCaption() != null ? action.getCaption() : "Do Action:";
-				JMenuItem eMenuItem = new TruMenuItem(caption);
-				eMenuItem.setToolTipText("No description");
-				eMenuItem.setAccelerator(key.toKeystroke());
-
-				eMenuItem.addActionListener(event -> {
-					Class<? extends IComponent> cls = fakeModelForClassMethods.getClass();
-					IComponent context = findeFocusedByClass(cls);
-					if (context != null) {
-						Explain explain = action.redo(context);
-						if (explain.isSuccess()) {
-							updateMenuBar();
-						} else {
-							JOptionPane.showMessageDialog(this, explain.getExplanation());
-						}
-					} else {
-						JOptionPane.showMessageDialog(this, "Cant perform action, " + cls.getSimpleName() + " class instance not focused!");
-					}
-				});
-
-				modelMenu.add(eMenuItem);
-			}
 			menuBar.add(modelMenu);
-			menus.put(fakeModelForClassMethods.getClass(), modelMenu);
+			menus.put(contextClass, modelMenu);
 		}
 
 		for (IComponent child: makeFakePossibleChildListForClassMethods(fakeModelForClassMethods)) {
@@ -123,8 +103,31 @@ public class MajesticWindow extends JFrame {
 		}
 	}
 
+	private JMenuItem makeActionMenuItem(Combo key, ContextAction action, Class<? extends IComponent> contextClass)
+	{
+		String caption = action.getCaption() != null ? action.getCaption() : "Do Action:";
+		JMenuItem eMenuItem = new TruMenuItem(caption);
+		eMenuItem.setToolTipText("No description");
+		eMenuItem.setAccelerator(key.toKeystroke());
 
-	// retarded language does not support overridable class methods
+		eMenuItem.addActionListener(event ->
+		{
+			IComponent context = findFocusedByClass(contextClass);
+			if (context != null) {
+				Explain explain = action.redo(context);
+				if (explain.isSuccess()) {
+					updateMenuBar();
+				} else {
+					JOptionPane.showMessageDialog(this, explain.getExplanation());
+				}
+			} else {
+				JOptionPane.showMessageDialog(this, "Cant perform action, " + contextClass.getSimpleName() + " class instance not focused!");
+			}
+		});
+
+		return eMenuItem;
+	}
+
 	private static List<IComponent> makeFakePossibleChildListForClassMethods(IComponent parent) {
 		if (parent.getClass() == SheetMusicComponent.class) {
 			return Arrays.asList(new StaffComponent(new Staff(), (SheetMusicComponent)parent));
@@ -137,7 +140,7 @@ public class MajesticWindow extends JFrame {
 		}
 	}
 
-	private IComponent findeFocusedByClass(Class<? extends IComponent> cls)
+	private IComponent findFocusedByClass(Class<? extends IComponent> cls)
 	{
 		IComponent result = shmidusicPanel.sheetContainer;
 		while (result != null) {
