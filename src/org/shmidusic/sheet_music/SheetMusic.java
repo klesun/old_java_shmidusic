@@ -12,11 +12,12 @@ public class SheetMusic extends AbstractModel
 {
 	public Arr<Staff> staffList = add("staffList", new ArrayList<>(), Staff.class);
 
+	/** use this constructor when restoring object from json */
 	public SheetMusic(JSONObject state) {
-		this();
 		reconstructFromJson(state);
 	}
 
+	/** use this constructor when creating new object */
 	public SheetMusic()
 	{
 		Staff staff = new Staff();

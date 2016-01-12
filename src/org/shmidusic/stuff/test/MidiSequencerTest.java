@@ -7,6 +7,8 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.TargetDataLine;
 import java.io.*;
 
+// likely something related to recording wav from midi
+
 public class MidiSequencerTest {
 
 	public static void main(String[] args) throws MidiUnavailableException {

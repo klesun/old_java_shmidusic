@@ -11,7 +11,10 @@ import javax.sound.sampled.LineListener;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 
-public class CoreJavaSound extends Object implements LineListener {
+// this test class has something to do with audio streams in java
+
+public class CoreJavaSound extends Object implements LineListener
+{
 	File soundFile;
 
 	JDialog playingDialog;

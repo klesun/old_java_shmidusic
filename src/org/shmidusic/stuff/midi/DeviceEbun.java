@@ -138,6 +138,10 @@ public class DeviceEbun {
 		sendMessage(ShortMessage.PROGRAM_CHANGE, channel, value, 0);
 	}
 
+	public static void setModulation(int channel, int value) {
+		sendMessage(ShortMessage.CHANNEL_PRESSURE, channel, value, 0);
+	}
+
 	synchronized public static void openNote(ISound note)
 	{
 		if (openNoteSet.contains(note)) {

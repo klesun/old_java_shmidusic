@@ -5,6 +5,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.json.JSONObject;
 import org.klesun_model.AbstractModel;
 import org.klesun_model.field.Arr;
 import org.klesun_model.field.Field;
@@ -18,6 +19,14 @@ public class Chord extends AbstractModel
 	private Field<Boolean> isDiminendo = add("isDiminendo", false);
 	public Field<String> slog = add("slog", "").setOmitDefaultFromJson(true);
 	public Arr<Note> noteList = add("noteList", new TreeSet<>(), Note.class);
+
+	/** use this constructor when creating new object */
+	public Chord() {	}
+
+	/** use this constructor when restoring object from json */
+	public Chord(JSONObject state) {
+		reconstructFromJson(state);
+	}
 
 	// getters/setters
 	public Stream<Note> noteStream(Predicate<Note> filterLambda) {

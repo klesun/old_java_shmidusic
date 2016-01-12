@@ -36,15 +36,23 @@ public class Staff extends AbstractModel
 	public enum aMode { insert, passive }
 	public static aMode mode = aMode.insert;
 
-	public StaffConfig staffConfig = null;
+	final public StaffConfig staffConfig;
 
 	public Arr<Chord> chordList = add("chordList", new ArrayList<>(), Chord.class);
     private List<Tact> tactList = new ArrayList<>();
 	public int focusedIndex = -1;
 
+	/** use this constructor when creating new object */
 	public Staff()
 	{
 		this.staffConfig = new StaffConfig();
+	}
+
+	/** use this constructor when restoring object from json */
+	public Staff(JSONObject state) {
+		reconstructFromJson(state);
+		this.staffConfig = new StaffConfig(state.getJSONObject("staffConfig")); // TODO: MODELIZE
+		accordListChanged();
 	}
 
 	public Chord addNewAccord()
@@ -177,19 +185,6 @@ public class Staff extends AbstractModel
                     : Optional.empty();
         }
     }
-	
-	@Override
-	public Staff reconstructFromJson(JSONObject jsObject) throws JSONException
-	{
-		super.reconstructFromJson(jsObject);
-
-		JSONObject configJson = jsObject.getJSONObject("staffConfig");
-		this.getConfig().reconstructFromJson(configJson);
-
-		accordListChanged();
-
-		return this;
-	}
 
 	// getters
 

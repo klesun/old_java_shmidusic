@@ -4,18 +4,20 @@ package org.klesun_model;
 // AbstractModel is used to store field list, since an interface can't have properties...
 
 
+import org.json.JSONObject;
 import org.klesun_model.field.Arr;
 import org.klesun_model.field.Field;
 import org.klesun_model.field.IField;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
 
 public abstract class AbstractModel implements IModel
 {
-	private Map<String, IField> fieldStorage = new TreeMap<>();
+	private Map<String, IField> fieldStorage = new LinkedHashMap<>();
 
 	@Override
 	public String toString() {

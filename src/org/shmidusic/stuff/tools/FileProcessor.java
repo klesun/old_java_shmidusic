@@ -20,6 +20,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.function.Function;
 
 public class FileProcessor {
 
@@ -86,7 +87,7 @@ public class FileProcessor {
 	{
 		return chooseMidiJsonFile()
 			.ifSuccess(FileProcessor::openJsonFile)
-			.ifSuccess(js -> fillModelFromJson(js, new SheetMusic()))
+			.ifSuccess(js -> fillModelFromJson(js, SheetMusic::new))
                 .whenSuccess(comp.mainPanel::replaceSheetMusic);
 	}
 
@@ -128,10 +129,10 @@ public class FileProcessor {
 		}
 	}
 
-	private static <T extends IModel> Explain<T> fillModelFromJson(JSONObject modelJs, T model)
+	private static <T extends IModel> Explain<T> fillModelFromJson(JSONObject modelJs, Function<JSONObject, T> modelConstructor)
 	{
 		try {
-			model.reconstructFromJson(modelJs);
+			T model = modelConstructor.apply(modelJs);
 			return new Explain(model);
 		} catch (JSONException exc) {
 			return new Explain(false, "Failed to Open Model, some Json error: " + describeException(exc));

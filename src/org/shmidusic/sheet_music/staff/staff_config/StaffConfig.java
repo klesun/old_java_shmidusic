@@ -9,6 +9,7 @@ import org.shmidusic.stuff.midi.DeviceEbun;
 import org.shmidusic.sheet_music.staff.Staff;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 import org.apache.commons.math3.fraction.Fraction;
 
@@ -31,20 +32,17 @@ public class StaffConfig extends AbstractModel
 	final public Field<Integer> keySignature = add("keySignature", 0);
 	final public Field<Boolean> useHardcoreSynthesizer = add("useHardcoreSynthesizer", false);
 
-	final public Arr<Channel> channelList = add("channelList", makeChannelList(), Channel.class).setOmitDefaultFromJson(true);
+	final public Arr<Channel> channelList = add("channelList", new TreeSet<>(), Channel.class);
 
-	private TreeSet<Channel> makeChannelList() {
-		TreeSet<Channel> list = new TreeSet<>();
+	/** use this constructor when creating new object */
+	public StaffConfig() {} {
+		addLackingChannels();
+	}
 
-		for (int i = 0; i < Channel.CHANNEL_COUNT; ++i) {
-			JSONObject state = new JSONObject().put("channelNumber", i);
-			Channel channel = new Channel();
-			channel.reconstructFromJson(state);
-
-			list.add(channel);
-		}
-
-		return list;
+	/** use this constructor when restoring object from json */
+	public StaffConfig(JSONObject state) {
+		reconstructFromJson(state);
+		addLackingChannels();
 	}
 
 	public ConfigDialog getDialog() { return new ConfigDialog(this); }
@@ -64,37 +62,31 @@ public class StaffConfig extends AbstractModel
 
 	@Override
 	public StaffConfig reconstructFromJson(JSONObject jsObject) throws JSONException {
-
-		// TODO: temporary hack for compatibility with old files, that does not have this final field
-		if (jsObject.has("channelList")) {
-			JSONArray channelArray = jsObject.getJSONArray("channelList");
-			if (channelArray.length() > 0 && !channelArray.getJSONObject(0).has("channelNumber")) {
-				for (int i = 0; i < channelArray.length(); ++i) {
-					channelArray.put(i, channelArray.getJSONObject(i).put("channelNumber", i + 1));
-				}
-			}
-			jsObject.put("channelList", channelArray);
-		}
-
 		super.reconstructFromJson(jsObject);
-
-		TreeSet<Channel> resultChannelSet = this.makeChannelList();
-		for (Channel channelFromJson: channelList) {
-			resultChannelSet.remove(channelFromJson); // =D
-			resultChannelSet.add(channelFromJson); // =D
-			// cuz i wanna overwrite old key
-		}
-
-		this.channelList.setFromList(resultChannelSet);
-
+		addLackingChannels();
 		syncSyntChannels();
 		return this;
+	}
+
+	private void addLackingChannels()
+	{
+		int existingIndex = 0;
+		for (int i = 0; i < Channel.CHANNEL_COUNT; ++i) {
+			if (channelList.size() > existingIndex &&
+				channelList.get(existingIndex).channelNumber.get() == i)
+			{
+				++existingIndex;
+			} else {
+				channelList.add(new Channel(i));
+			}
+		}
 	}
 
 	public void syncSyntChannels() {
 		for (int i = 0; i < Channel.CHANNEL_COUNT; ++i) {
 			DeviceEbun.setInstrument(i, channelList.get(i).getInstrument());
 			DeviceEbun.setVolume(i, channelList.get(i).getVolume());
+			DeviceEbun.setModulation(i, channelList.get(i).modulation.get());
 		}
 	}
 

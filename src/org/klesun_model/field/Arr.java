@@ -1,5 +1,6 @@
 package org.klesun_model.field;
 
+import org.json.JSONObject;
 import org.klesun_model.IModel;
 import org.shmidusic.stuff.tools.Logger;
 import org.json.JSONArray;
@@ -19,9 +20,6 @@ public class Arr<ELEM_CLASS extends IModel> implements IField, Iterable<ELEM_CLA
 	Class<ELEM_CLASS> elemClass;
 
 	final Collection<ELEM_CLASS> elements;
-
-	private Boolean omitDefaultFromJson = false;
-
 	public Arr(Collection<ELEM_CLASS> value, Class<ELEM_CLASS> elemClass)
 	{
 		elements = value;
@@ -32,7 +30,7 @@ public class Arr<ELEM_CLASS extends IModel> implements IField, Iterable<ELEM_CLA
 	public JSONArray getJsonValue() {
 		JSONArray arr = new JSONArray("[]");
 		for (IModel el: elements) {
-			if (el.getJsonRepresentation().keySet().size() != 0 || !omitDefaultFromJson()) {
+			if (el.mustBeStored()) {
 				arr.put(el.getJsonRepresentation());
 			}
 		}
@@ -46,12 +44,14 @@ public class Arr<ELEM_CLASS extends IModel> implements IField, Iterable<ELEM_CLA
 		for (int i = 0; i < arr.length(); ++i) {
 			ELEM_CLASS el = null;
 			try {
-				el = elemClass.newInstance();
+				el = elemClass.getDeclaredConstructor(JSONObject.class).newInstance(arr.getJSONObject(i));
 			} catch (Exception e) {
 				Logger.fatal(e, "Come on, every class has an empty constructor in java! {" + elemClass.getSimpleName() + "}");
 			}
 
-			el.reconstructFromJson(arr.getJSONObject(i)); // it's important to do reconstructFromJson before add, cuz the Collection may be a set
+			// will throw an exception in case final field was not set during initialisation - just as planned
+			el.getFieldStorage().values().stream().filter(IField::isFinal).forEach(IField::getJsonValue);
+
 			elements.add(el);
 		}
 	}
@@ -87,15 +87,6 @@ public class Arr<ELEM_CLASS extends IModel> implements IField, Iterable<ELEM_CLA
 	{
 		elements.clear();
 		list.forEach(elements::add);
-	}
-
-	public Arr<ELEM_CLASS> setOmitDefaultFromJson(Boolean value) {
-		this.omitDefaultFromJson = value;
-		return this;
-	}
-
-	public Boolean omitDefaultFromJson() {
-		return this.omitDefaultFromJson;
 	}
 
 	public Boolean mustBeStored() {

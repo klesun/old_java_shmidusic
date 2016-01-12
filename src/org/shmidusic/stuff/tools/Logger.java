@@ -101,7 +101,9 @@ public class Logger {
 	}
 
 	public static void logForUser(String msg) {
-		Main.window.terminal.append("\n" + msg);
+		if (Main.window != null) {
+			Main.window.terminal.append("\n" + msg);
+		}
 		System.out.println("*** " + msg);
 	}
 }

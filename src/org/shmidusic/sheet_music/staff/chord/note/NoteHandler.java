@@ -101,11 +101,14 @@ public class NoteHandler implements IKeyHandler
         }
 	}
 
-	public static void play(NoteComponent comp) {
-		DeviceEbun.openNote(comp.note);
-		int tempo = comp.getParentComponent().getParentComponent().staff.getConfig().getTempo();
-		int millis = comp.note.getTimeMilliseconds(tempo);
+	public static void play(NoteComponent comp)
+	{
+		if (!comp.note.isPause()) {
+			DeviceEbun.openNote(comp.note);
+			int tempo = comp.getParentComponent().getParentComponent().staff.getConfig().getTempo();
+			int millis = comp.note.getTimeMilliseconds(tempo);
 
-		Fp.setTimeout(() -> DeviceEbun.closeNote(comp.note), millis);
+			Fp.setTimeout(() -> DeviceEbun.closeNote(comp.note), millis);
+		}
 	}
 }

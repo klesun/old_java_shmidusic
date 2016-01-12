@@ -19,6 +19,12 @@ public interface IModel
 {
 	Map<String, IField> getFieldStorage();
 
+	// please, define the constructor in every deriving class
+	// we rely on this when reconstructing model structure
+//	default IModel(JSONObject state) {
+//		reconstructFromJson(state);
+//	}
+
 	default JSONObject getJsonRepresentation()
 	{
 		JSONObject dict = new JSONObject();

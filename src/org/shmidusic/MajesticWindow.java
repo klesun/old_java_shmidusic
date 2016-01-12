@@ -125,7 +125,7 @@ public class MajesticWindow extends JFrame {
 		} else if (parent.getClass() == StaffComponent.class) {
 			return Arrays.asList(new ChordComponent(new Chord(), parent));
 		} else if (parent.getClass() == ChordComponent.class) {
-			return Arrays.asList(new NoteComponent(new Note(), (ChordComponent)parent));
+			return Arrays.asList(new NoteComponent(new Note(0,0), (ChordComponent)parent));
 		} else {
 			return new ArrayList<>();
 		}

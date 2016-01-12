@@ -3,6 +3,7 @@ package org.shmidusic.stuff.test;
 
 import org.shmidusic.sheet_music.staff.chord.note.Note;
 import org.shmidusic.stuff.midi.MidiCommon;
+import org.shmidusic.stuff.tools.Fp;
 import org.shmidusic.stuff.tools.Logger;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -12,8 +13,8 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 
-public class PitchBendAndVolumeTest {
-	
+public class PitchBendAndVolumeTest
+{
 	static MidiDevice midiDevice = null;
 	static Receiver theirReceiver = null;
 	
@@ -57,11 +58,15 @@ public class PitchBendAndVolumeTest {
 		resetAllControllers();
 
 		openNote(tune, 127);
-		try { Thread.sleep(1000); } catch (InterruptedException exc) {}
 
-		for (int i = 0; i < 4; ++i) {
-			doCrescendo(0, 127, 1000);
-		}
+		setModulation(0);
+		Fp.setTimeout(() -> setModulation(127), 1000);
+
+		try { Thread.sleep(2000); } catch (InterruptedException exc) {}
+
+//		for (int i = 0; i < 4; ++i) {
+//			doCrescendo(0, 127, 1000);
+//		}
 
 		closeNote(tune);
 		openNote(tune2, 63);
@@ -100,7 +105,7 @@ public class PitchBendAndVolumeTest {
 		sendMessage(ShortMessage.NOTE_ON, 0, n, volume);
 	}
 	
-	private static void setVibrato(int n) {
+	private static void setModulation(int n) {
 		sendMessage(ShortMessage.CHANNEL_PRESSURE, 0, n, 0);
 	}
 	

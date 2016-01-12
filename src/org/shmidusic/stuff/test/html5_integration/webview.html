@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="jquery-2.1.4.js" type="text/javascript"></script>
+</head>
+<body>
+    Lolo huj pizda dzhigurda
+
+    <div id="zhopa"></div>
+
+    <input type="number" id="pizda" value="0"/>
+    <input type="button" id="pizdaNumber" value="push me!"/>
+
+    <div id="guzno"></div>
+
+    <div id="sheetMusicCont"></div>
+
+<script>
+    var zhopa = document.getElementById('zhopa');
+    zhopa.innerHTML = 'kazdij loh kto ne loh';
+    $(zhopa).html('belaja strekoza lubvi');
+
+    $('#pizdaNumber').click(function() { $('#pizda').val(+$('#pizda').val() + 1); });
+
+    // a java class assigned from JavaFX
+    setTimeout(function() {$('#sheetMusicCont').html('someSheetMusic' in window ? 'lele ' + window['someSheetMusic'].getJsonRepresentation() : 'lulu');}, 3000);
+
+</script>
+</body>
+</html>

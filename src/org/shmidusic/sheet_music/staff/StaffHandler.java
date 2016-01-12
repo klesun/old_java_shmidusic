@@ -132,7 +132,7 @@ public class StaffHandler implements IKeyHandler
 			List<Chord> result = new ArrayList<>();
 			try {
 				for (int i = 0; i < jsArr.length(); ++i) {
-					result.add((Chord)new Chord().reconstructFromJson(jsArr.getJSONObject(i)));
+					result.add(new Chord(jsArr.getJSONObject(i)));
 				}
 				return new Explain<>(result);
 			} catch (JSONException exc) {
