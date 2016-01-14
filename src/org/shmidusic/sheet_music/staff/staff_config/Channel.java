@@ -30,9 +30,7 @@ public class Channel extends AbstractModel implements Comparable<Channel>  {
 	}
 
 	/** use this constructor when restoring object from json */
-	public Channel(JSONObject state) {
-		reconstructFromJson(state);
-	}
+	public Channel(JSONObject state) { reconstructFromJson(state); }
 
 	@Override
 	public int compareTo(Channel c) {

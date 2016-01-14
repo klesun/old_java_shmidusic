@@ -30,15 +30,15 @@ public class Note extends AbstractModel implements INote
 
 	// </editor-fold>
 
-	/** use this constructor when restoring object from json */
-	public Note(JSONObject state) {
-		reconstructFromJson(state);
-	}
-
 	/** use this constructor when creating new object */
 	public Note(int tuneValue, int channelValue) {
 		tune.set(tuneValue);
 		channel.set(channelValue);
+	}
+
+	/** use this constructor when restoring object from json */
+	public Note(JSONObject state) {
+        reconstructFromJson(state);
 	}
 
 	public long keydownTimestamp;

@@ -46,8 +46,7 @@ public class NotePainter
 		} else if (n.isTooLong()) {
 			tmpImg = ImageStorage.inst().getTooLongImage();
 		} else {
-			Fraction l = n.getCleanLength().multiply(n.isTriplet() ? 3 : 1);
-			tmpImg = ImageStorage.inst().getNoteImg(l, colorChannel);
+			tmpImg = ImageStorage.inst().getNoteImg(n.getCleanLength(), colorChannel);
 		}
 
 		if (n.getIsLinkedToNext()) {

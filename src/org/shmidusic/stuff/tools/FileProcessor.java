@@ -129,7 +129,7 @@ public class FileProcessor {
 		}
 	}
 
-	private static <T extends IModel> Explain<T> fillModelFromJson(JSONObject modelJs, Function<JSONObject, T> modelConstructor)
+	public static <T extends IModel> Explain<T> fillModelFromJson(JSONObject modelJs, Function<JSONObject, T> modelConstructor)
 	{
 		try {
 			T model = modelConstructor.apply(modelJs);
@@ -145,7 +145,7 @@ public class FileProcessor {
 		return exc.getClass().getSimpleName() + " " + exc.getMessage() + "\n\n" + traceString;
 	}
 
-	private static Explain<JSONObject> openJsonFile(File f) {
+	public static Explain<JSONObject> openJsonFile(File f) {
 		return readTextFromFile(f).ifSuccess(FileProcessor::parseJson);
 	}
 

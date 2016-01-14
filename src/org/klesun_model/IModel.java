@@ -36,6 +36,7 @@ public interface IModel
 		return dict;
 	}
 
+	/** read "protected" */
 	default IModel reconstructFromJson(JSONObject jsObject) throws JSONException
 	{
 		for (Map.Entry<String, IField> e: getFieldStorage().entrySet()) {

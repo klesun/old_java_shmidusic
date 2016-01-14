@@ -10,6 +10,7 @@ package org.klesun_model;
 // we handle event ONLY ONCE - in the deepest focused child (+ root) we found
 
 import org.shmidusic.Main;
+import org.shmidusic.stuff.tools.Logger;
 
 import javax.swing.*;
 import java.awt.event.KeyEvent;
@@ -35,6 +36,13 @@ public interface IKeyHandler
 		}
 
 		return result != null ? result : new Explain(false, "No Action For This Combination").setImplicit(true);
+	}
+
+	/** @read "abstract" */
+	static LinkedHashMap<Combo, ContextAction> getActionMap()
+	{
+		Logger.fatal("This Class method is abstract - please override it in the subclass!");
+		return null;
 	}
 
 	// we use this to (de)generate [File,Menu,Edit]-like menu that would

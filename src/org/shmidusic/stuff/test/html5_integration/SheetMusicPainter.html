@@ -1,0 +1,90 @@
+<head>
+    <script src="jquery-2.1.4.js" type="text/javascript"></script>
+    <script async onload="firebugLoaded();" src="http://192.168.1.34/libs/firebug-lite.js" type="text/javascript"></script>
+</head>
+
+<style>
+    div#chordSequenceContainer {
+        z-index: -1;
+        position: absolute;
+        left: 0px;
+        top: 0px;
+    }
+
+    div#chordSequenceContainer > span {
+        display: inline-block;
+        height: 200px;
+        width: 20px;
+        background-color: rgba(0,255,0,0.5);
+        margin: 2px;
+    }
+
+    canvas#songCanvas {
+        width: 100%;
+        height: 100%;
+    }
+</style>
+
+<div style="position: relative;">
+    <div id="chordSequenceContainer"></div>
+    <canvas id="songCanvas" width="200px" height="200px"></canvas>
+</div>
+
+<script>
+
+    var makeNoteSpan = function(note)
+    {
+        return $('<span>#b</span>')
+            .css('position', 'absolute')
+            .css('left', '0px')
+            .css('top', note.tune);
+    };
+
+    var makeChordSpan = function(chord)
+    {
+        var $span = $('<span style="position: relative;"></span>');
+
+        chord.noteList.map(makeNoteSpan).forEach(function($n) {$span.append($n)});
+
+        return $span;
+    };
+
+    var drawSheetMusic = function(song, contEl)
+    {
+        var staff = song.staffList[0];
+        staff.chordList.forEach(function(chord) {
+            $(contEl).append(makeChordSpan(chord));
+        });
+    };
+
+    var drawRandomStuffOnCanvas = function(canvas)
+    {
+        canvas.width  = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+
+        var g = canvas.getContext("2d");
+        g.beginPath();
+        g.moveTo(0,0);
+        g.lineTo(30,30);
+        g.stroke();
+    };
+
+    var javaGlobalVarsDefined = function()
+    {
+        song = JSON.parse(window.SHEET_MUSIC_FROM_JAVA);
+        drawRandomStuffOnCanvas(document.getElementById('songCanvas'));
+        drawSheetMusic(song, document.getElementById('chordSequenceContainer'));
+    };
+
+//    var onLoad = function () {
+//        setTimeout(javaGlobalVarsDefined,4);
+//    };
+//
+//    window.addEventListener('load', onLoad, false);
+
+    var firebugLoaded = function() {
+        console.log('loaded fire zhopa');
+        javaGlobalVarsDefined();
+    };
+
+</script>
