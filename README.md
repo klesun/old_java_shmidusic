@@ -1,8 +1,8 @@
 This program was rewritten in javascript - see https://github.com/klesun/midusica/tree/master/compose_midi
 
-I hated the messing with jre, downloading .jar-s, .bat-, .sh-s... I always dreamed user to be able just open a link in a browser and start composing. The dream came true. Thank you, chromium guys for implementing Web MIDI.
+I hated the messing with jre, downloading .jar-s, .bat-s, .sh-s... I always dreamed user to be able just open a link in a browser and start composing. The dream came true. Thank you, chromium guys for implementing Web MIDI.
 
-Not to say, doing UX with html is much more greatfull job, that with Swing-s handicaped JComponent-s
+Not to say, doing UX with html is much more greatfull job, than with Swing-s handicaped JComponent-s
 
 This repository has submodules - so please clone with "--recursive" argument!<br />
 I love lambdas, therefore you have to have Java 8 or higher!<br />
