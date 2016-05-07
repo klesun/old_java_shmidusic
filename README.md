@@ -1,4 +1,4 @@
-This program was rewritten in javascript - see https://github.com/klesun/midusica/tree/master/compose_midi
+This program was rewritten in javascript - see https://github.com/klesun/shmidusic.lv /entry/compose.html
 
 I hated the messing with jre, downloading .jar-s, .bat-s, .sh-s... I always dreamed user to be able just open a link in a browser and start composing. The dream came true. Thank you, chromium guys for implementing Web MIDI.
 
